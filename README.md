@@ -17,7 +17,9 @@ lecture PDFs, and a downloadable website bundle from the same sources.
 
 Install Typst **0.15.1**, a current stable Rust toolchain with Cargo, Python
 **3.9 or later**, Node.js **22 or later**, and Make. Initial builds download
-Cargo dependencies and the Typst packages referenced by the notes.
+Cargo dependencies and the Typst packages referenced by the notes. The optional
+EPUB build (`make epub`) also needs [uv](https://docs.astral.sh/uv/), or the
+`beautifulsoup4` and `lxml` Python packages.
 
 ```sh
 git clone git@github.com:gabrfarina/MIT-6.7980-Topics-in-Multiagent-Learning.git
@@ -53,6 +55,7 @@ make html       # regenerate the course website and PDFs
 make syllabus   # rebuild the syllabus, both PDF copies, and the index schedule
 make check      # run Python/Rust tests and validate the built site and math
 make bundle     # build, validate, and package the portable website
+make epub       # package the built website as dist/6.7980-notes.epub
 ```
 
 The syllabus is the source of truth for the schedule. When changing course

@@ -1,0 +1,370 @@
+body {
+    margin: 0 0.3em;
+    font-family: serif;
+    line-height: 1.45;
+}
+
+h1, h2, h3, h4 {
+    font-family: sans-serif;
+    line-height: 1.2;
+    page-break-after: avoid;
+    break-after: avoid;
+}
+
+a {
+    color: #1f4f82;
+    text-decoration: none;
+}
+
+code {
+    font-family: monospace;
+    font-size: 0.88em;
+    overflow-wrap: anywhere;
+}
+
+/* Title and cover pages */
+.cover {
+    margin: 0;
+    text-align: center;
+}
+
+.cover img {
+    max-width: 100%;
+    max-height: 100vh;
+}
+
+.title-page {
+    text-align: center;
+}
+
+.title-term {
+    margin: 2em 0 0.3em;
+    font-family: sans-serif;
+    font-size: 0.85em;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #8a1f2b;
+}
+
+.title-main {
+    margin: 0 0 0.6em;
+    font-size: 2em;
+}
+
+.title-authors {
+    font-size: 1.1em;
+}
+
+.title-image {
+    width: 7em;
+    max-width: 40%;
+    margin: 1em auto;
+}
+
+.title-overview,
+.title-source {
+    text-align: left;
+}
+
+.title-source {
+    margin-top: 2em;
+    font-size: 0.85em;
+    color: #555;
+}
+
+/* Contents */
+nav#toc ol {
+    list-style: none;
+    padding-left: 1.2em;
+}
+
+nav#toc > ol {
+    padding-left: 0;
+}
+
+nav#toc li {
+    margin: 0.25em 0;
+}
+
+/* Lecture header */
+p.lecture-kicker {
+    margin: 1em 0 0;
+    font-family: sans-serif;
+    font-size: 0.8em;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #8a1f2b;
+}
+
+h1.lecture-title {
+    margin: 0.2em 0 0.6em;
+    font-size: 1.6em;
+}
+
+.lecture-metadata {
+    margin-bottom: 1em;
+    font-size: 0.9em;
+}
+
+.lecture-metadata-item {
+    margin: 0.2em 0;
+}
+
+.lecture-metadata-label {
+    font-family: sans-serif;
+    font-size: 0.8em;
+    text-transform: uppercase;
+    color: #777;
+}
+
+.lecture-metadata p {
+    display: inline;
+    margin: 0 0 0 0.4em;
+}
+
+.lecture-acknowledgments {
+    margin: 1em 0;
+    font-size: 0.9em;
+    font-style: italic;
+}
+
+nav.toc {
+    margin: 1em 0 1.5em;
+    padding: 0.5em 0.8em;
+    border: 1px solid #ddd;
+    font-size: 0.9em;
+}
+
+nav.toc ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+nav.toc li {
+    margin: 0.15em 0;
+}
+
+nav.toc .toc-l2 {
+    padding-left: 1.2em;
+}
+
+nav.toc .toc-l3 {
+    padding-left: 2.4em;
+}
+
+.toc-no {
+    margin-right: 0.5em;
+    color: #777;
+}
+
+.toc a {
+    color: inherit;
+}
+
+/* Headings inside a lecture */
+.lecture-content h1.notes-heading,
+.endnotes h1 {
+    margin: 1.8em 0 0.6em;
+    font-size: 1.35em;
+}
+
+.lecture-content h2 {
+    margin: 1.5em 0 0.5em;
+    font-size: 1.15em;
+}
+
+.lecture-content h3 {
+    margin: 1.2em 0 0.4em;
+    font-size: 1em;
+}
+
+.secno {
+    margin-right: 0.35em;
+    font-weight: normal;
+    color: #777;
+}
+
+.paragraph-marker {
+    margin-right: 0.25em;
+    color: #555;
+}
+
+/* Theorem-like environments and proofs */
+.env {
+    margin: 1em 0;
+    padding: 0.5em 0.8em;
+    border: 1px solid #d6d3cc;
+    border-radius: 3px;
+}
+
+.env.statement {
+    background: #f6f4ef;
+}
+
+.env.proof {
+    padding: 0.1em 0 0.1em 0.8em;
+    border: 0;
+    border-left: 2px solid #aaa39b;
+    border-radius: 0;
+    background: none;
+}
+
+.env-heading {
+    margin: 0 0 0.3em;
+    font-family: sans-serif;
+}
+
+.env-number,
+.env-extra {
+    margin-left: 0.3em;
+}
+
+.env-body > :first-child {
+    margin-top: 0;
+}
+
+.env-body > :last-child {
+    margin-bottom: 0;
+}
+
+.env.algorithm {
+    padding: 0.2em 0;
+    border: 0;
+    border-top: 2px solid #111;
+    border-bottom: 2px solid #111;
+    border-radius: 0;
+    background: none;
+    text-align: left;
+}
+
+.env.algorithm .env-title {
+    margin-bottom: 0.3em;
+    padding: 0.2em 0;
+    border-bottom: 1px solid #111;
+    font-family: sans-serif;
+    font-weight: bold;
+}
+
+.pseudocode {
+    font-size: 0.95em;
+}
+
+.pseudo-line {
+    display: table;
+    width: 100%;
+}
+
+.pseudo-number {
+    display: table-cell;
+    width: 2em;
+    padding-right: 0.5em;
+    font-size: 0.85em;
+    text-align: right;
+    color: #777;
+}
+
+.pseudo-text {
+    display: table-cell;
+}
+
+/* Math */
+div.equation {
+    margin: 0.8em 0;
+    overflow-x: auto;
+    text-align: center;
+}
+
+math[display="block"] {
+    display: block;
+    margin: 0.4em 0;
+}
+
+/* Figures */
+figure {
+    margin: 1em 0;
+    text-align: center;
+}
+
+figcaption {
+    margin-top: 0.4em;
+    font-size: 0.92em;
+    text-align: left;
+}
+
+.figcaption-label {
+    font-family: sans-serif;
+    font-weight: bold;
+}
+
+img.lecture-image {
+    max-width: 100%;
+    height: auto;
+    vertical-align: middle;
+}
+
+.rendered-figure img.lecture-image,
+.wrapped-figure-media img.lecture-image {
+    display: block;
+    margin: 0 auto;
+}
+
+.wrapped-figure-media {
+    margin: 0.8em 0;
+    text-align: center;
+}
+
+/* Tables */
+table {
+    margin: 0.8em auto;
+    border-collapse: collapse;
+}
+
+.lecture-table th,
+.lecture-table td {
+    padding: 0.3em 0.5em;
+    vertical-align: middle;
+}
+
+.lecture-table th {
+    border-bottom: 1px solid #999;
+}
+
+.bibliography-table {
+    margin: 0;
+    font-size: 0.9em;
+}
+
+.bib-key {
+    padding-right: 0.6em;
+    font-family: sans-serif;
+    vertical-align: top;
+    white-space: nowrap;
+}
+
+.bib-entry {
+    padding-bottom: 0.4em;
+    vertical-align: top;
+}
+
+/* Notes */
+sup.footnote-ref {
+    font-size: 0.75em;
+    line-height: 0;
+}
+
+.endnotes {
+    margin-top: 2em;
+    border-top: 1px solid #ccc;
+    font-size: 0.9em;
+}
+
+.footnote-backref {
+    margin-right: 0.5em;
+    font-weight: bold;
+}
+
+.changelog {
+    font-size: 0.85em;
+    color: #555;
+}

@@ -1,6 +1,6 @@
 PYTHON ?= python3
 
-.PHONY: all html bundle syllabus check serve
+.PHONY: all html bundle epub syllabus check serve
 
 all: bundle
 
@@ -9,6 +9,10 @@ html:
 
 bundle:
 	$(PYTHON) scripts/build_site.py --zip
+
+# uv installs the script's dependencies; without it, beautifulsoup4 and lxml must already be installed.
+epub:
+	if command -v uv >/dev/null 2>&1; then uv run scripts/build_epub.py; else $(PYTHON) scripts/build_epub.py; fi
 
 syllabus:
 	typst compile --root . --font-path html-exporter/assets/fonts 'syllabus/6.7980 F26 Syllabus.typ' 'syllabus/6.7980 Fall 2026 Syllabus.pdf'
