@@ -183,9 +183,10 @@ def convert_lecture(lecture: dict, raw: bytes, slugs: set[str], math: MathQueue,
 
     raw = re.sub(r'href="data:image/([a-z0-9.+-]+);base64,([A-Za-z0-9+/=\s]+)"', lift, raw.decode('utf-8'))
     soup = BeautifulSoup(raw, 'lxml')
-    art = soup.select_one('article.lecture-content')
     slug = lecture['slug']
-
+    art = soup.select_one('article.lecture-content')
+    if art is None:
+        raise ValueError(f'{slug}.html: missing <article class="lecture-content">')
     for selector in ['nav.compact-course-nav', 'aside.lecture-citation-sidenote', 'span.footnote',
                      'span.citation-note', 'span.pseudo-guide', 'script', '[hidden]']:
         for el in art.select(selector):
