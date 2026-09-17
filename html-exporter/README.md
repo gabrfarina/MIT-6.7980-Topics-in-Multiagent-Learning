@@ -79,6 +79,14 @@ URL links on those labels also work in the text layer, including within scaled
 or rotated drawings. Link regions use the same nested transforms as the artwork;
 unlinked labels remain selectable text.
 
+Lecture HTML intercepts copy in `.lecture-content` and writes Markdown. Math
+uses TeX from `data-tex`, with inline vs display taken from `data-math-display`
+rather than on-screen size. Expressions that stayed as Typst SVG copy as
+`[math not available as TeX]`. The lecture rail, permalink icons, and citation
+sidenotes are omitted. **Enable agentic tools** (off until checked) exposes
+line ids on the page and includes the originating line id when copying a
+fragment, including a mid-paragraph selection.
+
 ## Checks
 
 ```sh
