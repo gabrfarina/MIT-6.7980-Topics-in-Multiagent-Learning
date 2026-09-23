@@ -27,8 +27,10 @@ first contribution.
 For editing and previewing notes, install [Git](https://git-scm.com/install/),
 the desktop version of [VS Code](https://code.visualstudio.com/), and its
 [Tinymist Typst extension](https://marketplace.visualstudio.com/items?itemName=myriad-dreamin.tinymist).
-Tinymist includes a Typst compiler and live preview; the full website build
-tools are only needed for the optional checks below.
+Tinymist includes a Typst compiler and live preview. The website build uses its
+own toolchain, needed only for the
+[optional command-line and website checks](#optional-command-line-and-website-checks)
+at the end of this guide.
 
 1. Sign in to GitHub and click **Fork** on the
    [course repository](https://github.com/gabrfarina/MIT-6.7980-Topics-in-Multiagent-Learning).
@@ -47,11 +49,13 @@ tools are only needed for the optional checks below.
 3. If `code .` is unavailable, launch VS Code and choose **File → Open Folder…**,
    then select the cloned repository. On macOS, you can also enable the terminal
    command using [VS Code's command-line setup](https://code.visualstudio.com/docs/setup/mac).
-4. Install **Tinymist Typst** when VS Code recommends it, or search for it in
-   the Extensions view. Its extension ID is `myriad-dreamin.tinymist`.
+4. If you have not installed **Tinymist Typst** yet, install it when VS Code
+   recommends it, or search for it in the Extensions view. Its extension ID is
+   `myriad-dreamin.tinymist`.
 
-Open the **whole repository folder** in VS Code so its checked-in settings take
-effect. They configure the paged preview and the bundled course fonts.
+Be sure to open the **whole repository folder** in VS Code so its checked-in
+settings take effect. They configure the paged preview and the bundled course
+fonts.
 
 ## Edit with a side-by-side preview
 
@@ -73,15 +77,18 @@ the notes. If compilation fails, open **View → Problems** and fix the first
 reported error. If the preview command is missing, check that Tinymist is
 enabled and a `.typ` source tab is active.
 
-When editing a shared helper, open the lecture that uses it and run
-**Typst: Pin Main** from the Command Palette to keep that lecture as the preview
-target. Run **Typst: Unpin Main** when you want to switch to another lecture.
+When editing a shared helper file (one of the files under
+[`content/meta/`](content/meta/) that lectures import), open a lecture that uses
+it and run **Typst: Pin Main** from the Command Palette to keep that lecture as
+the preview target. Run **Typst: Unpin Main** when you want to switch to
+another lecture.
 See [Tinymist's VS Code guide](https://myriad-dreamin.github.io/tinymist/frontend/vscode.html)
 for more editor options.
 
-New to Typst? Start with the [Typst tutorial](https://typst.app/docs/tutorial/)
-and use nearby text in the notes as a model for equations, examples, and proofs.
-Keep the existing imports and document header when editing a lecture.
+If you have not written Typst before, you can start with the
+[Typst tutorial](https://typst.app/docs/tutorial/) and use nearby text in the
+notes as a model for equations, examples, and proofs. Keep the existing imports
+and document header when editing a lecture.
 
 ## Find the right source file
 
@@ -105,13 +112,9 @@ without hardcoding their numbers.
 
 ## Submit your changes
 
-Preview the edited note and resolve any compilation errors. For mathematical
-changes, explain why the correction is valid; for layout or figure changes,
-include a screenshot of the result in the pull request.
-
-From the repository root, review and commit your changes. The example below
-assumes you edited `content/nfgs_nash.typ`; substitute your actual files and
-branch name.
+Preview the edited note and resolve any compilation errors. From the repository
+root, review and commit your changes. The example below assumes you edited
+`content/nfgs_nash.typ`; substitute your actual files and branch name.
 
 ```sh
 git status
@@ -121,11 +124,14 @@ git commit -m "Clarify the Nash equilibrium explanation"
 git push -u origin clarify-nash-equilibrium
 ```
 
-GitHub may ask you to authenticate when pushing over HTTPS. Then open your fork
-on GitHub, choose **Compare & pull request**, and set the base repository to
-`gabrfarina/MIT-6.7980-Topics-in-Multiagent-Learning`, branch `main`. Describe what
-changed, why, and how you checked it. Link any related issue, and state whether
-you checked the Tinymist preview, compiled a PDF, or ran the website checks.
+GitHub may ask you to authenticate when pushing over HTTPS. After the push
+completes, open your fork on GitHub, choose **Compare & pull request**, and set
+the base repository to `gabrfarina/MIT-6.7980-Topics-in-Multiagent-Learning`,
+branch `main`. Describe what changed, why, and how you checked it. For
+mathematical changes, explain why the correction is valid; for layout or
+figure changes, include a screenshot of the result. Link any related issue,
+and state whether you checked the Tinymist preview, compiled a PDF, or ran
+the website checks.
 Further commits pushed to the same branch update the pull request.
 
 ## Optional command-line and website checks
