@@ -20,7 +20,7 @@ The standard representation of an imperfect-information extensive-form game is t
   ]
 ] <ex:kuhn>
 
-#paragraph-marker(shape: "triangle-up") *The rules of Kuhn poker*~~ In the game tree of Kuhn poker, the root history of the tree (the first move in the game) belongs to the _nature player_ $c$. It models a dealer that privately deals one card to each player from a shuffled deck containing cards Jack, Queen, King. The actions of the nature player correspond to the six possible assignments of two cards from the deck, which are annotated on the edges; for example, the leftmost edge $upsans(J K)$ corresponds to the case in which Player 1 is dealt a Jack and Player 2 is dealt a King. Since the deck is shuffled, each of the six actions are selected with probability 1/6 by the nature player. No matter the action selected by the dealer, the game transitions to a history of Player 1, which marks the beginning of what in poker is called a “betting round”. First, Player 1 decides to either check (continue without betting any money) or bet \$1. Then,
+#paragraph-marker(shape: "triangle-up") *The rules of Kuhn poker*~~ In the game tree of Kuhn poker, the root history of the tree (the first move in the game) belongs to the _nature player_ $c$. It models a dealer that privately deals one card to each player from a shuffled deck containing cards Jack, Queen, King. The actions of the nature player correspond to the six possible assignments of two cards from the deck, which are annotated on the edges; for example, the leftmost edge $upsans("JK")$ corresponds to the case in which Player 1 is dealt a Jack and Player 2 is dealt a King. Since the deck is shuffled, each of the six actions are selected with probability 1/6 by the nature player. No matter the action selected by the dealer, the game transitions to a history of Player 1, which marks the beginning of what in poker is called a “betting round”. First, Player 1 decides to either check (continue without betting any money) or bet \$1. Then,
 
 - If Player 1 checks, Player 2 can either check, or bet \$1.
   - If Player 2 checks, the game terminates with a showdown: the player with the higher card receives from the other player whatever amount the other player bet, plus an ante amount of \$1.
@@ -48,7 +48,7 @@ To model imperfect information, the histories of each player $i in \[ n \]$ are 
 ]
 
 #example[
-  In Kuhn poker, each player observes their own private card and the actions of the opponent, but not the opponent's private card. The twelve information sets, six for Player 1 denoted $upsans(A)$ through $upsans(F)$, and six for Player 2 denoted $upsans(P)$ through $upsans(U)$, reflect this partial information. For example, Player 1's histories following actions $upsans(Q K)$ and $upsans(Q J)$ of the nature player (the dealer) are part of the same information set $upsans(B)$, in that Player 1 cannot distinguish between the two histories, having observed only their private $upsans(Q u e e n)$ card. As another example, Player 2's information set $upsans(P)$ captures the uncertainty the player has on the underlying history after having observed a private $upsans(K i n g)$ card, and a check from Player 1.
+  In Kuhn poker, each player observes their own private card and the actions of the opponent, but not the opponent's private card. The twelve information sets, six for Player 1 denoted $upsans(A)$ through $upsans(F)$, and six for Player 2 denoted $upsans(P)$ through $upsans(U)$, reflect this partial information. For example, Player 1's histories following actions $upsans("QK")$ and $upsans("QJ")$ of the nature player (the dealer) are part of the same information set $upsans(B)$, in that Player 1 cannot distinguish between the two histories, having observed only their private $upsans("Queen")$ card. As another example, Player 2's information set $upsans(P)$ captures the uncertainty the player has on the underlying history after having observed a private $upsans("King")$ card, and a check from Player 1.
 ]
 
 == Perfect recall <sec-perfect-recall>
@@ -66,11 +66,11 @@ The game tree representation introduced above provides a description of the glob
 #example[Player 1's decision process in Kuhn poker][
   As an example, consider Player 1 in Kuhn poker @ex:kuhn. From the player's point of view, playing the game could be summarized as follows:
 
-  - As soon as the game starts, the player observes a private card that has been dealt to them; the set of possible signals is ${upsans(J a c k) \, upsans(Q u e e n) \, upsans(K i n g)}$.
-  - No matter the card observed, the player now needs to select one action from the set ${upsans(c h e c k) \, upsans(b e t)}$.
+  - As soon as the game starts, the player observes a private card that has been dealt to them; the set of possible signals is ${upsans("Jack") \, upsans("Queen") \, upsans("King")}$.
+  - No matter the card observed, the player now needs to select one action from the set ${upsans("check") \, upsans("bet")}$.
 
-    - If the player $upsans(b e t s)$, the player does not have a chance to act further
-    - Otherwise, if the player $upsans(c h e c k s)$, the player will then observe whether the opponent $upsans(c h e c k s)$ (at which point the interaction terminates) or $upsans(b e t s)$. In the latter case, a new decision needs to be made, between $upsans(f o l d i n g)$ the hand, or $upsans(c a l l i n g)$ the bet. In either case, after the action has been selected, the interaction terminates.
+    - If the player $upsans("bets")$, the player does not have a chance to act further
+    - Otherwise, if the player $upsans("checks")$, the player will then observe whether the opponent $upsans("checks")$ (at which point the interaction terminates) or $upsans("bets")$. In the latter case, a new decision needs to be made, between $upsans("folding")$ the hand, or $upsans("calling")$ the bet. In either case, after the action has been selected, the interaction terminates.
 
   By arranging the structure of decisions and observations along a tree as follows, we obtain the tree-form decision process for Player 1.
 
@@ -91,7 +91,7 @@ The set of decision nodes $cal(J)_i$ of the player's TFDP coincides with the set
   Consider Kuhn poker from the point of view of Player~1 (@fig:kuhn-tfdp).
 
   - The trace of any history in $upsans(A)$ is the sequence $\( upsans(A) \)$.
-  - The trace of any history in $upsans(E)$ is the sequence $(upsans(B) \, upsans(c h e c k) \, upsans(E))$.
+  - The trace of any history in $upsans(E)$ is the sequence $(upsans(B) \, upsans("check") \, upsans(E))$.
 
   From the point of view of Player~2, the trace of any history in $upsans(R)$ is the sequence $\( upsans(R) \)$.
 ]
