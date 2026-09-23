@@ -64,7 +64,11 @@ fonts.
 2. With the `.typ` editor focused, press **Ctrl+K, then V** on Windows/Linux or
    **Cmd+K, then V** on macOS to open Tinymist's preview. You can also open the
    Command Palette (**Ctrl+Shift+P** / **Cmd+Shift+P**), search for
-   **Typst Preview**, and choose the preview in an editor tab.
+   **Typst Preview**, and choose the preview in an editor tab. Alternatively,
+   the editor's title bar has a preview button, which appears only while a
+   `.typ` file is the active editor:
+
+   ![The Tinymist preview button in the VS Code editor title bar](docs/assets/tinymist-preview-button.png)
 3. Keep the source on the left and the preview on the right. If they open in
    the same editor group, drag the preview tab to the right edge of the editor
    until a second group appears, then drop it.
