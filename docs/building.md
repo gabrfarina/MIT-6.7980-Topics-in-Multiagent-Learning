@@ -52,12 +52,18 @@ See #lecture-link("learning_intro", <sec-learning-zero-sum>)[the self-play proof
 By #lecture-link("learning_intro", <thm-regret-gap>)[], the saddle-point gap vanishes.
 // Renders: By Theorem L4.9, ...
 
-// Use none to refer to a whole lecture, including its number and title:
-#lecture-link("kernelized", none)[] develops this construction.
+// Omit the label and body to link the whole lecture, including its number and title:
+#lecture-link("efg_intro")
+// Renders: Lecture 7, “Modeling extensive-form games”.
+
+#lecture-link("kernelized") develops this construction.
 // Renders: Lecture 16, “High-dimensional games” develops this construction.
 ```
 
 Both styles export `lecture-link` from `content/meta/lecture-links.typ`.
+The older `#lecture-link("efg_intro", none)[]` form remains supported.
+The body is optional for labeled links too: `#lecture-link("learning_intro", <thm-regret-gap>)`.
+Use `#lecture-link("efg_intro")[the modeling notes]` to add descriptive text.
 Use the source basename and an authored destination label consisting of letters,
 digits, hyphens, or underscores, starting with a letter. Keep the label with its
 topic when moving a section or result. The helper adds the numbered reference

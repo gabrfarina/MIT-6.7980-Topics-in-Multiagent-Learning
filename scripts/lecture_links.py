@@ -7,8 +7,8 @@ import re
 
 
 LINK = re.compile(
-    r'#lecture-link\(\s*"([a-z][a-z0-9_]*)"\s*,\s*'
-    r'(?:<([A-Za-z][A-Za-z0-9_-]*)>|none)\s*\)\s*\[')
+    r'#lecture-link\s*\(\s*"([a-z][a-z0-9_]*)"\s*'
+    r'(?:,\s*(?:<([A-Za-z][A-Za-z0-9_-]*)>|none)\s*)?\)')
 DESTINATION_LABEL = re.compile(
     r'(?:^={1,6} [^\n]*?|\])\s*(?:<([A-Za-z][A-Za-z0-9_-]*)>'
     r'|#label\("([A-Za-z][A-Za-z0-9_-]*)"\))', re.M)
@@ -33,7 +33,7 @@ def validate_lecture_links(root: Path, config: dict) -> int:
         links = list(LINK.finditer(text))
         if len(links) != len(re.findall(r'#lecture-link\s*\(', text)):
             raise ValueError(f'{source}: use lecture-link("note", <label>)[text] '
-                             'or lecture-link("note", none)[] with literal destinations.')
+                             'or lecture-link("note") with literal destinations.')
         for match in links:
             target, anchor = match.groups()
             prefix = f'{source}:{text[:match.start()].count(chr(10)) + 1}'
