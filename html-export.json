@@ -15,7 +15,11 @@
     "overview": "slides/L00_course_intro.pdf",
     "nash": "slides/L01_nash_equilibrium.pdf",
     "brouwer": "slides/L02_sperner.pdf",
-    "nash-properties": "slides/L03_nash_properties.pdf"
+    "nash-properties": "slides/L03_nash_properties.pdf",
+    "learning-foundations": "slides/L04_learning_in_games.pdf"
+  },
+  "interactive_slides": {
+    "learning-foundations": "slides/L04_learning_in_games.html"
   },
   "notes": [
     {

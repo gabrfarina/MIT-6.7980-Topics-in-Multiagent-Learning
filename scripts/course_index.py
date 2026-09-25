@@ -8,7 +8,8 @@ import re
 
 
 from course_data import read_course_data, with_course_data, paragraphs, rich_html
-from public_files import copy_public_files, note_outputs, slide_output, validate_inputs
+from public_files import (copy_public_files, interactive_slide_output, note_outputs,
+                          slide_output, validate_inputs)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -159,11 +160,17 @@ def render_index(config: dict, modules: list[dict], *, stylesheet_version: str =
                 f'aria-label="Read notes: {escape(c["short_title"], quote=True)}">HTML</a>'
                 f'<a class="pdf-link" href="{note_outputs(c)["pdf"]}" '
                 f'aria-label="PDF: {escape(c["short_title"], quote=True)}">PDF</a>' for c in notes)
-            slides = config.get('slides', {}).get(row['id'])
-            if slides:
-                slides_href = escape(slide_output(slides), quote=True)
+            interactive = config.get('interactive_slides', {}).get(row['id'])
+            if interactive:
+                slides_href = escape(interactive_slide_output(interactive) + '?overview=1', quote=True)
                 links += (f'<a class="pdf-link slides-link" href="{slides_href}" '
-                          f'aria-label="Slides (PDF): {escape(row["title"], quote=True)}">Slides (PDF)</a>')
+                          f'aria-label="Slides: {escape(row["title"], quote=True)}">Slides</a>')
+            else:
+                slides = config.get('slides', {}).get(row['id'])
+                if slides:
+                    slides_href = escape(slide_output(slides), quote=True)
+                    links += (f'<a class="pdf-link slides-link" href="{slides_href}" '
+                              f'aria-label="Slides (PDF): {escape(row["title"], quote=True)}">Slides (PDF)</a>')
             if not links:
                 links = ('<span class="notes-pending">Not yet posted</span>'
                          if number != 0 and module['title'] != 'Project work and presentations' else '')

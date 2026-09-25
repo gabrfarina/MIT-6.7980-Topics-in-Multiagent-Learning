@@ -61,6 +61,77 @@ class PublicFilesTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'inside the course directory'):
             self.validate()
 
+    def interactive(self, markup='<html><head><style>body { color: black }</style></head>'
+                                '<body><script>const slide = 1;</script></body></html>'):
+        self.config['interactive_slides'] = {'overview': 'slides/intro.html'}
+        path = self.root / 'slides/intro.html'
+        path.write_text(markup)
+        return path
+
+    def test_interactive_decks_copy_once_and_preserve_pdf_slides(self):
+        source = self.interactive('<html><head><style>@font-face { src: url(data:font/woff2;base64,AA) }</style>'
+                                  '</head><body><a href="https://example.com/notes">Notes</a>'
+                                  '<img src="data:image/png;base64,AA"></body></html>')
+        self.config['interactive_slides']['nash'] = 'slides/intro.html'
+        self.validate()
+        destination = self.root / 'output'
+        copy_public_files(self.config, self.root, destination)
+        required = required_files(self.config)
+        self.assertTrue({'slides/intro.html', 'slides/intro.pdf'} <= required)
+        self.assertEqual((destination / 'slides/intro.html').read_bytes(), source.read_bytes())
+        validate_public_path('slides/intro.html', required)
+
+    def test_interactive_schema_ids_paths_and_collisions_fail_before_copying(self):
+        self.interactive()
+        cases = [
+            (['slides/intro.html'], 'must map'),
+            ({'overview': 'slides/intro.js'}, 'standalone HTML'),
+            ({'missing': 'slides/intro.html'}, 'Unknown slide lecture IDs'),
+            ({'overview': '../intro.html'}, 'inside the course directory'),
+            ({'overview': str(self.root / 'slides/intro.html')}, 'inside the course directory'),
+            ({'overview': 'slides/missing.html'}, 'Missing course source'),
+            ({'overview': 'slides/intro.html', 'nash': 'other/INTRO.html'}, 'Colliding slide output'),
+        ]
+        for mapping, message in cases:
+            with self.subTest(mapping=mapping), self.assertRaisesRegex(ValueError, message):
+                self.config['interactive_slides'] = mapping
+                self.validate()
+
+    def test_interactive_source_symlink_cannot_escape_course_directory(self):
+        path = self.interactive()
+        path.unlink()
+        path.symlink_to(ROOT / 'html-export.json')
+        with self.assertRaisesRegex(ValueError, 'inside the course directory'):
+            self.validate()
+
+    def test_interactive_assets_must_be_embedded(self):
+        for resource in ('<script src="deck.js"></script>', '<link rel="stylesheet" href="deck.css">',
+                         '<img src="https://example.com/image.png">',
+                         '<style>body { background: url(../image.png) }</style>',
+                         '<style>@import "deck.css";</style>'):
+            with self.subTest(resource=resource), self.assertRaisesRegex(ValueError, 'Interactive slides must'):
+                self.interactive('<html><body>' + resource + '</body></html>')
+                self.validate()
+        self.interactive('<h1>Just a fragment</h1>')
+        with self.assertRaisesRegex(ValueError, 'complete HTML document'):
+            self.validate()
+
+    def test_speaker_notes_cannot_enter_the_public_slide_build(self):
+        for leak in ('<aside class="notes">Private cue</aside>',
+                     '<section data-notes="Private cue"></section>',
+                     '<script id="slide-data" type="application/json">'
+                     '[{"id":"one","notes":"Private cue"}]</script>',
+                     '<script id="slide-data" type="application/json">'
+                     '[{"id":"one","source":"Private outline"}]</script>'):
+            with self.subTest(leak=leak), self.assertRaisesRegex(ValueError, 'speaker notes'):
+                self.interactive('<html><body>' + leak + '</body></html>')
+                self.validate()
+        self.interactive('<html><body><aside class="notes">Private cue</aside></body></html>')
+        destination = self.root / 'output'
+        with self.assertRaisesRegex(ValueError, 'speaker notes'):
+            copy_public_files(self.config, self.root, destination)
+        self.assertFalse(destination.exists())
+
     def test_note_filename_collision_fails_before_compilation(self):
         self.config['notes'].append({'source': 'other/TOPIC.typ'})
         with self.assertRaisesRegex(ValueError, 'Colliding note output'):

@@ -14,12 +14,16 @@
 !/docs/
 !/slides/
 !/.vscode/
-# Publish configured course slide PDFs, while keeping editable decks private.
+# Publish configured course slides, while keeping editable deck sources private.
 /slides/*
 !/slides/L00_course_intro.pdf
 !/slides/L01_nash_equilibrium.pdf
 !/slides/L02_sperner.pdf
 !/slides/L03_nash_properties.pdf
+!/slides/L04_learning_in_games.pdf
+!/slides/L04_learning_in_games.html
+!/slides/L05_learning_in_games.pdf
+!/slides/L05_learning_in_games.html
 
 # Build products, editor state, and local secrets.
 **/target/

@@ -135,7 +135,7 @@ class CourseIndexTests(unittest.TestCase):
     def test_supplementary_readings_follow_the_suggested_sequence(self):
         readings = [c for c in self.config['notes'] if c.get('supplementary')]
         expected = [
-            ('S1', 'nash_algorithms', 'nash', 1),
+            ('S1', 'nash_algorithms', 'brouwer', 2),
             ('S2', 'eah', 'nash-properties', 3),
             ('S3', 'phi_regret', 'learning-foundations', 4),
             ('S4', 'learning2', 'learning-algorithms', 5),
@@ -151,15 +151,15 @@ class CourseIndexTests(unittest.TestCase):
             self.assertRegex(html, f'href="#lecture-{id}"[^>]*>L{number:02}</a>')
 
     def test_reading_points_follow_topics_when_lectures_move(self):
-        first, second = self.lecture_block('nash'), self.lecture_block('efg-learning')
+        first, second = self.lecture_block('brouwer'), self.lecture_block('efg-learning')
         modules = self.evaluate(self.syllabus.replace(first, 'MARKER').replace(second, first).replace('MARKER', second))
         resolved = resolve_readings(self.config, modules)
         after = {c['supplementary_id']: c['suggested_after']['number']
                  for c in resolved['notes'] if c.get('supplementary')}
         self.assertEqual(after['nash-algorithms'], 8)
-        self.assertEqual(after['perfection'], 1)
+        self.assertEqual(after['perfection'], 2)
         html = render_index(self.config, modules)
-        self.assertRegex(html, r'href="#lecture-nash"[^>]*>L08</a>')
+        self.assertRegex(html, r'href="#lecture-brouwer"[^>]*>L08</a>')
 
     def test_supplementary_order_and_titles_come_from_the_syllabus(self):
         config = copy.deepcopy(self.config)
@@ -259,9 +259,23 @@ class CourseIndexTests(unittest.TestCase):
         modules = self.evaluate(self.syllabus.replace(first, 'MARKER').replace(second, first).replace('MARKER', second))
         config = copy.deepcopy(self.config)
         config['slides'] = {'nash': 'slides/L00_course_intro.pdf'}
+        config['interactive_slides'] = {'nash': 'slides/interactive.html'}
         page = render_index(config, modules)
         row = re.search(r'<tr class="schedule-row"[^>]*>\s*<th[^>]*>08</th>.*?</tr>', page, re.S).group()
-        self.assertIn('slides/L00_course_intro.pdf', row)
+        self.assertIn('href="slides/interactive.html?overview=1"', row)
+        self.assertIn('class="pdf-link slides-link"', row)
+        self.assertIn('>Slides</a>', row)
+        self.assertNotIn('slides/L00_course_intro.pdf', row)
+        self.assertNotIn('Not yet posted', row)
+
+    def test_only_l04_links_the_new_interactive_deck(self):
+        page = render_index(self.config, self.modules)
+        l04 = re.search(r'<tr class="schedule-row" id="lecture-learning-foundations">.*?</tr>', page, re.S).group()
+        l05 = re.search(r'<tr class="schedule-row" id="lecture-learning-algorithms">.*?</tr>', page, re.S).group()
+        self.assertIn('class="pdf-link slides-link" href="slides/L04_learning_in_games.html?overview=1"', l04)
+        self.assertIn('>Slides</a>', l04)
+        self.assertNotIn('slides/L04_learning_in_games.pdf', l04)
+        self.assertNotIn('slides-link', l05)
 
     def test_new_unsupported_prose_does_not_silently_disappear(self):
         with self.assertRaisesRegex(ValueError, 'Unsupported course prose element'):
