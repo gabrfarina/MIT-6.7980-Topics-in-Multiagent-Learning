@@ -99,7 +99,9 @@ $ vx^(*) in "arg max"_(vx in Delta (A_1)) min_(vy in Delta (A_2)) vx^top U_1 v
 
 The key insight is that this problem can be rewritten as
 
-$ cases(max_v v, upright("s.t.") v <= vx^top U_1 ve_(a_2) quad forall a_2 in A_2, upright("") vone^top vx = 1, vx >= 0 .) $
+$
+  cases(max_v v, upright("s.t.") v <= vx^top U_1 ve_(a_2) quad forall a_2 in A_2, upright("") vone^top vx = 1, vx >= 0 .)
+$
 
 which is a linear program with a linear number of constraints in the number of actions of Player 2. We can use any linear programming solver to find such a solution. The #lecture-link("learning_intro", <sec-learning-zero-sum>)[self-play construction] gives more scalable methods to compute maxmin strategies from repeated play.
 
@@ -287,7 +289,7 @@ The concept of _correlated equilibrium_ is an intermediate relaxation between Na
 ] <def-ce>
 
 #remark[
-  A CCE is a special case of a CE, where the functions $phi.alt_i$ considered are only _constant_ functions. Furthermore, it is not hard to show from expanding the definition that any Nash equilibrium is a CE. Thus, the set of CEs is a superset of the set of Nash equilibria and a subset of the set of CCEs.
+  A CCE is a relaxation of a CE, whereby the functions $phi.alt_i$ considered are only _constant_ functions. Furthermore, it is not hard to show from expanding the definition that any Nash equilibrium is a CE. Thus, the set of CEs is a superset of the set of Nash equilibria and a subset of the set of CCEs.
 ]
 
 All remarks made about the computation of CCEs in normal-form games apply to CEs as well. In particular, the set of CEs is a convex polytope, and a CE can be computed in polynomial time using linear programming.
