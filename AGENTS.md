@@ -25,3 +25,5 @@ Reflect every user-requested course change in both the current index page and th
 - Label ratings as `Elo` in the FoW interface; use standard per-team Elo ratings with K=8 and the backend API identifier `elo`. Rank by Elo, with no uncertainty or lower-bound score. Select the first available team uniformly at random, then its opponent with weights proportional to the standard deviation of the Elo expected score, and play both colors. Every rated game counts across versions.
 
 - FoW match assignments have one global 15-second minimum gap, including return-color games and retries; there is no per-team scheduling cooldown. Leaderboard W/L/D and game counts show the active version; matrix W/L/D shows games between both active versions. Elo remains a floating-point, lifetime team rating.
+
+- The FoW team named `Baseline` is a fixed Elo reference at 1000: never update its rating, always expose 1000, and use 1000 when calculating opponents’ expected scores. Its W/L/D and game counts still update normally. Other teams retain K=8 lifetime ratings.
