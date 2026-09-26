@@ -598,6 +598,69 @@ figure[id],
     counter-reset: algorithm
 }
 
+.agentic-tools-control {
+    font-family: var(--sans);
+    font-size: .82rem;
+    color: var(--muted);
+    margin: 0 0 1.15rem
+}
+
+.agentic-tools-control label {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    cursor: pointer
+}
+
+.agentic-tools-control input {
+    margin: 0
+}
+
+.agentic-tools-control input:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px
+}
+
+.agentic-tools-hint {
+    margin: .45rem 0 0;
+    font-size: .76rem;
+    line-height: 1.4
+}
+
+.line-id-label {
+    display: inline-block;
+    margin-right: .45rem;
+    font-family: var(--sans);
+    font-size: .68rem;
+    font-weight: 700;
+    line-height: 1.4;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    user-select: none;
+    vertical-align: .12em
+}
+
+@media (min-width: 1401px) {
+    .lecture-content [data-line-id] {
+        position: relative
+    }
+
+    .lecture-content .line-id-label {
+        position: absolute;
+        right: 100%;
+        top: .2em;
+        margin-right: 2.35rem;
+        width: 2.4rem;
+        text-align: right;
+        vertical-align: baseline
+    }
+
+    .lecture-content .notes-heading > .line-id-label,
+    .lecture-content .lecture-title > .line-id-label {
+        top: .35em
+    }
+}
+
 .lecture-kicker {
     margin: 0 0 .25rem;
     margin-block-start: 0;
