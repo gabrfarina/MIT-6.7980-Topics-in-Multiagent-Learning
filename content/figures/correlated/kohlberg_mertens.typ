@@ -6,6 +6,7 @@
  */
 
 #import "../libs/typography.typ": figure-font, figure-style
+#import "../../meta/typography.typ": course-sans
 #set text(font: figure-font)
 #show: figure-style
 #import "../libs/nash.typ": brown
@@ -720,7 +721,7 @@
       angle: 360.0deg,
     )
     draw-text(
-      [$x_#text(blue, font: "Frutiger", "A")$],
+      [$x_#course-sans(fill: blue, "A")$],
       dx: gdx + 2.9816697963147716in,
       dy: gdy + 4.287390000073435in,
       size: 10.0pt,
@@ -923,7 +924,7 @@
       angle: 360.0deg,
     )
     draw-text(
-      [$x_#text(blue, font: "Frutiger", "B")$],
+      [$x_#course-sans(fill: blue, "B")$],
       dx: gdx + 0.7282434421989612in,
       dy: gdy + 3.7227842012593335in,
       size: 10.0pt,
@@ -1126,7 +1127,7 @@
       angle: 360.0deg,
     )
     draw-text(
-      [$y_#text(brown, font: "Frutiger", "A")$],
+      [$y_#course-sans(fill: brown, "A")$],
       dx: gdx + 0.26653865666086374in,
       dy: gdy + 1.8274528599766917in,
       size: 10.0pt,

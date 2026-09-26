@@ -3,7 +3,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from public_files import (COURSE_FIGURES, copy_public_files, note_outputs,
+from public_files import (COURSE_FIGURES, copy_font_assets, copy_public_files, note_outputs,
                           required_files, validate_inputs, validate_public_path)
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -29,6 +29,20 @@ class PublicFilesTests(unittest.TestCase):
 
     def validate(self):
         validate_inputs(self.config, self.modules, self.root)
+
+    def test_font_update_removes_retired_assets_and_keeps_license(self):
+        source = self.root / 'html-exporter/assets/fonts'
+        source.mkdir(parents=True)
+        (source / 'SourceSans3-Bold.ttf').write_bytes(b'new font')
+        (source / 'OFL.txt').write_text('font license')
+        target = self.root / 'output/assets/fonts'
+        target.mkdir(parents=True)
+        (target / 'retired-font.ttf').write_bytes(b'old font')
+        copy_font_assets(self.root, self.root / 'output')
+        self.assertEqual({p.name for p in target.iterdir()}, {'SourceSans3-Bold.ttf', 'OFL.txt'})
+        self.assertEqual((target / 'OFL.txt').read_text(), 'font license')
+        for name in ('assets/fonts/OFL.txt', 'assets/fonts/README.md'):
+            validate_public_path(name, set())
 
     def test_unknown_lecture_id_fails_before_copying(self):
         self.config['slides'] = {'typo': 'slides/intro.pdf'}

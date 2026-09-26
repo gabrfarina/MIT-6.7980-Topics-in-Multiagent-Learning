@@ -96,8 +96,20 @@ reproducible builds.
 and MIT license. The course builder rewrites the standalone converter's CDN
 links to these local assets. See the [KaTeX browser documentation](https://katex.org/docs/browser).
 
-`assets/fonts/` contains genuine Frutiger Regular (400) and Bold (700) faces
-from the existing notes. Environment names and numbers, including generated
+`assets/fonts/` contains vendored Source Sans 3 Regular (400) and Bold (700),
+licensed under SIL OFL 1.1. Typst embeds the static TTF faces into PDFs;
+browsers load the matching losslessly compressed `-web.woff` files from the
+same site. No external font service is needed. See the bundled
+[license](assets/fonts/OFL.txt) and [provenance](assets/fonts/README.md).
+Only static faces belong in this directory: adding a variable face can change
+Typst's selection for nested bold text.
+
+Regenerate the checked-in webfonts and their CSS cache versions with
+`python3 scripts/build_web_fonts.py` (requires `fontTools`). Normal site builds
+copy the checked-in assets and do not require that Python package. WOFF uses
+lossless zlib compression and preserves the fonts' original rendering tables.
+
+Environment names and numbers, including generated
 algorithm counters, proof labels, and figure/table caption labels, request 600
 through `--environment-label-weight`. Browsers currently match this to the
 available Bold face; add a genuine Semibold face with a 600 `@font-face` rule

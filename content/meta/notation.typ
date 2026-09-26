@@ -1,7 +1,8 @@
 // Course-wide mathematical notation. Both note styles re-export this file.
 // v* denotes bold vectors, c* calligraphic sets, and mat* upright bold matrices.
 // HTML encodings implement the same conventions as the native PDF forms.
-#let sf = text.with(font: "Frutiger")
+#import "typography.typ": course-sans
+#let sf = course-sans
 #let upsans = it => $upright(sans(#it))$
 #let spade = sym.suit.spade
 

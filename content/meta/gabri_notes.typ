@@ -9,6 +9,7 @@
 #import "notation.typ": *
 #import "markers.typ": paragraph-marker
 #import "lecture-links.typ": lecture-link, lecture-title
+#import "typography.typ": course-sans-font
 
 #let lecnum = state("lecnum", none)
 #let lecture-number-label(value) = if str(value).starts-with("S") { str(value) } else { "L" + str(value) }
@@ -96,7 +97,7 @@
       link(target.location())[#if supplement not in (none, [], "", text("")) { [#supplement~] }#number.#n]
     } else { it }
   }
-  show strong: set text(font: "Frutiger", weight: "bold")
+  show strong: set text(font: course-sans-font, weight: "bold")
   show heading: it => {
     // More space above than below connects each heading to its following text.
     // Use block spacing so adjacent gaps collapse and page tops stay aligned.

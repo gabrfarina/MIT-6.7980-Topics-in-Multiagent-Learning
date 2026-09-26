@@ -81,7 +81,7 @@ It is clear that a dominant-strategy equilibrium is a special case of a Nash equ
 #math.equation(
   block: true,
   numbering: (..nums) => "(Dominant-strategy eq.)",
-  $forall i in \[ n \] \, vx'_i in Delta (A_i) \, vx'_(- i) in Delta (A_(- i)) \, quad u_i (vx'_i \, vx'_(- i)) <= u_i (vx_i \, vx'_(- i)) .$.body,
+  $forall i in \[ n \] \, vx'_i in Delta (A_i) \, vx'_(- i) in Delta (A_(- i)) \, \ u_i (vx'_i \, vx'_(- i)) <= u_i (vx_i \, vx'_(- i)) .$.body,
 )
 
 (note the stronger quantifiers.) As we will discuss more in depth shortly, in two-player zero-sum games, it turns out that Nash equilibrium and maxmin equilibrium are equivalent.

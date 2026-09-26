@@ -17,7 +17,7 @@ from build_figures import HTML_FIGURES, build_figures
 from build_cache import current, fingerprint, save, tool_signature, write_if_changed
 from course_index import load_course, render_index
 from lecture_links import validate_lecture_links
-from public_files import copy_public_files, note_outputs, required_files, validate_public_path
+from public_files import copy_font_assets, copy_public_files, note_outputs, required_files, validate_public_path
 
 ROOT = Path(__file__).resolve().parents[1]
 STAGE = ROOT / '.build' / 'site'
@@ -176,8 +176,10 @@ def make_index(config: dict, schedule: list[dict], *, force: bool = False,
                tools: dict | None = None) -> None:
     syllabus = ROOT / config['site']['syllabus_source']
     stylesheet_version = sha256((STAGE / 'assets/course.css').read_bytes()).hexdigest()[:12]
+    notes_version = sha256((STAGE / 'assets/notes.css').read_bytes()).hexdigest()[:12]
     (STAGE / 'index.html').write_text(render_index(
-        config, schedule, stylesheet_version=stylesheet_version))
+        config, schedule, stylesheet_version=stylesheet_version,
+        notes_stylesheet_version=notes_version))
     copy_public_files(config, ROOT, STAGE)
     # Cache the linked syllabus with its actual imports and image dependencies.
     output = ROOT / '.build/syllabus/syllabus.pdf'
@@ -250,6 +252,7 @@ def main() -> None:
     if missing := required - {entry['output'] for entry in entries}:
         raise ValueError('Incomplete site: ' + ', '.join(sorted(missing)))
     shutil.copytree(STAGE, ROOT / 'html', dirs_exist_ok=True)
+    copy_font_assets(ROOT, ROOT / 'html')
     # Retire downloads from earlier builds, including in the local preview.
     legacy_source = ROOT / 'html/source'
     if legacy_source.is_symlink():

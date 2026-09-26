@@ -1,4 +1,5 @@
 #import "@preview/cetz:0.4.1"
+#import "../content/meta/typography.typ": course-sans
 
 #let item(title, body) = {
   set par(hanging-indent: 1cm)
@@ -9,10 +10,9 @@
 }
 
 #let mybox(body, bg: black, fg: white) = {
-  box(baseline: 1mm, inset: 1mm, fill: bg, radius: 1mm)[#text(
+  box(baseline: 1mm, inset: 1mm, fill: bg, radius: 1mm)[#course-sans(
     weight: "bold",
     fill: fg,
-    font: "Frutiger",
     size: 7.5pt,
   )[#upper[#body]]]
 };

@@ -109,8 +109,8 @@ impl TextLayer {
             return;
         }
         let info = text.font.font().info();
-        let family = if info.family == "Frutiger" {
-            "'Frutiger Notes', Frutiger, sans-serif"
+        let family = if info.family == "Source Sans 3" {
+            "'Source Sans 3', sans-serif"
         } else {
             &info.family
         };
@@ -238,7 +238,7 @@ mod tests {
     fn text(value: &str) -> TextItem {
         let size = Abs::pt(12.0);
         let font = Font::new(
-            Bytes::new(include_bytes!("../assets/fonts/Frutiger-Regular.ttf").to_vec()),
+            Bytes::new(include_bytes!("../assets/fonts/SourceSans3-Regular.ttf").to_vec()),
             0,
         )
         .unwrap()
@@ -281,7 +281,7 @@ mod tests {
         assert!(
             layer
                 .output
-                .contains("font-family=\"&apos;Frutiger Notes&apos;, Frutiger, sans-serif\"")
+                .contains("font-family=\"&apos;Source Sans 3&apos;, sans-serif\"")
         );
         assert!(layer.output.contains("pointer-events:all"));
         assert_eq!(escape("a\u{0}\u{8}\u{fffe}\u{ffff}β\n\t"), "aβ\n\t");

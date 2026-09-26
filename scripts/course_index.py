@@ -5,10 +5,11 @@ import json
 from html import escape
 from pathlib import Path
 import re
+import shutil
 
 
 from course_data import read_course_data, with_course_data, paragraphs, rich_html
-from public_files import (copy_public_files, interactive_slide_output, note_outputs,
+from public_files import (copy_font_assets, copy_public_files, interactive_slide_output, note_outputs,
                           slide_output, validate_inputs)
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -119,7 +120,8 @@ def validate_readings(config: dict, modules: list[dict]) -> None:
         raise ValueError('Readings are out of syllabus order.')
 
 
-def render_index(config: dict, modules: list[dict], *, stylesheet_version: str = '') -> str:
+def render_index(config: dict, modules: list[dict], *, stylesheet_version: str = '',
+                 notes_stylesheet_version: str = '') -> str:
     config = resolve_readings(config, modules)
     site = config['site']
     course = config['course']['info']
@@ -214,7 +216,7 @@ def render_index(config: dict, modules: list[dict], *, stylesheet_version: str =
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="{escape(site['event'])}, {escape(site['term'])}. {escape(site['title'])}. Course schedule, lecture notes, and syllabus.">
 <title>{escape(site['event'])} · {escape(site['title'])} · {escape(site['term'])}</title>
-<link rel="stylesheet" href="assets/notes.css">
+<link rel="stylesheet" href="assets/notes.css{('?v=' + escape(notes_stylesheet_version, quote=True)) if notes_stylesheet_version else ''}">
 <link rel="stylesheet" href="assets/course.css{('?v=' + escape(stylesheet_version, quote=True)) if stylesheet_version else ''}">
 </head>
 <body class="course-home">
@@ -296,9 +298,14 @@ if __name__ == '__main__':
         stylesheet = ROOT / 'html/assets/course.css'
         stylesheet.parent.mkdir(parents=True, exist_ok=True)
         stylesheet.write_bytes((ROOT / 'html-exporter/src/course.css').read_bytes())
+        notes_stylesheet = stylesheet.with_name('notes.css')
+        notes_stylesheet.write_bytes((ROOT / 'html-exporter/src/gabri-notes.css').read_bytes())
+        copy_font_assets(ROOT, ROOT / 'html')
         copy_public_files(config, ROOT, ROOT / 'html')
         version = sha256(stylesheet.read_bytes()).hexdigest()[:12]
-        (ROOT / 'html/index.html').write_text(render_index(config, modules, stylesheet_version=version))
+        notes_version = sha256(notes_stylesheet.read_bytes()).hexdigest()[:12]
+        (ROOT / 'html/index.html').write_text(render_index(
+            config, modules, stylesheet_version=version, notes_stylesheet_version=notes_version))
         print('Updated html/index.html from the evaluated syllabus.')
     else:
         print('Resolved course configuration: .build/html-export.json')

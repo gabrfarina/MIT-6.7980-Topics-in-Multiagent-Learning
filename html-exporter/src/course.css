@@ -37,8 +37,8 @@
 :is(.schedule-table, .supplementary-table) .session-number { font: 700 0.9375rem/1.65 var(--sans); color: var(--muted); font-variant-numeric: tabular-nums; }
 .session-date { font: 0.9375rem/1.65 var(--sans); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .session-date time { color: var(--ink); }
-/* Center Frutiger's uppercase letterforms, compensating for its font metrics. */
-.schedule-badge { display: flex; align-items: center; justify-content: center; width: fit-content; height: 1.25rem; box-sizing: border-box; margin-top: 4px; padding: .164em 4px 0; border-radius: 3px; background: #999999; color: white; font: 700 0.6875rem/1 var(--sans); text-transform: uppercase; }
+/* Center the badge label using the vendored Source Sans 3 metrics. */
+.schedule-badge { display: flex; align-items: center; justify-content: center; width: fit-content; height: 1.25rem; box-sizing: border-box; margin-top: 4px; padding: 0 4px; border-radius: 3px; background: #999999; color: white; font: 700 0.6875rem/1 var(--sans); text-transform: uppercase; }
 .schedule-badge[data-badge="project"] { background: #0074d9; }
 .schedule-badge[data-badge="break"] { background: #7855a6; }
 .session-topic h4 { font-size: 1.125rem; line-height: 1.35; }

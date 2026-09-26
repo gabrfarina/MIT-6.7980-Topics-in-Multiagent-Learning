@@ -7,7 +7,7 @@ same basename beside the SVG. The six `ppad_completeness/gate_*.svg` files share
 `make`, `make html`, and `make bundle` rebuild stale figure SVGs before
 compiling the notes. Run `make figures` to update just the figures. The builder
 also writes HTML variants under `.build/html-figures/`, using Georgia for body
-labels and Frutiger for bold labels, matching the HTML pages. Georgia must be
+labels and Source Sans 3 for bold labels, matching the HTML pages. Georgia must be
 installed or available through `TYPST_FONT_PATHS`. Mathematical notation keeps
 its math font. HTML variants also contain a selectable text layer taken directly
 from Typst's layout; the visible glyph outlines retain the exact typography.
@@ -64,6 +64,6 @@ lecture-level scaling can differ slightly under the current compiler.
 
 Figures use native Typst math for labels and `curve` commands for point-list
 paths. Sampled gradient colors are converted to RGB so that SVG embedding in
-PDFs retains the colors. Sans-serif labels use the bundled Frutiger font.
+PDFs retains the colors. Sans-serif labels use the bundled Source Sans 3 font.
 Figure pages have transparent backgrounds; standalone drawings set their own
 widths and scaling.

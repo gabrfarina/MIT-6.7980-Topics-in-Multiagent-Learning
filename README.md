@@ -54,8 +54,8 @@ at the end of this guide.
    `myriad-dreamin.tinymist`.
 
 Be sure to open the **whole repository folder** in VS Code so its checked-in
-settings take effect. They configure the paged preview and the bundled course
-fonts.
+settings take effect. They configure the paged preview and the vendored Source Sans 3
+fonts (SIL OFL 1.1). Regular and italic PDF body text uses New Computer Modern.
 
 ## Edit with a side-by-side preview
 

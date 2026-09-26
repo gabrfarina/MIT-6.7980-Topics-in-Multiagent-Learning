@@ -16,6 +16,17 @@ ASSET_SUFFIXES = {'.css', '.js', '.svg', '.png', '.jpg', '.jpeg', '.gif', '.webp
                   '.ttf', '.otf', '.woff', '.woff2'}
 
 
+def copy_font_assets(root: Path, destination: Path) -> None:
+    """Replace generated fonts so retired faces are no longer distributed."""
+    source = root / 'html-exporter/assets/fonts'
+    target = destination / 'assets/fonts'
+    if target.is_symlink():
+        target.unlink()
+    elif target.exists():
+        shutil.rmtree(target)
+    shutil.copytree(source, target)
+
+
 def note_outputs(note: dict) -> dict[str, str]:
     source = Path(note['source'])
     return {'html': source.stem + '.html', 'pdf': f'pdf/{source.stem}.pdf'}
@@ -147,7 +158,8 @@ def validate_public_path(name: str, required: set[str]) -> None:
         raise ValueError(f'Unsafe or private manifest path: {name!r}')
     is_asset = (path.parts[0] == 'assets' and
                 (path.suffix in ASSET_SUFFIXES or name in
-                 {'assets/katex/LICENSE', 'assets/katex/VERSION'}))
+                 {'assets/katex/LICENSE', 'assets/katex/VERSION',
+                  'assets/fonts/OFL.txt', 'assets/fonts/README.md'}))
     if name not in required and not is_asset:
         raise ValueError(f'Unexpected public build artifact: {name}')
 

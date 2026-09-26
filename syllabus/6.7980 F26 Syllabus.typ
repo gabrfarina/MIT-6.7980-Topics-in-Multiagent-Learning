@@ -1,6 +1,7 @@
 #import "gabri-schedule.typ": break-badge, email, lecture, module, no-class, proj, schedule
 #import "fall-2026-calendar.typ": calendar-exceptions, class-dates
 #import "gabri-schedule.typ": item as schedule-item
+#import "../content/meta/typography.typ": course-sans-font
 
 // Shared course facts. The website reads this metadata from the same syllabus.
 #let course = (
@@ -54,8 +55,8 @@
 #set list(tight: true, marker: sym.triangle.r.filled)
 #set text(font: "New Computer Modern", size: 9.5pt)
 #set par(justify: true, leading: .6em, spacing: 1.15em)
-#show strong: set text(font: "Frutiger")
-#show heading: set text(font: "Frutiger")
+#show strong: set text(font: course-sans-font)
+#show heading: set text(font: course-sans-font)
 #show heading: set block(above: 6mm, below: 5mm)
 
 #align(center)[
