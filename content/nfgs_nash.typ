@@ -43,7 +43,16 @@ We will sometimes intersperse deterministic actions and mixed strategies freely 
 
 == Dominant-strategy equilibrium
 
-The question of what constitutes rational play for players can get complicated depending on the game. But, in some lucky cases, like the prisoner's dilemma game above, it turns out that some actions are just _better_ than others, _no matter what the other players do_. In such cases, we say that a player has a _dominant strategy_. In the case above, both Player 1 and Player 2 have a dominant strategy to confess$.$ In this case, we expect that the players will play their dominant strategy, and this is called a _dominant-strategy equilibrium_.
+The question of what constitutes rational play for players can get complicated depending on the game. But, in some lucky cases, like the prisoner's dilemma game above, it turns out that some actions are just _better_ than others, _no matter what the other players do_. In such cases, we say that a player has a _dominant strategy_. 
+
+In the prisoner's dilemma case above, both Player 1 and Player 2 have a dominant strategy to confess$.$ To see why, consider Player 1 and go through each of Player 2's possible actions in turn:
+
+- If Player 2 stays silent, Player 1 gets $-1$ by staying silent and $0$ by confessing. Since $0 > -1$, confessing is better.
+- If Player 2 confesses, Player 1 gets $-3$ by staying silent and $-2$ by confessing. Since $-2 > -3$, confessing is again better.
+
+So whatever Player 2 does, Player 1 strictly prefers to confess since confessing always earns Player 1 fewer years in prison than staying silent. The game is symmetric, so the same comparison applies to Player 2. Against a silent Player 1, confessing yields $0 > -1$, and against a confessing Player 1, it yields $-2 > -3$.
+
+When every player has a dominant strategy, we expect each of them to play it, since no belief about the others' behavior could make deviating to a different action more attractive. The resulting profile, here (confess, confess) with payoffs $(-2, -2)$, is called a _dominant-strategy equilibrium_.
 
 == Maxmin strategies
 
