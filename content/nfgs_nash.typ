@@ -146,11 +146,12 @@ $
 where we used the fact that $sum_(a_i in A_i) x_(i \, a_i) = 1$ since $vx_i$ is a valid strategy. Finally, observe that $phi$ is a continuous function.  The following example visualizes the Nash improvement function in the small games we have seen so far.
 
 #example[
-  The plots below visualize the displacement $phi (vx_1 \, vx_2) - (vx_1 \, vx_2)$ induced by the Nash improvement function for four games, whose payoff matrices are noted below each plot, after projecting away the probability of the first action of each player (and keeping around only the probability of the second action, which is sufficient to uniquely recover the strategy of the player since each player only has two actions). The black dots denote the fixed points of the Nash improvement function. These correspond exactly to the Nash equilibria of the game, as we make formal below.
+  The plots below visualize the displacement $phi (vx_1 \, vx_2) - (vx_1 \, vx_2)$ induced by the Nash improvement function for four games, whose payoff matrices are noted below each plot #footnote[In each payoff matrix, Player 1 (blue) picks a row, *T*\op or *B*\ottom, and Player 2 (red) picks a column, *L*\eft or *R*\ight. Each cell lists Player 1's payoff first and Player 2's second. In the plots, the horizontal axis is Player 1's probability of playing B, and the vertical axis is Player 2's probability of playing R.], after projecting away the probability of the first action of each player (and keeping around only the probability of the second action, which is sufficient to uniquely recover the strategy of the player since each player only has two actions). The black dots denote the fixed points of the Nash improvement function. These correspond exactly to the Nash equilibria of the game, as we make formal below.
 
   #align(center)[
     #image("figures/nfgs_nash/nash_plots.svg", width: 100.0%)
-  ]
+  ]  
+
 
   The background of the plots highlights the angle of displacement induced by the Nash improvement function, according to the gradient wheel shown below here.
 
