@@ -99,9 +99,7 @@ We formalize these ideas in the next sections, arriving at two results. First, w
   #align(center)[
     #image("figures/brouwer/example_games.svg", width: 100.0%)
   ]
-] <ex-sperner-toy-games>
-
-After proving Sperner's lemma, we will return to these three games in @sec-sperner-toy-paths and see which trichromatic triangle the proof finds, and how the remaining ones are paired.
+]
 
 It is worth noting that the trichromatic triangles obtained via the above reduction are not always in the proximity of exact fixed points of the function. Unless the discretization is fine enough and $f$ has extra properties, we will only guarantee that the trichromatic triangles are in the proximity of approximate fixed points. While this is not the case in the examples above, it can be the case.
 
@@ -226,7 +224,7 @@ At this point, the proof of Sperner's lemma is immediate. A graph in which each 
 
 == Following the paths in the toy games <sec-sperner-toy-paths>
 
-We can now follow the proof on the three Sperner discretizations in @ex-sperner-toy-games. Let $p$ and $q$ be the probabilities with which Players 1 and 2 choose their second action, so their mixed strategies are $(1 - p, p)$ and $(1 - q, q)$. In @fig-sperner-toy-paths we keep the same grid and coloring, add the standard outer boundary, and draw the directed paths through red-yellow doors.
+The paths below follow the Sperner discretizations in Example L2.3.
 
 #figure(
   context {
@@ -414,14 +412,10 @@ We can now follow the proof on the three Sperner discretizations in @ex-sperner-
       diagram
     }
   },
-  caption: [The Sperner paths for @ex-sperner-toy-games. The dashed box bounds the original unit square; the extra layer is only a combinatorial device. The black path starts at the purple bottom-left cell $S$ and ends in a green trichromatic cell. The purple path pairs the two remaining trichromatic cells in theater or football. White-rimmed black dots mark exact Nash equilibria; arrows connect triangle centers, not strategy trajectories.],
+  caption: [Sperner paths for the three games in Example L2.3.],
 ) <fig-sperner-toy-paths>
 
-In *theater or football*, the three Nash equilibria are $A = (0, 1)$, $B = (1, 0)$, and $C = (1/6, 1/6)$. Starting at $S$, the proof follows the black path to the triangle with vertices $(0, 7/8)$, $(1/8, 7/8)$, and $(0, 1)$, next to $A$: Player 1 insists and Player 2 accepts. The other path starts at the trichromatic triangle containing the mixed equilibrium $C$ and ends at the one next to $B$, where Player 1 accepts and Player 2 insists. Thus the proof singles out one of the three equilibrium neighborhoods, while the other two are paired by a separate path.
-
-In *prisoner's dilemma*, the path from $S$ ends in the triangle with vertices $(7/8, 7/8)$, $(1, 7/8)$, and $(7/8, 1)$, next to the unique equilibrium $D = (1, 1)$, where both players confess. In the *penalty shot game*, it ends in the triangle with vertices $(1/2, 1/2)$, $(1/2, 5/8)$, and $(3/8, 5/8)$, next to the unique equilibrium $E = (1/2, 1/2)$. These two grids have no other trichromatic cells to pair.
-
-The path-following proof returns a *trichromatic triangle*, not an exact fixed point. Its yellow vertex gives the approximate fixed point from @thm-sperner-approximation; here these vertices are respectively $(0, 7/8)$, $(7/8, 7/8)$, and $(1/2, 1/2)$. The equilibrium labels identify the nearby exact fixed points in these particular games. Which triangle is selected depends on the triangulation and tie-breaking. Nor does a path describe players learning to play an equilibrium: it is a path in the combinatorial Sperner graph. The pairing argument counts trichromatic triangles and does not, by itself, prove an oddness theorem for exact Nash equilibria.
+#context if target() == "paged" { pagebreak() }
 
 = Beyond the unit square <sec-brouwer-general>
 
