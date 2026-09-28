@@ -349,7 +349,7 @@ The paths below follow the Sperner discretizations in Example L2.3.
       (rows: padded, triangles: triangles, paths: paths, next: next, prev: prev)
     }
 
-    let panel(title, A1, A2, equilibria, summary) = {
+    let panel(title, A1, A2, equilibria) = {
       let graph = sperner-graph(toy-coloring(A1, A2))
       cetz.canvas(length: .5cm, {
         import cetz.draw: *
@@ -375,31 +375,21 @@ The paths below follow the Sperner discretizations in Example L2.3.
           }
         }
         // Exact fixed points, distinct from the centers of trichromatic cells.
-        for (p, q, name, offset) in equilibria {
+        for (p, q) in equilibria {
           let point = pos((1 + 8 * p, 1 + 8 * q))
           circle(point, radius: .85mm, fill: black, stroke: .35mm + white)
-          content((point.at(0) + offset.at(0), point.at(1) + offset.at(1)), name)
         }
-        content((-0.35, -0.15), emph("S"))
-        content(pos((1, -.65)), "0")
-        content(pos((9, -.65)), "1")
-        content(pos((10, -.65)), emph("p"))
-        content(pos((-.65, 1)), "0")
-        content(pos((-.65, 9)), "1")
-        content(pos((-.65, 10)), emph("q"))
         content(pos((5, 11.1)), emph(title))
-        content(pos((5, -1.75)), summary)
       })
     }
 
     let drawing = grid(columns: 3, column-gutter: 3mm, align: top + center,
       panel("Theater or football", tof_A1, tof_A2,
-        ((0, 1, emph("A"), (.35, .3)), (1, 0, emph("B"), (.35, .35)),
-         (1 / 6, 1 / 6, emph("C"), (.35, .4))), [S #sym.arrow.r A; #text(purple)[C #sym.arrow.r B]]),
+        ((0, 1), (1, 0), (1 / 6, 1 / 6))),
       panel("Prisoner's dilemma", pdi_A1, pdi_A2,
-        ((1, 1, emph("D"), (-.4, .35)),), [S #sym.arrow.r D]),
+        ((1, 1),)),
       panel("Penalty shot game", psg_A1, psg_A2,
-        ((.5, .5, emph("E"), (.35, -.35)),), [S #sym.arrow.r E]),
+        ((.5, .5),)),
     )
     let diagram = context {
       let width = if for-html { 585pt } else { 405pt }
@@ -414,8 +404,6 @@ The paths below follow the Sperner discretizations in Example L2.3.
   },
   caption: [Sperner paths for the three games in Example L2.3.],
 ) <fig-sperner-toy-paths>
-
-#context if target() == "paged" { pagebreak() }
 
 = Beyond the unit square <sec-brouwer-general>
 
