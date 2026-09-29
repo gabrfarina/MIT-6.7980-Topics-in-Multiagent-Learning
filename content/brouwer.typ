@@ -249,6 +249,8 @@ We stated and proved Sperner's lemma for the two-dimensional grid, and used that
   Since $N approx 2^m$, this is about $2^m \/ (4 w)$ calls, which is exponential in $m$.
 ] <thm-sperner-query-lower-bound>
 
+Where $N - 4$ comes from: the bands (defined below) leave a margin 2 points wide on each side of the grid, so they start at coordinate $2$ and must end by coordinate $N - 2$. That leaves a stretch of length $(N - 2) - 2 = N - 4$, and $K = floor((N-4) \/ w)$ bands of width $w$ fit in it. For example, the game's small grid has $53 times 53$ points, so $N = 52$; its bands run from $2$ to $50$, a length of $48$, and $K = 48 \/ 12 = 4$. For large $N$ the $4$ does not matter, which is why $K approx N \/ w$.
+
 == Definitions
 
 - *Band.* Leave a margin 2 points wide around the edge. Cut the rest into $K$ horizontal strips $w$ points tall and $K$ vertical strips $w$ points wide. Any leftover strip at the top or right is blue margin. A *block* $(x, y)$ is where vertical band $x$ meets horizontal band $y$.
