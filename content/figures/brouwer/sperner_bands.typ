@@ -74,4 +74,32 @@
   content((0, -.9), anchor: "north-west")[door]
   line((centroid.at(0), centroid.at(1) + 1.6), (centroid.at(0), n + 1), stroke: .2mm + black)
   content((centroid.at(0), n + 1.2), anchor: "south")[dead end]
+
+  // Band indices: vertical band x below the grid, horizontal band y on its left.
+  for k in range(K) {
+    let c = tunnel-center(k)
+    content((c, -3.2), anchor: "north", text(7.5pt)[$x = #k$])
+    content((-1, c), anchor: "east", text(7.5pt)[$y = #k$])
+  }
+  content((n / 2, -6.2), anchor: "north", text(7.5pt)[vertical bands])
+  content((-6.5, n / 2), anchor: "east", text(7.5pt)[horizontal \ bands])
+
+  // Definitions on the example.
+  let note(pos, body, anchor: "center") = content(pos, anchor: anchor,
+    box(fill: white, inset: 1.2pt, radius: 1pt, text(7.5pt, body)))
+  let leader(a, b) = line(a, b, stroke: .2mm + black)
+  // A block: vertical band 2 meets horizontal band 1, where two hops cross.
+  let (bx, by) = (first + 2 * tunnel-band, first + tunnel-band)
+  rect((bx, by), (bx + tunnel-band, by + tunnel-band), stroke: (paint: orange.darken(10%), thickness: .5mm, dash: "densely-dashed"))
+  // The leader runs below the wall that leaves the block on the right.
+  leader((bx + tunnel-band, by + 4), (n + 2, by + 4))
+  note((n + 2.3, by + 4), anchor: "west")[block $(2, 1)$: \ rewired crossing]
+  // The two legs of the hop 0 -> 2.
+  let row0 = tunnel-center(0)
+  let col2 = tunnel-center(2)
+  note((20, row0 - 3.2))[hop $0 -> 2$: sideways leg]
+  leader((col2 + .6, 9.5), (n + 2, 9.5))
+  note((n + 2.3, 9.5), anchor: "west")[hop $0 -> 2$: \ up-or-down leg]
+  // The island.
+  note((26, 28.6))[island]
 })

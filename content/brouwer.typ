@@ -228,12 +228,18 @@ We stated and proved Sperner's lemma for the two-dimensional grid, and used that
 
 = Finding a Sperner triangle needs exponentially many queries <sec-sperner-query-lower-bound>
 
-== Setting
+== Setting <sec-sperner-query-setting>
 
 - *Grid.* The points are $(i, j)$ with $0 <= i, j <= N$, where $N = 2^m - 1$, so each coordinate is an $m$-bit number. Each unit square is cut into two triangles by its diagonal from $(i, j)$ to $(i+1, j+1)$.
 - *Circuit.* The Sperner circuit takes a point as two $m$-bit numbers and outputs its color. So each side has $2^m approx N$ points.
 - *Standard boundary.* $chi(0, j) = "red"$ for $j >= 1$ (the left side, except the bottom-left corner). $chi(i, 0) = "yellow"$ for $i < N$ (the bottom, except the bottom-right corner). Every other boundary point is blue. The *door* is the red–yellow boundary edge from $(0,0)$ to $(0,1)$.
-- *Calls.* An algorithm learns colors only by calls: it names a point and receives its color. It may choose each call based on earlier answers, and it must output a trichromatic triangle. We count calls. The algorithm is deterministic.
+- *Calls.* A _query_, or _call_, is one use of the Sperner circuit (@fig-sperner-query-setting). An algorithm learns colors only by calls: it names a point and receives its color. It may choose each call based on earlier answers, and it must output a trichromatic triangle. We count calls. The algorithm is deterministic.
+
+#figure(
+  caption: [The setting for $m = 3$, so $N = 7$ and each coordinate is a 3-bit number. Each unit square is cut by its diagonal from $(i, j)$ to $(i+1, j+1)$. The boundary has the standard coloring, and the door is the red–yellow edge from $(0, 0)$ to $(0, 1)$. Interior points (hollow) are unknown until they are queried: here one call sends the point $(101, 011)$ to the Sperner circuit, which answers with its color.],
+)[
+  #image("figures/brouwer/sperner_setting.svg", width: 78%, alt: "An 8 by 8 grid of points labeled with 3-bit coordinates, triangulated by diagonals from bottom left to top right. The left side is red except the bottom-left corner, the bottom is yellow except the bottom-right corner, the rest of the boundary is blue, and the door edge at the bottom left is highlighted. Interior points are hollow, except one queried point whose coordinates are sent to a box labeled Sperner circuit, which answers blue.")
+] <fig-sperner-query-setting>
 
 #theorem[
   Fix a band width $w$ ($w = 12$ works). Let $K = floor((N-4) \/ w) approx N \/ w$.
@@ -255,9 +261,9 @@ We stated and proved Sperner's lemma for the two-dimensional grid, and used that
 - *Involved.* A call at a point in block $(x, y)$ involves up to four squares: $x$, $y$, the square after $y$ on the tunnel, and the square before $x$ on the tunnel.
 
 #figure(
-  caption: [An adversary coloring with $K = 4$. The diagonal squares are outlined and the bands are dashed. The tunnel is built as $0 -> 2 -> 1 -> 3$. The hop $1 -> 3$ crosses the hop $0 -> 2$ in block $(2, 1)$, and the rewiring there splits off an island (the loop through squares 1 and 2). The walk from the door then goes straight through the rewired crossing to the dead end, square 3. The circled black triangle is the only trichromatic triangle.],
+  caption: [An adversary coloring with $K = 4$. The diagonal squares are outlined and the bands are dashed. The tunnel is built as $0 -> 2 -> 1 -> 3$. The hop $1 -> 3$ crosses the hop $0 -> 2$ in block $(2, 1)$, and the rewiring there splits off an island (the loop through squares 1 and 2). The walk from the door then goes straight through the rewired crossing to the dead end, square 3. The circled black triangle is the only trichromatic triangle. Labels mark the vertical bands $x$ and horizontal bands $y$, the block $(2, 1)$, the two legs of the hop $0 -> 2$, and the island.],
 )[
-  #image("figures/brouwer/sperner_bands.svg", width: 62%, alt: "An adversary coloring with four diagonal squares: a red wall with a yellow wall beside it runs from the door at the bottom-left corner to a circled trichromatic triangle in square 3, and a separate loop passes through squares 1 and 2.")
+  #image("figures/brouwer/sperner_bands.svg", width: 85%, alt: "An adversary coloring with four diagonal squares: a red wall with a yellow wall beside it runs from the door at the bottom-left corner to a circled trichromatic triangle in square 3, and a separate loop passes through squares 1 and 2.")
 ] <fig-sperner-bands>
 
 == Step 1: The colorings the adversary uses
@@ -353,10 +359,6 @@ On a screen-sized grid the bound says almost nothing. It only grows large becaus
 - Each diagonal square has a private row band and a private column band, so each call involves at most 4 squares.
 
 The diagonal is simply the easiest way to give every square its own row and column. Putting square $k$ at row $k$ and column $pi(k)$, for any permutation $pi$, would work the same way.
-
-== Note on S and P
-
-This is the standard End-of-Line reduction written in Sperner terms. The square after $y$ is $S(y)$, and the square before $x$ is $P(x)$. The proof doesn't need that notation.
 
 == References
 
