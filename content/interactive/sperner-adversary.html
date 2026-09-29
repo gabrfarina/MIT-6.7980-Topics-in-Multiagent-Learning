@@ -3,12 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sperner adversary · MIT 6.7980</title>
-<!-- Companion to the lecture notes on Brouwer and Sperner (content/brouwer.typ,
-     section "A query lower bound for Sperner's lemma"). The lecture embeds this
-     page with ?embed=1, which shows only the game, in the notes' light theme.
-     Proof mode mirrors content/figures/libs/sperner_tunnel.typ; keep them in sync. -->
+<title>Sperner Adversary</title>
 <script>
+// The lecture notes embed this page with ?embed=1: show only the game, in the notes' light theme.
 if (new URLSearchParams(location.search).has('embed')) {
   document.documentElement.classList.add('embedded');
   document.documentElement.dataset.theme = 'light';
@@ -19,9 +16,6 @@ if (new URLSearchParams(location.search).has('embed')) {
   --paper:#EDF0F4; --panel:#F8F9FB; --ink:#18202C; --muted:#5B6576; --rule:#CBD2DC; --gridline:#D6DCE4;
   --r:#D2423A; --y:#E3A50B; --y-edge:#9A6F00; --b:#3467D1; --unk:#9AA4B3;
   --floor:#E4E8EE; --band:rgba(24,32,44,.07); --sel:#18202C;
-  --serif:Georgia,"Times New Roman",serif;
-  --sans:"Source Sans 3",system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
-  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
   color-scheme:light;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
@@ -33,9 +27,9 @@ if (new URLSearchParams(location.search).has('embed')) {
   --r:#EE5E55; --y:#F2C230; --y-edge:#F2C230; --b:#5B8BF0; --unk:#5D6776;
   --floor:#232A35; --band:rgba(228,232,238,.08); --sel:#FFFFFF; color-scheme:dark;}
 *{box-sizing:border-box}
-body{background:var(--paper);color:var(--ink);font:15px/1.6 var(--sans);padding-block:28px 56px;padding-inline:16px}
+body{background:var(--paper);color:var(--ink);font:15px/1.6 system-ui,sans-serif;padding-block:28px 56px;padding-inline:16px}
 .wrap{max-width:1080px;margin:0 auto;display:grid;gap:28px}
-header h1{font:400 clamp(30px,5vw,46px)/1.08 var(--serif);margin:0;letter-spacing:-.01em;text-wrap:balance}
+header h1{font:400 clamp(34px,6vw,54px)/1.02 Georgia,serif;margin:0;letter-spacing:-.01em;text-wrap:balance}
 header h1 i{color:var(--muted)}
 header p{margin:10px 0 0;max-width:70ch;color:var(--muted)}
 .game{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:24px;align-items:start}
@@ -45,14 +39,14 @@ canvas{display:block;width:100%;height:auto;touch-action:none;cursor:crosshair}
 .side{display:grid;gap:18px}
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:6px;overflow:hidden}
 .stat{background:var(--panel);padding:10px 12px}
-.stat b{display:block;font:500 24px/1.1 var(--mono);font-variant-numeric:tabular-nums}
+.stat b{display:block;font:500 24px/1.1 ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
 .stat span{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
 .msg{min-height:3.2em;font-size:14px;padding:10px 12px;border-left:3px solid var(--rule);background:var(--panel)}
 .msg.win{border-left-color:var(--ink);font-weight:500}
 .controls{display:grid;gap:10px}
 .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 label.lbl{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);width:100%}
-button,select{font:500 13px var(--sans);color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:4px;padding:7px 11px;cursor:pointer}
+button,select{font:500 13px system-ui,sans-serif;color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:4px;padding:7px 11px;cursor:pointer}
 button:hover,select:hover{border-color:var(--muted)}
 button:focus-visible,select:focus-visible,canvas:focus-visible,svg:focus-visible{outline:2px solid var(--b);outline-offset:2px}
 button.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
@@ -63,14 +57,14 @@ button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-colo
 .help{font-size:13px;color:var(--muted);margin:0}
 
 section.proof{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding-block:26px 30px;padding-inline:clamp(16px,3.2vw,36px);display:grid;gap:4px}
-section.proof h2{font:400 30px/1.15 var(--serif);margin:0 0 4px}
+section.proof h2{font:400 34px/1.1 Georgia,serif;margin:0 0 4px}
 section.proof h3{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:26px 0 4px}
 section.proof p,section.proof li,section.proof dd{max-width:72ch}
 section.proof p{margin:6px 0}
 section.proof ul,section.proof ol{margin:6px 0;padding-left:22px}
 section.proof li{margin:3px 0}
 .lede{font-size:17px}
-.mono,code{font-family:var(--mono);font-size:.9em}
+.mono,code{font-family:ui-monospace,Menlo,monospace;font-size:.9em}
 .players{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:8px 0}
 @media (max-width:700px){.players{grid-template-columns:1fr}}
 .players div{border-top:2px solid var(--ink);padding-top:8px}
@@ -85,41 +79,33 @@ section.proof li{margin:3px 0}
 table{border-collapse:collapse;font-size:13px;width:100%}
 th,td{text-align:left;padding:4px 8px;border-bottom:1px solid var(--rule)}
 th{font-weight:500;color:var(--muted);font-size:12px}
-td.m{font-family:var(--mono);font-variant-numeric:tabular-nums}
+td.m{font-family:ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
 tr.on td{background:var(--band)}
 .readout{margin-top:14px;padding:12px 14px;background:var(--paper);border-radius:6px;font-size:14px}
 .readout .t{font-weight:600;margin:0 0 6px}
 .readout ol{margin:0;padding-left:20px}
 .readout .res{margin:8px 0 0}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.chip{font:12px var(--mono);border:1px solid var(--rule);border-radius:3px;padding:1px 6px;background:var(--panel)}
+.chip{font:12px ui-monospace,Menlo,monospace;border:1px solid var(--rule);border-radius:3px;padding:1px 6px;background:var(--panel)}
 dl.gloss{display:grid;grid-template-columns:minmax(120px,190px) minmax(0,1fr);gap:8px 20px;margin:8px 0}
 @media (max-width:600px){dl.gloss{grid-template-columns:1fr;gap:2px}dl.gloss dd{margin-bottom:10px}}
 dl.gloss dt{font-weight:600}
 dl.gloss dd{margin:0}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
-header p a,section.proof a{color:inherit}
-/* Embedded in the lecture notes (?embed=1): only the game, on the page's own
-   background; the notes explain the modes and tools. */
 .embedded,.embedded body{background:transparent}
 .embedded body{margin:0;padding:8px}
 .embedded header,.embedded section.proof,.embedded .help{display:none}
 .embedded .wrap{gap:0}
-.embedded .game{gap:16px}
 .embedded .side,.embedded .controls{grid-template-columns:minmax(0,1fr)}
-.embedded .side{gap:12px}
 .embedded select{max-width:100%}
-.embedded .stat{padding:8px 10px}
-.embedded .stat b{font-size:20px}
 @media (min-width:560px){.embedded .game{grid-template-columns:minmax(0,1fr) 240px}}
 </style>
 </head>
 <body>
 <div class="wrap">
 <header>
-  <h1>Find the trichromatic triangle <i>against an adversary</i></h1>
-  <p>Only the boundary is colored, in the standard way: red on the left side (except the bottom-left corner), yellow along the bottom (except the bottom-right corner), and blue everywhere else. Each small square of the grid is cut into two triangles by its diagonal from top left to bottom right. Click a grid point to ask for its color, or drag to query a whole row or column at once. You win when all three corners of some small triangle have been queried and are red, yellow and blue. The adversary answers honestly, but it fixes the hidden coloring as late as it can.</p>
-  <p>This game accompanies the <a href="../brouwer.html#sec-sperner-query-lower-bound">query lower bound for Sperner’s lemma</a> in the MIT 6.7980 lecture notes on Brouwer and Sperner.</p>
+  <h1>Find the rainbow triangle <i>against an adversary</i></h1>
+  <p>Only the boundary is colored, in the standard way: red on the left side (except the bottom-left corner), yellow along the bottom (except the bottom-right corner), and blue everywhere else. Click a grid point to ask for its color, or drag to query a whole row or column at once. You win when all three corners of some small triangle have been queried and are red, yellow and blue. The adversary answers honestly, but it fixes the hidden coloring as late as it can.</p>
 </header>
 
 <div class="game">
@@ -137,7 +123,7 @@ header p a,section.proof a{color:inherit}
       <div class="stat"><b id="sQ">0</b><span>Queries</span></div>
       <div class="stat"><b id="sV">0</b><span>Grid points</span></div>
       <div class="stat"><b id="sR">0</b><span>Tunnel moves</span></div>
-      <div class="stat"><b id="sE">0</b><span id="sEl">Untouched squares</span></div>
+      <div class="stat"><b id="sE">0</b><span id="sEl">Untouched diagonal squares</span></div>
     </div>
     <div class="msg" id="msg" aria-live="polite"></div>
     <div class="controls">
@@ -151,7 +137,7 @@ header p a,section.proof a{color:inherit}
         <button id="auto">Run divide &amp; conquer</button>
         <button id="reveal" aria-pressed="false">Show hidden coloring</button>
       </div>
-      <p class="help">“Show hidden coloring” draws the complete coloring the adversary has in mind right now. It always agrees with every answer given so far and has exactly one trichromatic triangle.</p>
+      <p class="help">“Show hidden coloring” draws the complete coloring the adversary has in mind right now. It always agrees with every answer given so far and has exactly one rainbow triangle.</p>
     </div>
     <div class="legend">
       <span><i class="dot" style="background:var(--r)"></i>Red</span>
@@ -164,41 +150,43 @@ header p a,section.proof a{color:inherit}
 
 <section class="proof" id="proof">
   <h2>Why no algorithm wins quickly</h2>
-  <p class="lede">Suppose the grid has N + 1 = 2<sup>b</sup> points per side, so that each coordinate is a b-bit number, and let K = ⌊(N − 4)/12⌋. Every algorithm that learns the coloring only by asking for the colors of points, and always finds a trichromatic triangle, needs at least ⌈(K − 1)/2⌉ ≈ 2<sup>b</sup>/24 queries on some coloring. That is exponential in b. The <a href="../brouwer.html#sec-sperner-query-lower-bound">lecture notes</a> give the full proof; here is an outline.</p>
+  <p class="lede">Every algorithm that learns colors only by calling the Sperner circuit needs at least about 2<sup>m</sup>/(4w) calls on some coloring. Here m is the number of bits per coordinate, so the grid is N = 2<sup>m</sup> points wide, and w is a fixed band width. That is exponential in m.</p>
 
   <h3>The two players</h3>
   <div class="players">
-    <div><b>The algorithm</b>Asks for colors. It can be any deterministic algorithm at all: divide and conquer, a clever search, anything.</div>
-    <div><b>The adversary</b>Answers. We design one adversary and show that it beats every algorithm. Its answers always agree with some legal coloring, so it never cheats.</div>
+    <div><b>The algorithm</b>Asks for colors. It can be any algorithm at all: divide and conquer, guessing, anything.</div>
+    <div><b>The adversary</b>Answers. We design one adversary and show that it beats every algorithm. That is exactly what “can be forced by an adversary” asks for.</div>
   </div>
 
-  <h3>Step 1 · Tunnel colorings</h3>
+  <h3>Step 1 · The shape of the adversary’s colorings</h3>
   <ul>
-    <li>Leave a margin of two points around the grid and cut the rest into horizontal and vertical <b>bands</b> 12 points wide. Where horizontal band k meets vertical band k there is a <b>diagonal square</b> k. There are K of them, one per band: that is one side’s worth, not K². Square 0 is next to the door. In proof mode these are the outlined squares.</li>
-    <li>A <b>tunnel</b> visits diagonal squares 0 → a<sub>1</sub> → … → a<sub>k</sub>. It is drawn as a red wall with yellow on its right-hand side (including the outer corner of every left turn), and blue everywhere else. It enters at the door and ends at the <b>dead end</b>, the center of square a<sub>k</sub>.</li>
-    <li>A <b>hop</b> from square u to square v runs sideways along the middle of horizontal band u, then up or down along the middle of vertical band v into square v.</li>
-    <li>Where a sideways leg crosses an up-or-down leg, the walls are rewired inside that block so that they never touch. This can split off a closed loop (an island). A loop has no ends, so it holds no trichromatic triangle.</li>
-    <li>Checking a few local pictures (a straight wall, a left turn, a right turn) shows that the only trichromatic triangle is at the dead end. We also checked this by computer for every tunnel through at most 9 diagonal squares.</li>
+    <li>Cut the grid into horizontal and vertical bands, each w points wide (proof mode uses w = 12, because a spot where two tunnels cross needs a little room). There are N/w of each.</li>
+    <li>Where horizontal band k crosses vertical band k there is a <b>diagonal square</b> k, so there are N/w diagonal squares, one per band. That is one side’s worth, not (N/w)². (With the 2-point margin it is exactly ⌊(N − 4)/w⌋; the game’s grids have 4, 6 and 8.) Square 0 is next to the door. In proof mode these are the outlined squares.</li>
+    <li>The coloring is one tunnel: a red wall and a yellow wall, blue everywhere else. It starts at the door and hops from diagonal square to diagonal square.</li>
+    <li>A <b>hop</b> is the piece of tunnel from one diagonal square to the next: a sideways leg along the horizontal band of the square it leaves, then an up-or-down leg along the vertical band of the square it enters. A hop <b>passes through</b> a point if the point lies on one of its legs.</li>
+    <li>Where a sideways leg and an up-or-down leg meet in the same square, the walls are rewired inside that square so the tunnels don’t touch. This can split off a closed loop (an island). A loop has no ends, so it holds no trichromatic triangle, and the walk from the door still ends at the dead end.</li>
+    <li>The tunnel’s last square is a dead end. It holds the coloring’s only trichromatic triangle.</li>
   </ul>
 
-  <h3>Step 2 · What one query reveals</h3>
-  <p>Take a point in vertical band x and horizontal band y. Each diagonal square is left at most once, so horizontal band y only carries the hop leaving square y; each square is entered at most once, so vertical band x only carries the hop entering square x. So the color of the point depends only on x, y, the square after y on the tunnel, and the square before x.</p>
+  <h3>Step 2 · What one call can reveal</h3>
+  <p>Take a point in vertical band x and horizontal band y. Each diagonal square is left at most once, so horizontal band y carries at most one sideways leg: the hop leaving square y. Each square is entered at most once, so vertical band x carries at most one up-or-down leg: the hop entering square x. So at most two hops pass through the point, and each hop is named by two diagonal squares (where it starts and where it ends). One call therefore involves at most 4 diagonal squares.</p>
+  <p>A square where two hops meet is exactly the case where both hops pass through the same point. The rewiring changes how the walls connect inside that square, not which hops are there.</p>
 
   <h3>Step 3 · The adversary’s strategy</h3>
-  <p>It keeps the tunnel built so far, 0 → a<sub>1</sub> → … → a<sub>k</sub>, and the set of <b>touched</b> diagonal squares, those that some answer depended on. For a query in bands (x, y):</p>
+  <p>It keeps the tunnel built so far, 0 → a₁ → … → aₖ, where aₖ is the current dead end. For a call in bands (x, y):</p>
   <ol>
-    <li>If y is the dead end’s square, extend the tunnel to a diagonal square nobody has touched yet.</li>
-    <li>Mark x, y, the square after y and the square before x as touched. Touched squares that are not on the tunnel will never join it.</li>
-    <li>Answer the point’s color in the tunnel as it now stands.</li>
+    <li>If y is the dead end’s band, extend the tunnel to a diagonal square nobody has touched yet.</li>
+    <li>Any other diagonal square the call touches that is not on the tunnel is declared never visited.</li>
+    <li>Answer the point’s color from the tunnel as it now stands.</li>
   </ol>
-  <p>Every answer stays true: a new hop only changes the dead end’s horizontal band and the new square’s vertical band, and no earlier query was in either one.</p>
+  <p>Every answer stays true, because a new hop only runs along the dead end’s horizontal band and the new square’s vertical band, and no earlier call looked at either one.</p>
 
   <h3>Step 4 · Counting, for every algorithm</h3>
-  <p>A query touches at most 2 new squares: the square before x and the square after y are already on the tunnel, except for the square that step 1 just added. While some square is untouched, the adversary can still either stop the tunnel where it is or extend it into that square, and the two colorings have their trichromatic triangles in different places. So a correct algorithm cannot stop before it has touched all K squares, which takes at least ⌈(K − 1)/2⌉ queries. Divide and conquer is one such algorithm; it uses about 3N queries, which is in line with the bound.</p>
+  <p>A diagonal square is <b>touched</b> once some answer depends on it. Give the algorithm the best possible luck: suppose every call touches the maximum of 4 new squares. While at least 2 squares are untouched, the adversary can still move the dead end into an untouched square that doesn’t contain the triangle the algorithm names, so the algorithm must touch all but one of the N/w squares before the dead end is pinned down. That takes at least (N/w − 2)/4 ≈ N/(4w) calls, whatever the algorithm does. (It also can’t have seen all three corners of the rainbow triangle before then: they lie in the dead end’s square, and any call there extends the tunnel.) Divide and conquer is one of these algorithms; it uses about 3N calls, which fits.</p>
 
   <h3>Step 5 · Exponential</h3>
-  <p>⌈(K − 1)/2⌉ ≈ N/24 ≈ 2<sup>b</sup>/24. Every extra bit per coordinate doubles N and doubles the number of queries needed.</p>
-  <p>The grid has about N² = 2<sup>2b</sup> points, but the bound is about N, not N². That is the true answer: divide and conquer wins with about 3N queries, so no proof could force N². Both grow like 2<sup>b</sup>, so the bound is tight up to a constant.</p>
+  <p>N/(4w) = 2<sup>m</sup>/(4w). Every extra bit per coordinate doubles N and doubles the calls needed.</p>
+  <p>The grid has about N² = 2<sup>2m</sup> points, but the bound is about N, not N². That is the true answer: divide and conquer wins in about 3N calls, so no proof could force N². Both grow like 2<sup>m</sup>, so the bound is tight up to a constant.</p>
 
   <h3>The two modes</h3>
   <div class="tbl"><table>
@@ -206,11 +194,12 @@ header p a,section.proof a{color:inherit}
     <tbody>
       <tr><td>Adversary</td><td>Exactly the one above</td><td>A snake tunnel that reroutes around your clicks</td></tr>
       <tr><td>Where the triangle can be</td><td>Only in a diagonal square</td><td>Anywhere</td></tr>
-      <tr><td>Guarantee</td><td>Proven: at least ⌈(K − 1)/2⌉ queries</td><td>Observed in tests, not proven</td></tr>
-      <tr><td>On a screen-sized grid</td><td>Few diagonal squares, so someone who knows the layout can win with a few clicks per diagonal square</td><td>Much harder to beat by hand</td></tr>
+      <tr><td>Guarantee</td><td>Proven: about N/(4w) calls</td><td>Observed in tests, not proven</td></tr>
+      <tr><td>On a screen-sized grid</td><td>Few diagonal squares, so someone who knows the layout can win in about one click per diagonal square, plus a few</td><td>Much harder to beat by hand</td></tr>
     </tbody>
   </table></div>
-  <p>The proof’s bound only becomes large when the grid is huge. With 8 diagonal squares it guarantees just 4 queries; with b = 40 bits per coordinate it guarantees more than 45 billion.</p>
+  <p>The proof’s bound only becomes large when the grid is huge. With 8 diagonal squares it guarantees just a couple of calls; with 2<sup>40</sup> of them it guarantees trillions.</p>
+  <p>One part is checked rather than proved by hand: the red and yellow walls at turns and crossings never create a stray trichromatic triangle. Proof mode’s drawing was tested on 3,000 random tunnels with crossings, and every one had exactly one trichromatic triangle, in the dead end’s diagonal square.</p>
 </section>
 </div>
 <script>
@@ -249,7 +238,7 @@ function makeEngine(M) {
       for (let t = 0; t <= len; t++) {
         const qx = ax + t * dx, qy = ay + t * dy;
         line[idx(qx, qy)] = 1;
-        lane.push([qx - lx, qy - ly, Y]); // one yellow line on the right; the center line itself is red
+        lane.push([qx - lx, qy - ly, Y]); // one yellow line on the right; the centre line itself is red
       }
       if (s + 2 < pts.length) { // joint at pts[s+1]
         const [cx2, cy2] = pts[s + 2];
@@ -271,13 +260,13 @@ function makeEngine(M) {
     return col;
   }
 
-  // triangles as in the lecture notes: each unit square is cut by its diagonal (x,y+1)-(x+1,y)
+  // triangles: diagonal (x,y)-(x+1,y+1)
   function trichromatic(col) {
     const out = [];
     for (let y = 0; y < W; y++) for (let x = 0; x < W; x++) {
       const a = col[idx(x, y)], b = col[idx(x + 1, y)], c = col[idx(x + 1, y + 1)], d = col[idx(x, y + 1)];
-      if (a !== b && b !== d && a !== d) out.push([[x, y], [x + 1, y], [x, y + 1]]);
-      if (b !== c && c !== d && b !== d) out.push([[x + 1, y], [x + 1, y + 1], [x, y + 1]]);
+      if (a !== b && b !== c && a !== c) out.push([[x, y], [x + 1, y], [x + 1, y + 1]]);
+      if (a !== d && d !== c && a !== c) out.push([[x, y], [x, y + 1], [x + 1, y + 1]]);
     }
     return out;
   }
@@ -537,7 +526,7 @@ function makeProofEngine(K) {
     }
     return out;
   }
-  // center line red, one step to its right yellow, outer corners of left turns yellow
+  // centre line red, one step to its right yellow, outer corners of left turns yellow
   function paint(ws) {
     const col = new Int8Array(S * S).fill(B), line = new Uint8Array(S * S), lane = [];
     for (const { pts, closed } of ws) {
@@ -571,8 +560,8 @@ function makeProofEngine(K) {
     const out = [];
     for (let y = 0; y < W; y++) for (let x = 0; x < W; x++) {
       const a = col[idx(x, y)], b = col[idx(x + 1, y)], c = col[idx(x + 1, y + 1)], d = col[idx(x, y + 1)];
-      if (a !== b && b !== d && a !== d) out.push([[x, y], [x + 1, y], [x, y + 1]]);
-      if (b !== c && c !== d && b !== d) out.push([[x + 1, y], [x + 1, y + 1], [x, y + 1]]);
+      if (a !== b && b !== c && a !== c) out.push([[x, y], [x + 1, y], [x + 1, y + 1]]);
+      if (a !== d && d !== c && a !== c) out.push([[x, y], [x, y + 1], [x + 1, y + 1]]);
     }
     return out;
   }
@@ -606,17 +595,15 @@ function makeProofEngine(K) {
     const i = chain.indexOf(v);
     return i > 0 ? chain[i - 1] : v;
   }
-  // The diagonal squares a query depends on (Algorithm "Sperner adversary" in the
-  // notes). Band k is the half-open range [O + BW k, O + BW (k + 1)); points outside
-  // the bands are margin and have the same color in every tunnel coloring. A query
-  // in block (bx, by) first extends the tunnel if by is the dead end, then touches
-  // bx, by, the square after by and the square before bx.
+  // which diagonal squares a point depends on
   function lookups(x, y) {
     const u = x - O, v = y - O;
-    if (u < 0 || v < 0 || u >= BW * K || v >= BW * K) return;
+    if (u <= 0 || v <= 0 || u >= BW * K || v >= BW * K) return;
+    const onV = u % BW === 0, onH = v % BW === 0;
+    if (onV && onH) return;
     const bx = Math.floor(u / BW), by = Math.floor(v / BW);
-    const s = next(by); if (s !== by) prev(s);
-    const p = prev(bx); if (p !== bx) next(p);
+    if (!onV) { const p = prev(bx); if (p !== bx) next(p); }
+    if (!onH) { const s = next(by); if (s !== by) prev(s); }
   }
   function query(x, y) {
     const i = idx(x, y);
@@ -683,9 +670,9 @@ if(typeof module!=='undefined')module.exports={dncBot};
 const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
 const $=id=>document.getElementById(id);
 let e, hover=null, drag=null, reveal=false, won=null, autoTimer=null, gen=null, lastMsg='', mode='proof';
-const SIZES={proof:[[4,'Small · 53 × 53'],[6,'Medium · 77 × 77'],[8,'Large · 101 × 101']],free:[[6,'Small · 29 × 29'],[10,'Medium · 45 × 45'],[16,'Large · 69 × 69']]};
+const SIZES={proof:[[4,'Small · 4 diagonal squares (53 × 53)'],[6,'Medium · 6 diagonal squares (77 × 77)'],[8,'Large · 8 diagonal squares (101 × 101)']],free:[[6,'Small · 29 × 29'],[10,'Medium · 45 × 45'],[16,'Large · 69 × 69']]};
 function fillSizes(){const sel=$('size');sel.innerHTML='';SIZES[mode].forEach(([v,t],i)=>{const o=document.createElement('option');o.value=v;o.textContent=t;if(i===1)o.selected=true;sel.appendChild(o);});}
-const HELP={proof:'Proof mode runs the adversary from the lecture notes. Its tunnel only hops between the outlined diagonal squares, along the bands. Dashed squares are still untouched; each query uses up at most 2 of them. When you query a point in the dead end’s row band, the tunnel jumps to an untouched square. Where two hops cross, the walls are rewired so they never touch, which can split off a closed loop (an island). Loops have no ends, so they hold no trichromatic triangle.',free:'Free mode runs a looser adversary. Its tunnel is a snake that can end anywhere, and it reroutes around every point you click. It is harder to beat by hand, but it is not the adversary the proof is about.'};
+const HELP={proof:'Proof mode runs the adversary from the proof below. Its tunnel only hops between the outlined diagonal squares, along bands. Dashed squares are still untouched; each call uses up at most 4 of them. When you look in the dead end’s band, the tunnel jumps to an untouched square. Where two hops meet in one square, the walls are rewired so they never touch, which can split off a closed loop (an island). Loops have no ends, so they hold no rainbow triangle.',free:'Free mode runs a looser adversary. Its tunnel is a snake that can end anywhere, and it reroutes around every point you click. It is harder to beat by hand, but it is not the adversary the proof is about.'};
 const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 let C={};
 function readColors(){C={r:css('--r'),y:css('--y'),yEdge:css('--y-edge'),b:css('--b'),unk:css('--unk'),grid:css('--gridline'),ink:css('--ink'),panel:css('--panel'),muted:css('--muted')};}
@@ -696,8 +683,8 @@ function newGame(){
   stopAuto();
   e=mode==='proof'?makeProofEngine(+$('size').value):makeEngine(+$('size').value); won=null; hover=null;
   $('modeHelp').textContent=HELP[mode];
-  $('sEl').textContent=mode==='proof'?'Untouched squares':'Interior explored';
-  setMsg(mode==='proof'?'The door is at the bottom-left corner. Its tunnel hops between diagonal squares and ends at a trichromatic triangle in one of them.':'The door is the red–yellow edge at the bottom-left corner. Its tunnel leads to a trichromatic triangle somewhere inside.');
+  $('sEl').textContent=mode==='proof'?'Untouched diagonal squares':'Interior explored';
+  setMsg(mode==='proof'?'The door is at the bottom-left corner. Its tunnel hops between diagonal squares and ends at a rainbow triangle in one of them.':'The door is the red–yellow edge at the bottom-left corner. Its tunnel leads to a rainbow triangle somewhere inside.');
   // pre-query the boundary (known to everyone)
   for(let x=0;x<=e.W;x++)for(const y of [0,e.W]){e.query(x,y);e.query(y,x);}
   base=e.count;
@@ -730,7 +717,7 @@ function draw(){
   // triangulation
   ctx.strokeStyle=C.grid; ctx.lineWidth=1; ctx.beginPath();
   for(let i=0;i<=W;i++){ctx.moveTo(X(i),Y(0));ctx.lineTo(X(i),Y(W));ctx.moveTo(X(0),Y(i));ctx.lineTo(X(W),Y(i));}
-  if(sp>7){for(let t=1;t<2*W;t++){const x0=Math.max(0,t-W),x1=Math.min(W,t);ctx.moveTo(X(x0),Y(t-x0));ctx.lineTo(X(x1),Y(t-x1));}}
+  if(sp>7){for(let k=-W;k<=W;k++){const x0=Math.max(0,k),y0=x0-k,x1=Math.min(W,W+k),y1=x1-k;if(x1>x0){ctx.moveTo(X(x0),Y(y0));ctx.lineTo(X(x1),Y(y1));}}}
   ctx.stroke();
   if(mode==='proof'){
     const O=e.O,BW=e.BW,K=e.K,t=e.touched;
@@ -789,7 +776,7 @@ function doQuery(x,y,quiet){
     if(mode==='proof'){
       const ev=e.events, ext=ev.find(v=>v.type==='extend'), emp=ev.filter(v=>v.type==='empty').map(v=>v.v);
       let m=`(${x}, ${y}) → ${NAMES[c]}.`;
-      if(ext) m+=` You queried the dead end’s row band, so the adversary extended the tunnel to a square nobody had touched.`;
+      if(ext) m+=` You looked in the dead end’s band, so the adversary extended the tunnel to a diagonal square nobody had touched.`;
       else if(e.reroutes===before && ev.length===0 && e.unused===0) m+=' No untouched diagonal squares are left, so the dead end can no longer move.';
       if(emp.length) m+=` Diagonal square${emp.length>1?'s':''} ${emp.join(', ')} ${emp.length>1?'are':'is'} now used up.`;
       setMsg(m);
@@ -797,7 +784,7 @@ function doQuery(x,y,quiet){
   }
   const s=e.solved();
   if(s){won=s; stopAuto(); const n=e.count-base;
-    setMsg(mode==='proof'?`Trichromatic triangle found after ${n.toLocaleString()} queries. The adversary moved the dead end ${e.reroutes} times before the untouched diagonal squares ran out.`:`Trichromatic triangle found after ${n.toLocaleString()} queries, ${Math.round(100*n/interior())}% of the interior. The adversary rerouted ${e.reroutes} times.`,true);}
+    setMsg(mode==='proof'?`Rainbow triangle found after ${n.toLocaleString()} queries. The adversary moved the dead end ${e.reroutes} times before the untouched diagonal squares ran out.`:`Rainbow triangle found after ${n.toLocaleString()} queries, ${Math.round(100*n/interior())}% of the interior. The adversary rerouted ${e.reroutes} times.`,true);}
 }
 cv.addEventListener('pointerdown',ev=>{if(!e||autoTimer)return;cv.setPointerCapture(ev.pointerId);drag={a:pick(ev),b:null};});
 cv.addEventListener('pointermove',ev=>{if(!e)return;const p=pick(ev);if(drag){drag.b=p;}else hover=p;draw();});

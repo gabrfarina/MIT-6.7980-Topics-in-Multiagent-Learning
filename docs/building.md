@@ -254,7 +254,7 @@ Links to other pages are fine. In the note, call the helper exported by both
 styles:
 
 ```typst
-#interactive-demo("sperner-adversary", title: "Find the trichromatic triangle", height: 720)
+#interactive-demo("sperner-adversary", title: "Find the rainbow triangle", height: 720)
 ```
 
 The HTML edition embeds the page in an `<iframe>` of the given height (taller on

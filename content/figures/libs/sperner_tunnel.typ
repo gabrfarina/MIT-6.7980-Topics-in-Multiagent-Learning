@@ -165,8 +165,8 @@
 // diagonal squares starting at 0.
 #let tunnel-coloring(chain, k) = tunnel-paint(tunnel-walls(chain), tunnel-grid-size(k))
 
-// Trichromatic triangles for the lecture's triangulation (libs/sperner.typ):
-// each unit square is cut by its diagonal from (x, y + 1) to (x + 1, y).
+// Trichromatic triangles when each unit square is cut by its diagonal from
+// (x, y) to (x + 1, y + 1), as in the proof and the game.
 #let tunnel-trichromatic(col, n) = {
   let side = n + 1
   let c(x, y) = col.at(y * side + x)
@@ -175,16 +175,9 @@
   for y in range(n) {
     for x in range(n) {
       let (a, b, e, d) = (c(x, y), c(x + 1, y), c(x + 1, y + 1), c(x, y + 1))
-      if rainbow(a, b, d) { out.push(((x, y), (x + 1, y), (x, y + 1))) }
-      if rainbow(b, e, d) { out.push(((x + 1, y), (x + 1, y + 1), (x, y + 1))) }
+      if rainbow(a, b, e) { out.push(((x, y), (x + 1, y), (x + 1, y + 1))) }
+      if rainbow(a, d, e) { out.push(((x, y), (x, y + 1), (x + 1, y + 1))) }
     }
   }
   out
-}
-
-// Rows of a window of a coloring as strings for libs/sperner.typ's
-// `_sperner_grid`, top row first.
-#let tunnel-rows(col, n, x0, y0, x1, y1) = {
-  let side = n + 1
-  range(y1, y0 - 1, step: -1).map(y => range(x0, x1 + 1).map(x => ("r", "y", "b").at(col.at(y * side + x))).join())
 }

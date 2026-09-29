@@ -3,7 +3,6 @@
 #set text(font: figure-font, size: 9pt)
 #show: figure-style
 #import "@preview/cetz:0.4.1"
-#import "../libs/sperner.typ": trichromatic_col
 #import "../libs/sperner_tunnel.typ": *
 
 // One coloring used by the adversary of the Sperner query lower bound, with
@@ -33,7 +32,7 @@
   // The door cell (as in sperner_paths.typ) and the trichromatic triangle.
   line((0, 0), (1, 0), (0, 1), close: true, fill: purple.lighten(60%), stroke: none)
   let t = triangles.first()
-  line(..t, close: true, fill: trichromatic_col, stroke: .25mm + black)
+  line(..t, close: true, fill: black, stroke: .25mm + black)
   let centroid = (
     (t.at(0).at(0) + t.at(1).at(0) + t.at(2).at(0)) / 3,
     (t.at(0).at(1) + t.at(1).at(1) + t.at(2).at(1)) / 3,
