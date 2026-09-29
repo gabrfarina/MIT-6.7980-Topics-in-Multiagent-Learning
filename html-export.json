@@ -21,6 +21,9 @@
   "interactive_slides": {
     "learning-foundations": "slides/L04_learning_in_games.html"
   },
+  "interactive_demos": [
+    "content/interactive/sperner-adversary.html"
+  ],
   "notes": [
     {
       "source": "content/nfgs_nash.typ",

@@ -1,6 +1,10 @@
 // Bundle references use Typst's live labels, counters, and link destinations.
 // A single-file preview cannot introspect another document; it uses that
 // note's directly authored show-rule arguments for a lecture-level web link.
+
+// Public site base for links from PDFs; keep equal to how_to_cite.url_prefix.
+#let course-url = sys.inputs.at("course-url", default: "https://www.mit.edu/~6.7980/")
+
 #let lecture-title(number, title) = {
   let kind = if str(number).starts-with("S") { "Supplementary Reading" } else { "Lecture" }
   [#kind~#number, “#title”]
@@ -62,8 +66,7 @@
     if target() == "html" {
       link(relative, body)
     } else {
-      let base = sys.inputs.at("course-url", default: "https://www.mit.edu/~6.7980/")
-      link(base + relative, text(fill: blue.darken(40%), body))
+      link(course-url + relative, text(fill: blue.darken(40%), body))
     }
   }
 }
