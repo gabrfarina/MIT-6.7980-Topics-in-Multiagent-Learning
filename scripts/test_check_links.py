@@ -21,7 +21,7 @@ class LinkTests(unittest.TestCase):
         self.addCleanup(self.directory.cleanup)
         self.folder = Path(self.directory.name)
         self.config = {'site': {}, 'how_to_cite': {'url_prefix': BASE},
-                       'lectures': [{'source': 'content/content/lecture.typ'}]}
+                       'notes': [{'source': 'content/lecture.typ'}]}
         self.write('index.html', '<a href="lecture.html#result">Lecture</a>')
         self.lecture()
 

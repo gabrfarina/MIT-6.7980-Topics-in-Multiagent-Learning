@@ -1,5 +1,5 @@
 #import "@preview/cetz:0.4.1"
-#import "linalg.typ": mvp, vvp, add, transpose
+#import "linalg.typ": mvp, vvp
 #let brown = rgb(149, 69, 53)
 
 #let entropy-prox(x0, g, eta) = {
@@ -31,25 +31,7 @@
   )
 
   let N = 18
-  let K = 2 * N
   set-style(mark: (end: "stealth", scale: .25, fill: luma(0%)))
-  // if (colors) {
-  //   for i in range(K) {
-  //     for j in range(K) {
-  //       let p = (i + .5) / K
-  //       let q = (j + .5) / K
-  //       let (pp, qq) = f(p, q)
-  //       let dp = pp - p
-  //       let dq = qq - q
-  //       rect(
-  //         (i / K, j / K),
-  //         ((i + 1) / K + 1e-3, (j + 1) / K + 1e-3),
-  //         fill: nash_cmap.sample(calc.atan2(dp, dq) - 45deg).transparentize(20%),
-  //         stroke: none,
-  //       )
-  //     }
-  //   }
-  // }
   for i in range(N) {
     for j in range(N) {
       let p = (i + .5) / N
@@ -78,17 +60,15 @@
   content((-2.5mm, 1))[#set text(10pt);$1$]
   line((0, 0), (1, 0), (1, 1), (0, 1), close: true, fill: none, stroke: .4mm + black)
 
-  // Traj
+  // Trajectory
   let x = (0.5, 0.5)
   let _x = x // Old x
 
-  //Extrapolated
+  // Extrapolated iterate
   let z = x
-  let _z = z
 
   // Average
   let ax = x
-  let _ax = ax // Old average
 
   let col = if not optimistic {
     brown
@@ -101,7 +81,6 @@
   for j in range(1, 200) {
     // Here:
     // z = z^t
-    // _z = z^(t-1)
     // x = x^t has not been computed yet
     if not optimistic {
       x = z
@@ -115,22 +94,12 @@
 
     if dist(px, x) > 0.03 {
       line(px, x, stroke: .3mm + col)
-      // mark(
-      //   px,
-      //   (x.at(0) * 0.5 + px.at(0) * 0.5, x.at(1) * 0.5 + px.at(1) * 0.5),
-      //   symbol: "stealth",
-      //   stroke: col,
-      //   fill: col,
-      //   scale: .3,
-      // )
       line(pax, ax, stroke: (thickness: .4mm, paint: luma(50%), dash: "dotted"))
       circle(x, radius: .5mm, fill: col, stroke: none)
       px = x
       pax = ax
     }
-    _z = z
     _x = x
-    _ax = ax
     {
       let (p, q) = x
       z = (
@@ -146,8 +115,6 @@
   if highlight.len() > 0 {
     for pt in highlight {
       circle(pt, radius: .9mm, fill: black, stroke: .3mm + white)
-      // content(pt, box(baseline: -3pt, text(black, size: 15pt, sym.star.filled)))
-      // content(pt, box(baseline: -9pt / 5, text(purple, size: 9pt, sym.star.filled)))
     }
   }
 }

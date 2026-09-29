@@ -1,18 +1,21 @@
 mod chapters;
 mod math;
 mod options;
+mod permalinks;
+mod svg_images;
+mod svg_text;
 
 use chapters::{ChapterNav, ExportConfig};
 use math::MathMode;
 use options::Config;
 use regex::{Captures, Regex};
 use scraper::{ElementRef, Html, Selector};
-use std::collections::HashMap;
+use std::collections::{BTreeSet, HashMap};
 use std::env;
 use std::fmt::Write as _;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::sync::OnceLock;
+use std::sync::{Mutex, OnceLock};
 use typst::diag::{FileError, FileResult, SourceDiagnostic};
 use typst::foundations::{Bytes, Datetime, Dict, Duration, IntoValue};
 use typst::syntax::{FileId, RootedPath, Source, VirtualPath, VirtualRoot};
@@ -38,8 +41,17 @@ fn main() {
 
 fn run() -> Result<(), String> {
     let config = options::parse()?;
+    if config.figure_svg {
+        return compile_figure_svg(&config);
+    }
     let export_config = load_export_config(&config)?;
-    let raw_html = compile_typst_html(&config)?;
+    let raw_html = if let Some(path) = &config.from_html {
+        fs::read_to_string(path)
+            .map_err(|err| format!("could not read native HTML {}: {err}", path.display()))?
+    } else {
+        compile_typst_html(&config)?
+    };
+    let raw_html = svg_images::inline_selectable_svgs(&raw_html)?;
     let mut document = HtmlParts::parse(&raw_html);
     let title = config
         .title
@@ -51,7 +63,13 @@ fn run() -> Result<(), String> {
     document.rewrite_statement_ids();
     let (body_html, rendered_endnotes) =
         postprocess_body(document.body_html, &document.endnotes, config.math_mode)?;
+    let (body_html, heading_ids) = permalinks::add_permalinks(&body_html);
     document.body_html = body_html;
+    for heading in &mut document.headings {
+        if let Some(id) = heading_ids.get(&heading.id) {
+            heading.id = id.clone();
+        }
+    }
     document.rendered_endnotes = rendered_endnotes;
 
     let html = render_document(&config, &title, &document, export_config.as_ref());
@@ -73,7 +91,7 @@ fn load_export_config(config: &Config) -> Result<Option<ExportConfig>, String> {
 }
 
 fn compile_typst_html(config: &Config) -> Result<String, String> {
-    let world = LocalWorld::new(&config.input, &config.root, config.math_mode)?;
+    let world = LocalWorld::new(&config.input, &config.root, config.math_mode, None)?;
     let warned = typst::compile::<HtmlDocument>(&world);
     for warning in &warned.warnings {
         eprintln!("typst warning: {}", format_diagnostic(warning));
@@ -85,16 +103,42 @@ fn compile_typst_html(config: &Config) -> Result<String, String> {
         .map_err(|errors| format_diagnostics("Typst HTML encoding failed", &errors))
 }
 
+fn compile_figure_svg(config: &Config) -> Result<(), String> {
+    let world = LocalWorld::new(
+        &config.input, &config.root, config.math_mode, Some(&config.figure_inputs),
+    )?;
+    let warned = typst::compile::<typst_layout::PagedDocument>(&world);
+    for warning in &warned.warnings {
+        eprintln!("typst warning: {}", format_diagnostic(warning));
+    }
+    let document = warned.output
+        .map_err(|errors| format_diagnostics("Figure compilation failed", &errors))?;
+    if document.pages().len() != 1 {
+        return Err("a standalone SVG figure must contain exactly one page".into());
+    }
+    write_output(config, svg_text::render(&document.pages()[0]))?;
+    if let Some(path) = &config.figure_deps {
+        let inputs = world.dependencies.lock().unwrap();
+        let json = serde_json::json!({"inputs": *inputs});
+        fs::write(path, json.to_string())
+            .map_err(|err| format!("could not write figure dependencies: {err}"))?;
+    }
+    Ok(())
+}
+
 struct LocalWorld {
     main: FileId,
+    root: PathBuf,
     library: LazyHash<Library>,
     fonts: FontStore,
     files: SystemFiles,
     time: Time,
+    html_notes: bool,
+    dependencies: Mutex<BTreeSet<PathBuf>>,
 }
 
 impl LocalWorld {
-    fn new(input: &Path, root: &Path, math_mode: MathMode) -> Result<Self, String> {
+    fn new(input: &Path, root: &Path, math_mode: MathMode, figure_inputs: Option<&[String]>) -> Result<Self, String> {
         let root = root
             .canonicalize()
             .map_err(|err| format!("could not canonicalize root {}: {err}", root.display()))?;
@@ -118,9 +162,15 @@ impl LocalWorld {
         let main = RootedPath::new(VirtualRoot::Project, main_path).intern();
 
         let mut inputs = Dict::new();
-        inputs.insert("html".into(), "true".into_value());
-        inputs.insert("combined".into(), "false".into_value());
         inputs.insert("html-math".into(), math_mode.as_typst_input().into_value());
+        if let Some(figure_inputs) = figure_inputs {
+            for input in figure_inputs {
+                let (key, value) = input.split_once('=')
+                    .ok_or_else(|| format!("expected figure input key=value, got {input:?}"))?;
+                inputs.insert(key.into(), value.into_value());
+            }
+            inputs.insert("figure-format".into(), "html".into_value());
+        }
         let features = [Feature::Html].into_iter().collect();
         let library = Library::builder()
             .with_inputs(inputs)
@@ -130,21 +180,31 @@ impl LocalWorld {
         let mut fonts = FontStore::new();
         fonts.extend(fonts::system());
         fonts.extend(fonts::scan(&root.join("html-exporter/assets/fonts")));
+        if let Some(paths) = env::var_os("TYPST_FONT_PATHS") {
+            for path in env::split_paths(&paths) {
+                fonts.extend(fonts::scan(&path));
+            }
+        }
         fonts.extend(fonts::embedded());
         let packages = SystemPackages::new(SystemDownloader::new("notes-html-exporter/0.1"));
-        let files = SystemFiles::new(FsRoot::new(root), packages);
+        let files = SystemFiles::new(FsRoot::new(root.clone()), packages);
         let time = match env::var("SOURCE_DATE_EPOCH") {
-            Ok(value) => Time::fixed_timestamp(value.parse().map_err(|_| "invalid SOURCE_DATE_EPOCH")?)
-                .map_err(|err| err.to_string())?,
+            Ok(value) => {
+                Time::fixed_timestamp(value.parse().map_err(|_| "invalid SOURCE_DATE_EPOCH")?)
+                    .map_err(|err| err.to_string())?
+            }
             Err(_) => Time::system(),
         };
 
         Ok(Self {
             main,
+            root,
             library: LazyHash::new(library),
             fonts,
             files,
             time,
+            html_notes: figure_inputs.is_none(),
+            dependencies: Mutex::new(BTreeSet::new()),
         })
     }
 
@@ -154,6 +214,11 @@ impl LocalWorld {
 
     fn read_bytes(&self, id: FileId) -> FileResult<Vec<u8>> {
         let path = self.system_path(id)?;
+        self.dependencies.lock().unwrap().insert(path.clone());
+        Self::read_path_bytes(&path)
+    }
+
+    fn read_path_bytes(path: &Path) -> FileResult<Vec<u8>> {
         let file_error = |err| FileError::from_io(err, &path);
         if fs::metadata(&path).map_err(file_error)?.is_dir() {
             Err(FileError::IsDirectory)
@@ -180,7 +245,7 @@ impl World for LocalWorld {
         let bytes = self.read_bytes(id)?;
         let bytes = bytes.strip_prefix(b"\xef\xbb\xbf").unwrap_or(&bytes);
         let text = std::str::from_utf8(bytes)?;
-        let text = if matches!(id.root(), VirtualRoot::Project) {
+        let text = if self.html_notes && matches!(id.root(), VirtualRoot::Project) {
             use_html_notes_style(text)
         } else {
             text.to_owned()
@@ -189,16 +254,53 @@ impl World for LocalWorld {
     }
 
     fn file(&self, id: FileId) -> FileResult<Bytes> {
+        if self.html_notes && matches!(id.root(), VirtualRoot::Project) {
+            let source = self.system_path(id)?;
+            if let Some(variant) = html_figure_path(&self.root, &source) {
+                // Keep the authored FileId so image.source and figure markers
+                // retain their stable source paths while the glyphs match HTML.
+                let bytes = Self::read_path_bytes(&variant).map_err(|err| match err {
+                    FileError::NotFound(_) => FileError::Other(Some(
+                        format!(
+                            "missing HTML figure {}; run `make figures` before exporting HTML",
+                            variant.display()
+                        )
+                        .into(),
+                    )),
+                    err => err,
+                })?;
+                return Ok(Bytes::new(bytes));
+            }
+        }
         Ok(Bytes::new(self.read_bytes(id)?))
     }
 
     fn font(&self, index: usize) -> Option<Font> {
+        if let Some(source) = self.fonts.source(index) {
+            if let Some(path) = (source as &dyn std::any::Any).downcast_ref::<fonts::FontPath>() {
+                self.dependencies.lock().unwrap().insert(path.path.clone());
+            }
+        }
         self.fonts.font(index)
     }
 
     fn today(&self, offset: Option<Duration>) -> Option<Datetime> {
         self.time.today(offset)
     }
+}
+
+fn html_figure_path(root: &Path, source: &Path) -> Option<PathBuf> {
+    let relative = source.strip_prefix(root.join("content/figures")).ok()?;
+    if source.extension().and_then(|extension| extension.to_str()) != Some("svg") {
+        return None;
+    }
+    let has_source = source.with_extension("typ").is_file()
+        || (source
+            .file_stem()
+            .and_then(|stem| stem.to_str())
+            .is_some_and(|stem| stem.starts_with("gate_"))
+            && source.with_file_name("gate.typ").is_file());
+    has_source.then(|| root.join(".build/html-figures").join(relative))
 }
 
 fn format_diagnostics(prefix: &str, diagnostics: &[SourceDiagnostic]) -> String {
@@ -219,38 +321,15 @@ fn format_diagnostic(diagnostic: &SourceDiagnostic) -> String {
 }
 
 fn use_html_notes_style(source: &str) -> String {
-    let source = source
+    source
         .replace(
             r#"#import "meta/gabri_notes.typ": *"#,
             r#"#import "meta/gabri_notes_html.typ": *"#,
         )
         .replace(
-            r#"#import "meta/gabri_notes_bk.typ": *"#,
-            r#"#import "meta/gabri_notes_html.typ": *"#,
+            r#"#import "/content/meta/gabri_notes.typ": *"#,
+            r#"#import "/content/meta/gabri_notes_html.typ": *"#,
         )
-        .replace(
-            r#"#import "../meta/gabri_notes.typ": *"#,
-            r#"#import "../meta/gabri_notes_html.typ": *"#,
-        )
-        .replace(
-            r#"#import "../meta/gabri_notes_bk.typ": *"#,
-            r#"#import "../meta/gabri_notes_html.typ": *"#,
-        )
-        .replace("import cetz.plot", "");
-    strip_colored_math_text_wrappers(&remove_html_top_placements(&source))
-}
-
-fn remove_html_top_placements(source: &str) -> String {
-    re_placement_top_arg().replace_all(source, "").to_string()
-}
-
-fn strip_colored_math_text_wrappers(source: &str) -> String {
-    let source = re_colored_math_text_function()
-        .replace_all(source, r#"$$$body$$"#)
-        .to_string();
-    re_colored_math_text_block()
-        .replace_all(&source, r#"$$$body$$"#)
-        .to_string()
 }
 
 #[derive(Clone, Debug)]
@@ -270,11 +349,6 @@ struct StatementAnchor {
     id: String,
 }
 
-struct CrossrefBlock {
-    href: String,
-    body_html: String,
-}
-
 struct HtmlParts {
     meta: DocumentMeta,
     header_html: String,
@@ -290,7 +364,6 @@ impl HtmlParts {
         let body_html = select_first(&dom, "body")
             .map(|body| body.inner_html())
             .unwrap_or_else(|| raw_html.to_owned());
-        let body_html = rewrite_crossref_links_and_remove(body_html);
         let cleaned_dom = Html::parse_document(&format!("<html><body>{body_html}</body></html>"));
         let meta = extract_document_meta(&cleaned_dom);
         let header_html = select_first(&cleaned_dom, ".lecture-metadata")
@@ -348,7 +421,6 @@ impl HtmlParts {
     fn rewrite_statement_ids(&mut self) {
         let anchors = collect_statement_anchors(&self.body_html);
         let mut statement_idx = 0usize;
-        let mut href_targets = HashMap::new();
         self.body_html = re_html_section()
             .replace_all(&self.body_html, |captures: &Captures| {
                 let whole = captures.get(0).map_or("", |m| m.as_str());
@@ -360,15 +432,16 @@ impl HtmlParts {
                     return whole.to_owned();
                 };
                 statement_idx += 1;
-                if let Some(raw_id) = &anchor.raw_id {
-                    if raw_id != &anchor.id {
-                        href_targets.insert(raw_id.clone(), format!("#{}", anchor.id));
-                    }
+                // Native bundle links in other pages already point at raw_id.
+                // Preserve it; retain the old numbered URL as a local alias.
+                let id = anchor.raw_id.as_ref().unwrap_or(&anchor.id);
+                let mut start = format!("<section{}>", set_id_attr(attrs, id));
+                if id != &anchor.id {
+                    write!(start, "<span id=\"{}\"></span>", escape_attr(&anchor.id)).unwrap();
                 }
-                format!("<section{}>", set_id_attr(attrs, &anchor.id))
+                start
             })
             .to_string();
-        self.rewrite_local_links(&href_targets);
     }
 
     fn rewrite_local_links(&mut self, targets: &HashMap<String, String>) {
@@ -475,8 +548,10 @@ fn heading_title_html(element: &ElementRef) -> String {
     // The TOC wraps this title in its own link. Keep formatting and math,
     // but remove inner links to avoid invalid nested anchors and stale loc-IDs.
     static ANCHOR_TAG: OnceLock<Regex> = OnceLock::new();
-    ANCHOR_TAG.get_or_init(|| Regex::new(r"</?a\b[^>]*>").unwrap())
-        .replace_all(&title, "").to_string()
+    ANCHOR_TAG
+        .get_or_init(|| Regex::new(r"</?a\b[^>]*>").unwrap())
+        .replace_all(&title, "")
+        .to_string()
 }
 
 fn heading_text_from_html(html: &str) -> String {
@@ -549,73 +624,6 @@ fn select_first<'a>(dom: &'a Html, selector: &str) -> Option<ElementRef<'a>> {
     dom.select(&selector).next()
 }
 
-fn rewrite_crossref_links_and_remove(body: String) -> String {
-    let (body, targets) = remove_crossrefs_and_collect_targets(&body);
-    rewrite_href_targets(body, &targets)
-}
-
-fn remove_crossrefs_and_collect_targets(body: &str) -> (String, HashMap<String, String>) {
-    let mut cleaned = String::new();
-    let mut targets = HashMap::new();
-    let mut stack: Vec<CrossrefBlock> = Vec::new();
-    let mut last = 0usize;
-
-    for captures in re_crossrefs_marker().captures_iter(body) {
-        let Some(marker) = captures.get(0) else {
-            continue;
-        };
-        let segment = &body[last..marker.start()];
-        if let Some(block) = stack.last_mut() {
-            block.body_html.push_str(segment);
-        } else {
-            cleaned.push_str(segment);
-        }
-
-        let kind = captures.name("kind").map_or("", |m| m.as_str());
-        if kind == "start" {
-            let attrs = captures.name("attrs").map_or("", |m| m.as_str());
-            stack.push(CrossrefBlock {
-                href: data_attr(attrs, "href").unwrap_or_default().to_owned(),
-                body_html: String::new(),
-            });
-        } else if let Some(block) = stack.pop() {
-            targets.extend(collect_crossref_targets(&block.body_html, &block.href));
-        } else {
-            cleaned.push_str(marker.as_str());
-        }
-        last = marker.end();
-    }
-
-    let tail = &body[last..];
-    if let Some(block) = stack.last_mut() {
-        block.body_html.push_str(tail);
-    } else {
-        cleaned.push_str(tail);
-    }
-    while let Some(block) = stack.pop() {
-        targets.extend(collect_crossref_targets(&block.body_html, &block.href));
-    }
-
-    (cleaned, targets)
-}
-
-fn collect_crossref_targets(body: &str, href: &str) -> HashMap<String, String> {
-    let id_selector = Selector::parse("[id]").unwrap();
-    let mut targets = HashMap::new();
-    let crossref_dom = Html::parse_fragment(body);
-    for element in crossref_dom.select(&id_selector) {
-        let Some(old_id) = element.value().attr("id") else {
-            continue;
-        };
-        let Some(anchor) = stable_anchor_for(&element) else {
-            continue;
-        };
-        targets.insert(old_id.to_owned(), format!("{href}#{anchor}"));
-    }
-
-    targets
-}
-
 fn collect_statement_anchors(body: &str) -> Vec<StatementAnchor> {
     let dom = Html::parse_fragment(body);
     let selector = Selector::parse("section.env.statement").unwrap();
@@ -634,33 +642,6 @@ fn collect_statement_anchors(body: &str) -> Vec<StatementAnchor> {
     anchors
 }
 
-fn stable_anchor_for(element: &ElementRef<'_>) -> Option<String> {
-    if has_class(element, "notes-heading") {
-        return stable_heading_id(element);
-    }
-    if has_class(element, "statement") {
-        return stable_statement_id(element);
-    }
-    None
-}
-
-fn stable_heading_id(element: &ElementRef<'_>) -> Option<String> {
-    let secno_selector = Selector::parse(".secno").unwrap();
-    let number = element
-        .value()
-        .attr("data-number")
-        .map(normalize_ws)
-        .filter(|number| !number.is_empty())
-        .or_else(|| {
-            element
-                .select(&secno_selector)
-                .next()
-                .map(|secno| normalize_ws(&secno.text().collect::<Vec<_>>().join(" ")))
-        })?;
-    let text = heading_text_from_html(&heading_title_html(element));
-    Some(slugify(&format!("{number}-{text}")))
-}
-
 fn stable_statement_id(element: &ElementRef<'_>) -> Option<String> {
     let kind_selector = Selector::parse(".env-kind").unwrap();
     let number_selector = Selector::parse(".env-number").unwrap();
@@ -675,15 +656,6 @@ fn stable_statement_id(element: &ElementRef<'_>) -> Option<String> {
         .map(|number| element_text(&number))
         .filter(|number| !number.is_empty())?;
     Some(slugify(&format!("{kind} {number}")))
-}
-
-fn has_class(element: &ElementRef<'_>, class_name: &str) -> bool {
-    element
-        .value()
-        .attr("class")
-        .unwrap_or_default()
-        .split_whitespace()
-        .any(|class| class == class_name)
 }
 
 fn attrs_has_class(attrs: &str, class_name: &str) -> bool {
@@ -788,14 +760,19 @@ fn unwrap_generated_biblioref_links(body: String) -> String {
         .replace_all(&body, |captures: &Captures| {
             let whole = captures.get(0).map_or("", |m| m.as_str());
             let attrs = captures.name("attrs").map_or("", |m| m.as_str());
-            if !attrs.contains(r#"role="doc-biblioref""#) || attrs.contains("citation") {
+            if !attrs.contains(r#"role="doc-biblioref""#)
+                || attrs.contains("citation")
+                || !extract_href_attr(attrs).is_some_and(|href| href.starts_with('#'))
+            {
                 whole.to_owned()
             } else {
                 let inner = captures.name("inner").map_or("", |m| m.as_str());
                 // Typst 0.15 full citations repeat the alphanumeric key.
                 // Our visible bibliography/sidenote already supplies that key.
-                PREFIX.get_or_init(|| Regex::new(r"^\[[^\]\n<]{1,40}\]").unwrap())
-                    .replace(inner, "").to_string()
+                PREFIX
+                    .get_or_init(|| Regex::new(r"^\[[^\]\n<]{1,40}\]").unwrap())
+                    .replace(inner, "")
+                    .to_string()
             }
         })
         .to_string()
@@ -806,6 +783,9 @@ fn rewrite_footnote_link_labels(body: &str) -> String {
         .replace_all(body, |captures: &Captures| {
             let whole = captures.get(0).map_or("", |m| m.as_str());
             let attrs = captures.name("attrs").map_or("", |m| m.as_str());
+            if attrs.contains("bibliography-link") {
+                return whole.to_owned();
+            }
             let Some(href) = extract_href_attr(attrs) else {
                 return whole.to_owned();
             };
@@ -944,12 +924,28 @@ fn render_document(
     export_config: Option<&ExportConfig>,
 ) -> String {
     let current = export_config.and_then(|export_config| current_chapter(config, export_config));
+    let browser_title = if let (Some(export_config), Some(current)) = (export_config, current) {
+        format!(
+            "{} · {} · {}",
+            export_config
+                .site
+                .event
+                .as_deref()
+                .unwrap_or(DEFAULT_EVENT_NAME),
+            export_config.chapters[current].course_label(),
+            title
+        )
+    } else if let Some(number) = &document.meta.lecture_number {
+        format!("{DEFAULT_EVENT_NAME} · Lecture {number} · {title}")
+    } else {
+        title.to_owned()
+    };
     let mut html = String::new();
     html.push_str("<!doctype html>\n<html lang=\"en\">\n<head>\n");
     html.push_str("  <meta charset=\"utf-8\">\n");
     html.push_str("  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n");
     html.push_str(math::katex_head_assets(config.math_mode));
-    write!(html, "  <title>{}</title>\n", escape_html(title)).unwrap();
+    write!(html, "  <title>{}</title>\n", escape_html(&browser_title)).unwrap();
     html.push_str("  <style>\n");
     html.push_str(PAGE_CSS);
     html.push_str("\n  </style>\n");
@@ -973,7 +969,12 @@ fn render_document(
     }
     html.push_str(">\n");
     if let (Some(export_config), Some(_)) = (export_config, current) {
-        if let Some(index) = export_config.site.index_href.as_ref().or(config.index_href.as_ref()) {
+        if let Some(index) = export_config
+            .site
+            .index_href
+            .as_ref()
+            .or(config.index_href.as_ref())
+        {
             write!(html,
                 "<nav class=\"compact-course-nav\" aria-label=\"Course\"><a href=\"{}\">← Course home · {}</a></nav>\n",
                 escape_attr(index), escape_html(export_config.site.event.as_deref().unwrap_or(DEFAULT_EVENT_NAME))).unwrap();
@@ -1008,12 +1009,16 @@ fn render_document(
     }
     html.push_str(&document.body_html);
     html.push_str(&render_endnotes(&document.rendered_endnotes));
+    html.push_str("<noscript><style>.endnotes { display: block }</style></noscript>\n");
     html.push_str("</article>\n</main>\n");
     if current.is_some() {
         html.push_str(chapter_nav_script());
         html.push_str(chapter_citation_script());
     }
     html.push_str(equation_width_script());
+    html.push_str("<script>\n");
+    html.push_str(include_str!("sidenotes.js"));
+    html.push_str("</script>\n");
     html.push_str(settled_hash_scroll_script());
     html.push_str("</body>\n</html>\n");
     html
@@ -1093,13 +1098,15 @@ fn render_chapter_citation_sidenote(
         )
         .unwrap();
     }
-    write!(
-        out,
-        "<a class=\"lecture-citation-link lecture-citation-github\" href=\"{}\" aria-label=\"View Typst source\">{}View source</a>",
-        escape_attr(&chapter_source_href(chapter)),
-        github_icon_svg()
-    )
-    .unwrap();
+    if let Some(repository) = &export_config.site.github {
+        write!(
+            out,
+            "<a class=\"lecture-citation-link lecture-citation-github\" href=\"{}\" aria-label=\"View Typst source on GitHub\">{}View source</a>",
+            escape_attr(&chapter_source_href(repository, chapter)),
+            github_icon_svg()
+        )
+        .unwrap();
+    }
     write!(
         out,
         "<details class=\"lecture-citation-details\">\
@@ -1113,8 +1120,16 @@ fn render_chapter_citation_sidenote(
     out
 }
 
-fn chapter_source_href(chapter: &ChapterNav) -> String {
-    format!("../{}", chapter.source)
+fn chapter_source_href(repository: &str, chapter: &ChapterNav) -> String {
+    let mut href = format!("{}/blob/main/", repository.trim_end_matches('/'));
+    for byte in chapter.source.bytes() {
+        if byte.is_ascii_alphanumeric() || b"-._~/".contains(&byte) {
+            href.push(char::from(byte));
+        } else {
+            write!(href, "%{byte:02X}").unwrap();
+        }
+    }
+    href
 }
 
 fn github_icon_svg() -> &'static str {
@@ -1133,6 +1148,10 @@ fn render_chapter_rail(
         .event
         .as_deref()
         .unwrap_or(DEFAULT_EVENT_NAME);
+    let eyebrow = match export_config.site.term.as_deref() {
+        Some(term) => format!("{event} · {term}"),
+        None => event.to_owned(),
+    };
     let title = export_config
         .site
         .title
@@ -1155,14 +1174,14 @@ fn render_chapter_rail(
             out,
             "<a class=\"course-event\" href=\"{}\">{}</a>",
             escape_attr(index),
-            escape_html(event)
+            escape_html(&eyebrow)
         )
         .unwrap();
     } else {
         write!(
             out,
             "<div class=\"course-event\">{}</div>",
-            escape_html(event)
+            escape_html(&eyebrow)
         )
         .unwrap();
     }
@@ -1182,12 +1201,17 @@ fn render_chapter_rail(
         )
         .unwrap();
     }
-    write!(
+    writeln!(
         out,
-        "<div class=\"course-authors\">{}</div></div>\n",
+        "<div class=\"course-authors\">{}</div></div>",
         escape_html(authors)
     )
     .unwrap();
+    out.push_str("<div class=\"lecture-browser\">\n");
+    if export_config.chapters.iter().any(|chapter| !chapter.supplementary) {
+        out.push_str("<div class=\"lecture-rail-heading\">Lectures</div>\n");
+    }
+    out.push_str("<div class=\"lecture-browser-list\" role=\"region\" aria-label=\"Lectures and supplementary readings\" tabindex=\"0\">\n");
     for (supplementary, label) in [(false, "Lectures"), (true, "Supplementary readings")] {
         if !export_config
             .chapters
@@ -1196,12 +1220,9 @@ fn render_chapter_rail(
         {
             continue;
         }
-        let heading_class = if supplementary {
-            "lecture-rail-heading lecture-rail-section-heading"
-        } else {
-            "lecture-rail-heading"
-        };
-        writeln!(out, "<div class=\"{heading_class}\">{label}</div>").unwrap();
+        if supplementary {
+            writeln!(out, "<div class=\"lecture-rail-heading lecture-rail-section-heading\">{label}</div>").unwrap();
+        }
         for (idx, chapter) in export_config
             .chapters
             .iter()
@@ -1218,9 +1239,9 @@ fn render_chapter_rail(
             } else {
                 ""
             };
-            write!(
+            writeln!(
                 out,
-                "<a class=\"{}\" href=\"{}\"{}><span>{}</span>{}</a>\n",
+                "<a class=\"{}\" href=\"{}\"{}><span>{}</span>{}</a>",
                 class,
                 escape_attr(&chapter.href().expect("lecture href was validated")),
                 aria,
@@ -1230,25 +1251,48 @@ fn render_chapter_rail(
             .unwrap();
         }
     }
+    out.push_str("</div>\n<div class=\"lecture-scroll-hint\" aria-hidden=\"true\" hidden>Scroll for more ↓</div>\n</div>\n");
     if !headings.is_empty() {
-        out.push_str(
-            "<div class=\"lecture-rail-heading lecture-rail-section-heading\">This Lecture</div>\n",
-        );
-        for heading in headings {
-            write!(
-                out,
-                "<a class=\"lecture-section-link lecture-section-l{}\" href=\"#{}\" data-section-link=\"{}\"><span class=\"lecture-section-no\">{}</span><span class=\"lecture-section-title\">{}</span></a>\n",
-                heading.level,
-                escape_attr(&heading.id),
-                escape_attr(&heading.id),
-                escape_html(&heading.number),
-                render_heading_title(heading, config.math_mode)
-            )
-            .unwrap();
+        out.push_str("<div class=\"lecture-rail-heading\">In this lecture</div>\n<div class=\"lecture-outline\">\n");
+        let mut remaining = headings;
+        while let Some((heading, rest)) = remaining.split_first() {
+            let child_count = rest
+                .iter()
+                .take_while(|child| child.level > heading.level)
+                .count();
+            let (children, rest) = rest.split_at(child_count);
+            if children.is_empty() {
+                out.push_str(&render_rail_section_link(heading, config.math_mode));
+            } else {
+                write!(
+                    out,
+                    "<details class=\"lecture-section-group\" open><summary aria-label=\"{}\">{}</summary>\n<div class=\"lecture-subsections\">\n",
+                    escape_attr(&format!("Subsections for {}", heading.text)),
+                    render_rail_section_link(heading, config.math_mode)
+                )
+                .unwrap();
+                for child in children {
+                    out.push_str(&render_rail_section_link(child, config.math_mode));
+                }
+                out.push_str("</div></details>\n");
+            }
+            remaining = rest;
         }
+        out.push_str("</div>\n");
     }
     out.push_str("</nav>\n");
     out
+}
+
+fn render_rail_section_link(heading: &Heading, math_mode: MathMode) -> String {
+    format!(
+        "<a class=\"lecture-section-link lecture-section-l{}\" href=\"#{}\" data-section-link=\"{}\"><span class=\"lecture-section-no\">{}</span><span class=\"lecture-section-title\">{}</span></a>\n",
+        heading.level,
+        permalinks::fragment_id(&heading.id),
+        escape_attr(&heading.id),
+        escape_html(&heading.number),
+        render_heading_title(heading, math_mode)
+    )
 }
 
 fn render_toc(headings: &[Heading], math_mode: MathMode) -> String {
@@ -1258,7 +1302,7 @@ fn render_toc(headings: &[Heading], math_mode: MathMode) -> String {
             out,
             "<li class=\"toc-l{}\"><a href=\"#{}\"><span class=\"toc-no\">{}</span><span class=\"toc-title\">{}</span></a></li>\n",
             heading.level,
-            escape_attr(&heading.id),
+            permalinks::fragment_id(&heading.id),
             escape_html(&heading.number),
             render_heading_title(heading, math_mode)
         )
@@ -1281,7 +1325,8 @@ fn render_endnotes(notes: &[RenderedEndnote]) -> String {
         let seq = idx + 1;
         write!(
             out,
-            "<p id=\"fn-end-{seq}\"><a class=\"footnote-backref\" href=\"#fnref-{seq}\">{}</a><span class=\"footnote-body\">{}</span></p>\n",
+            "<p id=\"fn-end-{seq}\">{}<a class=\"footnote-backref\" href=\"#fnref-{seq}\">{}</a><span class=\"footnote-body\">{}</span></p>\n",
+            permalinks::footnote_link(seq, &note.number),
             escape_html(&note.number),
             note.body_html
         )
@@ -1294,13 +1339,70 @@ fn render_endnotes(notes: &[RenderedEndnote]) -> String {
 fn chapter_nav_script() -> &'static str {
     r##"<script>
 (() => {
+  const storagePrefix = `lecture-rail:v1:${new URL(".", window.location.href).href}:`;
+  const remember = (details, key) => {
+    if (!details) return;
+    key = storagePrefix + key;
+    try {
+      const saved = window.localStorage.getItem(key);
+      if (saved === "open" || saved === "closed") details.open = saved === "open";
+    } catch {
+      // Native disclosures still work when browser storage is unavailable.
+    }
+    let lastOpen = details.open;
+    details.addEventListener("toggle", () => {
+      if (details.open === lastOpen) return;
+      lastOpen = details.open;
+      try {
+        window.localStorage.setItem(key, details.open ? "open" : "closed");
+      } catch {
+        // Storage restrictions must not interrupt navigation.
+      }
+    });
+  };
+  const lectureList = document.querySelector(".lecture-browser-list");
+  const scrollHint = document.querySelector(".lecture-scroll-hint");
+  if (lectureList) {
+    const currentLecture = lectureList.querySelector('[aria-current="page"]');
+    const updateScrollHint = () => {
+      if (!scrollHint) return;
+      const overflowing = lectureList.scrollHeight > lectureList.clientHeight + 1;
+      const moreBelow = lectureList.scrollTop + lectureList.clientHeight < lectureList.scrollHeight - 1;
+      scrollHint.hidden = !overflowing;
+      scrollHint.textContent = moreBelow ? "Scroll for more ↓" : "Scroll for earlier ↑";
+    };
+    const updateLectureList = () => {
+      if (currentLecture && lectureList.clientHeight) {
+        const listBounds = lectureList.getBoundingClientRect();
+        const currentBounds = currentLecture.getBoundingClientRect();
+        const centered = lectureList.scrollTop + currentBounds.top - listBounds.top
+          - lectureList.clientTop + (currentBounds.height - lectureList.clientHeight) / 2;
+        lectureList.scrollTop = Math.max(0, Math.min(centered,
+          lectureList.scrollHeight - lectureList.clientHeight));
+      }
+      updateScrollHint();
+    };
+    updateLectureList();
+    lectureList.addEventListener("scroll", updateScrollHint, { passive: true });
+    window.addEventListener("resize", updateLectureList);
+    new ResizeObserver(updateLectureList).observe(lectureList);
+    document.fonts.ready.then(updateLectureList);
+  }
+  for (const group of document.querySelectorAll(".lecture-section-group")) {
+    const id = group.querySelector("summary [data-section-link]")?.getAttribute("data-section-link");
+    if (id) remember(group, `section:${window.location.pathname}:${id}`);
+  }
+
   const links = Array.from(document.querySelectorAll("[data-section-link]"));
   if (!links.length) return;
   const byId = new Map(links.map((link) => [link.getAttribute("data-section-link"), link]));
   const sections = Array.from(byId.keys()).map((id) => document.getElementById(id)).filter(Boolean);
   const setActive = (id) => {
+    const current = byId.get(id);
+    const group = current?.closest(".lecture-section-group");
+    const visible = group && !group.open ? group.querySelector("summary [data-section-link]") : current;
     for (const link of links) {
-      const active = link.getAttribute("data-section-link") === id;
+      const active = link === visible;
       link.classList.toggle("is-active", active);
       if (active) link.setAttribute("aria-current", "location");
       else link.removeAttribute("aria-current");
@@ -1310,7 +1412,7 @@ fn chapter_nav_script() -> &'static str {
     const y = window.scrollY + 130;
     let current = sections[0]?.id;
     for (const section of sections) {
-      if (section.offsetTop <= y) current = section.id;
+      if (section.getBoundingClientRect().top + window.scrollY <= y) current = section.id;
       else break;
     }
     if (current) setActive(current);
@@ -1321,6 +1423,9 @@ fn chapter_nav_script() -> &'static str {
   document.addEventListener("scroll", update, { passive: true });
   window.addEventListener("resize", update);
   window.addEventListener("hashchange", update);
+  for (const group of document.querySelectorAll(".lecture-section-group")) {
+    group.addEventListener("toggle", update);
+  }
 })();
 </script>
 "##
@@ -1423,11 +1528,15 @@ fn equation_width_script() -> &'static str {
     var columnGap = parseFloat(style.columnGap) || 0;
     var gap = 12;
     if (eq.classList.contains("equation-aligned")) {
-      var left = maxWidth(Array.from(eq.querySelectorAll(".equation-align-left")));
-      var right = maxWidth(Array.from(eq.querySelectorAll(".equation-align-right")));
+      var columns = [];
+      eq.querySelectorAll(".equation-align-cell").forEach(function(cell){
+        var column = Number(cell.dataset.alignColumn);
+        columns[column] = Math.max(columns[column] || 0, boxWidth(cell));
+      });
       var full = maxWidth(Array.from(eq.querySelectorAll(".equation-align-full")));
       var eqno = maxWidth(Array.from(eq.querySelectorAll(".eqno")));
-      var aligned = left + right + columnGap + (eqno ? eqno + columnGap : 0);
+      var aligned = columns.reduce(function(total, width){ return total + width; }, 0)
+        + Math.max(0, columns.length - 1) * columnGap + (eqno ? eqno + columnGap : 0);
       return Math.max(full, aligned, eq.scrollWidth || 0);
     }
     var rows = Array.from(eq.querySelectorAll(".equation-line"));
@@ -1437,16 +1546,90 @@ fn equation_width_script() -> &'static str {
     var eqno = maxWidth(Array.from(eq.querySelectorAll(".eqno")));
     return Math.max(rowWidth, math + (eqno ? eqno + gap : 0), eq.scrollWidth || 0);
   }
+  function sizeTableColumns(){
+    // Browsers ignore mixed length/percentage calc() widths on native columns.
+    // Resolve Typst tracks against their container, retaining semantic tables.
+    // Reset to the authored CSS first so auto columns can shrink after a resize.
+    document.querySelectorAll("table[data-table-columns]").forEach(function(table){
+      var group = table.querySelector(":scope > colgroup");
+      var wrapper = table.closest(".lecture-table");
+      if (!group || !wrapper) return;
+      var cols = Array.from(group.children);
+      var available = wrapper.clientWidth;
+      var explicitWidth = function(col){
+        return Math.max(0, available * Number(col.dataset.tableRatio) + Number(col.dataset.tablePt) * 96 / 72);
+      };
+      table.style.minWidth = "";
+      var totalFraction = cols.reduce(function(sum, col){ return sum + Number(col.dataset.tableFraction || 0); }, 0);
+      if (table.style.tableLayout === "fixed" && totalFraction > 0) {
+        // Keep fractional columns readable on narrow screens. Measure their
+        // intrinsic minimums using native layout, then retain their proportions
+        // in the fixed layout and let the surrounding wrapper scroll.
+        var authoredWidth = table.style.width;
+        table.style.tableLayout = "auto";
+        table.style.width = "min-content";
+        var explicitTotal = 0;
+        cols.forEach(function(col){
+          if (col.dataset.tableTrack === "fraction") col.style.width = "auto";
+          else { var width = explicitWidth(col); explicitTotal += width; col.style.width = width + "px"; }
+        });
+        var minimumFractionSpace = 0;
+        cols.forEach(function(col){
+          var fraction = Number(col.dataset.tableFraction || 0);
+          if (fraction > 0) minimumFractionSpace = Math.max(minimumFractionSpace, col.getBoundingClientRect().width * totalFraction / fraction);
+        });
+        var borderWidth = table.getBoundingClientRect().width - group.getBoundingClientRect().width;
+        table.style.tableLayout = "fixed";
+        table.style.width = authoredWidth;
+        table.style.minWidth = Math.ceil(explicitTotal + minimumFractionSpace + borderWidth) + "px";
+      }
+      cols.forEach(function(col){ col.style.width = col.dataset.tableWidth; });
+      var gridWidth = group.getBoundingClientRect().width;
+      var fractions = 0;
+      var used = 0;
+      var widths = cols.map(function(col){
+        if (col.dataset.tableTrack === "fraction") {
+          fractions += Number(col.dataset.tableFraction);
+          return null;
+        }
+        var width = col.dataset.tableTrack === "auto"
+          ? col.getBoundingClientRect().width
+          : explicitWidth(col);
+        used += width;
+        return width;
+      });
+      var remaining = Math.max(0, gridWidth - used);
+      cols.forEach(function(col, index){
+        if (col.dataset.tableTrack === "auto") return;
+        var width = widths[index];
+        if (width === null) width = fractions > 0 ? remaining * Number(col.dataset.tableFraction) / fractions : 0;
+        col.style.width = width + "px";
+      });
+    });
+  }
   function markOverwideEquations(){
+    sizeTableColumns();
     document.querySelectorAll(".equation").forEach(function(eq){
       eq.classList.remove("is-overwide");
       var available = eq.clientWidth;
       var needed = equationNeededWidth(eq);
       if (needed > available + 2) eq.classList.add("is-overwide");
     });
+    document.querySelectorAll(".equation-block").forEach(function(block){
+      var box = block.getBoundingClientRect();
+      var equation = block.querySelector(":scope > .equation");
+      block.style.setProperty("--equation-right", `${equation.getBoundingClientRect().right - box.left}px`);
+      block.querySelectorAll(":scope > .permalink-equation").forEach(function(link){
+        var target = document.getElementById(decodeURIComponent(link.hash.slice(1)));
+        var number = target?.closest(".eqno") || block.querySelector(".eqno");
+        if (!number) return;
+        var rect = number.getBoundingClientRect();
+        link.style.top = `${rect.top + rect.height / 2 - box.top}px`;
+      });
+    });
     document.querySelectorAll(".lecture-table").forEach(function(wrapper){
       var table = wrapper.querySelector("table");
-      wrapper.classList.toggle("has-overflow", !!table && table.scrollWidth > table.clientWidth + 2);
+      wrapper.classList.toggle("has-overflow", !!table && Math.max(table.scrollWidth, table.getBoundingClientRect().width) > wrapper.clientWidth + 2);
     });
   }
   window.markOverwideEquations = markOverwideEquations;
@@ -1468,11 +1651,26 @@ fn settled_hash_scroll_script() -> &'static str {
   function hashTarget(){
     const raw = window.location.hash ? window.location.hash.slice(1) : "";
     if (!raw) return null;
+    let target;
     try {
-      return document.getElementById(decodeURIComponent(raw));
+      target = document.getElementById(decodeURIComponent(raw));
     } catch (_) {
-      return document.getElementById(raw);
+      target = document.getElementById(raw);
     }
+    // Footnotes have a margin copy on desktop and an endnote on narrow pages.
+    // Share one URL while selecting whichever copy is currently visible.
+    if (target?.id.startsWith("fn-end-")) {
+      const side = document.getElementById(target.id.replace("fn-end-", "fn-side-"));
+      if (side?.getClientRects().length) return side;
+    } else if (target?.id.startsWith("fn-side-") && !target.getClientRects().length) {
+      return document.getElementById(target.id.replace("fn-side-", "fn-end-"));
+    }
+    // Native equate line labels live on hidden metadata spans. Scroll to the
+    // visible equation number, including rows laid out with display:contents.
+    if (target?.matches(".equation-anchor[hidden]")) {
+      return target.closest(".equation-line")?.querySelector(".eqno") || target.closest(".equation");
+    }
+    return target;
   }
 
   function anchorOffset(){
@@ -1484,11 +1682,11 @@ fn settled_hash_scroll_script() -> &'static str {
     return target.getBoundingClientRect().top - anchorOffset();
   }
 
-  function scrollToTarget(target){
+  function scrollToTarget(target, behavior){
     const top = target.getBoundingClientRect().top + window.pageYOffset - anchorOffset();
     const y = Math.max(0, top);
     try {
-      window.scrollTo({ top: y, left: 0, behavior: "smooth" });
+      window.scrollTo({ top: y, left: 0, behavior });
     } catch (_) {
       window.scrollTo(0, y);
     }
@@ -1526,7 +1724,8 @@ fn settled_hash_scroll_script() -> &'static str {
     window.requestAnimationFrame(tick);
   }
 
-  function scheduleHashScroll(){
+  function scheduleHashScroll(behavior = "smooth"){
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) behavior = "instant";
     const target = hashTarget();
     if (!target) return;
     const current = ++version;
@@ -1535,19 +1734,19 @@ fn settled_hash_scroll_script() -> &'static str {
         if (current !== version) return;
         const target = hashTarget();
         if (!target) return;
-        scrollToTarget(target);
+        scrollToTarget(target, behavior);
         window.setTimeout(function(){
           if (current === version) {
             const target = hashTarget();
-            if (target && Math.abs(targetDistance(target)) > 1) scrollToTarget(target);
+            if (target && Math.abs(targetDistance(target)) > 1) scrollToTarget(target, "instant");
           }
-        }, 160);
+        }, behavior === "instant" ? 160 : 1500);
       });
     });
   }
 
-  scheduleHashScroll();
-  window.addEventListener("hashchange", scheduleHashScroll);
+  scheduleHashScroll("instant");
+  window.addEventListener("hashchange", () => scheduleHashScroll());
 })();
 </script>
 "#
@@ -1665,14 +1864,6 @@ fn extract_href_attr(attrs: &str) -> Option<&str> {
         .map(|m| m.as_str())
 }
 
-fn data_attr<'a>(attrs: &'a str, name: &str) -> Option<&'a str> {
-    let needle = format!("data-{name}=\"");
-    let start = attrs.find(&needle)? + needle.len();
-    let rest = &attrs[start..];
-    let end = rest.find('"')?;
-    Some(&rest[..end])
-}
-
 fn set_id_attr(attrs: &str, id: &str) -> String {
     if re_id_attr().is_match(attrs) {
         re_id_attr()
@@ -1712,16 +1903,6 @@ fn re_notes_meta() -> &'static Regex {
     })
 }
 
-fn re_crossrefs_marker() -> &'static Regex {
-    static RE: OnceLock<Regex> = OnceLock::new();
-    RE.get_or_init(|| {
-        Regex::new(
-            r#"(?s)<span\b(?P<attrs>[^>]*\bclass="[^"]*\bcrossrefs-(?P<kind>start|end)\b[^"]*"[^>]*)>\s*</span>"#,
-        )
-        .unwrap()
-    })
-}
-
 fn re_hidden_bibliography() -> &'static Regex {
     static RE: OnceLock<Regex> = OnceLock::new();
     RE.get_or_init(|| {
@@ -1758,31 +1939,6 @@ fn re_anchor_link() -> &'static Regex {
 fn re_img_src() -> &'static Regex {
     static RE: OnceLock<Regex> = OnceLock::new();
     RE.get_or_init(|| Regex::new(r#"<img\b[^>]*\bsrc="([^"]+)""#).unwrap())
-}
-
-fn re_placement_top_arg() -> &'static Regex {
-    static RE: OnceLock<Regex> = OnceLock::new();
-    RE.get_or_init(|| Regex::new(r#"(?m)^\s*placement:\s*top,\s*\n"#).unwrap())
-}
-
-fn re_colored_math_text_function() -> &'static Regex {
-    static RE: OnceLock<Regex> = OnceLock::new();
-    RE.get_or_init(|| {
-        Regex::new(
-                r#"text\((?:red|blue|green|purple|brown)(?:\.darken\([^)]*\))?(?:\s*,\s*size:\s*[^,$)]+)?\s*,\s*\$(?P<body>[^$]+)\$\)"#,
-        )
-        .unwrap()
-    })
-}
-
-fn re_colored_math_text_block() -> &'static Regex {
-    static RE: OnceLock<Regex> = OnceLock::new();
-    RE.get_or_init(|| {
-        Regex::new(
-                r#"text\((?:red|blue|green|purple|brown)(?:\.darken\([^)]*\))?(?:\s*,\s*size:\s*[^,$)]+)?\s*\)\s*\[\$(?P<body>[^$]+)\$\]"#,
-        )
-        .unwrap()
-    })
 }
 
 fn re_open_paragraph_tag() -> &'static Regex {
@@ -1869,6 +2025,112 @@ mod tests {
     use super::*;
 
     #[test]
+    fn source_link_opens_the_repository_file_on_github() {
+        let (mut book, _) = rail_fixture();
+        book.site.github = Some("https://github.com/example/course/".to_owned());
+        book.chapters[0].source = "content/nested/a note #1.typ".to_owned();
+        let html = render_chapter_citation_sidenote(
+            &book,
+            &book.chapters[0],
+            "Eight",
+            "Course",
+            Some("pdf/eight.pdf"),
+        );
+        assert!(html.contains(
+            r#"href="https://github.com/example/course/blob/main/content/nested/a%20note%20%231.typ""#
+        ));
+        assert!(html.contains("View source</a>"));
+        assert!(html.contains(r#"href="pdf/eight.pdf""#));
+        assert!(!html.contains(r#"href="source/"#));
+    }
+
+    fn rail_fixture() -> (ExportConfig, Config) {
+        let book = serde_json::from_value(serde_json::json!({
+            "site": {"event": "MIT 6.7980", "term": "Fall 2026", "title": "Full course title",
+                     "authors": "Course authors", "index_href": "index.html"},
+            "how_to_cite": {"authors": "Course authors", "key_prefix": "notes",
+                            "booktitle": "Course", "title_template": "{label}: {title}",
+                            "year": 2026, "url_prefix": "https://example.com/"},
+            "notes": [
+                {"number": 8, "source": "eight.typ", "short_title": "Eight"},
+                {"number": 16, "source": "sixteen.typ", "short_title": "Sixteen"},
+                {"number": 18, "source": "eighteen.typ", "short_title": "Eighteen"},
+                {"number": "S1", "source": "s1.typ", "short_title": "Reading one", "supplementary": true},
+                {"number": "S2", "source": "s2.typ", "short_title": "Reading two", "supplementary": true}
+            ]
+        })).unwrap();
+        let config = Config {
+            input: PathBuf::from("sixteen.typ"),
+            output: PathBuf::from("sixteen.html"),
+            root: PathBuf::from("."),
+            title: None,
+            site_title: "Full course title".to_owned(),
+            authors: "Course authors".to_owned(),
+            index_href: None,
+            pdf_href: None,
+            export_config: None,
+            from_html: None,
+            math_mode: MathMode::Katex,
+            figure_svg: false,
+            figure_inputs: Vec::new(),
+            figure_deps: None,
+        };
+        (book, config)
+    }
+
+    #[test]
+    fn rail_preserves_visible_lectures_outline_and_heading_math() {
+        let (book, config) = rail_fixture();
+        let parts = HtmlParts::parse(
+            r#"<html><body>
+<h1 id="a" class="notes-heading" data-level="1" data-number="16.1">First section</h1>
+<h2 id="b" class="notes-heading" data-level="2" data-number="16.1.1">Child</h2>
+<h3 id="c" class="notes-heading" data-level="3" data-number="16.1.1.1">Grandchild</h3>
+<h1 id="d" class="notes-heading" data-level="1" data-number="16.2">Leaf section</h1>
+<h1 id="e" class="notes-heading" data-level="1" data-number="16.3"><span class="math" data-math-display="inline" data-typst-math="[Φ]" role="math"><svg></svg></span>-regret</h1>
+<h2 id="f" class="notes-heading" data-level="2" data-number="16.3.1">Last child</h2>
+</body></html>"#,
+        );
+        let rail = render_chapter_rail(&book, 1, &parts.headings, &config);
+        let html = Html::parse_fragment(&rail);
+        let select = |selector: &str| Selector::parse(selector).unwrap();
+        assert_eq!(html.select(&select("details.lecture-browser")).count(), 0);
+        assert_eq!(html.select(&select(".lecture-browser summary")).count(), 0);
+        assert_eq!(html.select(&select(".lecture-browser-list[tabindex='0']")).count(), 1);
+        assert_eq!(html.select(&select(".lecture-scroll-hint[hidden]")).count(), 1);
+        assert_eq!(html.select(&select(".lecture-browser a")).count(), 5);
+        let current = html.select(&select("[aria-current=page]")).next().unwrap();
+        assert_eq!(current.value().attr("href"), Some("sixteen.html"));
+        let home = html.select(&select(".course-event")).next().unwrap();
+        assert_eq!(home.value().attr("href"), Some("index.html"));
+        assert_eq!(home.text().collect::<String>(), "MIT 6.7980 · Fall 2026");
+        let title = html.select(&select(".course-title")).next().unwrap();
+        assert_eq!(title.value().attr("href"), Some("index.html"));
+        assert_eq!(title.text().collect::<String>(), "Full course title");
+        let authors = html.select(&select(".course-authors")).next().unwrap();
+        assert_eq!(authors.text().collect::<String>(), "Course authors");
+        let destinations: Vec<_> = html
+            .select(&select("[data-section-link]"))
+            .map(|link| link.value().attr("href").unwrap())
+            .collect();
+        assert_eq!(destinations, ["#a", "#b", "#c", "#d", "#e", "#f"]);
+        let groups: Vec<_> = html.select(&select(".lecture-section-group")).collect();
+        assert_eq!(groups.len(), 2);
+        assert!(groups.iter().all(|group| group.value().attr("open").is_some()));
+        assert_eq!(
+            groups[0].select(&select(".lecture-subsections a")).count(),
+            2
+        );
+        assert_eq!(
+            groups[1].select(&select(".lecture-subsections a")).count(),
+            1
+        );
+        assert_eq!(html.select(&select(".lecture-outline > a")).count(), 1);
+        assert!(rail.contains(r"\(\Phi\)"));
+        assert!(!rail.contains("<svg>"));
+    }
+
+    #[test]
     fn lecture_metadata_moves_below_title_and_before_toc_once() {
         let raw = r#"<html><body><div class="lecture-metadata">
 <div><span>Instructor</span><p>Prof. Constantinos Daskalakis</p></div>
@@ -1888,7 +2150,11 @@ mod tests {
             index_href: None,
             pdf_href: None,
             export_config: None,
+            from_html: None,
             math_mode: MathMode::Katex,
+            figure_svg: false,
+            figure_inputs: Vec::new(),
+            figure_deps: None,
         };
         let html = render_document(&config, "Existence proofs", &parts, None);
         assert_eq!(html.matches("Prof. Constantinos Daskalakis").count(), 1);
@@ -1914,74 +2180,16 @@ mod tests {
     }
 
     #[test]
-    fn relative_notes_import_is_swapped_to_html_style() {
-        let source = r#"#import "../meta/gabri_notes.typ": *
-
-#let body() = [Figure body]
-"#;
-
-        let rewritten = use_html_notes_style(source);
-
-        assert!(rewritten.contains(r#"#import "../meta/gabri_notes_html.typ": *"#));
-        assert!(!rewritten.contains(r#"#import "../meta/gabri_notes.typ": *"#));
-    }
-
-    #[test]
-    fn bk_notes_import_is_swapped_to_html_style() {
-        let source = r#"#import "../meta/gabri_notes_bk.typ": *
+    fn relocated_notes_import_is_swapped_to_html_style() {
+        let source = r#"#import "/content/meta/gabri_notes.typ": *
 
 #show: gabri_notes.with(lec_num: 1, title: "Intro")
 "#;
 
         let rewritten = use_html_notes_style(source);
 
-        assert!(rewritten.contains(r#"#import "../meta/gabri_notes_html.typ": *"#));
-        assert!(!rewritten.contains(r#"#import "../meta/gabri_notes_bk.typ": *"#));
-    }
-
-    #[test]
-    fn old_cetz_plot_import_is_removed_for_html_style() {
-        let source = r#"cetz.canvas({
-  import cetz.plot
-  plot.plot({})
-})"#;
-
-        let rewritten = use_html_notes_style(source);
-
-        assert!(!rewritten.contains("import cetz.plot"));
-        assert!(rewritten.contains("plot.plot"));
-    }
-
-    #[test]
-    fn top_figure_placement_is_removed_for_html_style() {
-        let source = r#"#figure(
-  placement: top,
-  image("times.jpg"),
-)"#;
-
-        let rewritten = use_html_notes_style(source);
-
-        assert!(!rewritten.contains("placement: top"));
-        assert!(rewritten.contains(r#"image("times.jpg")"#));
-    }
-
-    #[test]
-    fn colored_math_text_wrappers_are_removed_for_html_style() {
-        let source = r#"
-#let reda = text(red.darken(30%))[$a$]
-#let reda2 = text(blue.darken(60%), $a_2$)
-#let fj = text(brown, $f^j$)
-content((1, 1))[#text(red, size: 8pt, $nor(x)$)]
-text(blue)[ordinary prose]
-"#;
-
-        let rewritten = use_html_notes_style(source);
-
-        assert!(rewritten.contains(r#"#let reda = $a$"#));
-        assert!(rewritten.contains(r#"#let reda2 = $a_2$"#));
-        assert!(rewritten.contains(r#"#let fj = $f^j$"#));
-        assert!(rewritten.contains(r#"content((1, 1))[#$nor(x)$]"#));
-        assert!(rewritten.contains(r#"text(blue)[ordinary prose]"#));
+        assert!(rewritten.contains(r#"#import "/content/meta/gabri_notes_html.typ": *"#));
+        assert!(!rewritten.contains(r#"#import "/content/meta/gabri_notes.typ": *"#));
     }
 
     #[test]
@@ -2007,6 +2215,25 @@ text(blue)[ordinary prose]
         assert_eq!(parts.headings[1].id, "4-1-1-real-subsection");
         assert_eq!(parts.headings[1].number, "4.1.1");
         assert_eq!(parts.headings[1].text, "Real subsection");
+    }
+
+    #[test]
+    fn statement_ids_preserve_native_links_and_legacy_numbered_urls() {
+        let mut parts = HtmlParts::parse(
+            r##"<html><body>
+<section class="env statement" id="thm-regret-gap"><div class="env-head"><span class="env-kind">Theorem</span> <span class="env-number">L4.9</span></div><p>Statement.</p></section>
+<section class="env statement"><div class="env-head"><span class="env-kind">Example</span> <span class="env-number">L4.10</span></div><p>Example.</p></section>
+<a href="#thm-regret-gap">Local reference</a>
+<a href="other.html#native-label">Cross-document reference</a>
+</body></html>"##,
+        );
+        parts.rewrite_statement_ids();
+        let dom = Html::parse_fragment(&parts.body_html);
+        for selector in ["section#thm-regret-gap", "#theorem-l4-9", "section#example-l4-10"] {
+            assert_eq!(dom.select(&Selector::parse(selector).unwrap()).count(), 1);
+        }
+        assert!(parts.body_html.contains(r##"href="#thm-regret-gap""##));
+        assert!(parts.body_html.contains(r#"href="other.html#native-label""#));
     }
 
     #[test]
@@ -2058,6 +2285,7 @@ text(blue)[ordinary prose]
 <p>See <a href="#loc-1">Section 1.1</a>, <a href="#loc-2">Theorem 1.2</a>, and <a href="#loc-3">(3)</a>.</p>
 <p>Generated citation <a href="#bib-old" role="doc-biblioref">[OLD]OLD</a> is unwrapped.</p>
 <p>Custom citation <a class="citation" href="#bib-new" role="doc-biblioref">NEW</a> is preserved.</p>
+<p>External citation <a href="https://doi.org/10.1/example" role="doc-biblioref">DOI</a> is preserved.</p>
 "##
         .to_owned();
 
@@ -2071,6 +2299,13 @@ text(blue)[ordinary prose]
         assert!(
             body.contains(r##"<a class="citation" href="#bib-new" role="doc-biblioref">NEW</a>"##)
         );
+        assert!(body.contains(r#"<a href="https://doi.org/10.1/example" role="doc-biblioref">DOI</a>"#));
+    }
+
+    #[test]
+    fn footnote_bibliography_links_keep_their_compact_label() {
+        let link = r#"<a class="bibliography-link" href="https://doi.org/10.1126/science.aay2400">link</a>"#;
+        assert_eq!(rewrite_footnote_link_labels(link), link);
     }
 
     #[test]
@@ -2183,8 +2418,12 @@ See <a href="#loc-6">Theorem 1</a> and <a class="citation" href="#bib-a" role="d
 <a href="#loc-34" role="doc-biblioref">Full citation</a>
 </template></body></html>"##;
         let mut parts = HtmlParts::parse(raw);
-        parts.rewrite_local_links(&HashMap::from([("loc-6".to_owned(), "#theorem-1".to_owned())]));
-        let (body, notes) = postprocess_body(parts.body_html, &parts.endnotes, MathMode::Svg).unwrap();
+        parts.rewrite_local_links(&HashMap::from([(
+            "loc-6".to_owned(),
+            "#theorem-1".to_owned(),
+        )]));
+        let (body, notes) =
+            postprocess_body(parts.body_html, &parts.endnotes, MathMode::Svg).unwrap();
         for html in [&body, &notes[0].body_html] {
             assert!(html.contains("href=\"#theorem-1\""));
             assert!(html.contains("href=\"#bib-a\""));

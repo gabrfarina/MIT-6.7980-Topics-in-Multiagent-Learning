@@ -16,7 +16,11 @@ pub(crate) struct Config {
     pub(crate) index_href: Option<String>,
     pub(crate) pdf_href: Option<String>,
     pub(crate) export_config: Option<PathBuf>,
+    pub(crate) from_html: Option<PathBuf>,
     pub(crate) math_mode: MathMode,
+    pub(crate) figure_svg: bool,
+    pub(crate) figure_inputs: Vec<String>,
+    pub(crate) figure_deps: Option<PathBuf>,
 }
 
 /// Export the MIT 6.7980 Typst notes through Typst HTML plus postprocessing.
@@ -47,9 +51,21 @@ pub(crate) fn parse(
     /// YAML file containing lecture and citation metadata.
     #[opt(long = "config")]
     export_config: Option<PathBuf>,
+    /// Postprocess this HTML from a native Typst bundle instead of compiling input.
+    #[opt(long = "from-html")]
+    from_html: Option<PathBuf>,
     /// Math rendering backend: svg or katex. Defaults to katex.
     #[opt(long)]
     math: Option<String>,
+    /// Render a standalone figure SVG with a selectable text layer.
+    #[opt(long = "figure-svg")]
+    figure_svg: bool,
+    /// Compiler input for a figure, e.g. gate=addition. May be repeated.
+    #[opt(long = "figure-input")]
+    figure_inputs: Vec<String>,
+    /// Write figure dependency paths as JSON for incremental builds.
+    #[opt(long = "figure-deps")]
+    figure_deps: Option<PathBuf>,
     /// Input Typst file.
     input: PathBuf,
     /// Output HTML file. Defaults to the input path with .html extension.
@@ -61,7 +77,7 @@ pub(crate) fn parse(
         MathMode::Katex
     };
 
-    let output = output.unwrap_or_else(|| input.with_extension("html"));
+    let output = output.unwrap_or_else(|| input.with_extension(if figure_svg { "svg" } else { "html" }));
     let root = root.unwrap_or_else(|| default_root_for_input(&input));
     let index_href = if no_index {
         None
@@ -79,7 +95,11 @@ pub(crate) fn parse(
         index_href,
         pdf_href: pdf,
         export_config,
+        from_html,
         math_mode,
+        figure_svg,
+        figure_inputs,
+        figure_deps,
     })
 }
 

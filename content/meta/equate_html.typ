@@ -166,14 +166,6 @@
   parts
 }
 
-#let concat-parts(parts) = {
-  let out = ()
-  for part in parts {
-    out += part
-  }
-  out
-}
-
 #let render-math-fragment(items) = {
   if items.len() > 0 {
     html-frame-math(items.join())
@@ -195,32 +187,34 @@
   ]
 }
 
-#let render-equation-line(line, index, number: none, anchor: [], numbered: false, aligned: false) = {
+#let render-equation-line(line, index, number: none, anchor: [], label-name: none, numbered: false, alignment-columns: 0) = {
   let has-alignment = line.any(is-align-point)
   let class = "equation-line" + if numbered { " is-numbered" } else { " is-unnumbered" } + if has-alignment { " has-alignment" } else { "" }
   let line-body = line.join()
   html.elem("div", attrs: (
     class: class,
     "data-line": str(index + 1),
+    ..if label-name != none { ("data-label": label-name) } else { (:) },
     ..math-data-attrs(line-body, "block"),
   ))[
-    #if aligned {
+    #if alignment-columns > 0 {
       if has-alignment {
         let parts = split-alignment(line)
-        let left = parts.first()
-        let right = concat-parts(parts.slice(1))
-        html.elem("span", attrs: (
-          class: "equation-align-left",
-          ..math-data-attrs(left.join(), "inline"),
-        ))[
-          #render-math-fragment(left)
-        ]
-        html.elem("span", attrs: (
-          class: "equation-align-right",
-          ..math-data-attrs(right.join(), "inline"),
-        ))[
-          #render-math-fragment(right)
-        ]
+        // Each ampersand starts a new column. Typst alternates right and
+        // left alignment; a third column commonly holds step justifications.
+        // Keep empty cells so shorter rows do not shift the following row.
+        for column in range(alignment-columns) {
+          let part = parts.at(column, default: ())
+          let legacy-class = if column == 0 { " equation-align-left" } else if column == 1 { " equation-align-right" } else { "" }
+          html.elem("span", attrs: (
+            class: "equation-align-cell" + legacy-class,
+            "data-align-column": str(column),
+            style: "grid-column: " + str(column + 2) + "; justify-self: " + if calc.even(column) { "end;" } else { "start;" },
+            ..math-data-attrs(part.join(), "inline"),
+          ))[
+            #render-math-fragment(part)
+          ]
+        }
       } else {
         html.elem("span", attrs: (
           class: "equation-align-full",
@@ -329,6 +323,9 @@
     }
 
     let has-alignment = lines.any(line => strip-label(line).any(is-align-point))
+    let alignment-columns = if has-alignment {
+      calc.max(..lines.map(line => split-alignment(strip-label(line)).len()))
+    } else { 0 }
     let class = "equation" + if lines.len() > 1 { " equation-multiline" } else { "" } + if has-alignment { " equation-aligned" } else { "" }
 
     sub-numbering-state.update(_ => sub-numbering)
@@ -336,6 +333,9 @@
     html.elem("figure", attrs: (
       class: class,
       role: "math",
+      ..if has-alignment { (style:
+        "--equation-alignment-columns: " + str(alignment-columns) + "; --equation-number-column: " + str(alignment-columns + 3) + ";",
+      ) } else { (:) },
     ))[
       #for (i, line) in lines.enumerate() {
         let sub-number = numbered.position(n => n == i)
@@ -359,8 +359,9 @@
           i,
           number: number,
           anchor: anchor,
+          label-name: if label-name != none { label-name } else if i == 0 and it.has("label") { str(it.label) } else { none },
           numbered: sub-number != none,
-          aligned: has-alignment,
+          alignment-columns: alignment-columns,
         )
       }
     ]

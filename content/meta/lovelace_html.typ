@@ -1,6 +1,6 @@
 // HTML renderer for the course's Lovelace pseudocode. Share the line data
 // constructors with the paged library, but never invoke its grid renderer.
-#import "lovelace.typ": normalize-line, indent, no-number, with-line-label, line-label
+#import "lovelace.typ": normalize-line, indent, no-number, with-line-label, line-label, identify-algorithm
 
 #let _html-pseudo-is-not-empty(it) = {
   (
@@ -143,23 +143,37 @@
 }
 
 // Both entry points use native HTML. Visual spacing is owned by notes.css;
-// the booktabs appearance follows the course's algorithm style.
-#let pseudocode(..children) = {
+// the booktabs appearance follows the course's algorithm style. As in the
+// paged renderer, callers attach labels and captions to the pseudocode call.
+#let pseudocode(caption: none, ..children) = {
   let named = children.named()
-  let title = named.at("numbered-title", default: named.at("title", default: none))
+  let title = named.at("title", default: none)
+  let numbered-title = named.at("numbered-title", default: none)
+  if numbered-title != none {
+    title = if numbered-title == [] {
+      strong(identify-algorithm)
+    } else {
+      [*#identify-algorithm:* #numbered-title]
+    }
+  }
   let line-numbering = named.at("line-numbering", default: "1.")
   let transformed = _html-pseudo-number-lines(children.pos().map(normalize-line)).children
 
-  html.elem("section", attrs: (class: "env algorithm"))[
-    #if title != none {
-      html.elem("div", attrs: (class: "env-title"))[#title]
-    }
-    #html.elem("div", attrs: (
-      class: "pseudocode" + if line-numbering == none { " pseudo-unnumbered" } else { "" },
-    ))[
-      #_html-pseudo-render-lines(transformed, line-numbering: line-numbering)
-    ]
-  ]
+  figure(
+    kind: "algorithm",
+    supplement: [Algorithm],
+    caption: caption,
+    html.elem("section", attrs: (class: "env algorithm"))[
+      #if title != none {
+        html.elem("div", attrs: (class: "env-title"))[#title]
+      }
+      #html.elem("div", attrs: (
+        class: "pseudocode" + if line-numbering == none { " pseudo-unnumbered" } else { "" },
+      ))[
+        #_html-pseudo-render-lines(transformed, line-numbering: line-numbering)
+      ]
+    ],
+  )
 }
 
 #let pseudocode-list(..config, body) = {

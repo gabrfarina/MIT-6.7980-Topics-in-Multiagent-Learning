@@ -1,177 +1,137 @@
 {
   "site": {
-    "event": "MIT 6.7980",
-    "title": "Topics in Multiagent Learning",
-    "authors": "Constantinos Daskalakis and Gabriele Farina",
     "index_href": "index.html",
-    "term": "Fall 2026",
-    "year": 2026,
     "syllabus_source": "syllabus/6.7980 F26 Syllabus.typ",
-    "separate_paths": ["fow/"]
+    "separate_paths": [
+      "fow/"
+    ]
   },
   "how_to_cite": {
-    "authors": "Daskalakis, Constantinos and Farina, Gabriele",
     "key_prefix": "mit-multiagent-learning",
-    "booktitle": "MIT Topics in Multiagent Learning Lecture Notes",
     "title_template": "{label}: {title}",
-    "note_template": "MIT 6.7980, Fall 2026",
-    "year": 2026,
     "url_prefix": "https://www.mit.edu/~6.7980/"
   },
-  "lectures": [
+  "slides": {
+    "overview": "slides/L00_course_intro.pdf",
+    "nash": "slides/L01_nash_equilibrium.pdf",
+    "brouwer": "slides/L02_sperner.pdf",
+    "nash-properties": "slides/L03_nash_properties.pdf",
+    "learning-foundations": "slides/L04_learning_in_games.pdf"
+  },
+  "interactive_slides": {
+    "learning-foundations": "slides/L04_learning_in_games.html"
+  },
+  "notes": [
     {
-      "number": 1,
-      "source": "content/content/nfgs_nash.typ",
-      "short_title": "Setting and equilibria: the Nash equilibrium",
-      "syllabus_numbers": [
-        1
-      ],
+      "source": "content/nfgs_nash.typ",
       "supplementary": false,
       "syllabus_ids": [
         "nash"
       ]
     },
     {
-      "number": 2,
-      "source": "content/content/brouwer.typ",
-      "short_title": "Existence proofs: Nash, Brouwer, and Sperner",
-      "syllabus_numbers": [
-        2
-      ],
+      "source": "content/brouwer.typ",
       "supplementary": false,
       "syllabus_ids": [
         "brouwer"
       ]
     },
     {
-      "number": 3,
-      "source": "content/content/correlated.typ",
-      "short_title": "Properties and relaxations of the Nash equilibrium",
-      "syllabus_numbers": [
-        3
-      ],
+      "source": "content/correlated.typ",
       "supplementary": false,
       "syllabus_ids": [
         "nash-properties"
       ]
     },
     {
-      "number": 4,
-      "source": "content/content/learning_intro.typ",
-      "short_title": "Foundations of learning in games",
-      "syllabus_numbers": [
-        4
-      ],
+      "source": "content/learning_intro.typ",
       "supplementary": false,
       "syllabus_ids": [
         "learning-foundations"
       ]
     },
     {
-      "number": 5,
-      "source": "content/content/learning1.typ",
-      "short_title": "Learning algorithms (I)",
-      "syllabus_numbers": [
-        5
-      ],
+      "source": "content/learning1.typ",
       "supplementary": false,
       "syllabus_ids": [
         "learning-algorithms"
       ]
     },
     {
-      "number": 6,
-      "source": "content/content/bandit.typ",
-      "short_title": "Bandit feedback",
-      "syllabus_numbers": [
-        6
-      ],
+      "source": "content/bandit.typ",
       "supplementary": false,
       "syllabus_ids": [
         "bandit"
       ]
     },
     {
-      "number": 7,
-      "source": "content/content/efg_intro.typ",
-      "short_title": "Foundations of extensive-form games",
-      "syllabus_numbers": [
-        7
-      ],
+      "source": "content/efg_intro.typ",
       "supplementary": false,
       "syllabus_ids": [
         "efg-modeling"
       ]
     },
     {
-      "number": 8,
-      "source": "content/content/learning_efg.typ",
-      "short_title": "Learning in extensive-form games",
-      "syllabus_numbers": [
-        8
-      ],
+      "source": "content/learning_efg.typ",
       "supplementary": false,
       "syllabus_ids": [
         "efg-learning"
       ]
     },
     {
-      "number": 20,
-      "source": "content/content/ppad_completeness.typ",
-      "short_title": "PPAD-hardness of Nash equilibrium",
-      "syllabus_numbers": [
-        20
-      ],
+      "source": "content/kernelized.typ",
+      "supplementary": false,
+      "syllabus_ids": [
+        "kernelized"
+      ]
+    },
+    {
+      "source": "content/tfnp.typ",
+      "supplementary": false,
+      "syllabus_ids": [
+        "tfnp"
+      ]
+    },
+    {
+      "source": "content/ppad_completeness.typ",
       "supplementary": false,
       "syllabus_ids": [
         "ppad"
       ]
     },
     {
-      "number": "S1",
-      "source": "content/content/eah.typ",
-      "short_title": "A second look at the minimax theorem",
-      "syllabus_numbers": [],
+      "source": "content/nash_algorithms.typ",
+      "supplementary_id": "nash-algorithms",
       "supplementary": true,
       "syllabus_ids": []
     },
     {
-      "number": "S2",
-      "source": "content/content/nash_algorithms.typ",
-      "short_title": "Centralized algorithms for Nash equilibrium computation",
-      "syllabus_numbers": [],
+      "source": "content/eah.typ",
+      "supplementary_id": "minimax",
       "supplementary": true,
       "syllabus_ids": []
     },
     {
-      "number": "S3",
-      "source": "content/content/learning2.typ",
-      "short_title": "Learning algorithms (II)",
-      "syllabus_numbers": [],
+      "source": "content/phi_regret.typ",
+      "supplementary_id": "phi-regret",
       "supplementary": true,
       "syllabus_ids": []
     },
     {
-      "number": "S4",
-      "source": "content/content/perfection.typ",
-      "short_title": "Sequential irrationality and perfect equilibria",
-      "syllabus_numbers": [],
+      "source": "content/learning2.typ",
+      "supplementary_id": "learning-2",
       "supplementary": true,
       "syllabus_ids": []
     },
     {
-      "number": "S5",
-      "source": "content/content/stochastic_games.typ",
-      "short_title": "Markov (aka stochastic) games",
-      "syllabus_numbers": [],
+      "source": "content/perfection.typ",
+      "supplementary_id": "perfection",
       "supplementary": true,
       "syllabus_ids": []
     },
     {
-      "number": "S6",
-      "source": "content/content/phi_regret.typ",
-      "short_title": "Phi-regret minimization",
-      "syllabus_numbers": [],
+      "source": "content/stochastic_games.typ",
+      "supplementary_id": "stochastic-games",
       "supplementary": true,
       "syllabus_ids": []
     }

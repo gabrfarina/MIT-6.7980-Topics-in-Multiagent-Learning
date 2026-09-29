@@ -117,7 +117,7 @@ def audit_site(folder, config, *, base_url=None, aliases=()):
         links.extend((name, link) for link in page.links)
     for path in sorted(folder.rglob('*.css')):
         links.extend((path.relative_to(folder).as_posix(), link) for link in css_links(path.read_text()))
-    for chapter in config['lectures']:
+    for chapter in config['notes']:
         name = Path(chapter['source']).stem + '.html'
         page = pages.get(name)
         if not page or len(page.citations) != 1:

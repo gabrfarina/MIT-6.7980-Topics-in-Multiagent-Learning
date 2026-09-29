@@ -1,344 +1,244 @@
-#import "@preview/cetz:0.2.2"
-#import "boxes.typ": *
-// #import "@preview/ctheorems:1.1.0": *
-#import "theorems.typ": *
+// Shared paged renderer for all active lecture and supplementary PDFs.
+// Imported directly by each lecture; PDF compilation needs no build-time rewrite.
+#assert(
+  not ("web" in sys.inputs or "combined" in sys.inputs or "html" in sys.inputs),
+  message: "Legacy web/combined/html inputs are unsupported. Compile each lecture directly, or use the site build.",
+)
 #import "linalg.typ": *
 #import "lovelace.typ": *
+#import "notation.typ": *
+#import "markers.typ": paragraph-marker
+#import "lecture-links.typ": lecture-link, lecture-title
+#import "typography.typ": course-sans-font
 
-#let pseudocode-list = pseudocode-list.with(
-  indentation: 1.10em,
-  line-gap: 1.00em,
-  hooks: .3mm,
-  stroke: .2mm + gray,
-  booktabs-stroke: .4mm + black,
-)
-
-#let email(addr) = {
-  let w = .3
-  let h = .2
-  box(
-    cetz.canvas({
-      import cetz.draw: *
-      rect((0, 0), (w, h), stroke: .2mm)
-      line((0, h), (w / 2, h / 2.5), (w, h), stroke: .2mm)
-    }),
-  )
-  [~]
-  link("mailto:" + addr, raw(addr))
+#let lecnum = state("lecnum", none)
+#let lecture-number-label(value) = if str(value).starts-with("S") { str(value) } else { "L" + str(value) }
+#let lecture-label(value) = if str(value).starts-with("S") { "Supplementary reading " + str(value) } else {
+  "Lecture " + str(value)
 }
-#let sf = text.with(font: "New Computer Modern Sans 08")
+#let html-math-color(fill, body) = text(fill: fill, body)
+#let proofdir(marker, body) = [#marker~~#body]
+#let comment = body => text(luma(128))[~~~~ $triangle.stroked.small.r$ _ #body _]
 
-#let swallow = it => place(hide(it))
+#let bpar(body) = [#strong(body) #h(0.5em)]
+#let changelog(body) = block(above: 3em, stroke: (top: 0.15mm + luma(80%)), inset: (top: 8pt))[
+  #text(size: 9pt, fill: luma(40%))[*Changelog*]
+  #v(0.4em)
+  #text(size: 9pt, body)
+]
+#let citep(..keys) = {
+  let keys = keys.pos()
+  if keys.len() == 2 and type(keys.last()) == content {
+    cite(keys.first(), supplement: keys.last())
+  } else {
+    for key in keys { cite(key) }
+  }
+}
+#let citet = cite.with(form: "prose")
+// Keep the native callsite so relative bibliography paths resolve in the lecture.
+#let lec_bibliography = bibliography
 
-#let gabri_notes(body, lec_num: none, date: none, title: none, show_outline: false, extrathanks: none) = {
-  set text(font: "New Computer Modern", size: 9.5pt)
-  // set text(size: 9.5pt)
+#let plain-text(value) = if type(value) == str {
+  value
+} else if value.func() in (linebreak, parbreak, [ ].func()) {
+  " "
+} else if value.has("text") {
+  value.text
+} else if value.has("children") {
+  value.children.map(plain-text).join("")
+} else if value.has("body") {
+  plain-text(value.body)
+} else {
+  ""
+}
+
+#let gabri_notes(
+  body,
+  lec_num: none,
+  date: none,
+  title: none,
+  instructor: [Prof. Gabriele Farina],
+  show_outline: false,
+  extrathanks: none,
+) = {
+  set document(title: lecture-title(lec_num, title), author: plain-text(instructor))
+  set page(
+    width: 8.27in,
+    height: 11.69in,
+    margin: (x: 1.3in, top: 1.6in, bottom: 1.6in),
+    numbering: none,
+    footer: context {
+      set text(font: "New Computer Modern", size: 10.2pt, hyphenate: false)
+      set par(justify: false, leading: .55em)
+      let label = if str(lec_num).starts-with("S") { str(lec_num) } else { lecture-label(lec_num) }
+      grid(
+        columns: (1fr, auto),
+        column-gutter: 8pt,
+        align: (left, right),
+        [#label #sym.bullet #title], [| #counter(page).display("1")/#numbering("1", ..counter(page).final())],
+      )
+    },
+  )
+  set text(font: "New Computer Modern", size: 10.2pt)
   set par(justify: true)
-  show par: set block(above: 4mm)
   set list(indent: 4.05mm)
   set enum(indent: 4.05mm)
-  let is_web = sys.inputs.at("web", default: "false") == "true"
-  set page(
-    margin: if is_web {
-      1mm
-    } else {
-      (x: 1.2in, top: 1.1in, bottom: 1in)
-    },
-    numbering: if is_web {
-      none
-    } else {
-      "1"
-    },
-    width: if is_web {
-      5.8in
-    } else {
-      8.5in
-    },
-    height: if is_web {
-      auto
-    } else {
-      11in
-    },
-  )
-  // set page(margin: 1mm, numbering: none, width: 5.8in, height: auto)
-  // set text(font: "PT Sans")
-  set heading(numbering: "1.1  ")
-  set cite(style: "alphanum.csl")
+  set heading(numbering: (..nums) => lecture-number-label(lec_num) + "." + nums.pos().map(str).join("."))
+  set figure(numbering: n => lecture-number-label(lec_num) + "." + str(n))
   set math.equation(supplement: none)
+  set cite(style: "alphanum.csl")
   show cite: set text(fill: blue.darken(40%))
-  show strong: set text(font: "New Computer Modern Sans", weight: "bold")
-  // show strong: set text(font: "Frutiger", weight: "bold")
-  // show heading: set text(font: "New Computer Modern Sans", weight: "bold")
+  show ref: it => {
+    if it.element != none and it.element.func() == figure and it.element.kind == "lecture-environment" {
+      let target = it.element
+      let supplement = if it.supplement == auto { target.supplement } else { it.supplement }
+      let number = lecture-number-label(lecnum.at(target.location()))
+      let n = counter(figure.where(kind: "lecture-environment")).at(target.location()).first()
+      link(target.location())[#if supplement not in (none, [], "", text("")) { [#supplement~] }#number.#n]
+    } else { it }
+  }
+  show strong: set text(font: course-sans-font, weight: "bold")
   show heading: it => {
-    // if it.level == 1 {
-    //   v(8mm)
-    //   grid(
-    //     columns: (30%, 70%),
-    //     align: top,
-    //     box(baseline: .6mm, line(length: 100%, stroke: black + 1.8mm)), line(length: 100%, stroke: black + .6mm),
-    //   )
-    // }
-    v(1mm)
-    // text(font: "New Computer Modern Sans", weight: "bold", it)
-    strong(it)
-    v(1mm)
+    // More space above than below connects each heading to its following text.
+    // Use block spacing so adjacent gaps collapse and page tops stay aligned.
+    let space-above = if it.level == 1 { 9mm } else if it.level == 2 { 7.5mm } else { 6mm }
+    let space-below = if it.level == 1 { 5mm } else { 4.5mm }
+    block(breakable: false, sticky: true, above: space-above, below: space-below)[
+      #set text(hyphenate: false)
+      #set par(justify: false)
+      #if it.numbering != none {
+        [#h(-.4in)#box(width: .3in, fill: gray, height: calc.max(.7mm, (3 - it.level) * 1mm + .7mm))#h(.1in)#box(
+            width: .6in,
+          )[#strong(counter(heading).display())]#strong(it.body)]
+      } else {
+        [#h(-.4in)#box(width: .3in, fill: gray, height: 2mm)#h(.1in)#strong(it.body)]
+      }
+    ]
   }
-  show: thmrules
-  show link: it => {
-    if it.body.func() != raw and it.body.has("text") and (
-      it.body.text.starts-with("http://") or it.body.text.starts-with("https://") or it.body.text.match(
-        regex("^10.\d{4,9}/[-._;()/:a-zA-Z0-9]+$"),
-      ) != none
-    ) {
-      link(it.dest, raw(it.body.text))
-    } else {
-      it
-    }
-  }
-  show "i.e.": emph
-  show "e.g.": emph
-
-  swallow[#text[Lecture #lec_num: #title]<lecture>]
-  box(
-    stroke: .5pt,
-    inset: 3mm,
-    width: 100%,
-    radius: 0mm,
-  )[
-    #show strong: set text(font: "New Computer Modern Sans", weight: "bold")
-    #place(top + left)[MIT 6.S890 --- Topics in Multiagent Learning]
-    #place(top + right)[#date]
-    #v(12mm)
-    #align(center)[#text(size: 16pt)[#strong[Lecture #lec_num#v(0mm)*#title*]]]
-    #v(5mm)
-    Instructor: Prof. Gabriele Farina (#email("gfarina@mit.edu"))#footnote(
-      numbering: (_)=>sym.star.filled,
-    )[These notes are class material that has not undergone formal peer review. The
-      TA and I are grateful for any reports of typos. #extrathanks]
-    #counter(footnote).update(0)
-  ]
-
-  if show_outline {
-    outline(fill: repeat([~.~]))
-    line(length: 100%)
-    v(1cm)
-  } else {
-    v(8mm)
-  }
-  body
-}
-
-#let citet = cite.with(form: "prose")
-#let citep = cite
-
-#let lec_bibliography = bibliography
-// #let lec_bibliography = (path, title:none) => {}
-
-#let appendix = body => {
+  show figure.caption: caption => context pad(left: 2em, right: 1em, align(
+    left,
+  )[#h(-1em)*#caption.supplement #numbering(caption.numbering, ..caption.counter.get())*#caption.separator#caption.body])
+  show figure.where(kind: "lecture-environment"): it => it.body
+  // Bundle counters are global except for page; each note starts afresh.
   counter(heading).update(0)
-  set heading(numbering: "A.1")
+  counter(math.equation).update(0)
+  counter(footnote).update(0)
+  for kind in ("lecture-environment", "algorithm", image, table) {
+    counter(figure.where(kind: kind)).update(0)
+  }
+  lecnum.update(str(lec_num))
+  box(stroke: .5pt, inset: 3mm, width: 100%, radius: 0mm)[
+    #text(size: 9pt)[
+      #grid(
+        columns: (1fr, auto),
+        column-gutter: 8pt,
+        align: (left, right),
+        [MIT 6.7980 --- Topics in Multiagent Learning], [#date],
+      )
+    ]
+    #v(8mm)
+    #align(center)[
+      #set par(justify: false)
+      #text(size: 16pt, hyphenate: false)[*#lecture-label(lec_num)#v(-2mm)#strong(title)*]
+    ]
+    #v(3mm)
+    Instructor: #instructor
+    #if extrathanks != none { footnote(extrathanks) }
+  ]
+  v(1cm)
+  if show_outline { outline() }
+  context {
+    set bibliography(target: selector(cite).within(here()), group: none)
+    body
+  }
+}
+
+#let appendix(body) = context {
+  counter(heading).update(0)
+  let number = lecture-number-label(lecnum.get())
+  set heading(numbering: (..nums) => number + "." + numbering("A.1", ..nums))
   body
 }
-#let brown = rgb(149, 69, 53)
-#let comment(body) = text(
-  luma(50%),
-  size: 10pt,
-)[[#box(baseline: -.35mm, text(size: 8pt, $triangle.r$)) #body]]
-#let todo(body) = highlight(fill: red.lighten(50%), body)
-#let theorem = thmbox(
-  "theorem",
-  "Theorem",
-  base: "heading",
-  titlefmt: text.with(font: "New Computer Modern Sans", weight: "bold"),
-  base_level: 1,
-  fill: luma(94%),
-  inset: 3mm,
-  radius: 1.5mm,
-  padding: none,
-  separator: [.#h(1mm)],
-  breakable: true,
-)
-#let open-problem = thmbox(
-  "open-problem",
-  "Open Problem",
-  base: "heading",
-  titlefmt: text.with(font: "New Computer Modern Sans", weight: "bold"),
-  base_level: 1,
-  fill: luma(94%),
-  inset: 3mm,
-  radius: 1.5mm,
-  padding: none,
-  separator: [.#h(1mm)],
-  breakable: true,
-)
-#let corollary = thmbox(
-  "corollary",
-  "Corollary",
-  base: "heading",
-  titlefmt: text.with(font: "New Computer Modern Sans", weight: "bold"),
-  base_level: 1,
-  fill: luma(94%),
-  inset: 3mm,
-  radius: 1.5mm,
-  padding: none,
-  separator: [.#h(1mm)],
-  breakable: true,
-)
-#let definition = thmbox(
-  "definition",
-  "Definition",
-  base: "heading",
-  titlefmt: text.with(font: "New Computer Modern Sans", weight: "bold"),
-  base_level: 1,
-  fill: luma(94%),
-  inset: 3mm,
-  radius: 1.5mm,
-  padding: none,
-  separator: [.#h(1mm)],
-  breakable: true,
-)
-#let example = thmbox(
-  "example",
-  "Example",
-  base: "heading",
-  titlefmt: text.with(font: "New Computer Modern Sans", weight: "bold"),
-  base_level: 1,
-  fill: luma(94%),
-  inset: 3mm,
-  radius: 1.5mm,
-  padding: none,
-  separator: [.#h(1mm)],
-  breakable: true,
-)
-#let remark = thmbox(
-  "remark",
-  "Remark",
-  base: "heading",
-  titlefmt: text.with(font: "New Computer Modern Sans", weight: "bold"),
-  base_level: 1,
-  fill: luma(94%),
-  inset: 3mm,
-  radius: 1.5mm,
-  padding: none,
-  separator: [.#h(1mm)],
-  breakable: true,
-)
-#let proof = thmbox(
-  "proof",
-  [Proof],
-  titlefmt: emph,
-  separator: [#h(0.1em).#h(2mm)],
-  base: "heading",
-  stroke: (left: .3mm + luma(60%), right: none),
-  radius: 0mm,
-  inset: (left: 4mm, y: 1mm),
-  padding: none,
-  bodyfmt: body => [#body #h(1fr) $square$],
-  breakable: true,
-).with(numbering: none)
-#let solution = thmbox(
-  "solution",
-  [Solution],
-  titlefmt: emph,
-  separator: [#h(0.1em).#h(2mm)],
-  base: "heading",
-  stroke: (left: .3mm + luma(60%), right: none),
-  radius: 0mm,
-  inset: (left: 4mm, y: 1mm),
-  padding: none,
-  bodyfmt: body => [#body #h(1fr) $square$],
-  breakable: true,
-).with(numbering: none)
 
-#let argmin = math.op($arg#h(1mm)min$, limits: true)
-#let argmax = math.op($arg#h(1mm)max$, limits: true)
-
-#let dt(s) = {
-  [#s] + if s.last() == "1" and (not s.ends-with(" 1") and not s.ends-with("11")) {
-    [#super[st]]
-  } else if s.last() == "2" and not s.ends-with("12") {
-    [#super[nd]]
-  } else if s.last() == "3" and not s.ends-with("13") {
-    [#super[rd]]
-  } else {
-    [#super[th]]
-  }
-}
-
-#let changelog(body) = [
-  #v(1cm)
-  #line(length: 100%, stroke: gray)
-  #set text(luma(40%))
-  *Changelog*
-  #set text(8pt, font: "Menlo")
-  #body
-]
-
-#let manualcite(..lbls) = {
-  let rows = ()
-  for lbl in lbls.pos() {
-    rows.push(cite(lbl))
-    rows.push(cite(lbl, form: "full"))
-  }
-  grid(columns: (1cm, auto), row-gutter: 3.8mm, column-gutter: 2.3mm, ..rows)
-}
-
-#let proofdir(marker, body) = list(indent: 0mm, marker: marker, block(width: 100%, breakable: true, body))
-
-// Math notation
-#let boxeq(inset: 2mm, bl: 2mm, body, punct: "") = (
-  $
-    #box(
-  baseline: bl,
-  stroke: .2mm,
-  inset: ("y": inset, "x": 2mm),
-  $display(#body)$,
-
-)" "#punct
-  $
-)
-#let qquad = $quad quad$
-#let nor(pt, domain: $Omega$) = $cal(N)_(#h(-.2em)domain)(pt)$
-#let span = $op("span")$
-#let colspan = $op("colspan")$
-#let ip(a, b) = $lr(angle.l #a, #b angle.r)$
-#let infconv = math.op(
-  box(
-    baseline: .8mm,
-    text(size: 7.5pt, stack(dir: ttb, $+$, v(-.4mm) + sym.or)),
-  ),
-)
-#let opt(dir, var, obj, ..constraints) = {
-  // assert(dir == math.min or dir == math.max)
-  let data = (($limits(dir)_(var)$, $&obj$),)
-  for (i, cntnt) in constraints.pos().enumerate(start: 0) {
-    if i == 0 {
-      data.push(("s.t.", $&$ + cntnt))
-    } else {
-      data.push(("", $&$ + cntnt))
+#let environment(name) = (..args, body) => figure(
+  kind: "lecture-environment",
+  supplement: name,
+  outlined: false,
+  caption: none,
+  numbering: n => context [#lecture-number-label(lecnum.get()).#n],
+  block(width: 100%, fill: luma(95%), stroke: .15mm + luma(80%), inset: 3mm, radius: .65mm, breakable: true, align(
+    left,
+  )[
+    #context {
+      strong(
+        [#name #lecture-number-label(lecnum.get()).#counter(figure.where(kind: "lecture-environment")).get().first()],
+      )
+      if args.pos().len() > 0 { [ (#args.pos().first())] }
+      strong[.]
     }
-  }
-  math.mat(delim: none, ..data)
-}
-#let P = text(font: "New Computer Modern Sans", "P")
-#let PPAD = text(font: "New Computer Modern Sans", "PPAD")
-#let NP = text(font: "New Computer Modern Sans", "NP")
-#let coNP = text(font: "New Computer Modern Sans", "co-NP")
-#let cone = math.op("cone")
-#let cK = math.cal("K")
-#let nablat = math.op($tilde(nabla)#h(-1mm)$)
-#let div(a, b, dgf: $phi$) = $#text(font: "New Computer Modern", "D")_#dgf (#a mid(||) #b)$
-#let divt(a, b) = $#text(font: "New Computer Modern", "D")_(phi_t) (#a mid(||) #b)$
-#let circled(body) = box(
-  baseline: .6mm,
-  circle(
-    radius: 1.6mm,
-    stroke: .2mm,
-    inset: .3mm,
-    text(size: 7pt, font: "New Computer Modern Sans 08", body),
-  ),
+    #h(0.2em)#body
+  ]),
 )
-#let dom = math.op("dom")
-#let diag = math.op("diag")
-// [#math.cal("N")#h(-.8mm)#math.cal("P")]
-// #let coNP = [co-#NP]
+#let theorem = environment("Theorem")
+#let corollary = environment("Corollary")
+#let definition = environment("Definition")
+#let example = environment("Example")
+#let remark = environment("Remark")
+#let claim = environment("Claim")
+#let subclaim = environment("Subclaim")
+#let lemma = environment("Lemma")
+#let exercise = environment("Exercise")
+#let open-problem = environment("Open Problem")
+#let proof-environment(name) = (..args, body) => block(
+  width: 100%,
+  stroke: (left: .3mm + luma(60%), right: none),
+  inset: (left: 4mm, y: 1mm),
+  breakable: true,
+)[
+  _#name#if args.pos().len() > 0 { [ #args.pos().first()] }._
+  #h(0.2em)#body #h(1fr) $square$
+]
+#let proof = proof-environment("Proof")
+#let proofsketch = proof-environment("Proof Sketch")
+#let solution = proof-environment("Solution")
+
+#let wrapped-figure(text-body, figure-body, side: right, text-width: 65%) = layout(size => {
+  let available = size.width - 12pt
+  let figure-width = (1 - text-width / 100%) * available
+  let text-width = text-width / 100% * available
+  let figure-body = {
+    // Preserve requested sizes; only shrink images that exceed their column.
+    show image: it => context {
+      let width = if it.width == auto {
+        measure(it, width: figure-width).width
+      } else {
+        (it.width.ratio * figure-width + it.width.length).to-absolute()
+      }
+      if width <= figure-width {
+        it
+      } else {
+        // Keep the original element's resolved source path and alt text, and
+        // anchor its artwork before cropping and scaling the oversized frame.
+        let visual = pad(right: width - figure-width, box(width: figure-width, align(left, it)))
+        scale(figure-width / width * 100%, reflow: true, visual)
+      }
+    }
+    align(center, figure-body)
+  }
+  if side == left {
+    grid(
+      columns: (figure-width, text-width),
+      column-gutter: 12pt,
+      figure-body, text-body,
+    )
+  } else {
+    grid(
+      columns: (text-width, figure-width),
+      column-gutter: 12pt,
+      text-body, figure-body,
+    )
+  }
+})
+#let wrapped-figure-with-caption(text-body, figure-body, caption, side: right, text-width: 65%) = {
+  wrapped-figure(text-body, figure(figure-body, caption: caption), side: side, text-width: text-width)
+}

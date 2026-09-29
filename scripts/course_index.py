@@ -2,37 +2,43 @@
 from datetime import date
 import copy
 import json
-import subprocess
 from html import escape
 from pathlib import Path
 import re
+import shutil
 
 
-# Course illustrations copied into the portable site.
-COURSE_FIGURES = {
-    'course-image-transparent.svg': 'website/thumbnail-transparent.svg',
-    'html-notes-collage.svg': 'syllabus/assets/html-notes-collage.svg',
-    'fog-of-war-challenge.png': 'syllabus/assets/fog-of-war-challenge.png',
-}
-
+from course_data import read_course_data, with_course_data, paragraphs, rich_html
+from public_files import (copy_font_assets, copy_public_files, interactive_slide_output, note_outputs,
+                          slide_output, validate_inputs)
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def load_course(config_path: Path = ROOT / 'html-export.json') -> tuple[dict, list[dict]]:
+    """Resolve the authored configuration once, before creating build artifacts."""
+    config = json.loads(config_path.read_text())
+    if 'notes' not in config or 'lectures' in config:
+        raise ValueError('Use the notes list in html-export.json, not lectures.')
+    for note in config['notes']:
+        if any(key in note for key in ('number', 'syllabus_numbers', 'date')):
+            raise ValueError('Note numbers and dates are generated from syllabus_ids; remove authored number, syllabus_numbers, and date fields.')
+    data = read_course_data(ROOT / config['site']['syllabus_source'], ROOT)
+    config = with_course_data(config, data)
+    modules = schedule_modules(data['schedule'], config['site']['year'])
+    config = resolve_readings(config, modules)
+    validate_inputs(config, modules, ROOT)
+    return config, modules
+
+
 def read_schedule(syllabus: Path, year: int) -> list[dict]:
     """Read the exact schedule evaluated by Typst, including assigned dates."""
-    result = subprocess.run([
-        'typst', 'eval', '--in', str(syllabus.resolve()), '--root', str(ROOT),
-        '--font-path', str(ROOT / 'html-exporter/assets/fonts'),
-        'query(<course-schedule>).map(e => e.value)',
-    ], cwd=ROOT, text=True, capture_output=True)
-    if result.returncode:
-        raise ValueError('Cannot evaluate syllabus schedule:\n' + result.stderr)
-    schedules = json.loads(result.stdout)
-    if len(schedules) != 1:
-        raise ValueError('Expected exactly one course-schedule metadata element.')
+    return schedule_modules(read_course_data(syllabus, ROOT)['schedule'], year)
+
+
+def schedule_modules(entries: list[dict], year: int) -> list[dict]:
     modules = []
-    for entry in schedules[0]:
+    for entry in entries:
         if entry['kind'] == 'module':
             modules.append({'title': entry['title'], 'rows': []})
             continue
@@ -45,25 +51,46 @@ def read_schedule(syllabus: Path, year: int) -> list[dict]:
 
 
 def resolve_readings(config: dict, modules: list[dict]) -> dict:
-    """Resolve stable lecture IDs to current session numbers and note dates."""
+    """Resolve stable IDs to syllabus titles, numbers, dates, and reading points."""
     resolved = copy.deepcopy(config)
     rows = {r['id']: r for m in modules for r in m['rows'] if r['kind'] == 'lecture'}
-    for chapter in resolved['lectures']:
+    supplements = config['course']['info']['supplementary_readings']
+    supplement_ids = [s['id'] for s in supplements]
+    if len(supplement_ids) != len(set(supplement_ids)):
+        raise ValueError('Supplementary reading IDs must be unique.')
+    mapped_supplements = set()
+    for chapter in resolved['notes']:
         ids = chapter.get('syllabus_ids', [])
         if chapter.get('supplementary'):
             if ids:
                 raise ValueError('Supplementary notes cannot claim syllabus lectures.')
+            id = chapter.get('supplementary_id')
+            if id not in supplement_ids or id in mapped_supplements:
+                raise ValueError(f'Invalid or duplicate supplementary_id: {id!r}')
+            mapped_supplements.add(id)
+            index = supplement_ids.index(id)
+            reading = supplements[index]
+            if reading['after'] not in rows:
+                raise ValueError(f"Invalid suggested lecture: {reading['after']}")
+            after = rows[reading['after']]
+            chapter['number'] = f'S{index + 1}'
             chapter['syllabus_numbers'] = []
             chapter['date'] = config['site']['term']
+            chapter['title'] = chapter['short_title'] = reading['title']
+            chapter['suggested_after'] = {key: after[key] for key in ('id', 'number', 'title')}
             continue
         if not ids or len(ids) != len(set(ids)) or not set(ids) <= rows.keys():
             raise ValueError(f"Invalid syllabus_ids for {chapter['source']}: {ids}")
         sessions = sorted((rows[id] for id in ids), key=lambda r: r['number'])
+        chapter['title'] = sessions[0]['title']
+        chapter['short_title'] = chapter['title']
         chapter['syllabus_numbers'] = [r['number'] for r in sessions]
         chapter['number'] = sessions[0]['number']
         day = date.fromisoformat(sessions[0]['iso_date'])
         chapter['date'] = f'{day:%a, %b} {day.day}, {day.year}'
-    resolved['lectures'].sort(key=lambda c: (bool(c.get('supplementary')),
+    if mapped_supplements != set(supplement_ids):
+        raise ValueError('Every supplementary reading must have a mapped note source.')
+    resolved['notes'].sort(key=lambda c: (bool(c.get('supplementary')),
         int(str(c['number'])[1:]) if c.get('supplementary') else c['number']))
     validate_readings(resolved, modules)
     return resolved
@@ -74,7 +101,7 @@ def validate_readings(config: dict, modules: list[dict]) -> None:
     primary = []
     seen_supplement = False
     supplement_number = 0
-    for chapter in config['lectures']:
+    for chapter in config['notes']:
         numbers = chapter.get('syllabus_numbers', [])
         if chapter.get('supplementary'):
             seen_supplement = True
@@ -93,9 +120,23 @@ def validate_readings(config: dict, modules: list[dict]) -> None:
         raise ValueError('Readings are out of syllabus order.')
 
 
-def render_index(config: dict, modules: list[dict], *, stylesheet_version: str = '') -> str:
+def render_index(config: dict, modules: list[dict], *, stylesheet_version: str = '',
+                 notes_stylesheet_version: str = '') -> str:
     config = resolve_readings(config, modules)
     site = config['site']
+    course = config['course']['info']
+    prose = config['course']['text']
+    instructors = ''.join(
+        f'<li><a class="person-name" href="{escape(p["url"], quote=True)}">{escape(p["name"])}</a>'
+        f'<a href="mailto:{escape(p["email"], quote=True)}">{escape(p["email"])}</a>'
+        f'<span>Office {escape(p["office"])}</span></li>' for p in course['instructors'])
+    tas = ''.join(
+        f'<li><span class="person-name">{escape(p["name"])}</span>'
+        f'<a href="mailto:{escape(p["email"], quote=True)}">{escape(p["email"])}</a>'
+        f'<span>Office hours: {escape(p["office_hours"].replace(", room ", ", "))}</span></li>' for p in course['tas'])
+    grading = ''.join(f'<li><strong>{label} {course["grading"][key]}%</strong></li>'
+        for key, label in [('attendance', 'Attendance and participation'),
+                           ('material', 'Improving material'), ('project', 'Project')])
     sections = []
     for index, module in enumerate(modules):
         rows = []
@@ -110,21 +151,32 @@ def render_index(config: dict, modules: list[dict], *, stylesheet_version: str =
                             f'<td class="break-topic" colspan="2"><strong>{escape(row["title"])}</strong>'
                             f'<span>{escape(row["description"])}</span></td></tr>')
                 continue
-            notes = [c for c in config['lectures'] if number in c.get('syllabus_numbers', [])]
+            notes = [c for c in config['notes'] if number in c.get('syllabus_numbers', [])]
             title_html = escape(row['title'])
             if notes:
-                title_href = escape(Path(notes[0]['source']).stem + '.html', quote=True)
+                title_href = escape(note_outputs(notes[0])['html'], quote=True)
                 title_html = f'<a class="lecture-title-link" href="{title_href}">{title_html}</a>'
             links = ''.join(
                 (f'<span class="reading-kind">{escape(c["reading_label"])}</span>' if c.get('reading_label') else '') +
-                f'<a class="reading-link" href="{Path(c["source"]).stem}.html" '
+                f'<a class="reading-link" href="{note_outputs(c)["html"]}" '
                 f'aria-label="Read notes: {escape(c["short_title"], quote=True)}">HTML</a>'
-                f'<a class="pdf-link" href="pdf/{Path(c["source"]).stem}.pdf" '
+                f'<a class="pdf-link" href="{note_outputs(c)["pdf"]}" '
                 f'aria-label="PDF: {escape(c["short_title"], quote=True)}">PDF</a>' for c in notes)
+            interactive = config.get('interactive_slides', {}).get(row['id'])
+            if interactive:
+                slides_href = escape(interactive_slide_output(interactive) + '?overview=1', quote=True)
+                links += (f'<a class="pdf-link slides-link" href="{slides_href}" '
+                          f'aria-label="Slides: {escape(row["title"], quote=True)}">Slides</a>')
+            else:
+                slides = config.get('slides', {}).get(row['id'])
+                if slides:
+                    slides_href = escape(slide_output(slides), quote=True)
+                    links += (f'<a class="pdf-link slides-link" href="{slides_href}" '
+                              f'aria-label="Slides (PDF): {escape(row["title"], quote=True)}">Slides (PDF)</a>')
             if not links:
                 links = ('<span class="notes-pending">Not yet posted</span>'
                          if number != 0 and module['title'] != 'Project work and presentations' else '')
-            rows.append(f'''<tr class="schedule-row">
+            rows.append(f'''<tr class="schedule-row" id="lecture-{escape(row['id'], quote=True)}">
   <th scope="row" class="session-number">{number:02}</th>
   <td class="session-date"><time datetime="{row['iso_date']}">{escape(row['date'])}</time>{badge_html}</td>
   <td class="session-topic"><h4>{title_html}</h4><p>{escape(row['description'])}</p></td>
@@ -146,33 +198,39 @@ def render_index(config: dict, modules: list[dict], *, stylesheet_version: str =
                         '<th scope="col">Topic</th><th scope="col">Notes</th></tr></thead>'
                         f'<tbody>{"".join(rows)}</tbody></table></section>')
     supplementary = ''.join(
-        f'<li><a href="{Path(c["source"]).stem}.html">{escape(str(c["number"]))} · {escape(c["short_title"])} <span aria-hidden="true">↗</span></a>'
-        f'<a class="pdf-link" href="pdf/{Path(c["source"]).stem}.pdf" '
-        f'aria-label="PDF: {escape(c["short_title"], quote=True)}">PDF</a></li>'
-        for c in config['lectures'] if c.get('supplementary'))
+        f'<tr><th scope="row" class="session-number">{escape(str(c["number"]))}</th>'
+        f'<td class="session-topic"><h4><a class="lecture-title-link" href="{note_outputs(c)["html"]}">{escape(c["short_title"])}</a></h4></td>'
+        f'<td class="suggested-after">'
+        f'<a href="#lecture-{escape(c["suggested_after"]["id"], quote=True)}" '
+        f'title="{escape(c["suggested_after"]["title"], quote=True)}">L{c["suggested_after"]["number"]:02}</a></td>'
+        f'<td class="materials-cell"><div class="session-links">'
+        f'<a class="reading-link" href="{note_outputs(c)["html"]}" '
+        f'aria-label="Read notes: {escape(c["short_title"], quote=True)}">HTML</a>'
+        f'<a class="pdf-link" href="{note_outputs(c)["pdf"]}" '
+        f'aria-label="PDF: {escape(c["short_title"], quote=True)}">PDF</a></div></td></tr>'
+        for c in config['notes'] if c.get('supplementary'))
     return f'''<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="MIT 6.7980, Fall 2026. Game theory, optimization, and learning in multiagent systems. Course schedule, lecture notes, and syllabus.">
+<meta name="description" content="{escape(site['event'])}, {escape(site['term'])}. {escape(site['title'])}. Course schedule, lecture notes, and syllabus.">
 <title>{escape(site['event'])} · {escape(site['title'])} · {escape(site['term'])}</title>
-<link rel="stylesheet" href="assets/notes.css">
+<link rel="stylesheet" href="assets/notes.css{('?v=' + escape(notes_stylesheet_version, quote=True)) if notes_stylesheet_version else ''}">
 <link rel="stylesheet" href="assets/course.css{('?v=' + escape(stylesheet_version, quote=True)) if stylesheet_version else ''}">
 </head>
 <body class="course-home">
 <a class="skip-link" href="#main">Skip to content</a>
 <header class="course-header home-width">
   <p class="course-term">{escape(site['event'])} · {escape(site['term'])}</p>
-  <h1>Topics in Multiagent Learning</h1>
+  <h1>{escape(site['title'])}</h1>
 </header>
 <main id="main" class="course-layout home-width">
 <div class="course-content">
 <section id="overview" class="course-overview" aria-label="Course overview">
   <div class="overview-copy">
-  <p>This course studies multiagent systems through game theory, optimization, and learning theory. We cover foundational topics such as Nash equilibria, regret minimization, learning dynamics, and extensive-form games.</p>
-  <p>We also explore modern topics: multiagent deep reinforcement learning; information and mechanism design; team games and hidden-role games; alignment; high-dimensional and kernelized learning; nonconvex games; calibration; and the complexity of finding equilibria. Applications and open research questions connect the theory to multiagent AI.</p>
-  <nav class="course-links" aria-label="Course navigation"><a href="#schedule">Schedule &amp; notes</a><a href="syllabus.pdf">Syllabus (PDF)</a><a href="https://www.mit.edu/~6.7980/fow">Fog of War Challenge <span aria-hidden="true">↗</span></a></nav>
+  {paragraphs(prose['description'])}
+  <nav class="course-links" aria-label="Course navigation"><a href="#schedule">Schedule &amp; notes</a><a href="syllabus.pdf">Syllabus (PDF)</a><a href="{escape(course['challenge'], quote=True)}">Fog of War Challenge <span aria-hidden="true">↗</span></a></nav>
   </div>
   <figure class="course-image">
     <img src="assets/course/course-image-transparent.svg" width="200" height="409" alt="Two phase portraits of learning dynamics in two-player games, showing strategy updates and marked equilibria.">
@@ -181,63 +239,73 @@ def render_index(config: dict, modules: list[dict], *, stylesheet_version: str =
 <section id="schedule" class="course-schedule" aria-labelledby="schedule-title">
   <h2 id="schedule-title">Schedule &amp; lecture notes</h2>
   {''.join(sections)}
-  <section class="supplementary-section" aria-labelledby="supplementary-title"><h3 id="supplementary-title">Supplementary reading</h3><ul class="supplementary-list">{supplementary}</ul></section>
+  <section class="supplementary-section" aria-labelledby="supplementary-title">
+    <h3 id="supplementary-title">Supplementary reading</h3>
+    <table class="supplementary-table" aria-labelledby="supplementary-title">
+      <colgroup><col class="number-column"><col><col class="suggested-after-column"><col class="materials-column"></colgroup>
+      <thead><tr><th scope="col">#</th><th scope="col">Reading</th><th scope="col">Suggested after</th><th scope="col">Notes</th></tr></thead>
+      <tbody>{supplementary}</tbody>
+    </table>
+  </section>
   <section id="improving-material" class="improving-material" aria-labelledby="improving-material-title">
     <h2 id="improving-material-title">Improving Material</h2>
-    <p>We would like to make the lecture notes available to as many people as possible. You can now read them in a browser, follow links between sections and references, and move between the notes and their source. We would like everyone's help to make this a useful resource for learners around the world.</p>
-    <p>We will divide the class into groups, each focusing on a different part of the material. Using the <a href="https://github.com/gabrfarina/MIT-6.7980-Topics-in-Multiagent-Learning">class GitHub repository</a>, each group can open issues to identify improvements and submit pull requests to implement them. We will improve the material together, reviewing and building on one another's contributions.</p>
-    <p>Contributions can include clarifying explanations and proofs, fixing errors, adding examples and homework-style exercises for future readers, and polishing figures, organization, and presentation. If anyone is brave enough, we would also love interactive components that let readers experiment with the ideas.</p>
-    <p><em>On the bright side, there is no homework! :-)</em> Improving the shared material accounts for 30% of the course grade.</p>
+    {paragraphs(prose['improving-intro'])}
+    {paragraphs(prose['improving-body'])}
   </section>
   <section id="project" class="course-project" aria-labelledby="project-title">
     <h2 id="project-title">Project</h2>
-    <p>Projects may be completed individually or in groups of 2-5 students and will include a presentation. We will offer three project directions:</p>
-    <p id="fog-of-war-challenge"><strong>Fog of War Challenge.</strong> Build and evaluate an agent that plays with partial information. Explore how it uses observations, reasons about uncertainty, and chooses strategic actions. Each bot sandbox is allocated two CPU cores and 4 GiB of memory. A dedicated document will describe the challenge, including the rules, starter code, and how to access the arena.</p>
-    <p><strong>Modeling questions.</strong> Formulate a multiagent problem by specifying the players, objectives, information, and available actions. Study how modeling choices affect the resulting strategic behavior. We will provide a separate document with possible modeling questions and leads to explore.</p>
-    <p><strong>Theory questions.</strong> Investigate a mathematical question about equilibria, learning dynamics, or computational complexity. Develop rigorous proofs, bounds, or counterexamples that clarify the behavior of multiagent systems. We will provide a separate document with possible theory questions and leads to explore.</p>
-    <p>The project is the central component of the course and accounts for 50% of the final grade. We will therefore be &ldquo;robust&rdquo; in our grading: we will look carefully at the depth of your understanding, the quality and substance of your work, and how clearly you explain your results.</p>
+    {paragraphs(prose['project-intro'])}
+    <p id="fog-of-war-challenge">{rich_html(prose['project-fow']).strip()}</p>
+    {paragraphs(prose['project-modeling'])}
+    {paragraphs(prose['project-theory'])}
+    {paragraphs(prose['project-grading'])}
   </section>
 </section>
 </div>
 <aside class="course-sidebar" aria-label="Course details and teaching team">
 <section class="course-details" aria-labelledby="details-title">
   <h2 id="details-title">Course information</h2>
-  <dl><div><dt>Lectures</dt><dd>Tue &amp; Thu<br><span class="lecture-time">11:00 am–12:30 pm</span></dd></div><div><dt>Room</dt><dd>E25-111</dd></div></dl>
+  <dl><div><dt>Lectures</dt><dd>{escape(course['days'])}<br><span class="lecture-time">{escape(course['time'])}</span></dd></div><div><dt>Room</dt><dd>{escape(course['room'])}</dd></div></dl>
 </section>
 <section id="people" class="course-people" aria-label="Teaching team">
   <h2>Instructors</h2>
-  <ul class="instructor-list">
-    <li><a class="person-name" href="https://people.csail.mit.edu/costis">Constantinos Daskalakis</a><a href="mailto:costis@csail.mit.edu">costis@csail.mit.edu</a><span>Office 32-G694</span></li>
-    <li><a class="person-name" href="https://www.mit.edu/~gfarina">Gabriele Farina</a><a href="mailto:gfarina@mit.edu">gfarina@mit.edu</a><span>Office 45-501F</span></li>
-  </ul>
-  <p class="office-hours">Meetings by appointment.</p>
+  <ul class="instructor-list">{instructors}</ul>
+  <p class="office-hours">{escape(course['meetings'])}</p>
   <h2 id="ta-title">Teaching assistants</h2>
-  <ul class="ta-list" aria-labelledby="ta-title">
-    <li><span class="person-name">Kat Federova</span><a href="mailto:fedorova@mit.edu">fedorova@mit.edu</a></li>
-    <li><span class="person-name">Mingyang Liu</span><a href="mailto:liumy19@mit.edu">liumy19@mit.edu</a></li>
-    <li><span class="person-name">Daniel Xia</span><a href="mailto:dxia03@mit.edu">dxia03@mit.edu</a></li>
-    <li><span class="person-name">Rui Yao</span><a href="mailto:rayyao@mit.edu">rayyao@mit.edu</a></li>
-  </ul>
-  <p class="office-hours">TA office hours to be announced.</p>
+  <ul class="ta-list" aria-labelledby="ta-title">{tas}</ul>
 </section>
-<section class="course-prerequisites" aria-labelledby="prerequisites-title"><h2 id="prerequisites-title">Prerequisites</h2><p>Advanced undergraduate discrete mathematics and algorithms, and mathematical maturity.</p></section>
-<section class="course-work" aria-labelledby="work-title"><h2 id="work-title">Coursework</h2><ul class="grade-components"><li><strong>Attendance and participation 20%</strong></li><li><strong>Improving material 30%</strong></li><li><strong>Project 50%</strong></li></ul><p>There are no assigned homework sets. Students will <a href="#improving-material">improve the shared course materials</a> and complete a theoretical or experimental <a href="#project">project</a> with a presentation. Projects may be individual or in groups of two to five students.</p><p>Attendance at at least 50% of lectures earns the attendance and participation component, assessed on a binary basis using random in-class quizzes.</p><p>Lecture notes are available as HTML and PDF. Announcements and administrative materials are posted on Canvas.</p><p>See the <a href="syllabus.pdf">syllabus</a> for collaboration and AI use policies.</p></section>
+<section class="course-repository" aria-labelledby="repository-title"><h2 id="repository-title"><a href="{escape(course['github'], quote=True)}">GitHub repository <span aria-hidden="true">↗</span></a></h2></section>
+<section class="course-prerequisites" aria-labelledby="prerequisites-title"><h2 id="prerequisites-title">Prerequisites</h2>{paragraphs(prose['Prerequisites'])}</section>
+<section class="course-work" aria-labelledby="work-title"><h2 id="work-title">Coursework</h2><ul class="grade-components">{grading}</ul>{paragraphs(prose['Coursework'])}{paragraphs(prose['Attendance'])}{paragraphs(prose['Lecture notes'])}<p>See the <a href="syllabus.pdf">syllabus</a> for collaboration and AI use policies.</p></section>
 </aside>
 </main>
-<footer class="course-footer home-width"><p>MIT 6.7980 · {escape(site['term'])}</p><a href="#main">Back to top ↑</a></footer>
+<footer class="course-footer home-width"><p>{escape(site['event'])} · {escape(site['term'])}</p><a href="#main">Back to top ↑</a></footer>
 </body></html>'''
 
 
 if __name__ == '__main__':
+    import argparse
     from hashlib import sha256
-    config = json.loads((ROOT / 'html-export.json').read_text())
-    modules = read_schedule(ROOT / config['site']['syllabus_source'], config['site']['year'])
-    stylesheet = ROOT / 'html/assets/course.css'
-    stylesheet.write_bytes((ROOT / 'html-exporter/src/course.css').read_bytes())
-    figure_directory = ROOT / 'html/assets/course'
-    figure_directory.mkdir(parents=True, exist_ok=True)
-    for name, source in COURSE_FIGURES.items():
-        (figure_directory / name).write_bytes((ROOT / source).read_bytes())
-    version = sha256(stylesheet.read_bytes()).hexdigest()[:12]
-    (ROOT / 'html/index.html').write_text(render_index(config, modules, stylesheet_version=version))
-    print('Updated html/index.html from the evaluated syllabus schedule.')
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--resolve-only', action='store_true',
+                        help='write .build/html-export.json for the note exporter, without rebuilding pages')
+    args = parser.parse_args()
+    config, modules = load_course()
+    resolved_path = ROOT / '.build/html-export.json'
+    resolved_path.parent.mkdir(exist_ok=True)
+    resolved_path.write_text(json.dumps(config, indent=2) + '\n')
+    if not args.resolve_only:
+        stylesheet = ROOT / 'html/assets/course.css'
+        stylesheet.parent.mkdir(parents=True, exist_ok=True)
+        stylesheet.write_bytes((ROOT / 'html-exporter/src/course.css').read_bytes())
+        notes_stylesheet = stylesheet.with_name('notes.css')
+        notes_stylesheet.write_bytes((ROOT / 'html-exporter/src/gabri-notes.css').read_bytes())
+        copy_font_assets(ROOT, ROOT / 'html')
+        copy_public_files(config, ROOT, ROOT / 'html')
+        version = sha256(stylesheet.read_bytes()).hexdigest()[:12]
+        notes_version = sha256(notes_stylesheet.read_bytes()).hexdigest()[:12]
+        (ROOT / 'html/index.html').write_text(render_index(
+            config, modules, stylesheet_version=version, notes_stylesheet_version=notes_version))
+        print('Updated html/index.html from the evaluated syllabus.')
+    else:
+        print('Resolved course configuration: .build/html-export.json')

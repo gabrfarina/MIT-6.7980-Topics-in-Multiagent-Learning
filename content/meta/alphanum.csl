@@ -1871,6 +1871,7 @@
       <group delimiter=", ">
         <!-- <text macro="author-intext"/> -->
         <text variable="citation-label"/>
+        <text variable="locator"/>
       </group>
     </layout>
   </citation>

@@ -7,10 +7,14 @@ license = "MIT"
 
 [dependencies]
 argopt = "0.3"
+base64 = "0.22"
 regex = "1"
+roxmltree = "0.21"
 scraper = "0.25"
 serde = { version = "1", features = ["derive"] }
-serde_yaml = "0.9"
+serde_json = "1"
 typst = "0.15.1"
 typst-html = "0.15.1"
+typst-layout = "0.15.1"
+typst-svg = "0.15.1"
 typst-kit = { version = "0.15.1", features = ["embedded-fonts", "scan-fonts", "system-files", "system-packages", "system-downloader", "datetime"] }

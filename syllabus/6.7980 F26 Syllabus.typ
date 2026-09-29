@@ -1,10 +1,52 @@
-#import "gabri-schedule.typ": break-badge, email, item, lecture, module, no-class, proj, schedule
+#import "gabri-schedule.typ": break-badge, email, lecture, module, no-class, proj, schedule
 #import "fall-2026-calendar.typ": calendar-exceptions, class-dates
+#import "gabri-schedule.typ": item as schedule-item
+#import "../content/meta/typography.typ": course-sans-font
 
-#set document(title: "6.7980 Topics in Multiagent Learning - Fall 2026", author: (
-  "Gabriele Farina",
-  "Constantinos Daskalakis",
-))
+// Shared course facts. The website reads this metadata from the same syllabus.
+#let course = (
+  event: "MIT 6.7980",
+  title: "Topics in Multiagent Learning",
+  term: "Fall 2026",
+  year: 2026,
+  days: "Tuesdays and Thursdays",
+  time: "11:00 am–12:30 pm",
+  room: "E25-111",
+  meetings: "We are happy to meet with students by appointment.",
+  instructors: (
+    (name: "Constantinos Daskalakis", citation_name: "Daskalakis, Constantinos",
+     email: "costis@csail.mit.edu", office: "32-G694", building: "the Stata building",
+     url: "https://people.csail.mit.edu/costis"),
+    (name: "Gabriele Farina", citation_name: "Farina, Gabriele",
+     email: "gfarina@mit.edu", office: "45-501F", building: "the College of Computing building",
+     url: "https://www.mit.edu/~gfarina"),
+  ),
+  tas: (
+    (name: "Kat Fedorova", email: "fedorova@mit.edu", office_hours: "Wednesdays, 2-3 pm, room 32-G5 (lounge of 5th floor, Gates tower)"),
+    (name: "Mingyang Liu", email: "liumy19@mit.edu", office_hours: "Fridays, 5:30-6:30 pm, room 45-500A"),
+    (name: "Daniel Xia", email: "dxia03@mit.edu", office_hours: "Mondays, 10-11 am, room 45-509"),
+    (name: "Rui Yao", email: "rayyao@mit.edu", office_hours: "Tuesdays, 3:30-4:30 pm, room 32-G5 (lounge of 5th floor, Gates tower)"),
+  ),
+  grading: (attendance: 20, material: 30, project: 50),
+  // Website metadata only; these readings are not displayed in the syllabus PDF.
+  supplementary_readings: (
+    (id: "nash-algorithms", title: "Centralized algorithms for Nash equilibrium computation", after: "brouwer"),
+    (id: "minimax", title: "A second look at the minimax theorem", after: "nash-properties"),
+    (id: "phi-regret", title: "Phi-regret minimization", after: "learning-foundations"),
+    (id: "learning-2", title: "Learning algorithms (II)", after: "learning-algorithms"),
+    (id: "perfection", title: "Sequential irrationality and perfect equilibria", after: "efg-learning"),
+    (id: "stochastic-games", title: "Markov (aka stochastic) games", after: "efg-learning"),
+  ),
+  github: "https://github.com/gabrfarina/MIT-6.7980-Topics-in-Multiagent-Learning",
+  challenge: "https://www.mit.edu/~6.7980/fow",
+)
+#metadata(course)<course-info>
+// Preserve formatted prose for the index, without maintaining a second copy.
+#let course-text(key, body) = [#metadata((key: key, body: body))<course-text>#body]
+#let item(key, body) = [#metadata((key: key, body: body))<course-text>#schedule-item(key, body)]
+
+#set document(title: course.event + " " + course.title + " - " + course.term,
+  author: course.instructors.map(person => person.name))
 #set page(
   margin: (top: 1.05in, bottom: 1.05in, left: 1.1in, right: 1.1in),
   numbering: "1",
@@ -13,39 +55,37 @@
 #set list(tight: true, marker: sym.triangle.r.filled)
 #set text(font: "New Computer Modern", size: 9.5pt)
 #set par(justify: true, leading: .6em, spacing: 1.15em)
-#show strong: set text(font: "Frutiger")
-#show heading: set text(font: "Frutiger")
+#show strong: set text(font: course-sans-font)
+#show heading: set text(font: course-sans-font)
 #show heading: set block(above: 6mm, below: 5mm)
 
 #align(center)[
-  #text(font: "Frutiger", size: 24pt, weight: "bold")[Topics in Multiagent Learning]
-  #v(3mm)
-  #text(font: "Frutiger", weight: "bold", size: 16pt)[MIT 6.7980 --- Fall 2026]
+  #text(size: 24pt)[*#course.title*]
+  #v(0mm)
+  #text(size: 16pt)[*#course.event --- #course.term*]
 ]
-#v(6mm)
+#v(0mm)
 
-#item("Lecture")[Tuesdays and Thursdays, 11:00am-12:30pm, in room `E25-111`.]
+#item("Lecture")[#course.days, #course.time, in room #raw(course.room).]
 
 #item("Instructors")[
-  - Prof. Gabriele Farina, office `45-501F` (in the College of Computing building) \
-    ~~~~#email("gfarina@mit.edu") ~~ URL: #link("https://www.mit.edu/~gfarina")[`www.mit.edu/~gfarina`]
-  - Prof. Constantinos Daskalakis, office `32-G694` (in the Stata building) \
-    ~~~~#email("costis@csail.mit.edu") ~~ URL: #link("https://people.csail.mit.edu/costis")[`people.csail.mit.edu/costis`]
-
-  We are happy to meet with students by appointment.
+  #for person in course.instructors.rev() [
+    - Prof. #person.name, office #raw(person.office) (in #person.building) \
+      ~~~~#email(person.email) ~~ URL: #link(person.url)[#raw(person.url.replace("https://", ""))]
+  ]
+  #course.meetings
 ]
 
 #item("Teaching assistants")[
-  - Kat Federova (#email("fedorova@mit.edu")). Office hours: TBD.
-  - Mingyang Liu (#email("liumy19@mit.edu")). Office hours: TBD.
-  - Daniel Xia (#email("dxia03@mit.edu")). Office hours: TBD.
-  - Rui Yao (#email("rayyao@mit.edu")). Office hours: TBD.
+  #for person in course.tas [
+    - #person.name (#email(person.email)). Office hours: #person.office_hours.
+  ]
 ]
 
 #item("Grading")[
-  - Attendance and participation (see below) --- 20%.
-  - Improving material (see below) --- 30%.
-  - Project (see below) --- 50%.
+  - Attendance and participation (see below) --- #course.grading.attendance%.
+  - Improving material (see below) --- #course.grading.material%.
+  - Project (see below) --- #course.grading.project%.
 ]
 
 #item("Attendance")[
@@ -55,6 +95,8 @@
 #item(
   "Coursework",
 )[There are no assigned homework sets. Students will contribute to the shared course materials and complete a project, as described below.]
+
+#item("GitHub")[#link(course.github)[Main course repository]]
 
 #item(
   "Prerequisites",
@@ -78,13 +120,17 @@
 #pagebreak()
 = Description
 
+#course-text("description")[
 This course studies multiagent systems through game theory, optimization, and learning theory. We cover foundational topics such as Nash equilibria, regret minimization, learning dynamics, and extensive-form games.
 
 We also explore modern topics: multiagent deep reinforcement learning; information and mechanism design; team games and hidden-role games; alignment; high-dimensional and kernelized learning; nonconvex games; calibration; and the complexity of finding equilibria. Applications and open research questions connect the theory to multiagent AI.
+]
 
 = Improving Material
 
-We would like to make the lecture notes available to as many people as possible. You can now read them in a browser, follow links between sections and references, and move between the notes and their source. We would like everyone's help to make this a useful resource for learners around the world.
+#course-text("improving-intro")[
+We would like to make the lecture notes available to as many people as possible. You can now read them in a browser, follow numbered links between lectures in HTML and PDF, and use “View source” to open each note's Typst file in the #link(course.github)[class GitHub repository]. We would like everyone's help to make this a useful resource for learners around the world.
+]
 
 #v(2mm)
 #figure(
@@ -93,17 +139,23 @@ We would like to make the lecture notes available to as many people as possible.
 )
 #v(2mm)
 
-We will divide the class into groups, each focusing on a different part of the material. Using the #link("https://github.com/gabrfarina/MIT-6.7980-Topics-in-Multiagent-Learning")[class GitHub repository], each group can open issues to identify improvements and submit pull requests to implement them. We will improve the material together, reviewing and building on one another's contributions.
+#course-text("improving-body")[
+We will divide the class into groups, each focusing on a different part of the material. Using the #link(course.github)[class GitHub repository], each group can open issues to identify improvements and submit pull requests to implement them. We will improve the material together, reviewing and building on one another's contributions.
 
 Contributions can include clarifying explanations and proofs, fixing errors, adding examples and homework-style exercises for future readers, and polishing figures, organization, and presentation. If anyone is brave enough, we would also love interactive components that let readers experiment with the ideas.
 
-_On the bright side, there is no homework! :-)_ Improving the shared material accounts for 30% of the course grade.
+_On the bright side, there is no homework! :-)_ Improving the shared material accounts for #course.grading.material% of the course grade.
+]
 
 = Project
 
+#course-text("project-intro")[
 Projects may be completed individually or in groups of 2-5 students and will include a presentation. We will offer three project directions:
+]
 
-#link("https://www.mit.edu/~6.7980/fow")[*Fog of War Chess Challenge.*] Build and evaluate an agent that plays with partial information. Explore how it uses observations, reasons about uncertainty, and chooses strategic actions. Each bot sandbox is allocated two CPU cores and 4 GiB of memory. A dedicated document will describe the challenge, including the rules, starter code, and how to access the arena.
+#course-text("project-fow")[
+#link(course.challenge)[*Fog of War Chess Challenge.*] Build and evaluate an agent that plays with partial information. Explore how it uses observations, reasons about uncertainty, and chooses strategic actions. Each bot sandbox is allocated two CPU cores and 4 GiB of memory. A dedicated document will describe the challenge, including the rules, starter code, and how to access the arena.
+]
 
 #figure(
   block(width: 100%, inset: 0pt, radius: 5pt, clip: true, stroke: .4pt + luma(82%))[
@@ -112,11 +164,17 @@ Projects may be completed individually or in groups of 2-5 students and will inc
   numbering: none,
 )
 
+#course-text("project-modeling")[
 *Modeling questions.* Formulate a multiagent problem by specifying the players, objectives, information, and available actions. Study how modeling choices affect the resulting strategic behavior. We will provide a separate document with possible modeling questions and leads to explore.
+]
 
+#course-text("project-theory")[
 *Theory questions.* Investigate a mathematical question about equilibria, learning dynamics, or computational complexity. Develop rigorous proofs, bounds, or counterexamples that clarify the behavior of multiagent systems. We will provide a separate document with possible theory questions and leads to explore.
+]
 
-The project is the central component of the course and accounts for 50% of the final grade. We will therefore be "robust" in our grading: we will look carefully at the depth of your understanding, the quality and substance of your work, and how clearly you explain your results.
+#course-text("project-grading")[
+The project is the central component of the course and accounts for #course.grading.project% of the final grade. We will therefore be "robust" in our grading: we will look carefully at the depth of your understanding, the quality and substance of your work, and how clearly you explain your results.
+]
 
 = Tentative Schedule
 
@@ -184,7 +242,7 @@ The project is the central component of the course and accounts for 50% of the f
   lecture(
     "deep-rl-1",
     [Multiagent deep RL],
-    description: [Reinforcement learning in games. Self-play and deep learning methods for perfect-information games.],
+    description: [Modern multiagent deep reinforcement learning methods for imperfect-information games.],
     instructor: [Gabriele Farina],
   ),
   lecture(
@@ -244,7 +302,7 @@ The project is the central component of the course and accounts for 50% of the f
   lecture(
     "tfnp",
     [Total search and TFNP],
-    description: [Total search problems, the TFNP framework, and the PPAD complexity class.],
+    description: [Total search and polynomially verifiable witnesses. Succinct End-of-Line reductions and the PPAD complexity class.],
     instructor: [Constantinos Daskalakis],
   ),
   lecture(

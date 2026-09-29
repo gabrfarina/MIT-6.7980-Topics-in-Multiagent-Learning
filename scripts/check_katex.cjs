@@ -47,12 +47,19 @@ for (const file of files) {
     }
     const tex = source.slice(2, -2);
     try {
+      const ignoredLineBreaks = [];
       katex.renderToString(tex, {
         displayMode: display,
         throwOnError: true,
-        strict: code => code === 'unknownSymbol' ? 'error' : 'ignore',
+        strict: (code, message) => {
+          if (code === 'newLineInDisplayMode') ignoredLineBreaks.push(message);
+          return code === 'unknownSymbol' ? 'error' : 'ignore';
+        },
         macros: {'\\nicefrac': '{\\,^{#1}\\!/\\!_{#2}}'},
       });
+      if (ignoredLineBreaks.length) {
+        throw new Error('Ignored formula line break: ' + ignoredLineBreaks[0]);
+      }
       converted++;
     } catch (error) {
       failures++;

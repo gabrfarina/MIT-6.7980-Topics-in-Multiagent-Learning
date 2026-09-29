@@ -165,18 +165,27 @@ const UNSUPPORTED_MATH: &str = "\u{0}unsupported-typst-math\u{0}";
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 struct ConvertContext {
     compact_fractions: bool,
+    script: bool,
 }
 
 impl ConvertContext {
     fn default() -> Self {
         Self {
             compact_fractions: false,
+            script: false,
         }
     }
 
     fn with_compact_fractions(self) -> Self {
         Self {
             compact_fractions: true,
+            ..self
+        }
+    }
+
+    fn with_script(self) -> Self {
+        Self {
+            script: true,
             ..self
         }
     }
@@ -215,14 +224,7 @@ fn prepare_display_tex(input: &str) -> String {
 fn convert_call(name: &str, inner: &str, context: ConvertContext) -> String {
     let args = parse_args(inner);
     match name {
-        "sequence" => {
-            let converted = args
-                .iter()
-                .filter(|arg| arg.name.is_none())
-                .map(|arg| convert_expr_with_context(&arg.value, context))
-                .collect::<String>();
-            scope_math_prefixes(&converted)
-        }
+        "sequence" => convert_sequence(&args, context),
         "metadata" => {
             let value = named_arg(&args, "value").and_then(quoted_literal);
             if let Some(color) = value.and_then(|value| value.strip_prefix("katex-color:")) {
@@ -262,7 +264,7 @@ fn convert_call(name: &str, inner: &str, context: ConvertContext) -> String {
             .map(|value| convert_styled_child(value, context))
             .unwrap_or_default(),
         "lr" => named_arg(&args, "body")
-            .map(|value| convert_expr_with_context(value, context))
+            .map(|value| convert_delimited(value, context))
             .unwrap_or_default(),
         "mid" => {
             let body = named_arg(&args, "body")
@@ -292,6 +294,7 @@ fn convert_call(name: &str, inner: &str, context: ConvertContext) -> String {
         "attach" => convert_attach(&args, context),
         "op" => convert_operator(&args, context),
         "mat" => convert_matrix(&args, context),
+        "vec" => convert_vector(&args, context),
         "cases" => convert_cases(&args, context),
         "primes" => convert_primes(&args),
         "frac" => {
@@ -349,7 +352,6 @@ fn convert_call(name: &str, inner: &str, context: ConvertContext) -> String {
                 format!("\\sqrt[{index}]{{{body}}}")
             }
         }
-        "vec" => accent_command("vec", &args, context),
         "hat" => accent_command("hat", &args, context),
         "tilde" => accent_command("tilde", &args, context),
         "dot" => accent_command("dot", &args, context),
@@ -363,6 +365,105 @@ fn convert_call(name: &str, inner: &str, context: ConvertContext) -> String {
         "align-point" => "&".to_owned(),
         _ => UNSUPPORTED_MATH.to_owned(),
     }
+}
+
+fn is_linebreak(arg: &Arg) -> bool {
+    call_parts(&arg.value).is_some_and(|(name, _)| name == "linebreak")
+}
+
+fn convert_sequence(args: &[Arg], context: ConvertContext) -> String {
+    let items = args
+        .iter()
+        .filter(|arg| arg.name.is_none())
+        .collect::<Vec<_>>();
+    let mut fragments = items
+        .iter()
+        .map(|arg| convert_expr_with_context(&arg.value, context))
+        .collect::<Vec<_>>();
+    // A source space beside prose is visible in Typst, but an ordinary TeX
+    // space outside \text is ignored. Move that authored space into the text
+    // fragment. Do not add spaces around operators or attached math labels.
+    for (index, item) in items.iter().enumerate() {
+        if index == 0
+            || index + 1 == items.len()
+            || !bracket_literal(&item.value)
+                .is_some_and(|value| !value.is_empty() && value.chars().all(char::is_whitespace))
+            || [items[index - 1], items[index + 1]].iter().any(|neighbor| {
+                call_parts(&neighbor.value)
+                    .is_some_and(|(name, _)| matches!(name, "align-point" | "linebreak"))
+            })
+        {
+            continue;
+        }
+        if is_plain_text_literal(&items[index - 1].value) {
+            let previous = &mut fragments[index - 1];
+            if !tex_text_wrapper_inner(previous)
+                .is_some_and(|value| value.ends_with(char::is_whitespace))
+            {
+                previous.insert(previous.len() - 1, ' ');
+            }
+        } else if is_plain_text_literal(&items[index + 1].value) {
+            let next = &mut fragments[index + 1];
+            if !tex_text_wrapper_inner(next)
+                .is_some_and(|value| value.starts_with(char::is_whitespace))
+            {
+                next.insert("\\text{".len(), ' ');
+            }
+        }
+    }
+    let converted = fragments.concat();
+    let converted = scope_math_prefixes(&converted);
+    // A bare TeX line break is ignored inside scripts and delimiter groups.
+    // Only group breaks belonging to this sequence, not those in descendants.
+    if !args.iter().any(is_linebreak) {
+        return converted;
+    }
+    if context.script {
+        format!("\\substack{{{converted}}}")
+    } else {
+        let environment = if args.iter().any(|arg| arg.value.trim() == "align-point()") {
+            "aligned"
+        } else {
+            "gathered"
+        };
+        format!("\\begin{{{environment}}}{converted}\\end{{{environment}}}")
+    }
+}
+
+fn is_plain_text_literal(input: &str) -> bool {
+    bracket_literal(input)
+        .or_else(|| quoted_literal(input))
+        .is_some_and(|value| {
+            value.chars().count() > 1 && value.chars().any(|ch| ch.is_ascii_alphabetic())
+        })
+}
+
+fn convert_delimited(input: &str, context: ConvertContext) -> String {
+    if let Some(("sequence", inner)) = call_parts(input) {
+        let args = parse_args(inner);
+        let delimited = args.first().zip(args.last()).is_some_and(|(left, right)| {
+            matches!(
+                (bracket_literal(&left.value), bracket_literal(&right.value)),
+                (Some("("), Some(")"))
+                    | (Some("["), Some("]"))
+                    | (Some("{"), Some("}"))
+                    | (Some("⟨"), Some("⟩"))
+                    | (Some("⌈"), Some("⌉"))
+                    | (Some("⌊"), Some("⌋"))
+                    | (Some("|"), Some("|"))
+                    | (Some("‖"), Some("‖"))
+            )
+        });
+        if delimited && args.len() >= 3 && args.iter().any(is_linebreak) {
+            // Typst's lr body includes the outer delimiters. Keep them outside
+            // the row environment so they stretch across all of its lines.
+            let left = convert_expr_with_context(&args[0].value, context);
+            let right = convert_expr_with_context(&args[args.len() - 1].value, context);
+            let body = convert_sequence(&args[1..args.len() - 1], context);
+            return format!("{left}{body}{right}");
+        }
+    }
+    convert_expr_with_context(input, context)
 }
 
 fn scope_math_prefixes(converted: &str) -> String {
@@ -399,9 +500,12 @@ fn convert_attach(args: &[Arg], context: ConvertContext) -> String {
     let base = named_arg(args, "base")
         .map(|value| convert_expr_with_context(value, context))
         .unwrap_or_default();
-    let sub = named_arg(args, "b").map(|value| convert_expr_with_context(value, context));
-    let sup = named_arg(args, "t").map(|value| convert_expr_with_context(value, context));
-    let top_right = named_arg(args, "tr").map(|value| convert_expr_with_context(value, context));
+    let sub =
+        named_arg(args, "b").map(|value| convert_expr_with_context(value, context.with_script()));
+    let sup =
+        named_arg(args, "t").map(|value| convert_expr_with_context(value, context.with_script()));
+    let top_right =
+        named_arg(args, "tr").map(|value| convert_expr_with_context(value, context.with_script()));
     let has_attached_script = sub.as_deref().is_some_and(|value| !value.trim().is_empty())
         || sup.as_deref().is_some_and(|value| !value.trim().is_empty())
         || named_arg(args, "tr").is_some();
@@ -443,6 +547,21 @@ fn convert_matrix(args: &[Arg], context: ConvertContext) -> String {
     let rows = named_arg(args, "rows")
         .map(parse_matrix_rows)
         .unwrap_or_default();
+    convert_matrix_rows(args, rows, context)
+}
+
+fn convert_vector(args: &[Arg], context: ConvertContext) -> String {
+    // Typst's vec is a column vector. Arrow accents arrive as accent nodes.
+    let rows = named_arg(args, "children")
+        .map(tuple_items)
+        .unwrap_or_default()
+        .into_iter()
+        .map(|cell| vec![cell])
+        .collect();
+    convert_matrix_rows(args, rows, context)
+}
+
+fn convert_matrix_rows(args: &[Arg], rows: Vec<Vec<&str>>, context: ConvertContext) -> String {
     if rows.is_empty() {
         return String::new();
     }
@@ -1157,6 +1276,8 @@ fn char_to_tex(ch: char) -> String {
         '≠' => tex_command("ne"),
         '∈' => tex_command("in"),
         '∉' => tex_command("notin"),
+        '\\' => tex_command("backslash"),
+        '∖' => tex_command("setminus"),
         '⊤' => tex_command("top"),
         '⊥' => tex_command("bot"),
         '∅' => tex_command("emptyset"),
@@ -1307,6 +1428,7 @@ fn is_equation_math_attrs(attrs: &str) -> bool {
         matches!(
             class,
             "equation-math"
+                | "equation-align-cell"
                 | "equation-align-left"
                 | "equation-align-right"
                 | "equation-align-full"
@@ -1441,6 +1563,51 @@ mod tests {
     }
 
     #[test]
+    fn multiline_operator_limits_use_script_sized_rows() {
+        let input = "attach(base: op(text: [max], limits: true), b: sequence([i], [∈], [[], [n], []], linebreak(), attach(base: [a], b: [i]), [∈], attach(base: [A], b: [i])))";
+        assert_eq!(
+            typst_repr_to_katex(input),
+            r"\operatorname*{max}_{\substack{i\in [n]\\a_{i}\in A_{i}}}"
+        );
+        let input = "attach(base: [x], t: sequence([a], linebreak(), [b]))";
+        assert_eq!(typst_repr_to_katex(input), r"x^{\substack{a\\b}}");
+    }
+
+    #[test]
+    fn multiline_sets_keep_braces_outside_the_rows() {
+        let input = "sequence(lr(body: sequence([{], [x], [>], [0], linebreak(), [⋮], linebreak(), [y], [>], [0], [}])), [.])";
+        assert_eq!(
+            prepare_display_tex(&typst_repr_to_katex(input)),
+            r"\displaystyle \left\{\begin{gathered}x>0\\⋮\\y>0\end{gathered}\right\}."
+        );
+    }
+
+    #[test]
+    fn nested_linebreaks_do_not_split_the_containing_expression() {
+        let input =
+            "sequence([a], [+], lr(body: sequence([(], [x], linebreak(), [y], [)])), [=], [z])";
+        assert_eq!(
+            prepare_display_tex(&typst_repr_to_katex(input)),
+            r"\displaystyle a+\left(\begin{gathered}x\\y\end{gathered}\right)=z"
+        );
+        let input = "lr(body: sequence([x], linebreak(), [y]))";
+        assert_eq!(
+            typst_repr_to_katex(input),
+            r"\begin{gathered}x\\y\end{gathered}"
+        );
+    }
+
+    #[test]
+    fn multiline_sequences_preserve_alignment_points() {
+        let input =
+            "sequence([a], align-point(), [=], [b], linebreak(), [c], align-point(), [=], [d])";
+        assert_eq!(
+            typst_repr_to_katex(input),
+            r"\begin{aligned}a&=b\\c&=d\end{aligned}"
+        );
+    }
+
+    #[test]
     fn keeps_parentheses_inside_bracket_literals() {
         let input = "sequence([(], [t], [)])";
         assert_eq!(typst_repr_to_katex(input), "(t)");
@@ -1495,6 +1662,28 @@ mod tests {
     }
 
     #[test]
+    fn typst_column_vectors_preserve_every_entry() {
+        assert_eq!(
+            typst_repr_to_katex("vec(children: ([0], sequence([1], [/], [2])))"),
+            r"\begin{pmatrix}0 \\ 1/2\end{pmatrix}"
+        );
+        assert_eq!(
+            typst_repr_to_katex(
+                "vec(delim: none, children: ([x], frac(num: [1], denom: [2]), [z]))"
+            ),
+            r"\begin{array}{l}x \\ \nicefrac{1}{2} \\ z\end{array}"
+        );
+    }
+
+    #[test]
+    fn vector_arrow_accents_remain_accents() {
+        assert_eq!(
+            typst_repr_to_katex(r#"accent(base: [x], accent: "\u{20d7}")"#),
+            r"\vec{x}"
+        );
+    }
+
+    #[test]
     fn delimiter_free_matrices_use_arrays_without_alignment_artifacts() {
         let input = "mat(delim: (none, none), rows: ((attach(base: limits(body: op(text: [min], limits: true)), b: [x]), sequence(equation(block: false, body: align-point()), [f], lr(body: sequence([(], [x], [)])))), ([s.t.], sequence(equation(block: false, body: align-point()), [x], [ ], [∈], [ ], [Ω]))))";
         assert_eq!(
@@ -1537,6 +1726,49 @@ mod tests {
     fn text_literals_use_text_mode_to_preserve_phrase_spacing() {
         let input = "sequence([∃], [ ], [ such that ], [ ], [x])";
         assert_eq!(typst_repr_to_katex(input), r"\exists \text{ such that } x");
+    }
+
+    #[test]
+    fn step_justifications_preserve_authored_spaces_beside_math() {
+        for (phrase, symbol) in [("linearity of", "u"), ("definition of", "v")] {
+            let input = format!(
+                "lr(body: sequence([(], [{phrase}], [ ], attach(base: [{symbol}], t: [t]), [)]))"
+            );
+            assert_eq!(
+                typst_repr_to_katex(&input),
+                format!("(\\text{{{phrase} }} {symbol}^{{t}})")
+            );
+        }
+        assert_eq!(
+            typst_repr_to_katex("sequence([x], [ ], [is linear])"),
+            r"x \text{ is linear}"
+        );
+        assert_eq!(
+            typst_repr_to_katex("sequence([by], [ ], [linearity])"),
+            r"\text{by } \text{linearity}"
+        );
+    }
+
+    #[test]
+    fn prose_spacing_keeps_math_labels_and_operators_tight() {
+        for (input, expected) in [
+            (
+                "sequence(attach(base: [Reg], t: [T]), [ ], [(], [x], [)])",
+                r"\text{Reg}^{T} (x)",
+            ),
+            (
+                "sequence(op(text: [max], limits: true), [ ], [x])",
+                r"\operatorname*{max} x",
+            ),
+            ("sequence([s.t.], [x])", r"\text{s.t.}x"),
+            (
+                "sequence([linearity of ], [ ], [u])",
+                r"\text{linearity of } u",
+            ),
+            ("sequence([from], [(], [2], [)])", r"\text{from}(2)"),
+        ] {
+            assert_eq!(typst_repr_to_katex(input), expected);
+        }
     }
 
     #[test]
@@ -1794,6 +2026,17 @@ mod tests {
     }
 
     #[test]
+    fn justification_columns_keep_reference_spacing_and_display_style() {
+        let input = r#"<figure class="equation" id="eqx"><span class="eqno">(2)</span></figure><span class="equation-align-cell" data-typst-math="lr(body: sequence([(], [from], [ ], lr(body: sequence([(], ref(target: &lt;eqx&gt;), [)])), [)]))" data-math-display="inline"><svg></svg></span>"#;
+        let out = postprocess_html_math(input.to_owned(), MathMode::Katex);
+        assert!(
+            out.contains(r"\(\displaystyle \left(\text{from } \left(2\right)\right)\)"),
+            "{out}"
+        );
+        assert!(!out.contains("<svg>"));
+    }
+
+    #[test]
     fn preserves_explicit_color_scope_and_upright_words() {
         assert_eq!(
             typst_repr_to_katex(
@@ -1823,6 +2066,15 @@ mod tests {
             typst_repr_to_katex("sequence(attach(base: [x], t: [⊤]), [⊥], [∅], [▴], [◼︎], [♠︎])"),
             r"x^{\top}\bot \emptyset \blacktriangle \blacksquare ♠"
         );
+    }
+
+    #[test]
+    fn literal_set_difference_is_not_converted_to_tex_whitespace() {
+        assert_eq!(
+            typst_repr_to_katex(r"sequence([A], [ ], [\], [ ], [S])"),
+            r"A \backslash S"
+        );
+        assert_eq!(typst_repr_to_katex("[∖]"), r"\setminus");
     }
 
     #[test]

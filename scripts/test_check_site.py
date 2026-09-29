@@ -7,6 +7,13 @@ from check_site import (
 )
 
 
+class LectureTitleTests(unittest.TestCase):
+    def test_only_lecture_heading_contributes_to_title(self):
+        page = Page('<h1 class="lecture-title">Nash <em>and</em> learning</h1>'
+                    '<h1>Section one</h1><p>Other content</p>')
+        self.assertEqual(''.join(page.h1_text), 'Nash and learning')
+
+
 class ImageInventoryTests(unittest.TestCase):
     source = Path('/course/content/lecture.typ')
 
@@ -26,6 +33,36 @@ class ImageInventoryTests(unittest.TestCase):
             '<figure><div class="figure-body"><span '
             'data-image-source="&quot;../figures/game.svg&quot;">'
             '<svg></svg></span></div><figcaption>A game.</figcaption></figure>'), [])
+
+    def test_github_reference_icon_does_not_replace_a_lecture_diagram(self):
+        reference = ('<span class="github-code-ref"><a href="https://github.com/">'
+                     '<span aria-label="GitHub" '
+                     'data-image-source="&quot;../figures/icons/github.svg&quot;">'
+                     '<svg style="width: .9em; height: .9em"></svg></span>'
+                     '<code>example.py:L1-2</code></a></span>')
+        diagram = '<span data-image-source="&quot;game.svg&quot;"><svg></svg></span>'
+        self.assertEqual(self.issues('#image("game.svg")', reference + diagram), [])
+        issues = self.issues('#image("game.svg")', reference)
+        self.assertEqual(len(issues), 1)
+        self.assertIn('game.svg: expected 1 rendered occurrence(s), found 0', issues[0])
+
+    def test_github_reference_exclusion_is_scoped_to_its_icon(self):
+        html = ('<span class="github-code-ref"><span '
+                'data-image-source="&quot;game.svg&quot;"></span></span>'
+                '<span aria-label="GitHub" '
+                'data-image-source="&quot;github.svg&quot;"></span>')
+        self.assertEqual(self.issues('#image("game.svg") #image("github.svg")', html), [])
+
+    def test_zero_size_github_reference_icon_is_rejected(self):
+        issues = self.issues(
+            '', '<span class="github-code-ref"><a href="https://github.com/">'
+            '<span aria-label="GitHub" '
+            'data-image-source="&quot;../figures/icons/github.svg&quot;">'
+            '<svg style="width: .9em; height: .9em">'
+            '<image width="0" height="8.55"/></svg></span></a></span>')
+        self.assertEqual(len(issues), 1)
+        self.assertIn('zero-size rendered image', issues[0])
+        self.assertIn("<image> width='0'", issues[0])
 
     def test_present_image_with_zero_svg_frame_is_rejected(self):
         issues = self.issues(
@@ -88,6 +125,12 @@ class ImageInventoryTests(unittest.TestCase):
         self.assertEqual(len(issues), 2)
         self.assertTrue(any('/course/figures/game.svg' in issue for issue in issues))
         self.assertTrue(any('/course/figures/wrong.svg' in issue for issue in issues))
+
+    def test_html_figure_variants_match_their_authored_images(self):
+        page = Page('<span data-image-source="&quot;/.build/html-figures/game.svg&quot;"></span>')
+        self.assertEqual(image_inventory_issues(
+            Path('/course/content/lecture.typ'), '#image("figures/game.svg")',
+            page, 'lecture.html', root=Path('/course')), [])
 
     def test_invalid_marker_does_not_crash_validation(self):
         issues = self.issues('', '<span data-image-source="not a string"></span>')

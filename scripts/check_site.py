@@ -7,6 +7,7 @@ from pathlib import Path
 import re
 import sys
 from check_links import audit_site
+from build_figures import HTML_FIGURES
 
 
 class Page(HTMLParser):
@@ -21,21 +22,30 @@ class Page(HTMLParser):
         self.image_sources = []
         self.image_rendering_issues = []
         self.open_elements = []
+        self.h1_text = []
+        self.in_lecture_title = False
         self.feed(text)
 
     def handle_starttag(self, tag, attributes):
         attrs = dict(attributes)
+        if tag == 'h1':
+            self.in_lecture_title = 'lecture-title' in attrs.get('class', '').split()
         marker = attrs.get('data-image-source',
                            self.open_elements[-1][1] if self.open_elements else None)
+        github_code_ref = ('github-code-ref' in attrs.get('class', '').split()
+                           or bool(self.open_elements and self.open_elements[-1][2]))
         if tag not in self.void_tags:
-            self.open_elements.append((tag, marker))
+            self.open_elements.append((tag, marker, github_code_ref))
         if 'id' in attrs:
             self.ids.add(attrs['id'])
         if attrs.get('role') == 'math':
             self.math += 1
         if 'data-image-source' in attrs:
             # The helper stores repr(image.source); HTMLParser unescapes entities.
-            self.image_sources.append(attrs['data-image-source'])
+            # Imported code-reference icons are not authored lecture diagrams.
+            # Keep their markers in the element stack for size validation below.
+            if not (github_code_ref and attrs.get('aria-label') == 'GitHub'):
+                self.image_sources.append(attrs['data-image-source'])
         if tag in ('a', 'link') and attrs.get('href'):
             self.links.append(attrs['href'])
         if tag in ('img', 'script') and attrs.get('src'):
@@ -58,10 +68,16 @@ class Page(HTMLParser):
                         f'{location} {dimension}={value!r}')
 
     def handle_endtag(self, tag):
+        if tag == 'h1':
+            self.in_lecture_title = False
         for index in range(len(self.open_elements) - 1, -1, -1):
             if self.open_elements[index][0] == tag:
                 del self.open_elements[index:]
                 break
+
+    def handle_data(self, data):
+        if self.in_lecture_title:
+            self.h1_text.append(data)
 
 
 def zero_dimension(value):
@@ -116,7 +132,10 @@ def image_inventory_issues(source, source_text, page, page_name, *, root=None):
         if root is not None and candidate.is_absolute() and not candidate.is_relative_to(root):
             # Relocated build inputs use Typst's project-root absolute paths.
             candidate = root / path.lstrip('/')
-        return (source.parent / candidate).resolve()
+        candidate = (source.parent / candidate).resolve()
+        if root is not None and candidate.is_relative_to(root / HTML_FIGURES):
+            candidate = root / 'content/figures' / candidate.relative_to(root / HTML_FIGURES)
+        return candidate
 
     expected = Counter(resolve_image(path)
                        for path in source_image_paths(source_text))
@@ -157,10 +176,13 @@ def dropped_content_warnings(text):
 def main():
     root = Path(__file__).resolve().parents[1]
     folder = (root / (sys.argv[1] if len(sys.argv) > 1 else 'html')).resolve()
-    config = json.loads((root / 'html-export.json').read_text())
-    expected = ['index.html'] + [Path(c['source']).stem + '.html' for c in config['lectures']]
+    from course_index import load_course
+    config, _ = load_course(root / 'html-export.json')
+    expected = ['index.html'] + [Path(c['source']).stem + '.html' for c in config['notes']]
     issues = []
     pages = {}
+    if (folder / 'source').exists() or (folder / 'source').is_symlink():
+        issues.append('Retired source/ directory must not be served; rebuild the site.')
     image_count = 0
     for name in expected:
         path = folder / name
@@ -173,7 +195,7 @@ def main():
         pages[path] = Page(text)
         if name != 'index.html' and pages[path].math == 0:
             issues.append(f'No rendered mathematics: {name}')
-    for chapter in config['lectures']:
+    for chapter in config['notes']:
         source = root / chapter['source']
         name = source.stem + '.html'
         if not source.is_file():
@@ -182,6 +204,9 @@ def main():
         source_text = source.read_text()
         image_count += len(source_image_paths(source_text))
         if page := pages.get(folder / name):
+            title = ' '.join(''.join(page.h1_text).split())
+            if title != chapter['title']:
+                issues.append(f'{name}: title {title!r} does not match canonical title {chapter["title"]!r}')
             issues.extend(image_inventory_issues(source, source_text, page, name, root=root))
     for log in sorted((root / '.build/logs').glob('*.log')):
         issues.extend(f'{log.relative_to(root)}: dropped content: {warning}'
@@ -196,6 +221,7 @@ def main():
           'no zero-size images or dropped-content warnings.')
     print(f'Checked {link_audit.citation_count} How to cite URLs against the generated pages; '
           f'{len(link_audit.external)} external URLs require online deployment verification.')
+    print(f'Checked {len(config["notes"])} note titles against the syllabus and supplementary list.')
 
 
 if __name__ == '__main__':

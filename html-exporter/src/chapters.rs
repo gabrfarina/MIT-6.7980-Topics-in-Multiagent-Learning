@@ -8,7 +8,7 @@ pub(crate) struct ExportConfig {
     #[serde(default)]
     pub(crate) site: SiteConfig,
     pub(crate) how_to_cite: CitationConfig,
-    #[serde(alias = "lectures")]
+    #[serde(rename = "notes")]
     pub(crate) chapters: Vec<ChapterNav>,
 }
 
@@ -17,11 +17,15 @@ pub(crate) struct SiteConfig {
     #[serde(default)]
     pub(crate) event: Option<String>,
     #[serde(default)]
+    pub(crate) term: Option<String>,
+    #[serde(default)]
     pub(crate) title: Option<String>,
     #[serde(default)]
     pub(crate) authors: Option<String>,
     #[serde(default)]
     pub(crate) index_href: Option<String>,
+    #[serde(default)]
+    pub(crate) github: Option<String>,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -51,9 +55,9 @@ pub(crate) struct ChapterNav {
 
 impl ExportConfig {
     pub(crate) fn load(path: &Path) -> Result<Self, String> {
-        let yaml = fs::read_to_string(path)
+        let json = fs::read_to_string(path)
             .map_err(|err| format!("could not read export config {}: {err}", path.display()))?;
-        let book: Self = serde_yaml::from_str(&yaml)
+        let book: Self = serde_json::from_str(&json)
             .map_err(|err| format!("could not parse export config {}: {err}", path.display()))?;
         book.validate(path)?;
         Ok(book)
@@ -129,9 +133,11 @@ impl ExportConfig {
 impl SiteConfig {
     fn validate(&self, path: &Path) -> Result<(), String> {
         validate_optional_nonempty(path, "site.event", &self.event)?;
+        validate_optional_nonempty(path, "site.term", &self.term)?;
         validate_optional_nonempty(path, "site.title", &self.title)?;
         validate_optional_nonempty(path, "site.authors", &self.authors)?;
         validate_optional_nonempty(path, "site.index_href", &self.index_href)?;
+        validate_optional_nonempty(path, "site.github", &self.github)?;
         Ok(())
     }
 }
@@ -222,9 +228,11 @@ impl ChapterNav {
             return self.number.clone();
         }
         match self.syllabus_numbers.as_slice() {
-            [] => self.number.to_string(),
-            [number] => number.to_string(),
-            numbers => numbers.iter().map(u8::to_string).collect::<Vec<_>>().join("–"),
+            [] => self.number.parse::<u8>().map_or_else(
+                |_| self.number.clone(),
+                |number| format!("{number:02}"),
+            ),
+            numbers => numbers.iter().map(|number| format!("{number:02}")).collect::<Vec<_>>().join("–"),
         }
     }
 
@@ -341,9 +349,9 @@ mod tests {
 
     #[test]
     fn supports_zero_and_supplementary_numbers() {
-        for (yaml_number, expected) in [("0", "0"), ("S3", "S3")] {
-            let chapter: ChapterNav = serde_yaml::from_str(&format!(
-                "number: {yaml_number}\nsource: notes.typ\nshort_title: Notes\n"
+        for (json_number, expected) in [("0", "0"), (r#""S3""#, "S3")] {
+            let chapter: ChapterNav = serde_json::from_str(&format!(
+                r#"{{"number": {json_number}, "source": "notes.typ", "short_title": "Notes"}}"#
             )).unwrap();
             assert_eq!(chapter.number, expected);
         }

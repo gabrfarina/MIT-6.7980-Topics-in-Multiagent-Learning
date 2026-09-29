@@ -9,8 +9,8 @@ from pathlib import Path
 from PIL import Image, ImageChops, ImageDraw
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / 'content/figures/L11/image.png'
-OUTPUT = SOURCE.with_name('image-transparent.png')
+SOURCE = ROOT / 'content/figures/learning_efg/kuhn_tfdp.png'
+OUTPUT = SOURCE.with_name('kuhn_tfdp-transparent.png')
 
 # Inclusive interior bounds of the four crossed nodes and twelve leaf nodes.
 WHITE_INTERIORS = (

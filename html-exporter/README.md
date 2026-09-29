@@ -19,12 +19,48 @@ See the [course README](../README.md) and [build guide](../docs/building.md).
 For a single lecture:
 
 ```sh
+make figures
+python3 scripts/course_index.py --resolve-only
 cargo run --manifest-path html-exporter/Cargo.toml -- \
   --root . \
-  --config html-export.json --math katex \
-  'content/content/nfgs_nash.typ' \
+  --config .build/html-export.json --math katex \
+  'content/nfgs_nash.typ' \
   .build/nfgs_nash.html
 ```
+
+The Rust exporter reads the resolved `notes` configuration in `.build/`, whose
+numbers, dates, course facts, and citation metadata come from the syllabus.
+Use `make html` for publishing: it also updates the Typst note headers, compiles
+PDFs, copies slide attachments, and synchronizes the index and syllabus PDF.
+
+The desktop lecture rail keeps the course title and instructors visible.
+“In this lecture” opens with every section and subsection expanded by default.
+Use the chevrons to collapse subsections and the section titles to jump to them.
+The active marker follows the visible parent when its subsections are collapsed.
+“Browse lectures” reveals the full course list. Both disclosures work without
+JavaScript. With browser storage available, its open/closed state is remembered
+across the course, and each lecture remembers its own expanded subsections,
+including after reloading or reopening the browser.
+Previous/next links follow the available notes in course order;
+supplementary readings have their own sequence.
+
+Tables retain Typst's resolved cell borders, horizontal and vertical alignment,
+solid fills (including transparency), and linear-gradient fills. Borders support
+thickness, solid colors, borderless cells, per-side overrides, and standard
+solid/dashed/dotted styles. Table defaults, column arrays, position-dependent
+functions, and cell overrides are resolved by Typst before conversion; native
+headers and merged cells are kept. The outer alignment positions the table
+independently of its cells.
+
+Column definitions become native HTML `colgroup` tracks: lengths and percentages
+retain their requested widths, `fr` tracks divide the space left by explicit and
+`auto` tracks, and `auto` tracks use browser content sizing. Fully specified
+tables use fixed layout. A browser sizing pass resolves mixed units (unsupported
+in native column CSS) after font loading and on resize; without JavaScript these
+mixed widths are approximate. The browser may adjust fractional proportions
+alongside content-sized `auto` columns. Wide tables scroll within the lecture
+column. Nonlinear gradients, tiled fills, and exact custom dash patterns are not
+currently reproduced.
 
 Useful options:
 
@@ -33,6 +69,15 @@ Useful options:
 - `--site-title <title>`: change the header title.
 - `--authors <text>`: change the author line.
 - `--index <href>` and `--pdf <href>`: add header links.
+- `--figure-svg`: compile a single-page figure using the HTML fonts and add a
+  selectable text layer. Gate variants accept `--figure-input gate=addition`.
+
+The page exporter inlines these selectable SVGs so labels can be selected and
+copied in the browser. Their visible outlines preserve Typst's mathematical
+glyphs and exact spacing; the text layer supplies the original Unicode strings.
+URL links on those labels also work in the text layer, including within scaled
+or rotated drawings. Link regions use the same nested transforms as the artwork;
+unlinked labels remain selectable text.
 
 ## Checks
 
@@ -51,8 +96,20 @@ reproducible builds.
 and MIT license. The course builder rewrites the standalone converter's CDN
 links to these local assets. See the [KaTeX browser documentation](https://katex.org/docs/browser).
 
-`assets/fonts/` contains genuine Frutiger Regular (400) and Bold (700) faces
-from the existing notes. Environment names and numbers, including generated
+`assets/fonts/` contains vendored Source Sans 3 Regular (400) and Bold (700),
+licensed under SIL OFL 1.1. Typst embeds the static TTF faces into PDFs;
+browsers load the matching losslessly compressed `-web.woff` files from the
+same site. No external font service is needed. See the bundled
+[license](assets/fonts/OFL.txt) and [provenance](assets/fonts/README.md).
+Only static faces belong in this directory: adding a variable face can change
+Typst's selection for nested bold text.
+
+Regenerate the checked-in webfonts and their CSS cache versions with
+`python3 scripts/build_web_fonts.py` (requires `fontTools`). Normal site builds
+copy the checked-in assets and do not require that Python package. WOFF uses
+lossless zlib compression and preserves the fonts' original rendering tables.
+
+Environment names and numbers, including generated
 algorithm counters, proof labels, and figure/table caption labels, request 600
 through `--environment-label-weight`. Browsers currently match this to the
 available Bold face; add a genuine Semibold face with a 600 `@font-face` rule

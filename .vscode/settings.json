@@ -1,0 +1,4 @@
+{
+  "tinymist.exportTarget": "paged",
+  "tinymist.fontPaths": ["${workspaceFolder}/html-exporter/assets/fonts"]
+}

@@ -1,14 +1,15 @@
+/* Vendored Source Sans 3 under SIL OFL 1.1; see assets/fonts/README.md. */
 @font-face {
-    font-family: "Frutiger Notes";
-    src: url("fonts/Frutiger-Regular.ttf") format("truetype");
+    font-family: "Source Sans 3";
+    src: url("fonts/SourceSans3-Regular-web.woff?v=3dbf4ec102f9") format("woff");
     font-style: normal;
     font-weight: 400;
     font-display: swap
 }
 
 @font-face {
-    font-family: "Frutiger Notes";
-    src: url("fonts/Frutiger-Bold.ttf") format("truetype");
+    font-family: "Source Sans 3";
+    src: url("fonts/SourceSans3-Bold-web.woff?v=46e53922ba57") format("woff");
     font-style: normal;
     font-weight: 700;
     font-display: swap
@@ -27,13 +28,16 @@
     --brown: #8a4c20;
     --brown-soft: #faf4ee;
     --serif: Georgia, "Times New Roman", Times, serif;
-    --sans: "Frutiger Notes", "Frutiger", "Helvetica Neue", Arial, sans-serif;
+    --sans: "Source Sans 3", "Helvetica Neue", Arial, sans-serif;
     --environment-label-weight: 600;
     --page-total: 828px;
     --rail-width: 270px;
     --rail-gutter: 2cm;
     --rail-left: max(24px, calc((100vw - var(--page-total))/2 - var(--rail-width) - var(--rail-gutter)));
     --page-top: 32px;
+    --sidenote-width: 210px;
+    --sidenote-gap: 32px;
+    --sidenote-offset: calc(var(--sidenote-width) + var(--sidenote-gap));
     --anchor-offset: 32px
 }
 
@@ -96,7 +100,6 @@ b,
 .course-title,
 .course-event,
 .lecture-rail-heading,
-.lecture-rail-tool,
 .lecture-rail-link.is-current,
 .lecture-section-link.is-active,
 .citation-note-key {
@@ -139,8 +142,8 @@ a:hover {
 .citation-note {
     float: right;
     clear: right;
-    width: 210px;
-    margin: .2rem calc(-234px - var(--sidenote-inset, 0px) - var(--sidenote-quote-inset, 0px)) .7rem calc(24px + var(--sidenote-inset, 0px) + var(--sidenote-quote-inset, 0px));
+    width: var(--sidenote-width);
+    margin: .2rem calc(-1 * var(--sidenote-offset) - var(--sidenote-inset, 0px) - var(--sidenote-quote-inset, 0px)) .7rem calc(var(--sidenote-gap) + var(--sidenote-inset, 0px) + var(--sidenote-quote-inset, 0px));
     color: var(--brown);
     font-family: var(--serif);
     font-size: .78rem;
@@ -161,8 +164,28 @@ a:hover {
     font-weight: 400
 }
 
-:is(.citation-note, .bib-entry) a:is([href^="https://"], [href^="http://"])::before {
-    --link-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 13a5 5 0 0 0 7.1 0l3-3a5 5 0 0 0-7.1-7.1l-1.7 1.7M14 11a5 5 0 0 0-7.1 0l-3 3a5 5 0 0 0 7.1 7.1l1.7-1.7'/%3E%3C/g%3E%3C/svg%3E");
+:is(.citation-note, .bib-entry) a:is([href^="https://"], [href^="http://"]) {
+    white-space: nowrap
+}
+
+.bib-entry a.bibliography-link-doi {
+    display: inline-flex;
+    align-items: baseline;
+    max-width: 100%;
+    white-space: normal
+}
+
+.bib-entry a.bibliography-link-doi > code {
+    min-width: 0
+}
+
+.bib-entry a.bibliography-link-doi::before {
+    flex-shrink: 0;
+    transform: translateY(.13em)
+}
+
+:is(.citation-note, .bib-entry) a:is([href^="https://"], [href^="http://"])::before,
+.permalink::before {
     content: "";
     display: inline-block;
     width: .95em;
@@ -174,8 +197,15 @@ a:hover {
     mask: var(--link-icon) center / contain no-repeat
 }
 
+:is(.citation-note, .bib-entry) a:is([href^="https://"], [href^="http://"])::before {
+    --link-icon: url("data:image/svg+xml,%3Csvg xmlns='http%3A//www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cellipse cx='12' cy='12' rx='4.5' ry='10'/%3E%3Cpath d='M2 12h20M4 6.5c5 2 11 2 16 0M4 17.5c5-2 11-2 16 0'/%3E%3C/g%3E%3C/svg%3E");
+    width: 1em;
+    height: 1em;
+    vertical-align: -.13em
+}
+
 .citation-note-key {
-    font-family: "Frutiger Notes", var(--serif);
+    font-family: "Source Sans 3", var(--serif);
     font-weight: 700;
     color: var(--brown)
 }
@@ -240,8 +270,8 @@ figure[id],
 .course-sidenote {
     float: right;
     clear: right;
-    width: 210px;
-    margin: .1rem -234px 1rem 24px;
+    width: var(--sidenote-width);
+    margin: .1rem calc(-1 * var(--sidenote-offset)) 1rem var(--sidenote-gap);
     color: var(--muted);
     font-size: .78rem;
     line-height: 1.35;
@@ -251,8 +281,8 @@ figure[id],
 .lecture-citation-sidenote {
     float: right;
     clear: right;
-    width: 210px;
-    margin: 0 -234px 1.2rem 24px;
+    width: var(--sidenote-width);
+    margin: 0 calc(-1 * var(--sidenote-offset)) 1.2rem var(--sidenote-gap);
     color: var(--muted);
     font-size: .72rem;
     line-height: 1.28;
@@ -268,7 +298,7 @@ figure[id],
     background: transparent;
     border: 0;
     color: var(--accent) !important;
-    font-family: "Frutiger Notes", var(--serif);
+    font-family: "Source Sans 3", var(--serif);
     font-size: .72rem;
     font-weight: 700;
     line-height: 1.1
@@ -312,7 +342,7 @@ figure[id],
     gap: .28rem;
     cursor: pointer;
     color: var(--brown);
-    font-family: "Frutiger Notes", var(--serif);
+    font-family: "Source Sans 3", var(--serif);
     font-size: .68rem;
     font-weight: 700;
     letter-spacing: .04em;
@@ -360,73 +390,18 @@ figure[id],
     top: var(--page-top);
     left: var(--rail-left);
     bottom: 24px;
-    width: 270px;
+    width: var(--rail-width);
     padding: .2rem 0 1rem;
-    border-left: 1px solid var(--rule);
+    font-family: var(--sans);
     font-size: .84rem;
-    line-height: 1.25;
+    line-height: 1.45;
     overflow-y: auto;
     scrollbar-width: thin
 }
 
-.lecture-rail-course {
-    margin: 0 0 .7rem;
-    padding: 0 .3rem .75rem .75rem;
-    border-bottom: 1px solid var(--rule)
-}
-
-.lecture-rail .course-event {
-    display: block;
-    margin: 0 0 .28rem;
-    padding: 0;
-    color: var(--brown);
-    background: transparent;
-    font-size: .68rem;
-    font-weight: 700;
-    letter-spacing: .04em;
-    text-transform: uppercase
-}
-
-.lecture-rail .course-event:hover {
-    padding: 0;
-    color: var(--brown);
-    background: transparent;
-    text-decoration: none
-}
-
-.lecture-rail-course .course-title {
-    color: var(--ink);
-    font-size: .84rem;
-    line-height: 1.25
-}
-
-.lecture-rail-course .course-authors {
-    margin-top: .28rem;
-    color: var(--muted);
-    font-size: .76rem;
-    line-height: 1.28
-}
-
-.lecture-rail-heading {
-    margin: .1rem 0 .35rem;
-    padding: 0 .3rem 0 .75rem;
-    color: var(--ink);
-    font-size: .72rem;
-    font-weight: 700;
-    letter-spacing: .04em;
-    text-transform: uppercase
-}
-
-.lecture-rail-section-heading {
-    margin-top: .85rem;
-    padding-top: .7rem;
-    border-top: 1px solid var(--rule);
-    color: var(--muted)
-}
-
 .lecture-rail a {
     display: block;
-    padding: .32rem .3rem .32rem .75rem;
+    padding: .4rem .6rem;
     color: var(--muted)
 }
 
@@ -435,54 +410,182 @@ figure[id],
     text-decoration: none
 }
 
-.lecture-rail-link span {
-    display: inline-block;
-    width: 1.45rem;
+.lecture-rail :is(a, summary, .lecture-browser-list):focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+    border-radius: 2px
+}
+
+.lecture-rail-course {
+    margin: 0 0 1rem;
+    padding: 0 .6rem 1rem;
+    border-bottom: 1px solid var(--rule)
+}
+
+.lecture-rail .course-event {
+    display: block;
+    margin: 0 0 .4rem;
+    padding: .25rem 0;
+    color: var(--brown);
+    background: transparent;
+    font-size: .76rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase
+}
+
+.lecture-rail .course-event:hover {
+    color: var(--ink);
+    background: transparent
+}
+
+.lecture-rail-course .course-title {
+    color: var(--ink);
+    font-size: 1.02rem;
+    line-height: 1.4
+}
+
+.lecture-rail-course .course-authors {
+    margin-top: .55rem;
+    font-size: .82rem;
+    line-height: 1.5
+}
+
+.lecture-browser {
+    margin-bottom: 1.6rem
+}
+
+.lecture-rail summary {
+    display: flex;
+    align-items: baseline;
+    list-style: none;
+    cursor: pointer;
+    color: var(--muted)
+}
+
+.lecture-rail summary::-webkit-details-marker {
+    display: none
+}
+
+.lecture-rail summary::before {
+    content: "";
+    flex: 0 0 .3rem;
+    height: .3rem;
+    margin: 0 .65rem 0 .65rem;
+    border-right: 1px solid currentColor;
+    border-bottom: 1px solid currentColor;
+    transform: rotate(-45deg);
+    align-self: flex-start;
+    position: relative;
+    top: .85rem
+}
+
+.lecture-rail details[open] > summary::before {
+    transform: rotate(45deg)
+}
+
+.lecture-rail summary:hover {
+    color: var(--ink)
+}
+
+.lecture-browser-list {
+    max-height: min(40vh, 24rem);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--rule) transparent
+}
+
+.lecture-scroll-hint {
+    margin: .4rem .6rem 0;
     color: var(--muted);
+    font-size: .72rem
+}
+
+.lecture-rail-heading {
+    margin: .1rem 0 .65rem;
+    padding: 0 .6rem;
+    color: var(--muted);
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase
+}
+
+.lecture-rail-section-heading {
+    margin-top: 1rem
+}
+
+.lecture-rail .lecture-rail-link {
+    display: flex !important;
+    gap: .4rem;
+    padding-block: .2rem;
+    font-size: .78rem
+}
+
+.lecture-rail-link span {
+    flex: 0 0 1.5rem;
     font-variant-numeric: tabular-nums
 }
 
 .lecture-rail-link.is-current {
     color: var(--ink);
     font-weight: 700;
-    background: var(--brown-soft);
-    border-left: 6px solid var(--brown);
-    margin-left: -5px
+    box-shadow: inset 2px 0 var(--brown)
 }
 
-.lecture-section-link {
-    display: grid !important;
+.lecture-rail .lecture-section-link {
+    display: grid;
     grid-template-columns: max-content minmax(0, 1fr);
     column-gap: .4rem;
     align-items: baseline;
-    font-size: .78rem
+    padding-block: .2rem;
+    font-size: .86rem
 }
 
 .lecture-section-no {
     color: var(--muted);
     font-variant-numeric: tabular-nums;
-    white-space: nowrap;
+    white-space: nowrap
 }
 
 .lecture-section-title {
     min-width: 0
 }
 
-.lecture-section-l2 {
-    padding-left: 1.25rem !important
+.lecture-section-group {
+    margin-bottom: .45rem
 }
 
-.lecture-section-l3 {
-    padding-left: 1.75rem !important;
-    font-size: .74rem
+.lecture-outline > .lecture-section-link {
+    padding-left: 1.9rem
+}
+
+.lecture-section-group > summary > a {
+    flex: 1;
+    min-width: 0;
+    padding-left: .3rem
+}
+
+.lecture-section-group > summary::before {
+    top: .65rem
+}
+
+.lecture-subsections {
+    margin: .25rem 0 .65rem 1.6rem
+}
+
+.lecture-subsections .lecture-section-link {
+    font-size: .82rem
+}
+
+.lecture-subsections .lecture-section-l3 {
+    padding-left: 1.25rem
 }
 
 .lecture-section-link.is-active {
     color: var(--ink);
     font-weight: 700;
-    background: var(--accent-soft);
-    border-left: 6px solid var(--accent);
-    margin-left: -5px
+    box-shadow: inset 2px 0 var(--accent)
 }
 
 .page-shell {
@@ -658,10 +761,6 @@ figure[id],
     font-weight: 400
 }
 
-.lecture-content .secno::after {
-    content: " "
-}
-
 .lecture-content p {
     margin: .72rem 0
 }
@@ -702,6 +801,26 @@ code {
     border-left: 1.5px solid #a8a098;
     border-radius: 0;
     padding: .16rem 0 .16rem .85rem
+}
+
+.proof-qed {
+    float: right;
+    margin-left: 1em;
+    font-style: normal
+}
+
+/* Keep the float's line metrics identical to the surrounding text while
+   enlarging the glyph on their shared baseline. */
+.proof-qed-symbol {
+    font-size: 1.4em;
+    line-height: 0
+}
+
+/* Keep the final square inside the proof when it wraps onto its own line. */
+.env.proof::after {
+    content: "";
+    display: block;
+    clear: both
 }
 
 .env-heading {
@@ -818,7 +937,7 @@ code {
 .env.algorithm .env-title::before {
     content: "Algorithm " counter(algorithm) ". ";
     margin-right: .25rem;
-    font-family: "Frutiger Notes", var(--serif);
+    font-family: "Source Sans 3", var(--serif);
     font-weight: var(--environment-label-weight)
 }
 
@@ -857,9 +976,7 @@ code {
 
 /* Preserve large mathematical tables without widening the whole page. */
 .lecture-content table:not(.bibliography-table) {
-    display: block;
-    max-width: 100%;
-    overflow-x: auto;
+    display: table;
     border-collapse: collapse;
     text-align: left
 }
@@ -868,20 +985,6 @@ code {
     padding: .45rem .6rem;
     text-align: left;
     vertical-align: top
-}
-
-.lecture-content table:not(.bibliography-table) th {
-    border-bottom: 1px solid var(--rule)
-}
-
-.lecture-content .table-centered table :is(th, td) {
-    text-align: center;
-    vertical-align: middle
-}
-
-.lecture-content .table-centered table {
-    width: max-content;
-    margin-inline: auto
 }
 
 .lecture-table {
@@ -1050,7 +1153,7 @@ code {
 .equation-aligned {
     display: grid;
     --equation-align-gutter: .28rem;
-    grid-template-columns: minmax(0, 1fr) max-content max-content minmax(0, 1fr) minmax(0, max-content);
+    grid-template-columns: minmax(0, 1fr) repeat(var(--equation-alignment-columns, 2), max-content) minmax(0, 1fr) minmax(0, max-content);
     align-items: center;
     column-gap: var(--equation-align-gutter);
     row-gap: .35rem
@@ -1085,8 +1188,13 @@ code {
     line-height: 0
 }
 
+.equation-align-cell {
+    min-width: max-content;
+    line-height: 0
+}
+
 .equation-align-full {
-    grid-column: 1 / 5;
+    grid-column: 1 / var(--equation-number-column, 5);
     justify-self: center;
     min-width: max-content;
     line-height: 0
@@ -1102,7 +1210,7 @@ code {
 }
 
 .equation-aligned .eqno {
-    grid-column: 5;
+    grid-column: var(--equation-number-column, 5);
     align-self: center
 }
 
@@ -1159,9 +1267,9 @@ span[role="math"].math-katex-source {
     text-align: center
 }
 
-.rendered-figure svg:not(.katex svg),
+.rendered-figure svg:not(.katex svg, svg svg),
 .rendered-figure img,
-.lecture-content figure.typst svg:not(.katex svg),
+.lecture-content figure.typst svg:not(.katex svg, svg svg),
 .lecture-content figure.typst img {
     display: block;
     max-width: 100%;
@@ -1183,7 +1291,7 @@ span[role="math"].math-katex-source {
     margin: var(--place-dy, .15rem) 1.1rem .9rem 0
 }
 
-.placed-figure svg:not(.katex svg),
+.placed-figure svg:not(.katex svg, svg svg),
 .placed-figure img,
 .placed-figure .typst-frame {
     display: block;
@@ -1265,7 +1373,7 @@ span[role="math"].math-katex-source {
     margin-bottom: 0
 }
 
-.wrapped-figure-media svg:not(.katex svg),
+.wrapped-figure-media svg:not(.katex svg, svg svg),
 .wrapped-figure-media img,
 .wrapped-figure-media .typst-frame {
     display: block;
@@ -1281,7 +1389,7 @@ span[role="math"].math-katex-source {
     line-height: 0
 }
 
-.lecture-image svg {
+.lecture-image > svg {
     display: block;
     max-width: 100%;
     height: auto !important
@@ -1299,11 +1407,12 @@ span[role="math"].math-katex-source {
 .wrapped-figure .footnote {
     position: absolute;
     float: none;
-    left: calc(100% + 24px + var(--sidenote-inset, 0px) + var(--sidenote-quote-inset, 0px));
+    left: calc(100% + var(--sidenote-gap) + var(--sidenote-inset, 0px) + var(--sidenote-quote-inset, 0px));
     margin: 0
 }
 
 figcaption {
+    position: relative;
     margin-top: .5rem;
     color: var(--ink);
     text-align: left
@@ -1311,8 +1420,134 @@ figcaption {
 
 figcaption .figcaption-label {
     color: var(--ink);
-    font-family: "Frutiger Notes", var(--serif);
+    font-family: "Source Sans 3", var(--serif);
     font-weight: var(--environment-label-weight)
+}
+
+.changelog-title,
+.notes-heading,
+.env.statement,
+.env.proof,
+.env.algorithm .env-title,
+.eqno,
+.equation-block,
+.footnote,
+.endnotes > p {
+    position: relative
+}
+
+.permalink-anchor {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    scroll-margin-top: var(--anchor-offset)
+}
+
+.lecture-content a.permalink {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-left: .2rem;
+    vertical-align: -.2rem;
+    color: var(--muted);
+    opacity: 0;
+    font-size: .85rem;
+    line-height: 1;
+    border-radius: 3px;
+    text-decoration: none
+}
+
+.permalink::before {
+    --link-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='5' r='3'/%3E%3Cpath d='M12 8v13M8 12h8M3 12v3a9 6 0 0 0 18 0v-3M3 12l3 3M21 12l-3 3'/%3E%3C/g%3E%3C/svg%3E");
+    margin: 0
+}
+
+.lecture-content :hover > a.permalink,
+.lecture-content .rendered-figure:hover > figcaption a.permalink,
+.lecture-content .env.algorithm:hover > .env-title > a.permalink,
+.lecture-content a.permalink:focus-visible {
+    opacity: 1;
+    color: var(--accent)
+}
+
+.lecture-content a.permalink:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px
+}
+
+.lecture-content a.permalink-gutter {
+    position: absolute;
+    top: .15em;
+    right: 100%;
+    margin: 0;
+    padding-right: .25rem
+}
+
+.lecture-content .notes-heading > a.permalink-gutter {
+    font-size: .8em;
+    height: 1.5em;
+    top: 0;
+    /* Leave room for the heading's vertical marker. The padding also keeps
+       the hover area continuous while moving from the text to the icon. */
+    padding-right: 1.25rem
+}
+
+.lecture-content .env.statement > a.permalink-gutter {
+    top: .42rem
+}
+
+.lecture-content .env.proof > a.permalink-gutter {
+    top: .16rem
+}
+
+.lecture-content .env.algorithm .env-title > a.permalink-gutter {
+    top: .35rem
+}
+
+.lecture-content a.permalink-caption,
+.lecture-content a.permalink-note {
+    position: absolute;
+    top: 0;
+    right: 100%;
+    margin: 0;
+    padding-right: .2rem;
+    justify-content: flex-end;
+    height: 1.35em;
+    font-size: inherit
+}
+
+.lecture-content a.permalink-caption:focus-visible,
+.lecture-content a.permalink-note:focus-visible {
+    outline-offset: -2px
+}
+
+.lecture-content a.permalink-equation {
+    position: absolute;
+    top: 0;
+    left: calc(var(--equation-right, 100%) + var(--sidenote-inset, 0px) + var(--sidenote-quote-inset, 0px));
+    transform: translateY(-50%);
+    justify-content: flex-start;
+    margin: 0;
+    padding-left: .1rem;
+    width: 1rem;
+    height: 1.35em
+}
+
+.lecture-content .permalink-corner {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: var(--paper)
+}
+
+@media print {
+    .lecture-content a.permalink {
+        display: none
+    }
 }
 
 .typst-frame {
@@ -1347,7 +1582,7 @@ figcaption .figcaption-label {
 .callout-title {
     margin: 0 0 .35rem;
     color: var(--ink);
-    font-family: "Frutiger Notes", var(--serif);
+    font-family: "Source Sans 3", var(--serif);
     font-weight: 700
 }
 
@@ -1417,8 +1652,8 @@ figcaption .figcaption-label {
 .footnote {
     float: right;
     clear: right;
-    width: 210px;
-    margin: .2rem calc(-234px - var(--sidenote-inset, 0px) - var(--sidenote-quote-inset, 0px)) .7rem calc(24px + var(--sidenote-inset, 0px) + var(--sidenote-quote-inset, 0px));
+    width: var(--sidenote-width);
+    margin: .2rem calc(-1 * var(--sidenote-offset) - var(--sidenote-inset, 0px) - var(--sidenote-quote-inset, 0px)) .7rem calc(var(--sidenote-gap) + var(--sidenote-inset, 0px) + var(--sidenote-quote-inset, 0px));
     color: var(--muted);
     font-size: .78rem;
     line-height: 1.35;
@@ -1553,7 +1788,7 @@ mark {
     border-radius: 2px
 }
 
-@media(max-width:1220px) {
+@media(max-width:1279px) {
 
     .citation-note,
     .footnote,
@@ -1587,9 +1822,9 @@ mark {
     }
 }
 
-@media(min-width:1260px) {
+@media(min-width:1280px) {
     .equation.is-overwide {
-        width: calc(100% + 234px);
+        width: calc(100% + var(--sidenote-offset));
         max-width: calc(100vw - 48px);
         overflow-x: auto
     }
@@ -1601,8 +1836,8 @@ mark {
     .rendered-figure figcaption {
         position: absolute;
         top: .2rem;
-        left: calc(100% + 24px);
-        width: 210px;
+        left: calc(100% + var(--sidenote-gap));
+        width: var(--sidenote-width);
         margin-top: 0;
         color: var(--muted);
         font-family: var(--serif);
@@ -1611,16 +1846,22 @@ mark {
         text-align: left
     }
 
+    .rendered-figure figcaption > a.permalink-caption,
+    .footnote > a.permalink-note {
+        /* Keep the whole gap hoverable while moving from the figure to its link. */
+        width: calc(var(--sidenote-gap) - .2rem)
+    }
+
     .env.statement .rendered-figure figcaption,
     .env.statement figure.typst figcaption,
     .env.proof .rendered-figure figcaption,
     .env.proof figure.typst figcaption {
         top: .2rem;
-        left: calc(100% + 24px + .85rem + 1px)
+        left: calc(100% + var(--sidenote-gap) + .85rem + 1px)
     }
 }
 
-@media(max-width:1259px) {
+@media(max-width:1279px) {
     .equation.is-overwide {
         overflow-x: auto;
         padding-right: 0
@@ -1685,6 +1926,30 @@ mark {
 
 @media(max-width:900px) {
 
+    .lecture-content a.permalink-gutter,
+    .lecture-content a.permalink-caption,
+    .lecture-content a.permalink-note {
+        width: 1rem;
+        padding-right: .1rem
+    }
+
+    .lecture-content .notes-heading > a.permalink-gutter {
+        font-size: min(.8em, 1rem);
+        padding-right: .1rem
+    }
+
+    .lecture-content a.permalink-caption,
+    .lecture-content a.permalink-note {
+        font-size: min(1em, 1rem)
+    }
+
+    .lecture-content a.permalink-gutter:focus-visible,
+    .lecture-content a.permalink-caption:focus-visible,
+    .lecture-content a.permalink-note:focus-visible,
+    .lecture-content a.permalink-equation:focus-visible {
+        outline-offset: -2px
+    }
+
     .lecture-content h1::before,
     .lecture-content h2::before,
     .lecture-content h3::before {
@@ -1744,3 +2009,16 @@ mark {
         line-height: 1.08
     }
 }
+.note-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-block: 20px;
+    padding: 12px 14px;
+    border-radius: 4px;
+    background: #fff4e6;
+    color: #88410c;
+    font: 0.9375rem/1.5 var(--sans);
+}
+.note-status img { flex: none; }
+.note-status p { margin: 0; }

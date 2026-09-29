@@ -1,9 +1,7 @@
 #let line-label(it) = {
   if type(it) == str {
     it = label(it)
-  } else if type(it) == label {
-    // nothing
-  } else {
+  } else if type(it) != label {
     panic("line-label requires either a string or a label.")
   }
 
@@ -108,21 +106,27 @@
   }
 }
 
+// Both public entry points return a referenceable algorithm figure. Callers
+// attach labels to the pseudocode call and pass any caption directly.
 #let pseudocode(
   line-numbering: "1",
   line-number-supplement: "Line",
   stroke: 1pt + gray,
   indentation: 1em,
-  hooks: 0pt,
+  hooks: true,
   line-gap: .8em,
-  booktabs-stroke: black + 2pt,
-  booktabs: false,
+  booktabs-stroke: black + 1.2pt,
+  booktabs: true,
   title: none,
   numbered-title: none,
   max-width: false,
+  caption: none,
   ..children,
 ) = {
   children = children.pos().map(normalize-line)
+  let hook-length = if type(hooks) == bool {
+    if hooks { indentation / 2 } else { 0pt }
+  } else { hooks }
 
   let collect-precursors(level, line-number, y, children) = {
     let precursors = ()
@@ -224,7 +228,6 @@
             y: prec.y + title-correction,
             colspan: max-x + 1 - prec.x,
             rowspan: 1,
-            // stroke: none,
             prec.body,
           )
         } else if prec.kind == "number" and line-numbering != none {
@@ -233,9 +236,8 @@
             y: prec.y + title-correction,
             colspan: 1,
             rowspan: 1,
-            // stroke: none,
             box(width: .8em, {
-              set text(fill: luma(50%), font: "New Computer Modern Sans 08")
+              set text(fill: luma(50%), font: "New Computer Modern")
               box(prec.body)
             }),
           )
@@ -246,7 +248,7 @@
             colspan: 1,
             rowspan: prec.rowspan,
             stroke: (left: stroke, bottom: stroke, rest: none),
-            h(hooks),
+            h(hook-length),
           )
         } else {
           ()
@@ -294,14 +296,18 @@
     ),
   )
 
-  grid(
-    // stroke: blue,
-    columns: (auto,) * (max-x + line-number-correction) + (if max-width { 1fr} else {auto},),
-    align: left,
-    column-gutter: indentation / 2,
-    row-gutter: line-gap,
-    ..cells,
-    ..decoration,
+  figure(
+    kind: "algorithm",
+    supplement: [Algorithm],
+    caption: caption,
+    grid(
+      columns: (auto,) * (max-x + line-number-correction) + (if max-width { 1fr} else {auto},),
+      align: left,
+      column-gutter: indentation / 2,
+      row-gutter: line-gap,
+      ..cells,
+      ..decoration,
+    ),
   )
 }
 
@@ -370,4 +376,3 @@
   }
   pseudocode(..config.named(), ..transformed)
 }
-

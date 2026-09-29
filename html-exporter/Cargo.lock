@@ -1608,13 +1608,17 @@ name = "notes-html-exporter"
 version = "0.1.0"
 dependencies = [
  "argopt",
+ "base64",
  "regex",
+ "roxmltree 0.21.1",
  "scraper",
  "serde",
- "serde_yaml",
+ "serde_json",
  "typst",
  "typst-html",
  "typst-kit",
+ "typst-layout",
+ "typst-svg",
 ]
 
 [[package]]

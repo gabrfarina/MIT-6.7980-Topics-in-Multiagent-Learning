@@ -18,7 +18,6 @@
   let n = M.len()
   for i in range(n) {
     assert(M.at(i).len() == n)
-    // assert(M.at(i).at(i) == 1.0);
 
     let row = ()
     for j in range(n) {
