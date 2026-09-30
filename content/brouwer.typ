@@ -167,6 +167,209 @@ In turn, using a standard compactness argument, @cor:sperner implies Brouwer's f
   The function $d(vz) := norm(f(vz) - vz)_oo$ is continuous on the compact square $[0,1]^2$. By Weierstrass's extreme value theorem, it attains a minimum $m >= 0$ at some point $vz^*$. For every $epsilon.alt > 0$, @cor:sperner gives a point $vz$ with $d(vz) < 2 epsilon.alt$, so $m < 2 epsilon.alt$ for every $epsilon.alt > 0$. Therefore $m = 0$, and $f(vz^*) = vz^*$.
 ]
 
+== Lipschitz continuity of the Nash improvement function, and the reduction to Sperner <sec-nash-lipschitz>
+
+#heading(level: 3, numbering: none)[Statement]
+
+Consider a two-player game in which each player has two actions and every payoff lies in $[0, 1]$.
+
++ The Nash improvement function $f : [0, 1]^2 -> [0, 1]^2$ is $3$-Lipschitz in $ell_oo$:
+  $ norm(f(vz) - f(vw))_oo <= 3 norm(vz - vw)_oo quad "for all" vz, vw in [0, 1]^2. $
++ On a Sperner grid with $N = ceil(4 \/ epsilon.alt)$ cells per side, the yellow corner $vz_Y$ of any trichromatic triangle satisfies
+  $ norm(f(vz_Y) - vz_Y)_oo <= epsilon.alt, $
+  so $vz_Y$ is an $epsilon.alt$-approximate fixed point.
++ The Sperner circuit maps a grid point to the color given by the direction of $f(vz) - vz$ at that point.
+
+#heading(level: 3, numbering: none)[Step 0: Setup]
+
+- *Payoffs.* $A_(a b)$ is player 1’s payoff and $B_(a b)$ is player 2’s payoff when player 1 plays action $a$ and player 2 plays action $b$. Every entry lies in $[0, 1]$.
+- *Strategies.* Player 1 plays action 1 with probability $p$. Player 2 plays action 1 with probability $q$.
+- *Points.* A pair of strategies is a point $vz = (p, q)$ in the unit square $[0, 1]^2$. Throughout, $vz$ and $tilde(vz) = (tilde(p), tilde(q))$ denote arbitrary points of the square. The corners of a Sperner triangle appear only in Step 6.
+- *Distance.* $norm(vz - tilde(vz))_oo = max{abs(p - tilde(p)), abs(q - tilde(q))}$.
+
+*Running example (coordination game).* $A_(11) = 1$, $A_(12) = 0$, $A_(21) = 0$, $A_(22) = 1$.
+
+#heading(level: 3, numbering: none)[Step 1: Payoffs, regrets, and $D$]
+
+*Payoffs.* Player 2 plays action 1 with probability $q$, so
+$ u_1(1, q) = q A_(11) + (1 - q) A_(12), qquad u_1(2, q) = q A_(21) + (1 - q) A_(22). $
+A mixed strategy gives a blend of the two:
+$ u_1(p, q) = p u_1(1, q) + (1 - p) u_1(2, q). $
+
+*Regrets.* A regret is the payoff from switching fully to an action, minus the current payoff:
+$ r_(1, 1) = u_1(1, q) - [p u_1(1, q) + (1 - p) u_1(2, q)] = (1 - p) [u_1(1, q) - u_1(2, q)], $
+$ r_(1, 2) = u_1(2, q) - [p u_1(1, q) + (1 - p) u_1(2, q)] = -p [u_1(1, q) - u_1(2, q)]. $
+
+The same bracket appears in both regrets, so we name it:
+$ D(q) = u_1(1, q) - u_1(2, q). $
+This is how much better action 1 is than action 2 for player 1, given player 2’s mix $q$. With this name,
+$ r_(1, 1) = (1 - p) D, qquad r_(1, 2) = -p D. $
+
+_Intuition._ Player 1 already plays action 1 a fraction $p$ of the time. Switching fully to action 1 changes only the remaining $1 - p$, and each unit of that gains $D$.
+
+_Example._ In the coordination game, $D(q) = q - (1 - q) = 2 q - 1$. At $q = 0.8$ we get $D = 0.6$, so action 1 is better.
+
+*Player 2.* The same computation gives $r_(2, 1) = (1 - q) E$ and $r_(2, 2) = -q E$, where
+$ E(p) = [p B_(11) + (1 - p) B_(21)] - [p B_(12) + (1 - p) B_(22)]. $
+
+#heading(level: 3, numbering: none)[Step 2: The Nash improvement function on the square]
+
+By #lecture-link("nfgs_nash", <def-nash-improvement>)[], for player 1:
+$
+  phi_(1, 1) = frac(p + [r_(1, 1)]^+, 1 + [r_(1, 1)]^+ + [r_(1, 2)]^+), qquad phi_(1, 2) = frac((1 - p) + [r_(1, 2)]^+, 1 + [r_(1, 1)]^+ + [r_(1, 2)]^+).
+$
+
+*One number per player.* The two numerators add up to
+$ p + (1 - p) + [r_(1, 1)]^+ + [r_(1, 2)]^+, $
+which is exactly the denominator. So $phi_(1, 1) + phi_(1, 2) = 1$, and player 1’s new strategy is determined by $phi_(1, 1)$ alone. The same holds for player 2. Hence
+$ f(p, q) = (phi_(1, 1)(p, q), phi_(2, 1)(p, q)). $
+
+_Check._ Take $p = 0.5$ and $D = 0.6$. Then $phi_(1, 1) = 0.8 \/ 1.3$ and $phi_(1, 2) = 0.5 \/ 1.3$, which sum to $1$.
+
+*Two cases.* Since $p >= 0$ and $1 - p >= 0$, at most one of $[r_(1, 1)]^+$ and $[r_(1, 2)]^+$ is nonzero.
+
+- If $D >= 0$: $[r_(1, 1)]^+ = (1 - p) D$ and $[r_(1, 2)]^+ = 0$, so
+  $ 1 - phi_(1, 1) = frac(1 - p, 1 + (1 - p) D). $
+- If $D < 0$: $[r_(1, 1)]^+ = 0$ and $[r_(1, 2)]^+ = p abs(D)$, so
+  $ phi_(1, 1) = frac(p, 1 + p abs(D)). $
+
+*Fixed points are equilibria.* $f(vz) = vz$ exactly when every regret is $<= 0$, that is, when no player can gain by switching. This is a Nash equilibrium.
+
+#heading(level: 3, numbering: none)[Step 3: $D$ changes at most twice as fast as $q$]
+
+Collecting the terms that contain $q$:
+$ D(q) = underbrace((A_(12) - A_(22)), "constant") + q underbrace([(A_(11) - A_(21)) - (A_(12) - A_(22))], "slope"). $
+
+This is a straight line in $q$. Each of $A_(11) - A_(21)$ and $A_(12) - A_(22)$ lies in $[-1, 1]$, so the slope lies in $[-2, 2]$. Therefore
+$ abs(D(q) - D(tilde(q))) <= 2 abs(q - tilde(q)). $
+
+Also $abs(D) <= 1$. By the same argument, $abs(E(p) - E(tilde(p))) <= 2 abs(p - tilde(p))$.
+
+The coordination game has slope exactly $2$, so this bound is tight.
+
+#heading(level: 3, numbering: none)[Step 4: Slopes of $phi_(1, 1)$]
+
+Both cases of Step 2 have the shape
+$ h(X, c) = frac(X, 1 + X c), qquad X in [0, 1], c >= 0. $
+- For $D < 0$: $phi_(1, 1) = h(p, abs(D))$.
+- For $D >= 0$: $1 - phi_(1, 1) = h(1 - p, D)$.
+
+*Slopes of $h$.* By the quotient rule:
+$
+  frac(partial h, partial X) = frac((1 + X c) - X c, (1 + X c)^2) = frac(1, (1 + X c)^2) in [0, 1], qquad abs(frac(partial h, partial c)) = frac(X^2, (1 + X c)^2) <= 1.
+$
+Both bounds hold because the denominator is at least $1$ and $X <= 1$.
+
+*Translating back to $p$ and $phi_(1, 1)$.* Changing $p$ changes $X$ by the same amount. For the case $D >= 0$, where $X = 1 - p$, only the sign flips. Likewise, changing $1 - phi_(1, 1)$ changes $phi_(1, 1)$ by the same amount with the opposite sign. Also, $abs(abs(D) - abs(tilde(D))) <= abs(D - tilde(D))$.
+
+So in both cases, $phi_(1, 1)$ has slope at most $1$ in $p$ and at most $1$ in $D$.
+
+_Direct check for $D >= 0$._ Differentiating $phi_(1, 1) = 1 - display(frac(1 - p, 1 + (1 - p) D))$ directly gives
+$
+  frac(partial phi_(1, 1), partial p) = frac(1, (1 + (1 - p) D)^2), qquad frac(partial phi_(1, 1), partial D) = frac((1 - p)^2, (1 + (1 - p) D)^2),
+$
+and both are at most $1$.
+
+*The cases agree at $D = 0$.* Both formulas give $phi_(1, 1) = p$ there, so $phi_(1, 1)$ is continuous. A path that crosses $D = 0$ can be split at the crossing, and each piece bounded separately.
+
+*From slopes to a bound (the L-shaped path).* A slope of at most $1$ means the output moves by at most as much as the input (mean value theorem). Go from $(p, D)$ to $(tilde(p), tilde(D))$ in two legs:
+$ (p, D) limits(-->)^(med "change only" p med) (tilde(p), D) limits(-->)^(med "change only" D med) (tilde(p), tilde(D)). $
+The first leg moves the output by at most $abs(p - tilde(p))$. The second leg moves it by at most $abs(D - tilde(D))$. By the triangle inequality,
+$ abs(phi_(1, 1)(p, D) - phi_(1, 1)(tilde(p), tilde(D))) <= abs(p - tilde(p)) + abs(D - tilde(D)). $
+
+#heading(level: 3, numbering: none)[Step 5: The Lipschitz constant is $3$]
+
+Combining Steps 3 and 4:
+$
+  abs(phi_(1, 1)(vz) - phi_(1, 1)(tilde(vz))) <= underbrace(1 dot.op abs(p - tilde(p)), "direct") + underbrace(2 dot.op abs(q - tilde(q)), "through" D).
+$
+
+Each of $abs(p - tilde(p))$ and $abs(q - tilde(q))$ is at most $max{abs(p - tilde(p)), abs(q - tilde(q))} = norm(vz - tilde(vz))_oo$. So
+$
+  abs(phi_(1, 1)(vz) - phi_(1, 1)(tilde(vz))) <= 1 dot.op norm(vz - tilde(vz))_oo + 2 dot.op norm(vz - tilde(vz))_oo = 3 norm(vz - tilde(vz))_oo.
+$
+
+The same argument, using $E$ in place of $D$, bounds $phi_(2, 1)$. Hence
+$ norm(f(vz) - f(tilde(vz)))_oo <= 3 norm(vz - tilde(vz))_oo, qquad L = 3. $
+
+_Example._ Take $vz = (0.5, 0.8)$ and $tilde(vz) = (0.6, 0.75)$. Then $norm(vz - tilde(vz))_oo = 0.1$. The bound on the change in $phi_(1, 1)$ is $0.1 + 2 (0.05) = 0.2$, which is at most $3 times 0.1 = 0.3$.
+
+This holds for *every* pair of points. Step 6 applies it to one particular pair, two corners of a Sperner triangle.
+
+#heading(level: 3, numbering: none)[Step 6: The approximation theorem with an explicit Lipschitz constant]
+
+*Setup.* Each grid point is colored by the direction of $f(vz) - vz$, using the rule of @sec-brouwer-sperner. Since $f$ maps the square to itself, this is a valid Sperner coloring, so a trichromatic triangle with corners $vz_Y, vz_B, vz_R$ exists. The coloring rule guarantees:
+
+- the $x$-parts of $f(vz_Y) - vz_Y$ and $f(vz_B) - vz_B$ have opposite signs, or one of them is $0$;
+- the $y$-parts of $f(vz_Y) - vz_Y$ and $f(vz_R) - vz_R$ have opposite signs, or one of them is $0$.
+
+*The $x$-coordinate.* Let
+$ a = (f(vz_Y) - vz_Y)_x, qquad b = (f(vz_B) - vz_B)_x. $
+
++ _Opposite signs._ Since $a$ and $b$ have opposite signs, $abs(a) <= abs(a - b)$. For example, $a = 3$ and $b = -2$ give $abs(a - b) = 5 >= 3$.
++ _Regroup._ Write $F_Y = f(vz_Y)_x$, $Y = (vz_Y)_x$, $F_B = f(vz_B)_x$ and $B = (vz_B)_x$. Then
+  $ a - b = (F_Y - Y) - (F_B - B) = F_Y - Y - F_B + B = (F_Y - F_B) - (Y - B). $
+  The original pairs (each output with its own input) are what we want to bound. The new pairs (outputs together, inputs together) are what we _can_ bound.
++ _Triangle inequality._ $abs(a) <= abs(F_Y - F_B) + abs(Y - B)$.
+
+The corners of a single grid triangle are within $delta$ of each other in $ell_oo$. So:
+- $abs(Y - B) <= norm(vz_Y - vz_B)_oo <= delta$;
+- $abs(F_Y - F_B) <= norm(f(vz_Y) - f(vz_B))_oo <= L delta$, by Lipschitz.
+
+The second bound is where the Lipschitz constant enters. It replaces the $epsilon.alt$ of @thm-sperner-approximation (which comes from uniform continuity) with the explicit quantity $L delta$.
+
+Therefore $abs(a) <= (L + 1) delta$.
+
+*The $y$-coordinate.* The same argument with $vz_R$ in place of $vz_B$ gives the same bound. Taking the larger coordinate,
+$ norm(f(vz_Y) - vz_Y)_oo <= (L + 1) delta = 4 delta. $
+
+#heading(level: 3, numbering: none)[Step 7: Grid size]
+
+With $N$ cells per side, each cell has side $delta = 1 \/ N$. The corners of any triangle, for example $(i, j)$, $(i + 1, j)$ and $(i + 1, j + 1)$, differ by at most one cell in each coordinate. So they are within $delta$ of each other in $ell_oo$.
+
+Requiring $4 delta <= epsilon.alt$ gives
+$ N = ceil(4 / epsilon.alt), $
+that is, an $(N + 1) times (N + 1)$ grid of points. Add one more ring if the grid is embedded in a standard boundary as in @sec-sperner-proof.
+
+*From approximate fixed point to approximate equilibrium (optional).* Suppose $D >= 0$, and let player 1’s regret be $R = (1 - p) D$. Then
+$ phi_(1, 1) - p = frac((1 - p)^2 D, 1 + (1 - p) D) >= R^2 / 2, $
+because the denominator is at most $2$ and $1 - p >= R$ (as $abs(D) <= 1$). The case $D < 0$ is symmetric.
+
+So an $eta$-approximate fixed point is a $sqrt(2 eta)$-Nash equilibrium. For an $epsilon.alt$-Nash equilibrium, take $eta = epsilon.alt^2 \/ 2$, which gives $N = ceil(8 \/ epsilon.alt^2)$.
+
+#heading(level: 3, numbering: none)[Step 8: The Sperner circuit]
+
+*Input.* A grid point $(i, j)$. Each coordinate is a number from $0$ to $N$. Since $n$ bits can write $2^n$ numbers, each coordinate takes about
+$ log_2 N approx 2 + log_2(1 \/ epsilon.alt) = O(log(1 \/ epsilon.alt)) $
+bits.
+
+*Computation.*
++ Convert to strategies: $vz = (p, q) = (display(i / N), display(j / N))$.
++ Compute $D(q)$ and $E(p)$, then the regrets, then $f(vz) = (phi_(1, 1), phi_(2, 1))$. This uses only $+$, $-$, $times$, $÷$ and $max$.
++ Compute the displacement $f(vz) - vz$.
++ Output the color given by the direction of $f(vz) - vz$. On the outer boundary, output the standard boundary colors.
+
+*Why the reduction is polynomial.* Take $epsilon.alt = 0.001$, for example. The grid has $N = 4000$ cells per side, about $1.6 times 10^7$ points in total. Yet each coordinate fits in $12$ bits, since $2^(12) = 4096$.
+
+The circuit works only with $O(log(1 \/ epsilon.alt))$-bit coordinates and the payoff entries, so its size is polynomial in the input. The grid itself is exponentially large in the number of bits, which is exactly the setting of @sec-sperner-query-lower-bound.
+
+#heading(level: 3, numbering: none)[Summary]
+
+#table(
+  columns: 2,
+  align: (left, left),
+  table.header([Quantity], [Result]),
+  [Regrets], [$r_(1, 1) = (1 - p) D$, $r_(1, 2) = -p D$, where $D(q) = u_1(1, q) - u_1(2, q)$],
+  [Slope of $D$ in $q$], [at most $2$],
+  [Slopes of $phi_(1, 1)$], [at most $1$ in $p$, at most $1$ in $D$],
+  [Lipschitz constant], [$L = 1 + 2 = 3$ in $ell_oo$],
+  [@thm-sperner-approximation], [$norm(f(vz_Y) - vz_Y)_oo <= (L + 1) delta = 4 delta$],
+  [Grid size], [$N = ceil(4 \/ epsilon.alt)$; for an $epsilon.alt$-Nash equilibrium, $N = ceil(8 \/ epsilon.alt^2)$],
+  [Circuit], [$(i, j) |-> (p, q) |-> f(p, q) |->$ direction of $f(vz) - vz |->$ color],
+)
+
+*General $m times n$ games.* The same method applies. Each regret is linear in the opponent's strategy with bounded slope, and the denominator in #lecture-link("nfgs_nash", <def-nash-improvement>)[] is at least $1$. The Lipschitz constant grows with $m$ and $n$. The domain becomes $Delta_m times Delta_n$, of dimension $m + n - 2$, and the $d$-dimensional Sperner lemma of @sec-brouwer-general replaces the planar one.
+
 = Proof of Sperner's lemma <sec-sperner-proof>
 
 Now we turn to proving Sperner's lemma. As it turns out, the lemma can be obtained as a corollary of a very basic parity argument on directed graphs #citep(<cohen1967sperner>, <papadimitriou1994parity>).
