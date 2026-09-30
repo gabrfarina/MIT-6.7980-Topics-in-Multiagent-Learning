@@ -127,7 +127,7 @@ Graphically, we can summarize the process as in the following block diagram.
     Phi"-Reg"^((T)) = "Reg"_Phi^((T)) qquad forall T = 1, 2, ... .
   $
   Because the regret cumulated by $cR$ grows sublinearly by hypothesis of it being a regret minimizer, then so does the $Phi$-regret of the $Phi$-regret minimization algorithm defined above.
-]
+] <thm-ggm>
 #proof[
   The proof of correctness of the above construction is deceptively simple.
   Since $cR$ outputs transformations $phi.alt^((1)),phi.alt^((2)),... in Phi$ and receives utilities $phi.alt |-> u^((1))(phi.alt(vx^((1)))), phi.alt |-> u^((2)) (phi.alt (vx^((2))) ), ...$, its cumulative regret $R^((T))$ is by definition
@@ -141,6 +141,16 @@ Graphically, we can summarize the process as in the following block diagram.
     "Reg"_Phi^((T)) = max_(hat(phi.alt) in Phi) {sum_(t=1)^T (u^((t))(hat(phi.alt) (vx^((t)))) - u^((t))(vx^((t))))},
   $
   where the right-hand side is exactly the cumulative $Phi$-regret $Phi"-Reg"^((T))$ incurred by $cR_Phi$.
+]
+
+#remark[
+  @thm-ggm assumes an _exact_ fixed point, which is hard to compute in general. Suppose the oracle only returns a point with $norm(phi.alt^((t))(vx^((t))) - vx^((t))) <= eps_t$. The proof above used the fixed point property exactly once, to replace $phi.alt^((t))(vx^((t)))$ by $vx^((t))$; keeping that term instead leaves the extra sum $sum_(t=1)^T (u^((t))(phi.alt^((t))(vx^((t)))) - u^((t))(vx^((t))))$, which does not depend on the comparator and which Hölder's inequality bounds by $C_2 sum_(t=1)^T eps_t$. Hence
+  #set math.equation(numbering: "(1)")
+  $
+    Phi"-Reg"^((T)) <= "Reg"_Phi^((T)) + C_2 sum_(t=1)^T eps_t,
+  $ <eq-approx-regret>
+  #set math.equation(numbering: none)
+  with @thm-ggm the case $eps_t = 0$. The construction therefore remains a $Phi$-regret minimizer whenever $sum_(t=1)^T eps_t = o(T)$: a fixed tolerance $eps > 0$ is not enough, since it leaves a linear $C_2 eps T$ term, whereas $eps_t = 1\/sqrt(t)$ costs only $O(sqrt(T))$ --- the same order as the regret of $cR$ itself. This is the accuracy with which #citet(<gordon2008no>) call their fixed point subroutine.
 ]
 
 #lec_bibliography("meta/refs.bib")
