@@ -248,6 +248,14 @@ For each game:
 2. Find all pure-strategy Nash equilibria by checking unilateral deviations.
 3. Find all non-pure Nash equilibria, or prove that none exist. Derive the expected payoffs of each action and check both interior and boundary values of $p$ and $q$, so that your list is complete.
 
+*Hint.* A player who assigns positive probability to both actions must be indifferent between them. If one action gives strictly higher expected payoff, a best response assigns probability one to that action. Indifference is only a necessary condition for a player who mixes: check the other player's best-response condition too.
+
+*A common method.*
+
+For a fixed opponent strategy, the expected payoff of a mixture is the probability-weighted average of its pure-action payoffs. Consequently, it is enough to compare pure actions: a mixture cannot outperform the better action. A player can mix between both actions only when their payoffs are equal.
+
+We will write expressions such as $u_1 (U \, vx_2)$ for the payoff from playing $U$ against Player 2's mixture. The variables $p$ and $q$ always denote the probabilities specified above, not payoff values.
+
 *Game A: Strict incentives*
 
 #align(center)[
@@ -266,74 +274,7 @@ For each game:
 )
 ]
 
-*Game B: Coordination with different preferences*
-
-#align(center)[
-#table(
-  columns: (auto, auto, auto),
-  align: center,
-  inset: 6pt,
-  stroke: 0.4pt + luma(170),
-
-  table.header([*Player 1 / Player 2*], [*$L$*], [*$R$*]),
-
-  [$U$], [$(3 \, 2)$], [$(0 \, 0)$],
-
-  [$D$], [$(0 \, 0)$], [$(2 \, 3)$],
-
-)
-]
-
-*Game C: Matching pennies*
-
-#align(center)[
-#table(
-  columns: (auto, auto, auto),
-  align: center,
-  inset: 6pt,
-  stroke: 0.4pt + luma(170),
-
-  table.header([*Player 1 / Player 2*], [*$L$*], [*$R$*]),
-
-  [$U$], [$(1 \, -1)$], [$(-1 \, 1)$],
-
-  [$D$], [$(-1 \, 1)$], [$(1 \, -1)$],
-
-)
-]
-
-*Game D: Ties and boundary equilibria (additional challenge)*
-
-#align(center)[
-#table(
-  columns: (auto, auto, auto),
-  align: center,
-  inset: 6pt,
-  stroke: 0.4pt + luma(170),
-
-  table.header([*Player 1 / Player 2*], [*$L$*], [*$R$*]),
-
-  [$U$], [$(1 \, 1)$], [$(1 \, 0)$],
-
-  [$D$], [$(1 \, 0)$], [$(0 \, 0)$],
-
-)
-]
-
-For Game D, also explain why a Nash equilibrium need not be a dominant-strategy equilibrium, even when both players have dominant actions.
-
-*Hint.* A player who assigns positive probability to both actions must be indifferent between them. If one action gives strictly higher expected payoff, a best response assigns probability one to that action. Indifference is only a necessary condition for a player who mixes: check the other player's best-response condition too.
-] <ex-small-game-equilibria>
-
-#reference-solutions[
-== Detailed solutions
-
-*A common method.*
-
-For a fixed opponent strategy, the expected payoff of a mixture is the probability-weighted average of its pure-action payoffs. Consequently, it is enough to compare pure actions: a mixture cannot outperform the better action. A player can mix between both actions only when their payoffs are equal.
-
-We will write expressions such as $u_1 (U \, vx_2)$ for the payoff from playing $U$ against Player 2's mixture. The variables $p$ and $q$ always denote the probabilities specified above, not payoff values.
-
+#reference-solutions(title: [Show / hide solution to Game A])[
 #solution[Game A][
 *Dominance.* Against $L$, Player 1 earns $4$ from $D$ and $3$ from $U$. Against $R$, Player 1 earns $1$ from $D$ and $0$ from $U$. Thus $D$ strictly dominates $U$.
 
@@ -359,7 +300,27 @@ Every best response has $q=0$. The two conditions hold simultaneously only at $(
 
 Therefore $(D \, R)$ is the unique pure Nash equilibrium, and there are no non-pure Nash equilibria. Strict dominance also excludes any other dominant mixed strategy.
 ]
+]
 
+*Game B: Coordination with different preferences*
+
+#align(center)[
+#table(
+  columns: (auto, auto, auto),
+  align: center,
+  inset: 6pt,
+  stroke: 0.4pt + luma(170),
+
+  table.header([*Player 1 / Player 2*], [*$L$*], [*$R$*]),
+
+  [$U$], [$(3 \, 2)$], [$(0 \, 0)$],
+
+  [$D$], [$(0 \, 0)$], [$(2 \, 3)$],
+
+)
+]
+
+#reference-solutions(title: [Show / hide solution to Game B])[
 #solution[Game B][
 *Dominance.* Player 1 strictly prefers $U$ against $L$, but strictly prefers $D$ against $R$. Player 2 strictly prefers $L$ against $U$, but strictly prefers $R$ against $D$. Neither player has a dominant pure action.
 
@@ -399,7 +360,27 @@ At this profile, both actions give Player 1 payoff $6/5$, and both actions give 
 
 The complete equilibrium set is $(p \, q)=(1 \, 1)$, $(0 \, 0)$, and $(3/5 \, 2/5)$. In particular, there are no equilibria in which exactly one player mixes.
 ]
+]
 
+*Game C: Matching pennies*
+
+#align(center)[
+#table(
+  columns: (auto, auto, auto),
+  align: center,
+  inset: 6pt,
+  stroke: 0.4pt + luma(170),
+
+  table.header([*Player 1 / Player 2*], [*$L$*], [*$R$*]),
+
+  [$U$], [$(1 \, -1)$], [$(-1 \, 1)$],
+
+  [$D$], [$(-1 \, 1)$], [$(1 \, -1)$],
+
+)
+]
+
+#reference-solutions(title: [Show / hide solution to Game C])[
 #solution[Game C][
 *Dominance and pure equilibria.* Player 1 prefers $U$ against $L$ and $D$ against $R$. Player 2 prefers $R$ against $U$ and $L$ against $D$. These conflicting strict best responses rule out dominant strategies, including dominant mixed strategies.
 
@@ -425,7 +406,29 @@ Player 1 is indifferent exactly when $q=1/2$, and Player 2 is indifferent exactl
 
 Thus $(1/2 \, 1/2)$ is the unique Nash equilibrium. It is fully mixed, and there is no dominant-strategy equilibrium.
 ]
+]
 
+*Game D: Ties and boundary equilibria (additional challenge)*
+
+#align(center)[
+#table(
+  columns: (auto, auto, auto),
+  align: center,
+  inset: 6pt,
+  stroke: 0.4pt + luma(170),
+
+  table.header([*Player 1 / Player 2*], [*$L$*], [*$R$*]),
+
+  [$U$], [$(1 \, 1)$], [$(1 \, 0)$],
+
+  [$D$], [$(1 \, 0)$], [$(0 \, 0)$],
+
+)
+]
+
+For Game D, also explain why a Nash equilibrium need not be a dominant-strategy equilibrium, even when both players have dominant actions.
+
+#reference-solutions(title: [Show / hide solution to Game D])[
 #solution[Game D][
 *Dominance.* For Player 1, $U$ and $D$ both give payoff $1$ against $L$, while $U$ gives $1>0$ against $R$. Thus $U$ weakly dominates $D$, but does not strictly dominate it.
 
@@ -459,7 +462,11 @@ The pure equilibria are $(U \, L)$ and $(D \, L)$, corresponding to $p=1$ and $p
 
 *Why Nash does not imply dominance.* At $(D \, L)$, Player 1 is best responding to the actual opponent action $L$, because $U$ would give the same payoff. But $D$ is not dominant: against $R$, switching to $U$ would improve Player 1's payoff. Nash equilibrium requires optimality against the opponent's chosen strategy; dominance requires optimality against every opponent strategy. This also shows why a weakly dominated action can still be played in a Nash equilibrium.
 ]
+]
 
+] <ex-small-game-equilibria>
+
+#reference-solutions(title: [Show / hide answer summary])[
 == Answer summary
 
 Here $(p \, q)$ records the probabilities of $U$ and $L$, respectively. Dominant-strategy equilibria use the non-strict convention stated in the exercise.
