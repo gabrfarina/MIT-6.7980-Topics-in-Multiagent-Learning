@@ -253,36 +253,7 @@ is the expected regret that player $i$ experiences with respect to action $a_i i
 
 *Problem 1.1 (2 points).* Show that if $r_(i \, a_i) (x_1 \,  ...  \, x_n)>0$ for some player $i in [n]$ and action $a_i in  A_i$, then $phi_(i \, a_i) (x_1 \,  ...  \, x_n)>0$.
 
-*Problem 1.2 (3 points).* Show that the expected regret player $i$ experiences satisfies
-
-$
-sum_(a_i in  A_i) r_(i \, a_i) (x_1 \,  ...  \, x_n) dot.op  x_(i \, a_i)=0.
-$
-
-Now, select any fixed point $(x_1^(*) \,  ...  \, x_n^(*))$ of function $phi$, i.e. such that $phi_(i \, a_i) (x_1^(*) \,  ...  \, x_n^(*))=x_(i \, a_i)^(*)$ for all players $i$ and action $a_i in  A_i$.
-
-*Problem 1.3 (5 points).* Show that the above results imply that, for any player $i in [n]$ and action $a_i in  A_i$,
-
-$
-r_(i \, a_i) (x_1^(*) \,  ...  \, x_n^(*)) <= 0.
-$
-
-Conclude that $(x_1^(*) \,  ...  \, x_n^(*))$ is a Nash equilibrium.
-
-★ Hint: for the sake of contradiction, assume $r_(i \, a_i) (x_1^(*) \,  ...  \, x_n^(*))>0$ for some player $i$ and action $a_i$. Under this assumption, demonstrate that there exists an alternative action $a'_i$ such that $phi_(i \, a'_i) (x_1^(*) \,  ...  \, x_n^(*))<x_(i \, a'_i)^(*)$.
-
-*Problem 1.4 (Supplementary; ungraded).* Prove the converse: if $(x_1 \,  ...  \, x_n)$ is a Nash equilibrium, then it is a fixed point of $phi$. Together with Problem 1.3, conclude that
-
-$
-phi (x_1 \,  ...  \, x_n)=(x_1 \,  ...  \, x_n)
- quad  <=>  quad
-(x_1 \,  ...  \, x_n)upright(" is a Nash equilibrium").
-$
-] <ex-nash-fixed-points-alternative>
-
-#reference-solutions[
-== Detailed solutions
-
+#reference-solutions(title: [Show / hide solution to Problem 1.1])[
 #solution[Problem 1.1][
 Fix a player $i in [n]$ and an action $a_i in  A_i$ for which $r_(i \, a_i) (x_1 \,  ...  \, x_n)>0$.
 
@@ -313,7 +284,15 @@ $
 
 This conclusion holds even when $x_(i \, a_i)=0$: an action with positive regret receives positive probability after the update.
 ]
+]
 
+*Problem 1.2 (3 points).* Show that the expected regret player $i$ experiences satisfies
+
+$
+sum_(a_i in  A_i) r_(i \, a_i) (x_1 \,  ...  \, x_n) dot.op  x_(i \, a_i)=0.
+$
+
+#reference-solutions(title: [Show / hide solution to Problem 1.2])[
 #solution[Problem 1.2][
 Fix a player $i$ and a strategy profile $(x_1 \,  ...  \, x_n)$. When the other players' strategies $x_(-i)$ are fixed, player $i$'s current expected utility is the average of the utilities of its actions, weighted by its current action probabilities:
 
@@ -351,7 +330,21 @@ $
 
 This identity holds at every strategy profile, whether or not it is a Nash equilibrium. It does not imply that every individual regret is zero or nonpositive: positive and negative contributions can cancel.
 ]
+]
 
+Now, select any fixed point $(x_1^(*) \,  ...  \, x_n^(*))$ of function $phi$, i.e. such that $phi_(i \, a_i) (x_1^(*) \,  ...  \, x_n^(*))=x_(i \, a_i)^(*)$ for all players $i$ and action $a_i in  A_i$.
+
+*Problem 1.3 (5 points).* Show that the above results imply that, for any player $i in [n]$ and action $a_i in  A_i$,
+
+$
+r_(i \, a_i) (x_1^(*) \,  ...  \, x_n^(*)) <= 0.
+$
+
+Conclude that $(x_1^(*) \,  ...  \, x_n^(*))$ is a Nash equilibrium.
+
+★ Hint: for the sake of contradiction, assume $r_(i \, a_i) (x_1^(*) \,  ...  \, x_n^(*))>0$ for some player $i$ and action $a_i$. Under this assumption, demonstrate that there exists an alternative action $a'_i$ such that $phi_(i \, a'_i) (x_1^(*) \,  ...  \, x_n^(*))<x_(i \, a'_i)^(*)$.
+
+#reference-solutions(title: [Show / hide solution to Problem 1.3])[
 #solution[Problem 1.3][
 Let $(x_1^(*) \,  ...  \, x_n^(*))$ be a fixed point of $phi$. Thus, for every player $i$ and action $a_i in  A_i$,
 
@@ -468,7 +461,16 @@ $
 
 No player benefits from a unilateral deviation. This is exactly the definition of a Nash equilibrium, so $(x_1^(*) \,  ...  \, x_n^(*))$ is a Nash equilibrium.
 ]
+]
 
+*Problem 1.4 (Supplementary; ungraded).* Prove the converse: if $(x_1 \,  ...  \, x_n)$ is a Nash equilibrium, then it is a fixed point of $phi$. Together with Problem 1.3, conclude that
+
+$
+phi (x_1 \,  ...  \, x_n)=(x_1 \,  ...  \, x_n)
+ quad  <=>  quad
+(x_1 \,  ...  \, x_n)upright(" is a Nash equilibrium").
+$
+#reference-solutions(title: [Show / hide solution to Problem 1.4])[
 #solution[Problem 1.4][
 Suppose $(x_1 \,  ...  \, x_n)$ is a Nash equilibrium. Fix any player $i$ and action $a_i in  A_i$. Switching to the pure action $a_i$ is an allowed unilateral deviation, so the Nash condition implies
 
@@ -503,6 +505,8 @@ phi (x_1 \,  ...  \, x_n)=(x_1 \,  ...  \, x_n)
 $
 ]
 ]
+
+] <ex-nash-fixed-points-alternative>
 
 = Bibliography for this lecture
 
