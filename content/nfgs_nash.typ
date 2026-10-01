@@ -1,4 +1,5 @@
 #import "meta/gabri_notes.typ": *
+#import "meta/reference-solutions.typ": reference-solutions
 #show: gabri_notes.with(
   lec_num: 1,
   date: [Tue, Sep 15, 2026],
@@ -324,6 +325,7 @@ For Game D, also explain why a Nash equilibrium need not be a dominant-strategy 
 *Hint.* A player who assigns positive probability to both actions must be indifferent between them. If one action gives strictly higher expected payoff, a best response assigns probability one to that action. Indifference is only a necessary condition for a player who mixes: check the other player's best-response condition too.
 ] <ex-small-game-equilibria>
 
+#reference-solutions[
 == Detailed solutions
 
 *A common method.*
@@ -480,6 +482,7 @@ Here $(p \, q)$ records the probabilities of $U$ and $L$, respectively. Dominant
   [D], [$(U \, L)$, $(D \, L)$], [$(p \, 1)$ for $0<p<1$], [$(U \, L)$; both actions weakly dominant],
 
 )
+]
 ]
 
 = Bibliography for this lecture
