@@ -261,50 +261,7 @@ Let $psi_i (vx)$ denote Player $i$'s entire updated strategy vector. The positiv
 
 *Problem 1: Validity and continuity.* Prove that $psi$ is a continuous map from the product of the players' strategy simplices into itself. In particular, show that every coordinate is nonnegative and that the coordinates of each player's updated strategy sum to one.
 
-*Problem 2: Unilateral improvement.* Prove the identity
-
-$
-u_i ( psi_i (vx) \, vx_(-i))-u_i (vx)
-=frac( sum_(a_i in  A_i)  ([r_(i \, a_i) (vx)]^+  )^3, 1+S_i (vx)).
-$
-
-Conclude that, with the opponents' strategies held fixed, the update never lowers Player $i$'s expected payoff and strictly raises it whenever some action has positive regret.
-
-*Hint.* Expand the expected utility using linearity in Player $i$'s strategy, subtract the current utility over a common denominator, and use $([r]^+)^2r=([r]^+)^3$.
-
-*Problem 3: Fixed points and Nash equilibria.* Prove both directions of
-
-$
-psi (vx)=vx
- quad  <=>  quad
-vx upright(" is a Nash equilibrium").
-$
-
-For the fixed-point-to-equilibrium direction, use Problem 2 and explain why ruling out profitable pure-action deviations also rules out profitable mixed-strategy deviations.
-
-*Problem 4: Comparing the updates.* Consider the following matching-pennies game, where entries give $(u_1 \, u_2)$:
-
-#align(center)[
-#table(
-  columns: (auto, auto, auto),
-  align: center,
-  inset: 6pt,
-  stroke: 0.4pt + luma(170),
-  table.header([*Player 1 / Player 2*], [*$L$*], [*$R$*]),
-  [$U$], [$(1 \, -1)$], [$(-1 \, 1)$],
-  [$D$], [$(-1 \, 1)$], [$(1 \, -1)$],
-)
-]
-
-Start at the pure profile $(U \, L)$, represented by $vx_1=(1 \, 0)$ in the order $(U \, D)$ and $vx_2=(1 \, 0)$ in the order $(L \, R)$.
-
-1. Compute every action's regret and the updated strategies under both $psi$ and the original Nash improvement function $phi$.
-2. Compute both players' expected payoffs when both use their $psi$-updated strategies. Does Problem 2 imply that both players' payoffs must increase when they update simultaneously? Explain your answer.
-] <ex-quadratic-improvement>
-
-#reference-solutions[
-== Detailed solutions
-
+#reference-solutions(title: [Show / hide solution to Problem 1])[
 #solution[Problem 1][
 Every positive-part square is nonnegative, so $S_i (vx) >= 0$ and
 
@@ -331,7 +288,20 @@ The second equality uses that $vx_i$ is a probability distribution. Nonnegativit
 
 In a finite game, expected utilities are finite sums of products of strategy probabilities and fixed payoffs. They are therefore continuous in the strategy profile. Each regret is a difference of continuous functions. Taking the positive part, squaring, and adding finitely many terms preserve continuity. Finally, division by $1+S_i (vx)$ preserves continuity because this denominator never vanishes. Each coordinate of $psi$ is continuous, and therefore so is $psi$.
 ]
+]
 
+*Problem 2: Unilateral improvement.* Prove the identity
+
+$
+u_i ( psi_i (vx) \, vx_(-i))-u_i (vx)
+=frac( sum_(a_i in  A_i)  ([r_(i \, a_i) (vx)]^+  )^3, 1+S_i (vx)).
+$
+
+Conclude that, with the opponents' strategies held fixed, the update never lowers Player $i$'s expected payoff and strictly raises it whenever some action has positive regret.
+
+*Hint.* Expand the expected utility using linearity in Player $i$'s strategy, subtract the current utility over a common denominator, and use $([r]^+)^2r=([r]^+)^3$.
+
+#reference-solutions(title: [Show / hide solution to Problem 2])[
 #solution[Problem 2][
 Fix a player $i$ and a profile $vx$. Throughout this calculation, the opponents continue to use $vx_(-i)$. For readability, abbreviate
 
@@ -384,7 +354,19 @@ $
 
 Every numerator term is nonnegative and the denominator is positive, so the payoff change is nonnegative. If some regret is positive, its positive-part cube is strictly positive, so the payoff change is strictly positive. If all regrets are nonpositive, the change is zero.
 ]
+]
 
+*Problem 3: Fixed points and Nash equilibria.* Prove both directions of
+
+$
+psi (vx)=vx
+ quad  <=>  quad
+vx upright(" is a Nash equilibrium").
+$
+
+For the fixed-point-to-equilibrium direction, use Problem 2 and explain why ruling out profitable pure-action deviations also rules out profitable mixed-strategy deviations.
+
+#reference-solutions(title: [Show / hide solution to Problem 3])[
 #solution[Problem 3][
 *Nash equilibrium implies fixed point.* Suppose $vx$ is a Nash equilibrium. Deviating to any pure action is an allowed unilateral deviation, so for every player $i$ and action $a_i$,
 
@@ -429,8 +411,27 @@ The final inequality follows because each probability is nonnegative and each re
 
 This proves both directions. As a consequence, the quadratic-regret map can also be used in the lecture's existence argument: the product of strategy simplices is nonempty, compact, and convex, and Problem 1 gives a continuous self-map. Brouwer's theorem gives a fixed point, and the equivalence just proved makes it a Nash equilibrium.
 ]
+]
 
-#solution[Problem 4][
+*Problem 4: Comparing the updates.* Consider the following matching-pennies game, where entries give $(u_1 \, u_2)$:
+
+#align(center)[
+#table(
+  columns: (auto, auto, auto),
+  align: center,
+  inset: 6pt,
+  stroke: 0.4pt + luma(170),
+  table.header([*Player 1 / Player 2*], [*$L$*], [*$R$*]),
+  [$U$], [$(1 \, -1)$], [$(-1 \, 1)$],
+  [$D$], [$(-1 \, 1)$], [$(1 \, -1)$],
+)
+]
+
+Start at the pure profile $(U \, L)$, represented by $vx_1=(1 \, 0)$ in the order $(U \, D)$ and $vx_2=(1 \, 0)$ in the order $(L \, R)$.
+
+*Problem 4.1.* Compute every action's regret and the updated strategies under both $psi$ and the original Nash improvement function $phi$.
+#reference-solutions(title: [Show / hide solution to Problem 4.1])[
+#solution[Problem 4.1][
 *Regrets at the starting profile.* At $(U \, L)$, Player 1 receives payoff $1$ and Player 2 receives payoff $-1$. Player 1's action payoffs against $L$ are $1$ for $U$ and $-1$ for $D$, giving
 
 $
@@ -462,7 +463,12 @@ phi_2 (vx)
 $
 
 Thus $psi$ and $phi$ give different updated strategy profiles at the same input, even though their fixed-point sets coincide.
+]
+]
 
+*Problem 4.2.* Compute both players' expected payoffs when both use their $psi$-updated strategies. Does Problem 2 imply that both players' payoffs must increase when they update simultaneously? Explain your answer.
+#reference-solutions(title: [Show / hide solution to Problem 4.2])[
+#solution[Problem 4.2][
 *Payoffs after applying the quadratic update to both players.* The new profile is $((1 \, 0) \, (1/5 \, 4/5))$. Its expected payoffs are
 
 $
@@ -484,6 +490,8 @@ Player 1's payoff falls from $1$ to $-3/5$. There is no contradiction: Problem 2
 Therefore the unilateral improvement property does not guarantee that every player's payoff increases under simultaneous updates. Likewise, a characterization of fixed points alone does not establish that repeatedly applying the map converges to one.
 ]
 ]
+
+] <ex-quadratic-improvement>
 
 = Bibliography for this lecture
 
