@@ -1,4 +1,5 @@
 #import "meta/gabri_notes.typ": *
+#import "meta/reference-solutions.typ": reference-solutions
 #show: gabri_notes.with(
   lec_num: 1,
   date: [Tue, Sep 15, 2026],
@@ -301,6 +302,7 @@ Start at the pure profile $(U \, L)$, represented by $vx_1=(1 \, 0)$ in the orde
 2. Compute both players' expected payoffs when both use their $psi$-updated strategies. Does Problem 2 imply that both players' payoffs must increase when they update simultaneously? Explain your answer.
 ] <ex-quadratic-improvement>
 
+#reference-solutions[
 == Detailed solutions
 
 #solution[Problem 1][
@@ -480,6 +482,7 @@ Player 2 improves from $-1$ to $3/5$, a gain of $8/5$. This agrees with Problem 
 Player 1's payoff falls from $1$ to $-3/5$. There is no contradiction: Problem 2 holds the opponents' strategies fixed. For Player 1, it compares $u_1 ( psi_1 (vx) \, vx_2)$ with $u_1 (vx)$, both of which equal $1$. It does not compare the old payoff with the payoff after Player 2 also updates.
 
 Therefore the unilateral improvement property does not guarantee that every player's payoff increases under simultaneous updates. Likewise, a characterization of fixed points alone does not establish that repeatedly applying the map converges to one.
+]
 ]
 
 = Bibliography for this lecture
