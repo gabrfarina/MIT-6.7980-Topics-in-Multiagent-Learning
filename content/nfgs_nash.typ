@@ -1,4 +1,5 @@
 #import "meta/gabri_notes.typ": *
+#import "meta/reference-solutions.typ": reference-solutions
 #show: gabri_notes.with(
   lec_num: 1,
   date: [Tue, Sep 15, 2026],
@@ -279,6 +280,7 @@ phi (x_1 \,  ...  \, x_n)=(x_1 \,  ...  \, x_n)
 $
 ] <ex-nash-fixed-points-alternative>
 
+#reference-solutions[
 == Detailed solutions
 
 #solution[Problem 1.1][
@@ -499,6 +501,7 @@ phi (x_1 \,  ...  \, x_n)=(x_1 \,  ...  \, x_n)
  quad  <=>  quad
 (x_1 \,  ...  \, x_n)upright(" is a Nash equilibrium").
 $
+]
 ]
 
 = Bibliography for this lecture
