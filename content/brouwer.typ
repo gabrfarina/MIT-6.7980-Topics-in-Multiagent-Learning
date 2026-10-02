@@ -226,6 +226,38 @@ At this point, the proof of Sperner's lemma is immediate. A graph in which each 
 
 We stated and proved Sperner's lemma for the two-dimensional grid, and used that to prove Brouwer's fixed point theorem for continuous functions mapping the unit square to itself. There is a $d$-dimensional generalization of Sperner's lemma, which can be used to prove Brouwer's fixed point theorem for continuous functions mapping $\[ 0 \, 1 \]^d$ to itself. In the high-dimensional  case, a $d$-dimensional grid is partitioned into simplices, the $d$-dimensional analog of triangles, without introducing any more vertices other than those in the grid. The vertices of the grid are now colored with $d + 1$ colors, $0 \, 1 \, ... \, d$. Now, a coloring is valid if color $i$ is not present in facet $x_i = 0$, for all $i = 1 \, ... \, d$, and color $0$ is not present in all facets $x_i = 1$, for all $i = 1 \, ... \, d$. Sperner's lemma guarantees the existence of a simplex that has all $d + 1$ colors on its $d + 1$ vertices. Using the $d$-dimensional version of Sperner's lemma to prove Brouwer's fixed point theorem for continuous functions mapping the $d$-dimensional hypercube to itself is analogous to the $d = 2$ case. Finally, given Brouwer's fixed point theorem for the hypercube it is not hard to prove it for other convex and compact sets. Given a function defined on an arbitrary convex and compact set, one can first affinely transform the coordinate system so the set lies inside the unit hypercube. Then the function can be extended outside of the set by first projecting points of the hypercube to the set and then applying the function. This will not introduce any spurious fixed points.
 
+= No retraction onto the boundary <sec-no-retraction>
+
+Every use of Brouwer's theorem so far has asserted that something exists: a fixed point of the Nash improvement function, and with it #lecture-link("nfgs_nash", <cor-nash-existence>)[a Nash equilibrium]. The theorem is also useful for showing that a function _cannot_ exist, by arguing that the fixed point it would guarantee is impossible.
+
+#wrapped-figure(side: right, text-width: 63%)[
+  Let $D := {vz in RR^2 : norm(vz)_2 <= 1}$ be the closed unit disk and let $partial D$ be its boundary circle. A _retraction_ of $D$ onto $partial D$ is a continuous function $r : D -> partial D$ such that $r(vz) = vz$ for every $vz in partial D$. This is the function drawn in the figure.
+][
+  #image("figures/brouwer/retraction_idea.svg", width: 91pt)
+]
+
+The condition $r(vz) = vz$ is what makes $r$ a retraction rather than any function landing in $partial D$; without it the constant $vz |-> (1,0)$ would qualify.
+
+#corollary[No retraction][
+  There is no retraction of the closed unit disk onto its boundary.
+] <cor-no-retraction>
+
+#proof[
+  Brouwer applied to $r$ itself is vacuous: $r$ is already a continuous self-map of $D$, and it already fixes every point of $partial D$. Negating relocates the conclusion. Suppose $r$ is such a retraction, and set $f(vz) := -r(vz)$.
+
+  + $f$ is continuous, being $r$ followed by negation.
+  + For every $vz in D$ we have $r(vz) in partial D$, so $norm(r(vz))_2 = 1$ and hence $norm(f(vz))_2 = 1$. Thus $f$ maps $D$ into $partial D subset.eq D$.
+  + $D$ is nonempty, compact, and convex, so Brouwer's theorem (@sec-brouwer-general) applies to $f$ and yields a point $vz^(*) in D$ with $f(vz^(*)) = vz^(*)$, that is,
+    $ vz^(*) = -r(vz^(*)). $
+  + By step 2, $vz^(*) = f(vz^(*)) in partial D$.
+  + Since $r$ fixes $partial D$ pointwise, $r(vz^(*)) = vz^(*)$.
+  + Substituting step 5 into step 3 gives $-vz^(*) = vz^(*)$, so $vz^(*) = 0$.
+
+  Steps 4 and 6 say $vz^(*) in partial D$ and $vz^(*) = 0$, which cannot both hold. So no such $r$ exists.
+
+  #align(center)[#image("figures/brouwer/retraction_proof.svg", width: 104pt)]
+]
+
 #changelog[
   - Sep 24, 2025: fixed two typos (thanks Eric Yang Yu!)
 ]
