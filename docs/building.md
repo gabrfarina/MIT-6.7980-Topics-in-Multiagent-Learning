@@ -237,6 +237,32 @@ The source repository explicitly includes the configured lecture 0 PDF in
 slide PDF, also make sure its source is included in version control so clean
 checkouts can build it.
 
+## Interactive demos
+
+A note can embed a small interactive page, such as the Sperner adversary game in
+the Brouwer lecture. Keep the page under `content/interactive/` as one standalone
+HTML document with a lowercase, hyphenated name, and list it under
+`interactive_demos` in `html-export.json`:
+
+```json
+"interactive_demos": ["content/interactive/sperner-adversary.html"]
+```
+
+The build publishes it as `interactive/<name>.html`. Like interactive slides, it
+must embed all of its assets: no external scripts, stylesheets, fonts, or images.
+Links to other pages are fine. In the note, call the helper exported by both
+styles:
+
+```typst
+#interactive-demo("sperner-adversary", title: "Find the rainbow triangle", height: 720)
+```
+
+The HTML edition embeds the page in an `<iframe>` of the given height (taller on
+narrow screens), loading it with `?embed=1` so that the page can hide everything
+except the demo itself. The PDF edition shows a box linking to the public page at
+`course-url`, the same base as other PDF links. Check the embedded layout at
+desktop and phone widths after changing the demo or its height.
+
 ## Permalinks
 
 Lecture HTML exposes anchor icons on sections (including unnumbered
