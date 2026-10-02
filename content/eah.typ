@@ -95,11 +95,13 @@ Combining the two steps above, we will have constructed a $vmu^(*)$ that is an $
 
 == Sketch of the Ellipsoid-Against-Hope algorithm
 
-In more detail, what #ref(label("thm:hart schmeidler")) implies is that the following open polytope must be empty:
+Let $D := {(i \, a'_i) : i in \[ n \] \, a'_i in A_i}$ denote the set of deviations. In more detail, what #ref(label("thm:hart schmeidler")) implies is that the following open polytope must be empty:
 
 $
-  {vnu in Delta {(i \, a'_i) : i in \[ n \] \, a_i in A_i} : bb(E)_(\( i \, a'_i \) ~ vnu) bb(E)_(a ~ vmu) [u_i (a'_i \, a_(- i)) - u_i (a_i \, a_(- i))] > 0\
-    forall vmu in Delta (A_1 times ... times A_n)} .
+  lr({vnu in Delta(D) : vec(delim: #none, align: #left,
+    bb(E)_(\( i \, a'_i \) ~ vnu) bb(E)_(a ~ vmu) [u_(i) (a'_i \, a_(- i)) - u_(i) (a_i \, a_(- i))] > 0,
+    forall vmu in Delta (A_1 times ... times A_n),
+  )}) .
 $
 
 Furthermore, for any $vnu$, we know how to prove that at least one of the constraints is violated. The key idea is then to use the ellipsoid method to _certify_ the emptiness of the polytope. Normally, the ellipsoid method is used to find a point in a set, but in our case, the point does not exist and we want to use the ellipsoid method to isolate constraints that prove the emptiness of the set. For this reason, the algorithm was called Ellipsoid-Against-Hope by #citet(<papadimitriou2008computing>).
@@ -107,9 +109,10 @@ Furthermore, for any $vnu$, we know how to prove that at least one of the constr
 The ellipsoid will maintain a search space which can be thought of as a suitable subset of the deviator's set. At every iteration $t$, the algorithm will compute the center point $vnu_t$ of the set. Then, it will find a violated constraint using the distribution $vmu_t := vmu \( vnu_t \)$ in the proof of #ref(label("thm:hart schmeidler")). The violated constraint implies that the deviator set must be curtailed, and the ellipsoid will be updated accordingly reducing the size of the search space by a constant. The algorithm will continue until the search space is small enough to guarantee that the set is empty. The iteration count also depends polynomially on the dimension and encoding/conditioning bounds. For an approximate guarantee, use constraints with a positive $epsilon.alt$ margin and the corresponding separation and volume bounds; shrinking an arbitrary open set does not by itself certify exact emptiness. The following algebra describes the exact finite certificate when one has been obtained. By the last iteration $T$, the algorithm will have produced several violated constraints, each of which is associated with a mediator strategy $vmu_t$. The set
 
 $
-  {vnu in Delta {(i \, a_i) : i in \[ n \] \, a_i in A_i} : bb(E)_(\( i \, a'_i \) ~ vnu) bb(E)_(a ~ vmu_1) [u_i (a'_i \, a_(- i)) - u_i (a_i \, a_(- i))] > 0\
-    dots.v\
-    bb(E)_(\( i \, a'_i \) ~ vnu) bb(E)_(a ~ vmu_T) [u_i (a'_i \, a_(- i)) - u_i (a_i \, a_(- i))] > 0} .
+  lr({vnu in Delta(D) : vec(delim: #none, align: #left,
+    bb(E)_(\( i \, a'_i \) ~ vnu) bb(E)_(a ~ vmu_t) [u_(i) (a'_i \, a_(- i)) - u_(i) (a_i \, a_(- i))] > 0,
+    forall t in \{1 \, ... \, T\},
+  )}) .
 $
 
 The constraints of the set are all linear in $vnu$, and the set is empty. By Farkas' lemma, there must exist a convex combination of the constraints the makes all the coefficients on the left-hand size non-positive. In other words, there must exist $alpha_1 \, ... \, alpha_T >= 0$ with $sum_t alpha_t=1$ such that
