@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Copy-as-Markdown probe</title>
+  <style>
+    body { font: 18px/1.5 Georgia, serif; max-width: 42rem; margin: 2rem auto; padding: 0 1.25rem; }
+    .lecture-rail { position: fixed; left: 8px; top: 8px; width: 9rem; font: 12px sans-serif; color: #666; }
+    .agentic-tools-control { font: 14px/1.4 sans-serif; color: #555; margin: 0 0 1rem; }
+    .agentic-tools-hint { font-size: 12px; }
+    .line-id-label { font: 700 11px sans-serif; color: #8a4c20; margin-right: .4rem; }
+    .permalink { color: #999; text-decoration: none; }
+    .lecture-citation-sidenote { float: right; width: 10rem; font: 12px sans-serif; color: #888; }
+    .math-katex-source { font-size: 28px; }
+  </style>
+</head>
+<body>
+<nav class="lecture-rail" aria-label="Lecture notes">Rail must not copy. Lecture 16.</nav>
+<main class="page-shell">
+<article class="lecture-content" data-lecture-number="1">
+  <div class="agentic-tools-control">
+    <label><input type="checkbox" data-agentic-tools-toggle autocomplete="off"> Enable agentic tools</label>
+    <p class="agentic-tools-hint" hidden>Line ids are shown in the notes. Copied fragments include the line they came from.</p>
+  </div>
+  <aside class="lecture-citation-sidenote">@misc{do-not-copy}</aside>
+  <h1 class="lecture-title">Copy probe</h1>
+  <h2 class="notes-heading" data-level="2" id="nash">Nash <a class="permalink" href="#nash">¶</a></h2>
+  <p>
+    A mixed Nash equilibrium of a finite normal-form game is a profile
+    <span class="math-katex-source katex-display" role="math" data-math-display="inline" data-tex="x" data-typst-math="[x]" style="font-size: 32px">𝑥</span>
+    such that no player wants to deviate. The middle of this sentence is a fragment.
+  </p>
+  <p>
+    Display stays display:
+    <span class="math-katex-source katex-display" role="math" data-math-display="block" data-tex="u_i(x)" data-typst-math="[u]" style="font-size: 32px">𝑢𝑖(𝑥)</span>
+  </p>
+  <p>
+    Untranslated math stays a hole:
+    <span role="math" data-math-display="inline" data-typst-math="mystery(value: [x])"><svg width="20" height="12"><text>glyph</text></svg></span>
+  </p>
+  <p>Select <em>only this fragment</em> inside the paragraph to test mid-line ids.</p>
+  <ul>
+    <li>A list item with <strong>emphasis</strong>.</li>
+  </ul>
+</article>
+</main>
+<script src="../../html-exporter/src/copy-markdown.js"></script>
+</body>
+</html>

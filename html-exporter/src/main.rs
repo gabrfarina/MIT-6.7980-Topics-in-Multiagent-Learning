@@ -968,6 +968,7 @@ fn render_document(
         write!(html, " data-lecture-number=\"{}\"", escape_attr(number)).unwrap();
     }
     html.push_str(">\n");
+    html.push_str(agentic_tools_control());
     if let (Some(export_config), Some(_)) = (export_config, current) {
         if let Some(index) = export_config
             .site
@@ -1019,9 +1020,23 @@ fn render_document(
     html.push_str("<script>\n");
     html.push_str(include_str!("sidenotes.js"));
     html.push_str("</script>\n");
+    html.push_str("<script>\n");
+    html.push_str(include_str!("copy-markdown.js"));
+    html.push_str("</script>\n");
     html.push_str(settled_hash_scroll_script());
     html.push_str("</body>\n</html>\n");
     html
+}
+
+fn agentic_tools_control() -> &'static str {
+    concat!(
+        "<div class=\"agentic-tools-control\">",
+        "<label><input type=\"checkbox\" data-agentic-tools-toggle autocomplete=\"off\"> Enable agentic tools</label>",
+        "<p class=\"agentic-tools-hint\" hidden>",
+        "Line ids are shown in the notes. Copied fragments include the line they came from.",
+        "</p>",
+        "</div>\n"
+    )
 }
 
 fn render_masthead(config: &Config) -> String {
@@ -2164,6 +2179,39 @@ mod tests {
         let toc = html.find("<nav class=\"toc\"").unwrap();
         let introduction = html.find("Lecture introduction.").unwrap();
         assert!(title < metadata && metadata < toc && toc < introduction);
+    }
+
+    #[test]
+    fn lecture_pages_offer_markdown_copy_and_opt_in_agentic_tools() {
+        let parts = HtmlParts::parse(
+            r#"<html><body><p>Payoff <span role="math" data-typst-math="[x]" data-math-display="inline"><svg></svg></span>.</p></body></html>"#,
+        );
+        let config = Config {
+            input: PathBuf::from("lecture.typ"),
+            output: PathBuf::from("lecture.html"),
+            root: PathBuf::from("."),
+            title: None,
+            site_title: "Course".to_owned(),
+            authors: String::new(),
+            index_href: None,
+            pdf_href: None,
+            export_config: None,
+            from_html: None,
+            math_mode: MathMode::Katex,
+            figure_svg: false,
+            figure_inputs: Vec::new(),
+        };
+        let html = render_document(&config, "Copy probe", &parts, None);
+        assert!(html.contains("Enable agentic tools"));
+        assert!(html.contains("<input type=\"checkbox\" data-agentic-tools-toggle autocomplete=\"off\">"));
+        assert!(!html.contains("data-agentic-tools-toggle\" checked"));
+        assert!(html.contains("agentic-tools-hint"));
+        assert!(html.contains(" hidden>"));
+        assert!(html.contains("LectureCopy"));
+        assert!(html.contains("data-math-display"));
+        let control = html.find("agentic-tools-control").unwrap();
+        let title = html.find("<h1 class=\"lecture-title\"").unwrap();
+        assert!(control < title);
     }
 
     #[test]

@@ -115,9 +115,15 @@ fn render_katex_sources(input: String) -> String {
             } else {
                 format!("\\({}\\)", trimmed)
             };
+            let tex_attr = if trimmed.is_empty() {
+                String::new()
+            } else {
+                format!(" data-tex=\"{}\"", escape_html(trimmed))
+            };
             format!(
-                "<span{}>{}</span>",
+                "<span{}{}>{}</span>",
                 add_class_to_attrs(attrs, "math-katex-source"),
+                tex_attr,
                 escape_html(&source)
             )
         })
@@ -1788,6 +1794,7 @@ mod tests {
         let input = r#"<p><span class="equation-math" data-typst-math="sequence([E], [ ], [[], [x], []], [ ], [(], [y], [)])" data-math-display="block"><svg></svg></span></p>"#;
         let out = postprocess_html_math(input.to_owned(), MathMode::Katex);
         assert!(out.contains(r#"\[\displaystyle E \left[x\right] \left(y\right)\]"#));
+        assert!(out.contains(r#"data-tex="\displaystyle E \left[x\right] \left(y\right)""#));
         assert!(!out.contains("<svg>"));
     }
 
@@ -1919,6 +1926,7 @@ mod tests {
         let out = postprocess_html_math(input.to_owned(), MathMode::Katex);
         assert!(out.contains(r#"\(x\le y\)"#));
         assert!(out.contains("math-katex-source"));
+        assert!(out.contains(r#"data-tex="x\le y""#));
         assert!(!out.contains("<svg>"));
     }
 
