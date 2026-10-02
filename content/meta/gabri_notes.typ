@@ -9,6 +9,7 @@
 #import "notation.typ": *
 #import "markers.typ": paragraph-marker
 #import "lecture-links.typ": lecture-link, lecture-title
+#import "interactive.typ": interactive-demo
 #import "typography.typ": course-sans-font
 
 #let lecnum = state("lecnum", none)
