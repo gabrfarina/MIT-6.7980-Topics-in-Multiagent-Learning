@@ -175,9 +175,11 @@ In the general two-player case, often referred to as _two-player general-sum gam
 
 *Computation*  In two-player general-sum games, computation of Nash equilibria is not a linear program. However, it is a _linear complementarity problem_ (LCP), a more general class of problems than linear feasibility programs, and which are written in the form
 
-$
-  upright("find") quad vx \, vw in bb(R)^d #h(2em) upright("s.t.") #h(2em) vw = M vx + vq \, #h(2em) vx \, vw >= 0 \, #h(2em) vx^top vw = 0 .
-$
+#math.equation(
+  block: true,
+  numbering: "(1)",
+  $upright("find") quad vx \, vw in bb(R)^d #h(2em) upright("s.t.") #h(2em) vw = M vx + vq \, #h(2em) vx \, vw >= 0 \, #h(2em) vx^top vw = 0 .$.body,
+) <eq:lcp-general>
 
 The Lemke-Howson algorithm is a well-known algorithm to solve LCPs, and it can be used to find Nash equilibria in two-player general-sum games. However, the algorithm is not polynomial-time in the worst case, and it can be hard to find Nash equilibria in practice. An important corollary of the connection between two-player general-sum games and LCPs is the following:
 
@@ -186,6 +188,32 @@ The Lemke-Howson algorithm is a well-known algorithm to solve LCPs, and it can b
 ]
 
 This follows directly from the way Lemke-Howson works, which is similar to the simplex algorithm. The algorithm moves along edges of a rational polytope until it finds a Nash equilibrium. Since the algorithm only moves along the edges of the polytope, it will only generate rational solutions.
+
+#exercise[Nash equilibrium as a linear complementarity problem][
+  Consider a generic two-player general-sum game, with utility matrices $U_1$ and $U_2$ as defined above. Show that finding a Nash equilibrium of the game can be reduced to the LCP of #ref(<eq:lcp-general>, supplement: none), with a number of variables $d$ that is linear in $| A_1 | + | A_2 |$.
+
+  _Hint:_ the strategy profile $(vx_1 \, vx_2)$ is a Nash equilibrium if and only if neither player has a profitable deviation to a pure action. The obstacle is that writing this down naively requires the bilinear term $vx_1^top U_1 vx_2$, which an LCP cannot express directly. Try introducing a dummy variable to stand in for each player's equilibrium payoff: the complementarity condition $vz^top vw = 0$ can then pin down its value for you, without ever expanding the bilinear product.
+]
+
+#solution[
+  *Normalizing the payoffs.*  Adding a constant $c$ to every entry of $U_1$ changes every payoff $vx^top U_1 vy$ by exactly $c$, since $vx^top (U_1 + c J) vy = vx^top U_1 vy + c (vone^top vx) (vone^top vy) = vx^top U_1 vy + c$ whenever $vx \, vy$ are probability distributions. Such a shift leaves every best response, and hence the set of Nash equilibria, unchanged. So we may assume without loss of generality that $U_1 \, U_2 > 0$ entrywise.
+
+  *Constructing the LCP.*  Let $m := | A_1 |$ and $n := | A_2 |$. Rather than working with normalized strategies, introduce *unnormalized* vectors $vx_1 in bb(R)^m_(>= 0)$ and $vx_2 in bb(R)^n_(>= 0)$, and define the slacks
+
+  $ vw_1 := vone_m - U_1 vx_2 \, #h(2em) vw_2 := vone_n - U_2^top vx_1 . $
+
+  Stacking $vz := (vx_1 \, vx_2) in bb(R)^(m + n)$ and $vw := (vw_1 \, vw_2) in bb(R)^(m + n)$ gives exactly an instance of @eq:lcp-general, with $d = m + n = | A_1 | + | A_2 |$ and $M \, vq$ read off from the two displayed equalities. The constant $vone$ that appears in place of a genuine payoff value is the dummy variable from the hint: instead of solving for the (unknown, bilinear) equilibrium payoffs directly, we solve for *rescaled* strategies for which the equilibrium payoff is implicitly pinned to $1$, and recover the true equilibrium by renormalizing at the end.
+
+  *An LCP solution yields a Nash equilibrium.*  The pair $(vz \, vw) = (0 \, vone)$ always solves the LCP, but corresponds to no equilibrium; we discard it. Take any other solution, so $vz != 0$. If $vx_2 = 0$ then $vw_1 = vone_m > 0$, so complementary slackness $vx_1^top vw_1 = 0$ forces $vx_1 = 0$ too, i.e. $vz = 0$, a contradiction; hence $vx_2 != 0$, and symmetrically $vx_1 != 0$. Normalize $hat(vx)_1 := vx_1 \/ norm(vx_1)_1$ and $hat(vx)_2 := vx_2 \/ norm(vx_2)_1$. For every $a_1 in A_1$, the inequality $w_(1 \, a_1) = 1 - ve_(a_1)^top U_1 vx_2 >= 0$ becomes, after dividing by $norm(vx_2)_1 > 0$,
+
+  $ ve_(a_1)^top U_1 hat(vx)_2 <= 1 \/ norm(vx_2)_1 \, $
+
+  with *equality* whenever $x_(1 \, a_1) > 0$, by complementary slackness. So every action in the support of $hat(vx)_1$ attains the same value $1 \/ norm(vx_2)_1$ against $hat(vx)_2$, and no action does better; averaging over $hat(vx)_1$ shows $hat(vx)_1^top U_1 hat(vx)_2 = 1 \/ norm(vx_2)_1$ too, so $hat(vx)_1$ is a best response to $hat(vx)_2$. The symmetric argument with $vw_2$ and $U_2$ shows $hat(vx)_2$ is a best response to $hat(vx)_1$, so $(hat(vx)_1 \, hat(vx)_2)$ is a Nash equilibrium.
+
+  *A Nash equilibrium yields an LCP solution.*  Conversely, let $(hat(vx)_1 \, hat(vx)_2)$ be a Nash equilibrium of the (positivized) game, with payoffs $v_1 := hat(vx)_1^top U_1 hat(vx)_2 > 0$ and $v_2 := hat(vx)_1^top U_2 hat(vx)_2 > 0$. Setting $vx_1 := hat(vx)_1 \/ v_2$ and $vx_2 := hat(vx)_2 \/ v_1$ recovers a nonzero LCP solution: dividing the best-response condition $ve_(a_1)^top U_1 hat(vx)_2 <= v_1$ (equality on the support of $hat(vx)_1$) by $v_1$ gives exactly $w_(1 \, a_1) = 1 - ve_(a_1)^top U_1 vx_2 >= 0$, with equality on the support of $vx_1$; the symmetric computation handles $vw_2$.
+
+  This gives a correspondence between nonzero solutions of the $(| A_1 | + | A_2 |)$-variable LCP and Nash equilibria of the game, as required.
+]
 
 An interesting result about the computation of $epsilon.alt$-approximate Nash equilibria is due to #citet(<LMM03>), and is based on the observation that every game admits an $epsilon.alt$-approximate Nash equilibrium where the strategy of Player 1 is supported on at most $w := O (frac(log \| A_2 \|, epsilon.alt^2))$ strategies. This follows from using a Hoeffding bound on samples from the distribution of Player 1's strategy. One can then check any support for Player 1's strategy of size up to $w$, and for each such support, solve a linear program to verify if a Nash equilibrium with that support exists. This gives a subexponential-time algorithm (of order $O (s^(log s \/ epsilon.alt^2))$, where $s$ is the size of input) for computing an $epsilon.alt$-approximate Nash equilibrium.
 
@@ -272,7 +300,55 @@ Hence, the set of CCEs is the intersection of a finite set of linear constraints
   Since the coefficients of the linear constraints are the payoffs of the game, the set of CCEs is always a rational polytope.
 ]
 
+#exercise[No Nash equilibrium in the interior of the CCE polytope][
+  Call a game _non-trivial_ if $u_i (a_i \, a_(- i)) != u_i (a'_i \, a_(- i))$ for some player $i$, actions $a_i \, a'_i in A_i$, and $a_(- i) in A_(- i)$. Show that in any non-trivial game, no Nash equilibrium lies in the (relative) interior of the convex polytope of coarse correlated equilibria.
+
+  _Note:_ a similar relationship holds for correlated equilibria.
+]
+
+#solution[
+  Throughout, "interior" means relative to the affine hull of $Delta (A_1 times dots.h.c times A_n)$, i.e. the hyperplane on which the entries of $vmu$ sum to $1$, since the CCE polytope lives inside it.
+
+  *An elementary fact about polytopes.*  Suppose a linear inequality $ell (vmu) <= 0$ is one of the constraints defining a polytope $Q$, some $vmu^(*) in Q$ satisfies $ell (vmu^(*)) = 0$, and $ell$ is *not* constant on the ambient affine hull. Then $vmu^(*)$ cannot lie in the interior of $Q$: since $ell$ is non-constant there, some direction strictly increases it, so moving from $vmu^(*)$ by any positive amount along that direction leaves $Q$, and no neighborhood of $vmu^(*)$ is contained in $Q$.
+
+  *Setup.*  Let $(vx_1 \, ... \, vx_n)$ be a Nash equilibrium and $vmu := vx_1 ⊗ dots.h.c ⊗ vx_n$ the corresponding product CCE. For player $i$ and action $a'_i in A_i$, write $U_i (a'_i) := EE_(a_(- i) ~ vx_(- i)) [u_i (a'_i \, a_(- i))]$ for the payoff of deterministically playing $a'_i$ against the equilibrium strategies of the others, and $V_i := EE_(a_i ~ vx_i) [U_i (a_i)]$ for player $i$'s equilibrium payoff. Since $vmu$ is a product distribution, the CCE constraint indexed by $(i \, a'_i)$, namely $EE_vmu [u_i (a'_i \, a_(- i))] <= EE_vmu [u_i (a_1 \, ... \, a_n)]$, reads exactly $U_i (a'_i) <= V_i$ at $vmu$. Because $(vx_1 \, ... \, vx_n)$ is a Nash equilibrium, this holds for every $a'_i in A_i$, with *equality* whenever $x_(i \, a'_i) > 0$.
+
+  *Finding a non-degenerate tight constraint.*  Since the game is non-trivial, fix a player $j$, actions $b \, b' in A_j$, and a context $d in A_(- j)$ with $u_j (b \, d) != u_j (b' \, d)$. Player $j$'s strategy $vx_j$ is a probability distribution, so it has some action $s$ with $x_(j \, s) > 0$. By the previous paragraph, the CCE constraint indexed by $(j \, s)$ is tight at $vmu$: writing $ell (vmu) := EE_vmu [u_j (s \, a_(- j))] - EE_vmu [u_j (a_1 \, ... \, a_n)]$ for this constraint's defining functional, viewed now as a function of an arbitrary $vmu in Delta (A_1 times dots.h.c times A_n)$ rather than just our equilibrium one, we have $ell (vmu) = 0$.
+
+  It remains to check $ell$ is not constant on the ambient affine hull. Its coefficient on the pure outcome where player $j$ plays $s$ is always $0$ (both terms coincide there), so if $ell$ were constant it would be identically $0$, meaning $u_j (s \, a_(- j)) = u_j (a_j \, a_(- j))$ for *every* action $a_j in A_j$ and context $a_(- j) in A_(- j)$. In particular, taking $a_j = b$ and $a_j = b'$ at $a_(- j) = d$ gives $u_j (b \, d) = u_j (s \, d) = u_j (b' \, d)$, contradicting $u_j (b \, d) != u_j (b' \, d)$. So $ell$ is genuinely non-constant.
+
+  By the elementary fact, $vmu$ does not lie in the interior of the CCE polytope.
+]
+
 It is worth knowing that a CCE can also be computed in polynomial time in imperfect-information sequential games, despite the number of "actions" there, which is the number of strategies in the tree, is exponential in the input. Unfortunately, we lose the ability to optimize over the set.
+
+#exercise[Marginals of a zero-sum CCE form a Nash equilibrium][
+  Let $vmu in Delta (A_1 times A_2)$ be a coarse correlated equilibrium of a two-player _zero-sum_ game, i.e. $U_2 = - U_1$. Show that the marginal strategies
+
+  $ x_(1 \, a_1) := sum_(a'_2 in A_2) mu_(a_1 \, a'_2) \, #h(2em) x_(2 \, a_2) := sum_(a'_1 in A_1) mu_(a'_1 \, a_2) $
+
+  form a Nash equilibrium $(vx_1 \, vx_2)$ of the game.
+]
+
+#solution[
+  Write $overline(V) := EE_vmu [u_1 (a_1 \, a_2)]$ for the (correlated) payoff realized under $vmu$; since the game is zero-sum, $EE_vmu [u_2 (a_1 \, a_2)] = - overline(V)$.
+
+  For every $a'_1 in A_1$, the CCE constraint for player $1$'s deviation to $a'_1$ only depends on the realized action of player $2$, so it can be rewritten using the marginal $vx_2$:
+
+  $ ve_(a'_1)^top U_1 vx_2 = EE_vmu [u_1 (a'_1 \, a_2)] <= overline(V) . $
+
+  Symmetrically, for every $a'_2 in A_2$, using $U_2 = - U_1$,
+
+  $
+    - vx_1^top U_1 ve_(a'_2) = EE_vmu [u_2 (a_1 \, a'_2)] <= EE_vmu [u_2 (a_1 \, a_2)] = - overline(V) \, quad upright("i.e.") quad vx_1^top U_1 ve_(a'_2) >= overline(V) .
+  $
+
+  Averaging the first family of inequalities against the weights $vx_1$ gives $vx_1^top U_1 vx_2 <= overline(V)$; averaging the second family against the weights $vx_2$ gives $vx_1^top U_1 vx_2 >= overline(V)$. Hence both hold with equality, $vx_1^top U_1 vx_2 = overline(V)$, and substituting this back, the two families of inequalities become
+
+  $ ve_(a'_1)^top U_1 vx_2 <= vx_1^top U_1 vx_2 quad forall a'_1 in A_1 \, #h(2em) vx_1^top U_1 ve_(a'_2) >= vx_1^top U_1 vx_2 quad forall a'_2 in A_2 . $
+
+  The first says no pure deviation improves on $vx_1$ against $vx_2$ (so no mixed deviation does either, by linearity), i.e. $vx_1$ is a best response to $vx_2$ under $U_1$. The second says no pure deviation improves player $2$'s payoff $- vx_1^top U_1 ve_(a'_2)$ against $vx_1$, i.e. $vx_2$ is a best response to $vx_1$ under $U_2 = - U_1$. Together, $(vx_1 \, vx_2)$ is a Nash equilibrium.
+]
 
 == Correlated equilibrium <sec-ce>
 
@@ -295,6 +371,55 @@ The concept of _correlated equilibrium_ is an intermediate relaxation between Na
 All remarks made about the computation of CCEs in normal-form games apply to CEs as well. In particular, the set of CEs is a convex polytope, and a CE can be computed in polynomial time using linear programming.
 
 However, the remark about computation in imperfect-information sequential games does not apply to CEs. Whether a CE can be computed efficiently in such games is an open question in the field. Some mild evidence suggests that the problem might be hard. Intuitively, the issue is that the number of functions $phi.alt$ in those games might be too large to control.
+
+Say an action $a_i in A_i$ is _dominated_ by another action $a_i^(*) in A_i$ if, for every combination of actions $a_(- i) in A_(- i)$ chosen by the other players, $a_i^(*)$ always yields a strictly higher payoff for player $i$ than $a_i$, that is, $u_i (a_i^(*) \, a_(- i)) > u_i (a_i \, a_(- i))$.
+
+#exercise[A dominated action is never recommended by a correlated equilibrium][
+  Show that a dominated action cannot be in the support of any correlated equilibrium, in any $n$-player game. In other words, any correlated equilibrium must place zero probability on every action tuple that contains a dominated action $a_i$.
+] <ex:dominated-ce>
+
+#solution[
+  Fix a player $i$ and suppose $a_i in A_i$ is dominated by $a_i^(*)$. Let $vmu$ be a correlated equilibrium (@def-ce), and apply its defining condition to the deviation function $phi.alt_i$ that swaps $a_i$ for $a_i^(*)$ and leaves every other action unchanged, that is $phi.alt_i (a_i) = a_i^(*)$ and $phi.alt_i (x) = x$ for $x != a_i$. Since $phi.alt_i$ is the identity away from $a_i$, every pure outcome in which player $i$'s realized action differs from $a_i$ contributes the same term to both sides of the defining inequality and cancels; only the outcomes where player $i$ actually plays $a_i$ survive:
+
+  $
+    0 >= EE_vmu [u_i (phi.alt_i (a_i) \, a_(- i))] - EE_vmu [u_i (a_i \, a_(- i))] = sum_(a_(- i) in A_(- i)) mu_(a_i \, a_(- i)) [u_i (a_i^(*) \, a_(- i)) - u_i (a_i \, a_(- i))] .
+  $
+
+  Every term on the right is a nonnegative probability $mu_(a_i \, a_(- i))$ times a strictly positive quantity, by domination. A sum of such nonnegative terms can only be $<= 0$ if every term is exactly $0$, so $mu_(a_i \, a_(- i)) = 0$ for every $a_(- i) in A_(- i)$. Hence $vmu$ places zero probability on every action tuple in which player $i$ plays $a_i$.
+]
+
+#exercise[A dominated action can appear in a coarse correlated equilibrium][
+  Show that #ref(<ex:dominated-ce>, supplement: none) fails for coarse correlated equilibria, by exhibiting a game together with a CCE of that game whose support includes a dominated action.
+]
+
+#solution[
+  Consider a two-player game where Player 1 has actions ${ U \, M \, D }$, Player 2 has actions ${ L \, R }$, Player 2's payoff is identically $0$, and Player 1's payoffs are
+
+  #align(center)[
+    #table(
+      stroke: none,
+      columns: 3,
+      align: center + horizon,
+      inset: .7em,
+      [], [$L$], [$R$],
+      [$U$], [$1$], [$1$],
+      [$M$], [$3$], [$0$],
+      [$D$], [$0$], [$0$],
+    )
+  ]
+
+  Action $D$ is dominated by $U$: $u_1 (U \, L) = 1 > 0 = u_1 (D \, L)$ and $u_1 (U \, R) = 1 > 0 = u_1 (D \, R)$.
+
+  Let $vmu$ place probability $1 \/ 2$ on $(M \, L)$ and probability $1 \/ 2$ on $(D \, R)$. Player 2's payoff is identically $0$, so every CCE constraint for Player 2 holds trivially. For Player 1, the realized payoff is $EE_vmu [u_1 (a_1 \, a_2)] = (1 \/ 2) dot.op 3 + (1 \/ 2) dot.op 0 = 3 \/ 2$, and every constant deviation satisfies the CCE constraint:
+
+  $
+    EE_vmu [u_1 (U \, a_2)] = (1 \/ 2) dot.op 1 + (1 \/ 2) dot.op 1 = 1 <= 3 \/ 2 \, #h(1.5em) EE_vmu [u_1 (M \, a_2)] = 3 \/ 2 <= 3 \/ 2 \, #h(1.5em) EE_vmu [u_1 (D \, a_2)] = 0 <= 3 \/ 2 .
+  $
+
+  So $vmu$ is a CCE, yet it places probability $1 \/ 2$ on the dominated action $D$.
+
+  Intuitively, deviating to the constant action $U$ is unattractive precisely because it also gives up the high payoff $M$ earns whenever the correlation device happens to recommend $(M \, L)$; a coarse deviation must commit to a single action before observing the recommendation, so it cannot exploit the conditional swap used in #ref(<ex:dominated-ce>, supplement: none).
+]
 
 == How to think about correlated play in games
 
