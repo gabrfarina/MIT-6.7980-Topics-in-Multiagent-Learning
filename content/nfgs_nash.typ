@@ -43,11 +43,27 @@ We will sometimes intersperse deterministic actions and mixed strategies freely 
 
 == Dominant-strategy equilibrium
 
-The question of what constitutes rational play for players can get complicated depending on the game. But, in some lucky cases, like the prisoner's dilemma game above, it turns out that some actions are just _better_ than others, _no matter what the other players do_. In such cases, we say that a player has a _dominant strategy_. In the case above, both Player 1 and Player 2 have a dominant strategy to confess$.$ In this case, we expect that the players will play their dominant strategy, and this is called a _dominant-strategy equilibrium_.
+The question of what constitutes rational play for players can get complicated depending on the game. But, in some lucky cases, like the prisoner's dilemma game above, it turns out that some actions are just _better_ than others, _no matter what the other players do_. In such cases, we say that a player has a _dominant strategy_. In the case above, both Player 1 and Player 2 have a dominant strategy to confess. Indeed, consider Player 1: if Player 2 denies, confessing yields a payoff of $0$ instead of $-1$; if Player 2 confesses, confessing yields $-2$ instead of $-3$. Either way, Player 1 is strictly better off confessing, and by symmetry the same holds for Player 2. When every player has a dominant strategy, we expect that the players will play it, and the resulting strategy profile is called a _dominant-strategy equilibrium_.
+
+The prisoner's dilemma also shows that equilibrium play need not be good for the players. At the dominant-strategy equilibrium, both players receive $-2$, whereas if both had denied, both would have received $-1$. Each player's individual incentive to confess leads to an outcome that is worse for _everyone_.
+
+Unfortunately, dominant strategies are the exception rather than the rule. Most games of interest have no dominant-strategy equilibrium, as the following example shows.
+
+#example[Rock-paper-scissors][
+  #wrapped-figure(side: right, text-width: 55%)[
+    In rock-paper-scissors, each player simultaneously picks one of three actions. Rock beats scissors, scissors beats paper, and paper beats rock; the winner receives a payoff of $1$, the loser $-1$, and a tie gives $0$ to both players. This is the payoff matrix on the right.
+  ][
+    #image("figures/nfgs_nash/rock_paper_scissors.svg", width: 142.42pt)
+  ]
+
+  No action of Player 1 is better than the others no matter what Player 2 does. Every action is the best reply to one of the opponent's actions and the worst reply to another: rock is the best reply to scissors but the worst reply to paper, paper is the best reply to rock but the worst reply to scissors, and scissors is the best reply to paper but the worst reply to rock. Which action is best depends entirely on what the opponent does.
+
+  In fact, not even a randomized strategy of Player 1 can be dominant. Suppose $vx_1 in Delta (A_1)$ were dominant. Against scissors, rock earns the largest payoff in the game, $1$, and it is the only action that does so; hence, for $vx_1$ to be at least as good as rock against scissors, $vx_1$ must put all of its mass on rock. By the same argument applied to paper, against which only scissors earns $1$, $vx_1$ must put all of its mass on scissors. These two requirements are incompatible, so Player 1 has no dominant strategy. By symmetry, neither does Player 2, and the game has no dominant-strategy equilibrium.
+]
 
 == Maxmin strategies
 
-The benefit of dominant-strategy equilibria is that they require no counterspeculation: some strategies just are better no matter what anyone else does. However, in many games, no player has a dominant strategy. Consider, for example, rock-paper-scissor: all actions are symmetric, and no action is strictly better than the others. How can we find a good strategy for that?
+The benefit of dominant-strategy equilibria is that they require no counterspeculation: some strategies just are better no matter what anyone else does. However, as rock-paper-scissors shows, in many games no player has a dominant strategy: the best action depends on what the other players do. How can we find a good strategy in such games?
 
 One way to think about this is to consider the worst-case scenario: what is the best strategy for a player if they assume the other players are trying to minimize their payoff? This is the idea behind _maxmin strategies_. A maxmin strategy for Player $i$ is a strategy $vx_i$ that maximizes the minimum payoff that Player $i$ can get, that is,
 
