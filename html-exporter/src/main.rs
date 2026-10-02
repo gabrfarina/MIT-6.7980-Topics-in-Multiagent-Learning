@@ -1016,6 +1016,7 @@ fn render_document(
         html.push_str(chapter_citation_script());
     }
     html.push_str(equation_width_script());
+    html.push_str(solution_toggle_script());
     html.push_str("<script>\n");
     html.push_str(include_str!("sidenotes.js"));
     html.push_str("</script>\n");
@@ -1638,6 +1639,28 @@ fn equation_width_script() -> &'static str {
   window.setTimeout(markOverwideEquations, 0);
   window.setTimeout(markOverwideEquations, 80);
   window.setTimeout(markOverwideEquations, 300);
+})();
+</script>
+"#
+}
+
+fn solution_toggle_script() -> &'static str {
+        r#"<script>
+(() => {
+    for (const solution of document.querySelectorAll('.env.proof[data-proof-kind="Solution"]')) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "solution-toggle";
+        button.textContent = "Show solution";
+        button.setAttribute("aria-expanded", "false");
+        if (solution.id) button.setAttribute("aria-controls", solution.id);
+        solution.before(button);
+        button.addEventListener("click", () => {
+            const visible = solution.classList.toggle("is-visible");
+            button.textContent = visible ? "Hide solution" : "Show solution";
+            button.setAttribute("aria-expanded", String(visible));
+        });
+    }
 })();
 </script>
 "#
