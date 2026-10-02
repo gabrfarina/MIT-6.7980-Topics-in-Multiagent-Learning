@@ -226,6 +226,87 @@ At this point, the proof of Sperner's lemma is immediate. A graph in which each 
 
 We stated and proved Sperner's lemma for the two-dimensional grid, and used that to prove Brouwer's fixed point theorem for continuous functions mapping the unit square to itself. There is a $d$-dimensional generalization of Sperner's lemma, which can be used to prove Brouwer's fixed point theorem for continuous functions mapping $\[ 0 \, 1 \]^d$ to itself. In the high-dimensional  case, a $d$-dimensional grid is partitioned into simplices, the $d$-dimensional analog of triangles, without introducing any more vertices other than those in the grid. The vertices of the grid are now colored with $d + 1$ colors, $0 \, 1 \, ... \, d$. Now, a coloring is valid if color $i$ is not present in facet $x_i = 0$, for all $i = 1 \, ... \, d$, and color $0$ is not present in all facets $x_i = 1$, for all $i = 1 \, ... \, d$. Sperner's lemma guarantees the existence of a simplex that has all $d + 1$ colors on its $d + 1$ vertices. Using the $d$-dimensional version of Sperner's lemma to prove Brouwer's fixed point theorem for continuous functions mapping the $d$-dimensional hypercube to itself is analogous to the $d = 2$ case. Finally, given Brouwer's fixed point theorem for the hypercube it is not hard to prove it for other convex and compact sets. Given a function defined on an arbitrary convex and compact set, one can first affinely transform the coordinate system so the set lies inside the unit hypercube. Then the function can be extended outside of the set by first projecting points of the hypercube to the set and then applying the function. This will not introduce any spurious fixed points.
 
+= Necessity of the hypotheses <sec-brouwer-hypotheses>
+
+Brouwer's fixed point theorem asks for a _continuous_ function mapping a _nonempty_, _compact_, _convex_ set _into itself_. Every one of those hypotheses is necessary: drop any single one while keeping the rest, and the theorem doesn't hold. This demonstrates these failures with counterexamples, all of them one- or two-dimensional. Since compactness of a subset of $RR^d$ means closed _and_ bounded, we treat those two halves separately.
+
+Note that a fixed point of $f$ is a point satisfying $f(x) = x$. For a function of one variable this condition can be described as the points where the graph of $f$ meets the diagonal. Each example below comes with a picture of its $f$ against the diagonal.
+
+// Keep the picture with the text it explains.
+#block(breakable: false)[
+  #example[dropping continuity][
+    #wrapped-figure(side: right, text-width: 66%)[
+      On $K = [0,1]$, which is nonempty, compact, and convex, define
+      $ f(x) := cases(1 & "if" x < 1\/2, 0 & "if" x >= 1\/2). $
+      This maps $K$ into itself, but it has no fixed point: every $x < 1\/2$ is sent to $1 != x$, and every $x >= 1\/2$ is sent to $0 != x$. Rather than crossing the diagonal (where $f(x)=x$), the function jumps over it at $x = 1\/2$.
+      
+      The Sperner discretization behind @thm-sperner-approximation needed a modulus $delta(epsilon.alt)$ of uniform continuity, and a discontinuous $f$ admits no such modulus.
+    ][
+      #image("figures/brouwer/hyp_continuity.svg", width: 82pt)
+    ]
+  ]
+]
+
+// Keep the picture with the text it explains.
+#block(breakable: false)[
+  #example[dropping boundedness][
+    #wrapped-figure(side: right, text-width: 66%)[
+      Take $K = RR$, which is nonempty, closed, and convex, but unbounded, and let $f(x) := x + 1$. This is continuous and maps $K$ into itself, yet $f(x) = x$ would force $1 = 0$. Informally, the fixed point has escaped to infinity. The same happens in the plane under any nonzero translation $f(vz) := vz + vu$.
+    ][
+      #image("figures/brouwer/hyp_bounded.svg", width: 109pt)
+    ]
+  ]
+]
+
+// Keep the picture with the text it explains.
+#block(breakable: false)[
+  #example[dropping closedness][
+    #wrapped-figure(side: right, text-width: 66%)[
+      Take $K = (0,1]$, which is nonempty, bounded, and convex, but not closed ($x=0 in.not K$), and let $f(x) := x\/2$. Then $f$ is continuous and maps $K$ into itself, since $x\/2 in (0,1\/2]$ whenever $x in (0,1]$. A fixed point would satisfy $x = x\/2$, that is $x = 0$, the point that $K$ is missing.
+    ][
+      #image("figures/brouwer/hyp_closed.svg", width: 82pt)
+    ]
+  ]
+]
+
+// Keep the picture with the text it explains.
+#block(breakable: false)[
+  #example[dropping convexity][
+    #wrapped-figure(side: right, text-width: 66%)[
+      Take $K = {vz in RR^2 : norm(vz)_2 = 1}$, the unit circle, which is nonempty and compact. It is not convex: convexity asks that the segment joining any two points of $K$ stay inside $K$, and the segment from $(1,0)$ to $(-1,0)$ passes through the origin, which has norm $0$ rather than $1$. The disk $norm(vz)_2 <= 1$ is convex, but it is exactly the center that $K$ omits. Let $f$ be the quarter-turn rotation
+      $ f(x, y) := (-y, x). $
+      This is continuous and maps $K$ onto itself, and it displaces every point of the circle, so it has no fixed point.
+    ][
+      #image("figures/brouwer/rotation_circle.svg", width: 67pt)
+    ]
+  ]
+]
+
+// Keep the picture with the text it explains.
+#block(breakable: false)[
+  #remark[
+    Fun fact! Convexity is more than the theorem needs. Brouwer's theorem holds on any set homeomorphic to a closed ball, and the passage at the end of @sec-brouwer-general carries it from the hypercube to any compact convex set. What defeats the circle is not non-convexity but the hole.
+
+    The blob on the left below is not convex --- the dashed chord between two of its points leaves the set --- yet it is a deformed disk, so every continuous self-map of it still has a fixed point. The annulus on the right is the opposite case: its hole is what gives a rotation room to move every point.
+
+    #v(1mm)
+    #align(center)[#image("figures/brouwer/convexity_relaxed.svg", width: 198pt)]
+  ]
+]
+
+// Keep the picture with the text it explains.
+#block(breakable: false)[
+  #example[dropping the self-map condition][
+    #wrapped-figure(side: right, text-width: 66%)[
+      Take $K = [0,1]$ once more, nonempty, compact, and convex, and let $f(x) := x + 1$. This function is continuous, but its image $[1,2]$ leaves $K$, and $f(x) = x$ again forces $1 = 0$. Without the requirement that $f$ map $K$ into itself, nothing forces the graph of $f$ to meet the diagonal.
+    ][
+      #image("figures/brouwer/hyp_selfmap.svg", width: 100pt)
+    ]
+  ]
+]
+
+Nonemptiness is the degenerate case: the empty set contains no points, hence no fixed points, while every other hypothesis holds vacuously.
+
 #changelog[
   - Sep 24, 2025: fixed two typos (thanks Eric Yang Yu!)
 ]
