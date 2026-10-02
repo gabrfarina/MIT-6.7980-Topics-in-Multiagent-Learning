@@ -107,7 +107,7 @@ It is worth noting that the trichromatic triangles obtained via the above reduct
 
 To make the argument formal, we need to establish a formal connection between a trichromatic triangle and an approximate Brouwer fixed point, and connect that to a choice of discretization parameter.
 
-By the Heine-Cantor theorem, any continuous function $f$ on a compact set is _uniformly_ continuous, which implies that:
+The only real-analysis input for the next theorem is a standard compactness argument: by the Heine-Cantor theorem, continuity of $f$ on the compact square $[0 \, 1]^2$ implies _uniform_ continuity. Thus one choice of $delta (epsilon.alt)$ works throughout the square:
 
 #math.equation(
   block: true,
@@ -164,11 +164,7 @@ In turn, using a standard compactness argument, @cor:sperner implies Brouwer's f
 ]
 
 #proof[
-  Consider the sequence of approximation parameters $epsilon.alt_i := 2^(- i)$ for $i in bb(N)_(>= 1)$, and the corresponding discretization parameters $delta_i := min {delta (epsilon.alt_i) \, epsilon.alt_i}$, as in @cor:sperner. For each $i$, we color the vertices of the resulting triangulation as above, so that they satisfy the conditions of Sperner's lemma, and identify a trichromatic triangle which is then guaranteed to exist. Let us denote by $vz_(Y \, i)$ the yellow vertex of that triangle, which satisfies $∥f (vz_(Y \, i)) - vz_(Y \, i)∥_oo < 2 epsilon.alt_i$. Now consider the sequence of points $\( vz_(Y \, i) \)_i$. Since $vz_(Y \, i) in [0 \, 1]^2$ for all $i$, and $[0 \, 1]^2$ is a compact set, there exists a convergent subsequence $\( vz_(Y \, n_j) \)_j$; let $vz_Y^(*)$ denote the limit of this subsequence. By the continuity of $f$, the function $d \( vz \) := ∥f \( vz \) - vz∥_oo$ is also continuous. Hence,
-
-  $ d (vz_Y^(*)) = lim_(j -> oo) d (vz_(Y \, n_j)) . $
-
-  Since $d (vz_(Y \, n_j)) in [0 \, 2 dot.op 2^(- j)]$, we conclude $d (vz_Y^(*)) = 0$, which is equivalent to $f (vz_Y^(*)) = vz_Y^(*)$. This proves that a fixed point exists.
+  The function $d \( vz \) := ∥f \( vz \) - vz∥_oo$ is continuous on the compact square $[0 \, 1]^2$. By Weierstrass's extreme value theorem, it attains a minimum $m >= 0$ at some point $vz^*$. For every $epsilon.alt > 0$, @cor:sperner gives a point $vz$ with $d (vz) < 2 epsilon.alt$, so $m < 2 epsilon.alt$ for every $epsilon.alt > 0$. Therefore $m = 0$, and $f (vz^*) = vz^*$.
 ]
 
 = Proof of Sperner's lemma <sec-sperner-proof>
