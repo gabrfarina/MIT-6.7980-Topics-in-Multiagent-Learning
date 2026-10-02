@@ -62,6 +62,40 @@ The above idea has some merits, especially in two-player zero-sum games, that is
 
 == The Nash equilibrium <sec-nash-equilibrium>
 
+Before introducing the Nash equilibrium, let us see concretely how maxmin strategies can go wrong outside of two-player zero-sum games.
+
+#example[Maxmin strategies in theater or football][
+  #wrapped-figure(side: right, text-width: 65%)[
+    Two friends are planning an evening out, and each has a favorite activity: one prefers the theater, the other prefers football. Each friend can either _insist_ on their favorite activity or _accept_ the other's. If exactly one of them insists, they go to that friend's favorite activity: the insisting friend receives a payoff of $5$, while the accepting friend, who still enjoys the company, receives $1$. If both insist or both accept, they fail to agree on a plan, and both receive $0$. This is the payoff matrix on the right.
+  ][
+    #image("figures/nfgs_nash/theater_football.svg", width: 100.223pt)
+  ]
+
+  *Computing the maxmin strategies.* Let $p$ denote the probability with which Player 1 insists, so that Player 1 accepts with probability $1 - p$. As in any game, for a fixed strategy $vx_1$ of Player 1, the expected utility $u_1 (vx_1 \, vx_2)$ is an average of the utilities against the deterministic actions of Player 2, so the most harmful behavior of Player 2 is attained by a deterministic action. Player 1 receives $1$ only when accepting while Player 2 insists, and $5$ only when insisting while Player 2 accepts, so
+
+  $
+    u_1 (vx_1 \, "insist") = 1 - p \, #h(2em) u_1 (vx_1 \, "accept") = 5 p \,
+  $
+
+  and hence $min_(vx_2 in Delta (A_2)) u_1 (vx_1 \, vx_2) = min {1 - p \, 5 p}$.
+
+  The first term decreases with $p$ while the second increases, so the minimum is largest when the two terms are equal, that is, when $1 - p = 5 p$, or $p = 1/6$. Hence, the unique maxmin strategy of Player 1 is to insist with probability $1/6$ and accept with probability $5/6$, which guarantees Player 1 an expected payoff of $5/6$ no matter what Player 2 does. Since the game is symmetric, the unique maxmin strategy of Player 2 is also to insist with probability $1/6$ and accept with probability $5/6$. Denote these maxmin strategies by $vx_1^*$ and $vx_2^*$.
+
+  *The maxmin strategies are not optimal against each other.* Suppose that Player 2 plays the maxmin strategy $vx_2^*$. Then Player 1's actions and maxmin strategy earn
+
+  $
+    u_1 ("insist" \, vx_2^*) & = 5 dot.op 5/6 = 25/6 \,\
+    u_1 ("accept" \, vx_2^*) & = 1 dot.op 1/6 = 1/6 \,\
+    u_1 (vx_1^* \, vx_2^*) & = 1/6 dot.op 25/6 + 5/6 dot.op 1/6 = 5/6 .
+  $
+
+  So, against $vx_2^*$, Player 1 would be better off abandoning the maxmin strategy and always insisting, earning $25/6$ instead of $5/6$: five times as much. By symmetry, Player 2 would similarly want to deviate from $vx_2^*$ against $vx_1^*$. In other words, if each player expects the other to play their maxmin strategy, then neither player wants to play their own maxmin strategy.
+] <ex:tof-maxmin>
+
+What went wrong? Each player's maxmin strategy was computed under the pessimistic assumption that the other player is out to minimize their payoff. But in theater or football, the other player has no interest in doing so: for instance, when Player 1 insists, Player 2 prefers accepting (payoff $1$) to insisting (payoff $0$), even though accepting hands Player 1 their best outcome. Preparing for the worst thus leads both players to insist rarely, which in turn makes insisting very attractive to each of them. The maxmin strategies are therefore not a stable prediction of how the players will play: as soon as a player believes that the other is playing their maxmin strategy, the player wants to switch.
+
+This suggests a different question: _do there exist strategies for the players that are optimal against each other?_ That is, can we find strategies such that no player would want to switch after learning what the others are playing?
+
 In general, defining what constitutes “optimal play” is tricky. But we can start from what is convincingly _not_ optimal play: if we predict that the players should play according to some strategies $vx_1 \, ... \, vx_n$, then it is not optimal if it turned out that any player would be better off by switching to something else. This is the idea behind the _Nash equilibrium_.
 
 #definition[Nash equilibrium][
@@ -93,13 +127,15 @@ Before continuing, we consider two examples that help illustrate a couple of imp
 ]
 
 #example[Theater or football][
-  Consider the following small game:
+  Consider again the theater-or-football game of @ex:tof-maxmin:
 
   #align(center)[
     #image("figures/nfgs_nash/theater_football.svg", width: 100.223pt)
   ]
 
   This game has two obvious Nash equilibria: Player 1 insisting and Player 2 accepting, or vice versa (top right and bottom left corners). However, there is a third equilibrium as well: both players accept with probability 1/6 and insist with probability 5/6.
+
+  To verify that this third profile is a Nash equilibrium, recall that it suffices to check deterministic deviations. If Player 2 insists with probability $5/6$, then Player 1 earns $5 dot.op 1/6 = 5/6$ by insisting and $1 dot.op 5/6 = 5/6$ by accepting. Since both actions earn the same, every strategy of Player 1 earns $5/6$, and Player 1 has no profitable deviation; by symmetry, neither does Player 2. Interestingly, the equilibrium probabilities are exactly those of the maxmin strategies of @ex:tof-maxmin with the roles of the two actions swapped: at the maxmin strategies each player insists with probability $1/6$, while at this equilibrium each player insists with probability $5/6$.
 
   This is not a coincidence: in two-player nondegenerate games, there is always an _odd_ number of Nash equilibria. This fact comes from more profound connections with some combinatorial objects that we will uncover quite soon.
 ]
