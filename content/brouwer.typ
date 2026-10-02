@@ -222,6 +222,189 @@ As you might have guessed from the picture, the following key properties hold.
 
 At this point, the proof of Sperner's lemma is immediate. A graph in which each node has indegree at most one and outdegree at most one is composed of connected components that can only be singleton nodes, directed paths, or directed simple cycles. Only paths have nodes with outdegree $1$ and indegree $0$, or outdegree $0$ and indegree $1$; each has exactly one of each. Note also that the standard boundary coloring forces the bottom left cell not to be trichromatic, and node corresponding to this cell to have outdegree $1$ and indegree $0$. So this node must be the source of a path. The sink of that path is trichromatic as per~#ref(label("thm:sperner graph properties")). If there are other paths, both their source and their sink are trichromatic, as per~#ref(label("thm:sperner graph properties")). Hence, there are an odd number of trichromatic triangles in any standard Sperner coloring, and therefore any Sperner coloring.
 
+== Following the paths in the toy games <sec-sperner-toy-paths>
+
+The paths below follow the Sperner discretizations in Example L2.3.
+
+#figure(
+  context {
+    // Keep the diagram editable with this lecture. Use the same payoff matrices,
+    // color tie-breaking, grid helper, and drawing style as Example L2.3.
+    import "@preview/cetz:0.3.4"
+    import "figures/libs/sperner.typ": _sperner_grid, sperner_w, sperner_h
+    import "figures/libs/nash.typ": softbr
+    import "meta/linalg.typ": transpose
+    let for-html = target() == "html"
+    set text(font: if for-html { "Georgia" } else { "New Computer Modern" }, size: 9pt)
+    // CeTZ positions its own content; omit the lecture's HTML alignment wrapper.
+    show align: it => it.body
+    // Payoffs and coloring match the existing toy-game discretizations.
+
+    let tof_A1 = ((0, 5), (1, 0))
+    let tof_A2 = ((0, 1), (5, 0))
+    let psg_A1 = ((-1, 1), (1, -1))
+    let psg_A2 = ((1, -1), (-1, 1))
+    let pdi_A1 = ((-1, -3), (0, -2))
+    let pdi_A2 = ((-1, 0), (-3, -2))
+
+    let improvement(A1, A2) = {
+      let A2T = transpose(A2)
+      (p, q) => {
+        let x = (1 - p, p)
+        let y = (1 - q, q)
+        (softbr(x, A1, y).at(1), softbr(y, A2T, x).at(1))
+      }
+    }
+
+    // Rows run from top to bottom, as in libs/sperner.typ.
+    // Preserve the tie-breaking of the original Example L2.3 figure.
+    let toy-coloring(A1, A2, n: 8) = {
+      let f = improvement(A1, A2)
+      let rows = ()
+      for i in range(n + 1) {
+        rows.push("")
+        for j in range(n + 1) {
+          let p = j / n
+          let q = (n - i) / n
+          let (pp, qq) = f(p, q)
+          let (dp, dq) = (pp - p, qq - q)
+          let ch = if dp >= 0 and dq >= 0 { "y" } else if dp >= dq { "r" } else { "b" }
+          if j == n and ch == "y" { ch = "b" }
+          else if i == 0 and ch == "y" { ch = "r" }
+          else if j == 0 and ch == "b" { ch = "y" }
+          else if i == n and ch == "r" { ch = "y" }
+          rows.at(-1) += ch
+        }
+      }
+      rows
+    }
+
+    // Construct the directed graph from the actual red-yellow doors, not drawn paths.
+    let sperner-graph(rows) = {
+      let n = rows.len() - 1
+      assert(rows.all(row => row.len() == n + 1))
+      let padded = ("r" + "b" * (n + 2),)
+      for row in rows { padded.push("r" + row + "b") }
+      padded.push("y" * (n + 2) + "b")
+      let color(v) = padded.at(n + 2 - v.at(1)).at(v.at(0))
+      let triangles = ()
+      let doors = (:)
+      for y in range(n + 2) {
+        for x in range(n + 2) {
+          // Counterclockwise vertices; same falling diagonal as _sperner_grid.
+          for vertices in (
+            ((x, y), (x + 1, y), (x, y + 1)),
+            ((x + 1, y + 1), (x, y + 1), (x + 1, y)),
+          ) {
+            let id = triangles.len()
+            let center = (vertices.map(v => v.at(0)).sum() / 3,
+                          vertices.map(v => v.at(1)).sum() / 3)
+            triangles.push((vertices: vertices, center: center,
+              trichromatic: vertices.map(color).dedup().len() == 3))
+            for i in range(3) {
+              let a = vertices.at(i)
+              let b = vertices.at(calc.rem(i + 1, 3))
+              if (color(a), color(b)).sorted() == ("r", "y") {
+                let key = repr((a, b).sorted(key: v => v.at(0) + (n + 3) * v.at(1)))
+                let entries = doors.at(key, default: ())
+                // Crossing a CCW boundary edge outwards keeps its second vertex left.
+                entries.push((id: id, outgoing: color(b) == "r"))
+                doors.insert(key, entries)
+              }
+            }
+          }
+        }
+      }
+      let next = (none,) * triangles.len()
+      let prev = (none,) * triangles.len()
+      for entries in doors.values() {
+        if entries.len() == 2 {
+          let outgoing = entries.find(e => e.outgoing).id
+          let incoming = entries.find(e => not e.outgoing).id
+          assert(next.at(outgoing) == none and prev.at(incoming) == none)
+          next.at(outgoing) = incoming
+          prev.at(incoming) = outgoing
+        } else {
+          // The only unpaired door is the entry on the standard bottom-left boundary.
+          assert(entries.len() == 1 and entries.first().id == 0)
+        }
+      }
+      let paths = ()
+      for start in range(triangles.len()) {
+        if prev.at(start) == none and next.at(start) != none {
+          let path = (start,)
+          let node = start
+          while next.at(node) != none {
+            node = next.at(node)
+            assert(not path.contains(node), message: "A source path cannot enter a cycle.")
+            path.push(node)
+          }
+          assert(start == 0 or triangles.at(start).trichromatic)
+          assert(triangles.at(node).trichromatic)
+          paths.push(path)
+        }
+      }
+      let endpoints = paths.map(p => (p.first(), p.last())).flatten().filter(id => id != 0)
+      assert(endpoints.sorted() == range(triangles.len()).filter(id => triangles.at(id).trichromatic))
+      (rows: padded, triangles: triangles, paths: paths, next: next, prev: prev)
+    }
+
+    let panel(title, A1, A2, equilibria) = {
+      let graph = sperner-graph(toy-coloring(A1, A2))
+      cetz.canvas(length: .5cm, {
+        import cetz.draw: *
+        let w = sperner_w
+        let h = sperner_h
+        let pos(v) = (v.at(0) * w, v.at(1) * h)
+        let center(id) = pos(graph.triangles.at(id).center)
+        _sperner_grid(..graph.rows, radius: .65mm, bottom_left: purple.lighten(60%))
+        // The original unit square is one grid step inside the artificial frame.
+        rect(pos((1, 1)), pos((9, 9)), stroke: (paint: black, thickness: .3mm, dash: "dashed"))
+        for path in graph.paths {
+          let main = path.first() == 0
+          let paint = if main { black } else { purple }
+          let stroke = (paint: paint, thickness: .35mm)
+          for (a, b) in path.zip(path.slice(1)) {
+            // A white underlay separates the path from the triangulation edges.
+            line(center(a), center(b), stroke: .65mm + white)
+            line(center(a), center(b), stroke: stroke,
+              mark: (end: ">", scale: .38, fill: paint))
+          }
+          for id in (path.first(), path.last()) {
+            circle(center(id), radius: .55mm, fill: paint, stroke: none)
+          }
+        }
+        // Exact fixed points, distinct from the centers of trichromatic cells.
+        for (p, q) in equilibria {
+          let point = pos((1 + 8 * p, 1 + 8 * q))
+          circle(point, radius: .85mm, fill: black, stroke: .35mm + white)
+        }
+        content(pos((5, 11.1)), emph(title))
+      })
+    }
+
+    let drawing = grid(columns: 3, column-gutter: 3mm, align: top + center,
+      panel("Theater or football", tof_A1, tof_A2,
+        ((0, 1), (1, 0), (1 / 6, 1 / 6))),
+      panel("Prisoner's dilemma", pdi_A1, pdi_A2,
+        ((1, 1),)),
+      panel("Penalty shot game", psg_A1, psg_A2,
+        ((.5, .5),)),
+    )
+    let diagram = context {
+      let width = if for-html { 585pt } else { 405pt }
+      let factor = width / measure(drawing).width * 100%
+      scale(x: factor, y: factor, reflow: true, drawing)
+    }
+    if for-html {
+      html.frame(diagram)
+    } else {
+      diagram
+    }
+  },
+  caption: [Sperner paths for the three games in Example L2.3.],
+) <fig-sperner-toy-paths>
+
 = Beyond the unit square <sec-brouwer-general>
 
 We stated and proved Sperner's lemma for the two-dimensional grid, and used that to prove Brouwer's fixed point theorem for continuous functions mapping the unit square to itself. There is a $d$-dimensional generalization of Sperner's lemma, which can be used to prove Brouwer's fixed point theorem for continuous functions mapping $\[ 0 \, 1 \]^d$ to itself. In the high-dimensional  case, a $d$-dimensional grid is partitioned into simplices, the $d$-dimensional analog of triangles, without introducing any more vertices other than those in the grid. The vertices of the grid are now colored with $d + 1$ colors, $0 \, 1 \, ... \, d$. Now, a coloring is valid if color $i$ is not present in facet $x_i = 0$, for all $i = 1 \, ... \, d$, and color $0$ is not present in all facets $x_i = 1$, for all $i = 1 \, ... \, d$. Sperner's lemma guarantees the existence of a simplex that has all $d + 1$ colors on its $d + 1$ vertices. Using the $d$-dimensional version of Sperner's lemma to prove Brouwer's fixed point theorem for continuous functions mapping the $d$-dimensional hypercube to itself is analogous to the $d = 2$ case. Finally, given Brouwer's fixed point theorem for the hypercube it is not hard to prove it for other convex and compact sets. Given a function defined on an arbitrary convex and compact set, one can first affinely transform the coordinate system so the set lies inside the unit hypercube. Then the function can be extended outside of the set by first projecting points of the hypercube to the set and then applying the function. This will not introduce any spurious fixed points.
