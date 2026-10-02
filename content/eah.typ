@@ -142,7 +142,14 @@ The above argument mostly uses ideas from convex optimization. In particular, it
 - The utility function $u_i \( vx_1 \, ... \, vx_n \)$ is linear in each player's strategy. For normal-form games, this is true since the utility is just an expectation.
 - The utility function $u_i \( vx_1 \, ... \, vx_n \)$ can be evaluated efficiently, let's say in time $R$.
 
-The Ellipsoid-Against-Hope algorithm can then be applied and has polynomial complexity in $sum_i^n d_i$, oracle costs, encoding and geometric bounds, and $log \( 1 \/ epsilon.alt \)$. Applications include polymatrix games and finite perfect-recall extensive-form games; a succinct game representation must be checked for the required oracles before applying the result. We will see some of these games later in this course.
+The Ellipsoid-Against-Hope algorithm can then be applied and has polynomial complexity in $sum_i^n d_i$, oracle costs, encoding and geometric bounds, and $log \( 1 \/ epsilon.alt \)$. Applications include polymatrix games and finite perfect-recall extensive-form games; a succinct game representation must be checked for the required oracles before applying the result.
+
+For concrete examples of the savings from a succinct representation, consider the following games with rational payoffs and at most $m$ actions per player:
+
+- _Polymatrix games._ Each player's payoff is the sum of pairwise payoffs from games with its neighbors in an interaction graph. With $n$ players and edge set $E$, the payoff tables contain $O(|E| m^2)$ entries, whereas the joint-action LP can have $m^n$ probability variables. Expected payoffs under independent mixed strategies are computed by summing expectations over the pairwise tables, without enumerating joint actions.
+- _Graphical games with bounded neighborhoods._ Each player's payoff depends only on its own action and the actions of at most $k$ neighbors, and is specified by a local table. The tables contain at most $n m^(k+1)$ entries, which is polynomial in $n$ and $m$ for fixed $k$, while the joint-action LP can again have $m^n$ variables. Expected payoffs are computed by averaging each local table against the mixed strategies of the players in that neighborhood.
+
+In both examples, the strategy domains are simplexes with efficient separation oracles, and expected utilities are multilinear and evaluable in polynomial time in the compact input size. Thus, explicitly constructing the obvious CE/CCE LP can take exponential time, but the Ellipsoid-Against-Hope framework avoids that expansion. The CCE construction above uses only polynomially many product distributions and a small final LP. For CE, one must also enforce deviations conditional on the recommended action; the exact-CE variant of #citet(<jiang2011polynomial>) computes a rational CE with polynomial-size support in polynomial time for these representations. Such a CE is also a CCE. These guarantees concern finding an equilibrium, not optimizing an arbitrary objective over equilibria.
 
 = Bibliographic remarks
 
