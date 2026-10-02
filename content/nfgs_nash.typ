@@ -56,9 +56,45 @@ $
   upright("for all") j != i) u_i (vx_i \, vx_(- i)) \,
 $
 
-where the notation $vx_(- i)$ is popular syntactic sugar to denote the tuple $(vx_j)_(j != i)$.#footnote[This notation appears often in game theory, since we are often interested in studying the effect of changing a _single_ player $i$'s strategy, while keeping all “the other” strategies $vx_(- i)$ fixed.]  Thinking back about rock-paper-scissors, it is clear that the maxmin strategy is to play uniformly at random: the opponent could exploit any other strategy more than the uniform one, by playing the counteraction more often.
+where the notation $vx_(- i)$ is popular syntactic sugar to denote the tuple $(vx_j)_(j != i)$.#footnote[This notation appears often in game theory, since we are often interested in studying the effect of changing a _single_ player $i$'s strategy, while keeping all “the other” strategies $vx_(- i)$ fixed.]  In words, a maxmin strategy _prepares for the worst_: it is the strategy whose guaranteed payoff, against the most harmful possible behavior of the other players, is as large as possible.
 
-The above idea has some merits, especially in two-player zero-sum games, that is, those two-player games where $u_1 (a_1 \, a_2) + u_2 (a_1 \, a_2) = 0$ for all combinations of actions. In those games, players are in direct competition, so it makes sense to assume that the opponent is “out to get us.” But in more general games, the maxmin strategy can be too conservative, since it assumes that all other players have nothing better going on than to minimize our payoff, even if that hurts them.
+Thinking back about rock-paper-scissors, intuition suggests that the maxmin strategy is to play uniformly at random: the opponent could exploit any other strategy more than the uniform one, by playing the counteraction more often. The following example makes this intuition precise.
+
+#example[Maxmin strategies in rock-paper-scissors][
+  In rock-paper-scissors, rock beats scissors, scissors beats paper, and paper beats rock; the winner receives a payoff of $1$, the loser $-1$, and a tie gives $0$ to both players. Write $vx = (x_R \, x_P \, x_S)$ for the strategy of Player 1 and $vy = (y_R \, y_P \, y_S)$ for the strategy of Player 2, where the subscripts denote rock, paper, and scissors. Summing over the nine pairs of actions, the expected utility of Player 1 is
+
+  $
+    u_1 (vx \, vy) = x_R (y_S - y_P) + x_P (y_R - y_S) + x_S (y_P - y_R) .
+  $
+
+  Preparing for the worst means solving $max_(vx in Delta (A_1)) min_(vy in Delta (A_2)) u_1 (vx \, vy)$. We solve the two optimization problems from the inside out.
+
+  *The worst case for a fixed strategy.* Fix $vx$. The expected utility $u_1 (vx \, vy) = y_R u_1 (vx \, R) + y_P u_1 (vx \, P) + y_S u_1 (vx \, S)$ is an average of the utilities against the three actions of Player 2, and an average is never smaller than its smallest term. Hence, the most harmful behavior of Player 2 is always attained by a deterministic action, and
+
+  $
+    min_(vy in Delta (A_2)) u_1 (vx \, vy) = min {underbrace(x_P - x_S, "vs. rock") \, underbrace(x_S - x_R, "vs. paper") \, underbrace(x_R - x_P, "vs. scissors")} .
+  $
+
+  *The best worst case.* The three quantities in the minimum sum to $0$, so their minimum is at most their average, which is $0$. Furthermore, the minimum equals $0$ only if all three quantities are equal to $0$, that is, only if $x_R = x_P = x_S$. Hence,
+
+  $
+    max_(vx in Delta (A_1)) min_(vy in Delta (A_2)) u_1 (vx \, vy) = 0 \, #h(2em) "attained uniquely at" #h(2em) vx^* = (1/3 \, 1/3 \, 1/3) .
+  $
+
+  Every other strategy guarantees a strictly negative payoff, because Player 2 can counter whichever action Player 1 favors. For instance, the strategy $vx = (1/2 \, 1/2 \, 0)$ that never plays scissors earns $1/2$ against rock and $0$ against scissors, but $-1/2$ against paper. Since the game is symmetric, the same computation shows that the unique maxmin strategy of Player 2 is also uniform, $vy^* = (1/3 \, 1/3 \, 1/3)$, which guarantees Player 2 a payoff of $0$ as well.
+] <ex:rps-maxmin>
+
+The maxmin strategies of rock-paper-scissors enjoy a further remarkable property. Suppose that Player 2 plays the uniform strategy $vy^*$. Then every action of Player 1 has the same expected utility,
+
+$
+  u_1 (R \, vy^*) = u_1 (P \, vy^*) = u_1 (S \, vy^*) = 1/3 (0 + 1 - 1) = 0 \,
+$
+
+and so every strategy of Player 1, including $vx^*$, earns exactly $0$ against $vy^*$. In particular, no strategy of Player 1 does better against $vy^*$ than $vx^*$ does: $vx^*$ is _optimal against_ $vy^*$. By symmetry, $vy^*$ is optimal against $vx^*$ too. So, even though each player derived their strategy by assuming the worst about the opponent, neither player has any reason to regret this choice once they see what the opponent actually plays.
+
+This is not a coincidence specific to rock-paper-scissors: the same happens in _every_ two-player zero-sum game, that is, those two-player games where $u_1 (a_1 \, a_2) + u_2 (a_1 \, a_2) = 0$ for all combinations of actions. In such games, a pair of maxmin strategies always consists of strategies that are optimal against each other. This fact is a consequence of #lecture-link("correlated", <sec-zero-sum>)[von Neumann's minimax theorem], which states that in two-player zero-sum games the order of the maximization and the minimization does not matter, _i.e._, $max_(vx) min_(vy) u_1 (vx \, vy) = min_(vy) max_(vx) u_1 (vx \, vy)$. We will study this connection in depth when we return to two-player zero-sum games.
+
+As we have just seen, the above idea has particular merit in two-player zero-sum games. In those games, players are in direct competition, so it makes sense to assume that the opponent is “out to get us.” But in more general games, the maxmin strategy can be too conservative, since it assumes that all other players have nothing better going on than to minimize our payoff, even if that hurts them.
 
 == The Nash equilibrium <sec-nash-equilibrium>
 
