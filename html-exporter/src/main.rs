@@ -1019,6 +1019,11 @@ fn render_document(
     html.push_str("<script>\n");
     html.push_str(include_str!("sidenotes.js"));
     html.push_str("</script>\n");
+    if document.body_html.contains("sperner-explorer") {
+        html.push_str("<script>\n");
+        html.push_str(include_str!("sperner-explorer.js"));
+        html.push_str("</script>\n");
+    }
     html.push_str(settled_hash_scroll_script());
     html.push_str("</body>\n</html>\n");
     html
