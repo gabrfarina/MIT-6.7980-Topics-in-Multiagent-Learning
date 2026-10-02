@@ -116,6 +116,12 @@ without hardcoding their numbers.
 
 ## Submit your changes
 
+Install Typst **0.15.1**, a current stable Rust toolchain with Cargo, Python
+**3.9 or later**, Node.js **22 or later**, and Make. Initial builds download
+Cargo dependencies and the Typst packages referenced by the notes. The optional
+EPUB build (`make epub`) also needs [uv](https://docs.astral.sh/uv/), or the
+`beautifulsoup4` and `lxml` Python packages.
+
 Preview the edited note and resolve any compilation errors. From the repository
 root, review and commit your changes. The example below assumes you edited
 `content/nfgs_nash.typ`; substitute your actual files and branch name.
@@ -145,6 +151,12 @@ To compile an individual note from a terminal, install the
 the version used by the course build. From the repository root:
 
 ```sh
+make html       # regenerate the course website and PDFs
+make syllabus   # rebuild the syllabus, both PDF copies, and the index schedule
+make check      # run Python/Rust tests and validate the built site and math
+make bundle     # build, validate, and package the portable website
+make epub       # package the built website as dist/6.7980-notes.epub
+
 typst compile --font-path html-exporter/assets/fonts content/nfgs_nash.typ
 ```
 

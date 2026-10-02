@@ -177,6 +177,25 @@ Deleting `.build/` safely forces regeneration on the next build.
 Compiler diagnostics are saved under `.build/logs/`. Build products in `.build/`,
 `html/`, `dist/`, and `html-exporter/target/` are not versioned.
 
+## E-book
+
+`make epub` packages an already built `html/` as `dist/6.7980-notes.epub`, with
+lecture order, numbers, and titles from `.build/html-export.json`; run `make html`
+first. Math is converted to MathML with the bundled KaTeX, so no npm installation
+is needed. The script requires `beautifulsoup4` and `lxml`. When
+[uv](https://docs.astral.sh/uv/) is installed, `make epub` runs the script with
+`uv run`, which installs both automatically. Otherwise it uses `python3`, and the
+packages must be installed first with `python3 -m pip install beautifulsoup4 lxml`.
+A cover image is rendered
+with headless Google Chrome when it is available at its standard macOS location;
+otherwise the book is built without one.
+
+The converter recognizes the exporter's lecture markup by class name. It stops
+without writing the book if a formula fails to render, an embedded image has an
+unsupported type, or a lecture still contains TeX delimiters, inline SVG, or
+embedded images after conversion. Update `scripts/build_epub.py` when changing
+the HTML templates or exporter in ways that trigger these errors.
+
 All lecture and supplementary PDFs share `content/meta/gabri_notes.typ`.
 The print style uses A4 pages, 1.3-inch side margins, 1.6-inch top/bottom margins,
 10.2pt New Computer Modern body text, and Source Sans 3 Bold headings. A ruled opening
@@ -198,6 +217,7 @@ working PDF style.
 - Edit `scripts/course_index.py` for course-home markup.
 - Edit `html-exporter/src/course.css` for the homepage layout.
 - Edit `html-exporter/src/gabri-notes.css` for the lecture layout.
+- Edit `html-exporter/src/epub.css` for the EPUB layout.
 - Edit `content/meta/gabri_notes_html.typ` for semantic HTML components.
 - Edit `content/meta/gabri_notes.typ` for the native PDF layout.
 - Edit `content/meta/notation.typ` for mathematical symbols, operators, and notation helpers shared by the notes and figures.
