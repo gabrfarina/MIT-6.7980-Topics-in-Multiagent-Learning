@@ -16,7 +16,7 @@ We introduced the #lecture-link("nfgs_nash", <def-nash-equilibrium>)[definition 
 
 In two-player zero-sum games the Nash equilibria are exactly those strategy profiles for which both players are playing a maxmin strategy. We formalize this in the next theorem.  First, though, we introduce some notation which will make our life easier when dealing with two-player games.
 
-#definition[Matrices $U_1$ and $U_2$ for two-player games][
+#definition[Matrices $matU_1$ and $matU_2$ for two-player games][
   Consider a generic two-player zero-sum game, as shown next. As usual, we denote the sets of actions for player by $A_1$ and $A_2$.
 
   #align(center)[
@@ -26,22 +26,22 @@ In two-player zero-sum games the Nash equilibria are exactly those strategy prof
 
   Let $vx in Delta (A_1)$ denote a strategy of Player 1, and $vy in Delta (A_2)$ a strategy of Player 2. We can express the expected utilities for the players according to the bilinear expressions
 
-  $ u_1 (vx \, vy) = vx^top U_1 vy \, #h(2em) #h(2em) u_2 (vx \, vy) = vx^top U_2 vy \, $
+  $ u_1 (vx \, vy) = vx^top matU_1 vy \, #h(2em) #h(2em) u_2 (vx \, vy) = vx^top matU_2 vy \, $
 
   where
 
   $
-    U_1 := mat(delim: "(", a_11, a_12, dots.h.c, a_(1 m); a_21, a_22, dots.h.c, a_(2 m); dots.v, dots.v, dots.down, dots.v; a_(n 1), a_(n 2), dots.h.c, a_(n m)) \, quad U_2 := mat(delim: "(", b_11, b_12, dots.h.c, b_(1 m); b_21, b_22, dots.h.c, b_(2 m); dots.v, dots.v, dots.down, dots.v; b_(n 1), b_(n 2), dots.h.c, b_(n m)) .
+    matU_1 := mat(delim: "(", a_11, a_12, dots.h.c, a_(1 m); a_21, a_22, dots.h.c, a_(2 m); dots.v, dots.v, dots.down, dots.v; a_(n 1), a_(n 2), dots.h.c, a_(n m)) \, quad matU_2 := mat(delim: "(", b_11, b_12, dots.h.c, b_(1 m); b_21, b_22, dots.h.c, b_(2 m); dots.v, dots.v, dots.down, dots.v; b_(n 1), b_(n 2), dots.h.c, b_(n m)) .
   $
 ]
 
-From now on, we will assume that a two-player game has been defined, and we will use the notation with $U_1$ and $U_2$ defined above to refer to the utility matrices of the players.
+From now on, we will assume that a two-player game has been defined, and we will use the notation with $matU_1$ and $matU_2$ defined above to refer to the utility matrices of the players.
 
 #theorem[
-  Consider a two-player zero-sum game, that is, one for which $U_2 = - U_1$. Then, a strategy profile $(vx^(*) \, vy^(*)) in Delta (A_1) times Delta (A_2)$ is a Nash equilibrium if and only if it is a maxmin strategy, _i.e._, if and only if
+  Consider a two-player zero-sum game, that is, one for which $matU_2 = - matU_1$. Then, a strategy profile $(vx^(*) \, vy^(*)) in Delta (A_1) times Delta (A_2)$ is a Nash equilibrium if and only if it is a maxmin strategy, _i.e._, if and only if
 
   $
-    vx^(*) in "arg max"_(vx in Delta (A_1)) min_(vy in Delta (A_2)) vx^top U_1 vy \, #h(2em) upright("and") #h(2em) vy^(*) in "arg max"_(vy in Delta (A_2)) min_(vx in Delta (A_1)) vx^top U_2 vy .
+    vx^(*) in argmax_(vx in Delta (A_1)) min_(vy in Delta (A_2)) vx^top matU_1 vy \, #h(2em) upright("and") #h(2em) vy^(*) in argmax_(vy in Delta (A_2)) min_(vx in Delta (A_1)) vx^top matU_2 vy .
   $
 ]#label("thm:nash is mm")
 
@@ -49,58 +49,58 @@ From now on, we will assume that a two-player game has been defined, and we will
   We prove the result assuming we trust von Neumann's minimax theorem, which states that
 
   $
-    max_(vx in Delta (A_1)) min_(vy in Delta (A_2)) vx^top U_1 vy = min_(vy in Delta (A_2)) max_(vx in Delta (A_1)) vx^top U_1 vy .
+    max_(vx in Delta (A_1)) min_(vy in Delta (A_2)) vx^top matU_1 vy = min_(vy in Delta (A_2)) max_(vx in Delta (A_1)) vx^top matU_1 vy .
   $
 
-  $(==>)$~~Suppose that $(vx^(*) \, vy^(*))$ is a Nash equilibrium. Then, by the definition of Nash equilibrium and using the fact that $U_2 = - U_1$, we have that
+  $(==>)$~~Suppose that $(vx^(*) \, vy^(*))$ is a Nash equilibrium. Then, by the definition of Nash equilibrium and using the fact that $matU_2 = - matU_1$, we have that
 
   $
-    (vx^(*))^top U_1 vy^(*) = max_(vx in Delta (A_1)) vx^top U_1 vy^(*) \, #h(2em) upright("and") #h(2em) (vx^(*))^top U_1 vy^(*) = min_(vy in Delta (A_2)) (vx^(*))^top U_1 vy .
+    (vx^(*))^top matU_1 vy^(*) = max_(vx in Delta (A_1)) vx^top matU_1 vy^(*) \, #h(2em) upright("and") #h(2em) (vx^(*))^top matU_1 vy^(*) = min_(vy in Delta (A_2)) (vx^(*))^top matU_1 vy .
   $
 
   Hence, we can write the chain of equalities and inequalities
 
   $
-    min_(vy in Delta (A_2)) max_(vx in Delta (A_1)) vx^top U_1 vy <= max_(vx in Delta (A_1)) vx^top U_1 vy^(*) = min_(vy in Delta (A_2)) (vx^(*))^top U_1 vy <= max_(vx in Delta (A_1)) min_(vy in Delta (A_2)) vx^top U_1 vy .
+    min_(vy in Delta (A_2)) max_(vx in Delta (A_1)) vx^top matU_1 vy <= max_(vx in Delta (A_1)) vx^top matU_1 vy^(*) = min_(vy in Delta (A_2)) (vx^(*))^top matU_1 vy <= max_(vx in Delta (A_1)) min_(vy in Delta (A_2)) vx^top matU_1 vy .
   $
 
   By the minimax theorem, all inequalities must be equalities; hence, $(vx^(*) \, vy^(*))$ satisfies
 
   $
-    min_(vy in Delta (A_2)) max_(vx in Delta (A_1)) vx^top U_1 vy & = max_(vx in Delta (A_1)) vx^top U_1 vy^(*) & & quad <=> quad vy^(*) in "arg min"_(vy in Delta (A_2)) max_(vx in Delta (A_1)) vx^top U_1 vy\
-    max_(vx in Delta (A_1)) min_(vy in Delta (A_2)) vx^top U_1 vy & = min_(vy in Delta (A_2)) (vx^(*))^top U_1 vy & & quad <=> quad vx^(*) in "arg max"_(vx in Delta (A_1)) min_(vy in Delta (A_2)) vx^top U_1 vy .
+    min_(vy in Delta (A_2)) max_(vx in Delta (A_1)) vx^top matU_1 vy & = max_(vx in Delta (A_1)) vx^top matU_1 vy^(*) & & quad <=> quad vy^(*) in argmin_(vy in Delta (A_2)) max_(vx in Delta (A_1)) vx^top matU_1 vy\
+    max_(vx in Delta (A_1)) min_(vy in Delta (A_2)) vx^top matU_1 vy & = min_(vy in Delta (A_2)) (vx^(*))^top matU_1 vy & & quad <=> quad vx^(*) in argmax_(vx in Delta (A_1)) min_(vy in Delta (A_2)) vx^top matU_1 vy .
   $
 
   $(<==)$~~Conversely, suppose that $vx^(*)$ and $vy^(*)$ are maxmin strategies. Let $v^(*)$ be the common value of both sides of the minimax theorem, that is,
 
   $
-    v^(*) := max_(vx in Delta (A_1)) min_(vy in Delta (A_2)) vx^top U_1 vy = min_(vy in Delta (A_2)) max_(vx in Delta (A_1)) vx^top U_1 vy .
+    v^(*) := max_(vx in Delta (A_1)) min_(vy in Delta (A_2)) vx^top matU_1 vy = min_(vy in Delta (A_2)) max_(vx in Delta (A_1)) vx^top matU_1 vy .
   $
 
   We now show that $(vx^(*) \, vy^(*))$ is a Nash equilibrium. By definition, this means we need to show that
 
   $
-    (vx^(*))^top U_1 vy^(*) = max_(vx in Delta (A_1)) vx^top U_1 vy^(*) & #h(2em) upright("and") #h(2em) (vx^(*))^top U_1 vy^(*) = min_(vy in Delta (A_2)) (vx^(*))^top U_1 vy .
+    (vx^(*))^top matU_1 vy^(*) = max_(vx in Delta (A_1)) vx^top matU_1 vy^(*) & #h(2em) upright("and") #h(2em) (vx^(*))^top matU_1 vy^(*) = min_(vy in Delta (A_2)) (vx^(*))^top matU_1 vy .
   $
 
   Using the hypothesis,
 
   $
-    vx^(*) & in "arg max"_(vx in Delta (A_1)) min_(vy in Delta (A_2)) vx^top U_1 vy \, quad & & ==> quad v^(*) = min_(vy in Delta (A_2)) (vx^(*))^top U_1 vy \,\
-    vy^(*) & in "arg min"_(vy in Delta (A_2)) max_(vx in Delta (A_1)) vx^top U_1 vy \, quad & & ==> quad v^(*) = max_(vx in Delta (A_1)) vx^top U_1 vy^(*) .
+    vx^(*) & in argmax_(vx in Delta (A_1)) min_(vy in Delta (A_2)) vx^top matU_1 vy \, quad & & ==> quad v^(*) = min_(vy in Delta (A_2)) (vx^(*))^top matU_1 vy \,\
+    vy^(*) & in argmin_(vy in Delta (A_2)) max_(vx in Delta (A_1)) vx^top matU_1 vy \, quad & & ==> quad v^(*) = max_(vx in Delta (A_1)) vx^top matU_1 vy^(*) .
   $
 
-  These equalities imply that $v^(*) <= (vx^(*))^top U_1 vy^(*)$ and $v^(*) >= (vx^(*))^top U_1 vy^(*)$, and thus $v^(*) = (vx^(*))^top U_1 vy^(*)$. This shows that the players are best responding to the strategy of the opponent, completing the proof that $(vx^(*) \, vy^(*))$ is a Nash equilibrium.
+  These equalities imply that $v^(*) <= (vx^(*))^top matU_1 vy^(*)$ and $v^(*) >= (vx^(*))^top matU_1 vy^(*)$, and thus $v^(*) = (vx^(*))^top matU_1 vy^(*)$. This shows that the players are best responding to the strategy of the opponent, completing the proof that $(vx^(*) \, vy^(*))$ is a Nash equilibrium.
 ]
 
 *Computation*  As we will see shortly, #ref(label("thm:nash is mm")) gives us nontrivial information about the structure of Nash equilibria in two-player zero-sum games. But it also gives us a computational tool. Indeed, the theorem above tells us that finding a Nash equilibrium in a two-player zero-sum game can be expressed as an optimization problem. Let's show that this optimization problem is a linear program. Without loss of generality, let's focus on Player 1's optimization problem, that is,
 
-$ vx^(*) in "arg max"_(vx in Delta (A_1)) min_(vy in Delta (A_2)) vx^top U_1 vy . $
+$ vx^(*) in argmax_(vx in Delta (A_1)) min_(vy in Delta (A_2)) vx^top matU_1 vy . $
 
 The key insight is that this problem can be rewritten as
 
 $
-  cases(max_v v, upright("s.t.") v <= vx^top U_1 ve_(a_2) quad forall a_2 in A_2, upright("") vone^top vx = 1, vx >= 0 .)
+  cases(max_v v, upright("s.t.") v <= vx^top matU_1 ve_(a_2) quad forall a_2 in A_2, upright("") vone^top vx = 1, vx >= 0 .)
 $
 
 which is a linear program with a linear number of constraints in the number of actions of Player 2. We can use any linear programming solver to find such a solution. The #lecture-link("learning_intro", <sec-learning-zero-sum>)[self-play construction] gives more scalable methods to compute maxmin strategies from repeated play.
@@ -116,14 +116,14 @@ which is a linear program with a linear number of constraints in the number of a
       columns: 3,
       align: center + horizon,
       inset: .7em,
-      [$max_(vx in Delta \( A_1 \)) min_(vy in Delta \( A_2 \)) vx^top U_1 vy$],
+      [$max_(vx in Delta \( A_1 \)) min_(vy in Delta \( A_2 \)) vx^top matU_1 vy$],
       [],
-      [$min_(vy in Delta \( A_2 \)) max_(vx in Delta \( A_1 \)) vx^top U_1 vy$],
+      [$min_(vy in Delta \( A_2 \)) max_(vx in Delta \( A_1 \)) vx^top matU_1 vy$],
 
       [$arrow.t.b$], [], [$arrow.t.b$],
-      [$ cases(max v, v <= vx^top U_1 ve_(a_2) quad forall a_2, vone^top vx = 1, vx >= 0 .) $],
+      [$ cases(max v, v <= vx^top matU_1 ve_(a_2) quad forall a_2, vone^top vx = 1, vx >= 0 .) $],
       [$limits(<-->)^(upright("  linear programming  "))_(upright("duality"))$],
-      [$ cases(min w, w >= ve_(a_1)^top U_1 vy quad forall a_1, vone^top vy = 1, vy >= 0 .) $],
+      [$ cases(min w, w >= ve_(a_1)^top matU_1 vy quad forall a_1, vone^top vy = 1, vy >= 0 .) $],
     )
 
   ]
@@ -176,7 +176,7 @@ In the general two-player case, often referred to as _two-player general-sum gam
 *Computation*  In two-player general-sum games, computation of Nash equilibria is not a linear program. However, it is a _linear complementarity problem_ (LCP), a more general class of problems than linear feasibility programs, and which are written in the form
 
 $
-  upright("find") quad vx \, vw in bb(R)^d #h(2em) upright("s.t.") #h(2em) vw = M vx + vq \, #h(2em) vx \, vw >= 0 \, #h(2em) vx^top vw = 0 .
+  upright("find") quad vx \, vw in bb(R)^d #h(2em) upright("s.t.") #h(2em) vw = matM vx + vq \, #h(2em) vx \, vw >= 0 \, #h(2em) vx^top vw = 0 .
 $
 
 The Lemke-Howson algorithm is a well-known algorithm to solve LCPs, and it can be used to find Nash equilibria in two-player general-sum games. However, the algorithm is not polynomial-time in the worst case, and it can be hard to find Nash equilibria in practice. An important corollary of the connection between two-player general-sum games and LCPs is the following:
