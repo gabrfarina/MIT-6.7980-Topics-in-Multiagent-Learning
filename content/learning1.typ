@@ -166,7 +166,7 @@ As of today, Regret Matching and its variants are still often some of the most p
 
 == The Regret Matching#super[+] (RM#super[+]) algorithm <sec-rmp>
 
-The Regret Matching#super[+] algorithm #citep(<Tammelin14:Solving>)#citep(<Tammelin15:Solving>) is given in @algo-rmp. It differs from RM only on the last line, where a further thresholding is added. That small change has the effect that actions with negative cumulated regret (that is, "bad" actions) are treated as actions with $0$ regret. Hence, intuitively, if a bad action were to become good over time, it would take less time for RM#super[+] to notice and act on that change.
+The Regret Matching#super[+] algorithm #citep(<Tammelin14:Solving>)#citep(<Tammelin15:Solving>) is given in @algo-rmp. It differs from RM only on the last line, where a further thresholding is added. That small change has the effect that actions with negative cumulated regret (that is, "bad" actions) are treated as actions with $0$ regret. Hence, intuitively, if a bad action were to become good over time, it would take less time for RM#super[+] to notice and act on that change (see @ex-rm-vs-rmp).
 Because of that, Regret Matching#super[+] has stronger practical performance and is often preferred over Regret Matching in the game solving literature.
 
 With a simple modification to the analysis of RM, the same bound as RM can be proven.
@@ -176,6 +176,25 @@ With a simple modification to the analysis of RM, the same bound as RM can be pr
   So again, if all the gradient vectors satisfy $norm(vg^((t)))_oo <= 1$ at all times $t$ then the regret satisfies $ "Reg"^((T)) <= 2 sqrt(T dot |A|). $
 
 ]
+
+#example[A bad action that becomes good][
+  Consider two actions and the following sequence of gradient vectors, in which the first action is bad for the first $T_0$ rounds and then becomes the best one:
+  $
+    vg^((t)) = vec(0, 1) quad "for" t <= T_0, qquad vg^((t)) = vec(1, 0) quad "for" t > T_0.
+  $
+  Both algorithms play the uniform strategy at time $1$ and only the second action from time $2$ to time $T_0$.
+  Under RM, each of these rounds decreases the cumulated regret of the first action by $1$, so that $r^((T_0))_1 = 1\/2 - T_0$. After the switch, the regret of the first action grows by $1$ per round, but RM keeps playing the second action until that regret becomes positive: it plays the first action with probability $1\/2$ at time $2T_0 + 1$, and with probability $1$ only from time $2T_0 + 2$ on.
+  RM#super[+] instead keeps the regret of the first action at $0$ throughout the first phase. It plays the first action with probability $2\/3$ at time $T_0 + 2$ and with probability $1$ from time $T_0 + 3$ on, no matter how long the first action was bad.
+
+  #figure(
+    image(
+      "figures/learning1/rm_vs_rmp.svg",
+      width: 100%,
+      alt: "Probability of the first action and its cumulated regret over time under RM and RM+; RM+ switches to the first action right after the switch, while RM waits until its negative regret is worked off.",
+    ),
+    caption: [Probability $x^((t))_1$ of the first action (left) and its cumulated regret $r^((t))_1$ (right) under RM and RM#super[+], with $T_0 = 50$ (dashed line).],
+  )
+] <ex-rm-vs-rmp>
 
 == Multiplicative weights update (MWU) <sec-mwu>
 
