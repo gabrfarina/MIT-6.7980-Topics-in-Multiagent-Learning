@@ -1,4 +1,5 @@
 #import "meta/gabri_notes.typ": *
+#import "meta/reference-solutions.typ": reference-solutions
 #show: gabri_notes.with(
   lec_num: 1,
   date: [Tue, Sep 15, 2026],
@@ -229,6 +230,283 @@ By invoking #lecture-link("brouwer", <sec-brouwer-general>)[Brouwer's fixed-poin
 #corollary[
   Since $phi$ is continuous and maps the nonempty compact convex set $Delta (A_1) times dots.h.c times Delta (A_n)$ into itself, by Brouwer's fixed point theorem, it has a fixed point. By @thm-nash-fixed-points, this implies that every game has (at least) one Nash equilibrium in mixed strategies.
 ] <cor-nash-existence>
+
+= Exercises <sec-nash-exercises>
+
+#exercise[Another Look at the Nash Improvement Function (10 points)][
+In this problem, we will go through Nash’s original proof to show that Nash equilibria are the fixed points of the improvement function.
+
+Recall the Nash improvement function discussed in class: given player strategies $x_1 in  Delta (A_1) \,  ...  \, x_n in  Delta (A_n)$, the Nash improvement function $phi : Delta (A_1) times  dots.h.c  times  Delta (A_n) ->  Delta (A_1) times  dots.h.c  times  Delta (A_n)$ is given by:
+
+$
+phi_(i \, a_i) (x_1 \,  ...  \, x_n):=
+frac(x_(i \, a_i)+[r_(i \, a_i) (x_1 \,  ...  \, x_n)]^+, 1+ sum_(a'_i in  A_i) [r_(i \, a'_i) (x_1 \,  ...  \, x_n)]^+)
+$
+
+for all player $i in [n]$ and action $a_i in  A_i$, where $[r]^+:= max {0 \, r}$ denotes the positive part of $r$ and
+
+$
+r_(i \, a_i) (x_1 \,  ...  \, x_n):=u_i (a_i \, x_(-i))-u_i (x_1 \,  ...  \, x_n)
+$
+
+is the expected regret that player $i$ experiences with respect to action $a_i in  A_i$.
+
+*Problem 1.1 (2 points).* Show that if $r_(i \, a_i) (x_1 \,  ...  \, x_n)>0$ for some player $i in [n]$ and action $a_i in  A_i$, then $phi_(i \, a_i) (x_1 \,  ...  \, x_n)>0$.
+
+#reference-solutions(title: [Show / hide solution to Problem 1.1])[
+#solution[Problem 1.1][
+Fix a player $i in [n]$ and an action $a_i in  A_i$ for which $r_(i \, a_i) (x_1 \,  ...  \, x_n)>0$.
+
+Because the regret is strictly positive, its positive part equals the regret itself:
+
+$
+[r_(i \, a_i) (x_1 \,  ...  \, x_n)]^+
+=r_(i \, a_i) (x_1 \,  ...  \, x_n)>0.
+$
+
+Also, $x_(i \, a_i) >= 0$, since it is a probability. Therefore the numerator defining $phi_(i \, a_i)$ is strictly positive:
+
+$
+x_(i \, a_i)+[r_(i \, a_i) (x_1 \,  ...  \, x_n)]^+>0.
+$
+
+Every positive-part term in the denominator is nonnegative, so
+
+$
+1+ sum_(a'_i in  A_i) [r_(i \, a'_i) (x_1 \,  ...  \, x_n)]^+ >= 1>0.
+$
+
+This denominator is finite because the game has finitely many actions and real-valued payoffs. Dividing the strictly positive numerator by the strictly positive denominator gives
+
+$
+phi_(i \, a_i) (x_1 \,  ...  \, x_n)>0.
+$
+
+This conclusion holds even when $x_(i \, a_i)=0$: an action with positive regret receives positive probability after the update.
+]
+]
+
+*Problem 1.2 (3 points).* Show that the expected regret player $i$ experiences satisfies
+
+$
+sum_(a_i in  A_i) r_(i \, a_i) (x_1 \,  ...  \, x_n) dot.op  x_(i \, a_i)=0.
+$
+
+#reference-solutions(title: [Show / hide solution to Problem 1.2])[
+#solution[Problem 1.2][
+Fix a player $i$ and a strategy profile $(x_1 \,  ...  \, x_n)$. When the other players' strategies $x_(-i)$ are fixed, player $i$'s current expected utility is the average of the utilities of its actions, weighted by its current action probabilities:
+
+$
+u_i (x_1 \,  ...  \, x_n)
+= sum_(a_i in  A_i) u_i (a_i \, x_(-i)) dot.op  x_(i \, a_i).
+$
+
+Here $u_i (a_i \, x_(-i))$ already averages over the other players' random choices. Averaging these quantities over player $i$'s own random choice gives its overall expected utility.
+
+Substituting the definition of regret and distributing the sum, we obtain
+
+$
+& sum_(a_i in  A_i) r_(i \, a_i) (x_1 \,  ...  \, x_n) dot.op  x_(i \, a_i)\
+
+&= sum_(a_i in  A_i)  (u_i (a_i \, x_(-i))-u_i (x_1 \,  ...  \, x_n)  ) dot.op  x_(i \, a_i)\
+
+&= sum_(a_i in  A_i) u_i (a_i \, x_(-i)) dot.op  x_(i \, a_i)
+- sum_(a_i in  A_i) u_i (x_1 \,  ...  \, x_n) dot.op  x_(i \, a_i)\
+
+&=u_i (x_1 \,  ...  \, x_n)-u_i (x_1 \,  ...  \, x_n) sum_(a_i in  A_i)x_(i \, a_i)\
+
+&=u_i (x_1 \,  ...  \, x_n)-u_i (x_1 \,  ...  \, x_n)\
+
+&=0.
+$
+
+In the third equality, the first sum is the expected-utility expression above, and $u_i (x_1 \,  ...  \, x_n)$ can be factored out of the second sum because it does not depend on the summation index $a_i$. The fourth equality uses $sum_(a_i in  A_i)x_(i \, a_i)=1$.
+
+Thus
+
+$
+sum_(a_i in  A_i) r_(i \, a_i) (x_1 \,  ...  \, x_n) dot.op  x_(i \, a_i)=0.
+$
+
+This identity holds at every strategy profile, whether or not it is a Nash equilibrium. It does not imply that every individual regret is zero or nonpositive: positive and negative contributions can cancel.
+]
+]
+
+Now, select any fixed point $(x_1^(*) \,  ...  \, x_n^(*))$ of function $phi$, i.e. such that $phi_(i \, a_i) (x_1^(*) \,  ...  \, x_n^(*))=x_(i \, a_i)^(*)$ for all players $i$ and action $a_i in  A_i$.
+
+*Problem 1.3 (5 points).* Show that the above results imply that, for any player $i in [n]$ and action $a_i in  A_i$,
+
+$
+r_(i \, a_i) (x_1^(*) \,  ...  \, x_n^(*)) <= 0.
+$
+
+Conclude that $(x_1^(*) \,  ...  \, x_n^(*))$ is a Nash equilibrium.
+
+★ Hint: for the sake of contradiction, assume $r_(i \, a_i) (x_1^(*) \,  ...  \, x_n^(*))>0$ for some player $i$ and action $a_i$. Under this assumption, demonstrate that there exists an alternative action $a'_i$ such that $phi_(i \, a'_i) (x_1^(*) \,  ...  \, x_n^(*))<x_(i \, a'_i)^(*)$.
+
+#reference-solutions(title: [Show / hide solution to Problem 1.3])[
+#solution[Problem 1.3][
+Let $(x_1^(*) \,  ...  \, x_n^(*))$ be a fixed point of $phi$. Thus, for every player $i$ and action $a_i in  A_i$,
+
+$
+phi_(i \, a_i) (x_1^(*) \,  ...  \, x_n^(*))=x_(i \, a_i)^(*).
+$
+
+We first show that no action has positive regret, following the hint.
+
+*Step 1: Assume that a positive regret exists.*
+
+Suppose, for a contradiction, that there are a player $i$ and an action $a_i in  A_i$ such that
+
+$
+r_(i \, a_i) (x_1^(*) \,  ...  \, x_n^(*))>0.
+$
+
+Problem 1.1 implies that $phi_(i \, a_i) (x_1^(*) \,  ...  \, x_n^(*))>0$. Since the profile is a fixed point,
+
+$
+x_(i \, a_i)^(*)= phi_(i \, a_i) (x_1^(*) \,  ...  \, x_n^(*))>0.
+$
+
+Consequently, this action contributes a strictly positive term to the probability-weighted regret sum:
+
+$
+r_(i \, a_i) (x_1^(*) \,  ...  \, x_n^(*)) dot.op  x_(i \, a_i)^(*)>0.
+$
+
+The fixed-point condition is essential here: positive regret alone does not imply that the original probability $x_(i \, a_i)^(*)$ is positive.
+
+*Step 2: Find an alternative action with negative regret and positive probability.*
+
+By Problem 1.2,
+
+$
+sum_(a'_i in  A_i) r_(i \, a'_i) (x_1^(*) \,  ...  \, x_n^(*)) dot.op  x_(i \, a'_i)^(*)=0.
+$
+
+The finite sum contains the strictly positive term identified in Step 1. If every other term were nonnegative, the sum would be strictly positive. Therefore there must be an alternative action $a'_i in  A_i$, distinct from $a_i$, satisfying
+
+$
+r_(i \, a'_i) (x_1^(*) \,  ...  \, x_n^(*)) dot.op  x_(i \, a'_i)^(*)<0.
+$
+
+Probabilities cannot be negative. Moreover, a zero probability would make this product zero. It follows that
+
+$
+x_(i \, a'_i)^(*)>0
+ quad quad upright("and") quad quad
+r_(i \, a'_i) (x_1^(*) \,  ...  \, x_n^(*))<0.
+$
+
+In particular,
+
+$
+[r_(i \, a'_i) (x_1^(*) \,  ...  \, x_n^(*))]^+=0.
+$
+
+*Step 3: Show that this alternative action's probability strictly decreases.*
+
+The assumed positive regret in Step 1 implies
+
+$
+sum_(a''_i in  A_i) [r_(i \, a''_i)(x_1^(*) \,  ...  \, x_n^(*))]^+>0.
+$
+
+Here $a''_i$ is simply a summation index ranging over all actions of player $i$. We use it to distinguish the sum from the particular alternative action $a'_i$ identified in Step 2.
+
+Substituting the zero positive-part regret for that alternative action into the update formula gives
+
+$
+phi_(i \, a'_i) (x_1^(*) \,  ...  \, x_n^(*))
+&=frac(x_(i \, a'_i)^(*)+[r_(i \, a'_i) (x_1^(*) \,  ...  \, x_n^(*))]^+, 1+ sum_(a''_i in  A_i) [r_(i \, a''_i)(x_1^(*) \,  ...  \, x_n^(*))]^+)\
+
+&=frac(x_(i \, a'_i)^(*), 1+ sum_(a''_i in  A_i) [r_(i \, a''_i)(x_1^(*) \,  ...  \, x_n^(*))]^+)\
+
+&<x_(i \, a'_i)^(*).
+$
+
+The final inequality is strict because the numerator $x_(i \, a'_i)^(*)$ is strictly positive and the denominator is strictly greater than $1$.
+
+But the fixed-point condition requires $phi_(i \, a'_i) (x_1^(*) \,  ...  \, x_n^(*))=x_(i \, a'_i)^(*)$. This is the desired contradiction. Hence our assumption that a positive regret exists is false, and
+
+$
+r_(i \, a_i) (x_1^(*) \,  ...  \, x_n^(*)) <= 0
+ quad upright("for every ")i in [n]upright(" and ")a_i in  A_i.
+$
+
+*Step 4: Verify the Nash condition, including mixed-strategy deviations.*
+
+The regret inequalities show that no player can improve its utility by switching to a pure action. To cover an arbitrary mixed-strategy deviation as well, fix a player $i$ and let $x'_i in  Delta (A_i)$ be any alternative strategy, with action probabilities $x'_(i \, a_i)$.
+
+By linearity of expected utility in player $i$'s strategy and the identity $sum_(a_i in  A_i)x'_(i \, a_i)=1$,
+
+$
+&u_i (x'_i \, x_(-i)^(*))-u_i (x_1^(*) \,  ...  \, x_n^(*))\
+
+&= sum_(a_i in  A_i) u_i (a_i \, x_(-i)^(*)) dot.op  x'_(i \, a_i)
+-u_i (x_1^(*) \,  ...  \, x_n^(*)) sum_(a_i in  A_i)x'_(i \, a_i)\
+
+&= sum_(a_i in  A_i)  (u_i (a_i \, x_(-i)^(*))-u_i (x_1^(*) \,  ...  \, x_n^(*))  ) dot.op  x'_(i \, a_i)\
+
+&= sum_(a_i in  A_i) r_(i \, a_i) (x_1^(*) \,  ...  \, x_n^(*)) dot.op  x'_(i \, a_i)\
+
+& <= 0.
+$
+
+Each term in the final sum is nonpositive because $r_(i \, a_i) (x_1^(*) \,  ...  \, x_n^(*)) <= 0$ and $x'_(i \, a_i) >= 0$. Therefore, for every player $i$ and every alternative mixed strategy $x'_i$,
+
+$
+u_i (x'_i \, x_(-i)^(*)) <=  u_i (x_1^(*) \,  ...  \, x_n^(*)).
+$
+
+No player benefits from a unilateral deviation. This is exactly the definition of a Nash equilibrium, so $(x_1^(*) \,  ...  \, x_n^(*))$ is a Nash equilibrium.
+]
+]
+
+*Problem 1.4 (Supplementary; ungraded).* Prove the converse: if $(x_1 \,  ...  \, x_n)$ is a Nash equilibrium, then it is a fixed point of $phi$. Together with Problem 1.3, conclude that
+
+$
+phi (x_1 \,  ...  \, x_n)=(x_1 \,  ...  \, x_n)
+ quad  <=>  quad
+(x_1 \,  ...  \, x_n)upright(" is a Nash equilibrium").
+$
+#reference-solutions(title: [Show / hide solution to Problem 1.4])[
+#solution[Problem 1.4][
+Suppose $(x_1 \,  ...  \, x_n)$ is a Nash equilibrium. Fix any player $i$ and action $a_i in  A_i$. Switching to the pure action $a_i$ is an allowed unilateral deviation, so the Nash condition implies
+
+$
+u_i (a_i \, x_(-i)) <=  u_i (x_1 \,  ...  \, x_n).
+$
+
+Subtracting the current utility from both sides yields
+
+$
+r_(i \, a_i) (x_1 \,  ...  \, x_n)
+=u_i (a_i \, x_(-i))-u_i (x_1 \,  ...  \, x_n) <= 0.
+$
+
+Hence $[r_(i \, a_i) (x_1 \,  ...  \, x_n)]^+=0$ for every player and action. Substituting into the improvement function gives
+
+$
+phi_(i \, a_i) (x_1 \,  ...  \, x_n)
+&=frac(x_(i \, a_i)+[r_(i \, a_i) (x_1 \,  ...  \, x_n)]^+, 1+ sum_(a'_i in  A_i) [r_(i \, a'_i) (x_1 \,  ...  \, x_n)]^+)\
+
+&=frac(x_(i \, a_i)+0, 1+0)\
+
+&=x_(i \, a_i).
+$
+
+Every coordinate is unchanged, so $phi (x_1 \,  ...  \, x_n)=(x_1 \,  ...  \, x_n)$. Thus every Nash equilibrium is a fixed point. Together with Problem 1.3, this proves
+
+$
+phi (x_1 \,  ...  \, x_n)=(x_1 \,  ...  \, x_n)
+ quad  <=>  quad
+(x_1 \,  ...  \, x_n)upright(" is a Nash equilibrium").
+$
+]
+]
+
+] <ex-nash-fixed-points-alternative>
 
 = Bibliography for this lecture
 
