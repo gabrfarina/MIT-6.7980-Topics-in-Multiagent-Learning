@@ -8,6 +8,14 @@
 
 Normal-form games model simultaneous-move interactions with a single move (think about rock-paper-scissors). Despite their simplicity, normal-form games will provide a natural ground for looking into important concepts in multiagent settings, such as notions of equilibria (Nash, maxmin, correlated, $...$), and learning from repeated play. In the second part of the course, we will move on to notions of games that explicitly capture more complex phenomena, such as sequential moves and imperfect information.
 
+*What is a game?* Games are thought experiments that help us _predict rational behavior in situations of conflict_. Each part of this phrase has a specific meaning:
+
+- _Situation of conflict:_ every player's actions affect the outcomes of the others.
+- _Rational behavior:_ each player wants to maximize their own expected utility. There is no altruism, envy, masochism, or externality.
+- _Predict:_ we want to know what happens when the game is played. Such predictions are called _solution concepts_. The Nash equilibrium, which is the focus of this lecture, is the most prominent one.
+
+Many situations are able to be modeled as games. Besides recreational games such as rock-paper-scissors, poker, Go, and Diplomacy, game-theoretic models apply to auctions, markets, logistics, budget allocation, generative adversarial networks, multi-robot interactions, fraud detection systems, cyber-defense, and agentic AI.
+
 = Normal-form games and the Nash equilibrium <sec-normal-form>
 
 When introducing a (finite) normal-form game, we need to specify the following quantities:
@@ -102,6 +110,12 @@ Before continuing, we consider two examples that help illustrate a couple of imp
   This game has two obvious Nash equilibria: Player 1 insisting and Player 2 accepting, or vice versa (top right and bottom left corners). However, there is a third equilibrium as well: both players accept with probability 1/6 and insist with probability 5/6.
 
   This is not a coincidence: in two-player nondegenerate games, there is always an _odd_ number of Nash equilibria. This fact comes from more profound connections with some combinatorial objects that we will uncover quite soon.
+]
+
+#remark[
+  All the games considered above are _one-shot games of complete information_. _Complete information_ means that the players know everything about each other's payoffs. _One-shot_ means that the players meet for a single interaction, with no stages or sequential decisions.
+
+  One-shot games are also meant to model repeated occurrences of the same conflict, provided there are no strategic correlations between occurrences. If such correlations exist, we leave the realm of one-shot games and enter that of _repeated games_. 
 ]
 
 = Existence of mixed-strategy Nash equilibrium <sec-nash-existence>
