@@ -212,7 +212,72 @@ In games with more than two players, the behavior of Nash equilibria can be even
 ]
 
 #proof[
-  Homework.
+  We know from Lecture 1 that a Nash equilibrium is guaranteed to exist, so we begin by considering the pure-strategy profiles. Checking all 8 possible pure-strategy combinations reveals that, in every case, at least one player can unilaterally deviate and increase their payoff. For example, if the players choose ("Top","Left","Action X"). Player 2 can deviate from Left to Right and increase their payoff from 0 to 2, so this profile cannot be a Nash equilibrium. The same reasoning applies to all 8 pure-strategy profiles.
+  
+  Since a Nash equilibrium is guaranteed to exist, but no pure-strategy equilibrium exists, the equilibrium must therefore involve mixed strategies. Let Player 1 play Top with probability x, Player 2 play Left with probability y, and Player 3 play Action X with probability z.
+  
+  For a mixed-strategy Nash equilibrium, each player must be indifferent between the pure actions. In other words, given the mixing probabilities of other players, the expected payoff from each of a player's available actions must be equal. Otherwise, the player could unilaterally deviate to one action to increase their expected payoff. We therefore set the expected payoffs from each player's two actions equal and solve the resulting system of equations for x, y, and z.
+
+  Player 1:
+  $
+    u_1("Top") = 3"yz" + y(1-z)
+  $
+  $
+    u_1("Bottom") = (1-y)z + 2(1-y)(1-z)
+  $
+  Equating $u_1("Top") = u_1("Bottom")$ and simplifying yields:
+  $
+    "yz" + 3y + z - 2 = 0
+  $
+
+  Player 2:
+  $
+    u_2("Left") = z(1-x) + 3(1-z)(1-x) = (1-x)(3-2z)
+  $
+  $
+    u_2("Right") = z(2x) + x(1-z) = x(1+z)
+  $
+  Equating $u_2("Left") = u_2("Right")$ and simplifying yields:
+  $
+    "xz" - 4x - 2z + 3 = 0
+  $
+
+  Player 3:
+  $
+    u_3("Action X") = 2"xy"
+  $
+  $
+    u_3("Action Y") = 3(1-x)(1-y)
+  $
+  Equating $u_3("Action X") = u_3("Action Y")$ and simplifying yields:
+  $
+    "xy" - 3x - 3y + 3 = 0
+  $
+
+  Solving the System of Equations:
+
+  From Player 2's equation:
+  $z = (4x-3)/(x-2)$
+
+  From Player 3's equation:
+  $y = (3x-3)/(x-3)$
+
+  Substituting these expressions into Player 1's equation:
+  $
+    ((3x-3)/(x-3))((4x-3)/(x-2)) + 3((3x-3)/(x-3)) + (4x-3)/(x-2) - 2 = 0
+  $
+  This simplifies to:
+  $
+    23x^2 - 53x + 24 = 0
+  $
+
+  Using the quadratic formula to solve for $x$ gives:
+  $
+    x = (53 - sqrt(601))/46 approx 0.619
+  $
+  Substituting this irrational value of $x$ back into the expressions for $y$ and $z$ produces:
+  $y = (-13 + sqrt(601))/24 approx 0.480$
+  and $z = (-23 + sqrt(601))/4 approx 0.379$
 ]
 
 #remark[
@@ -274,6 +339,58 @@ Hence, the set of CCEs is the intersection of a finite set of linear constraints
 
 It is worth knowing that a CCE can also be computed in polynomial time in imperfect-information sequential games, despite the number of "actions" there, which is the number of strategies in the tree, is exponential in the input. Unfortunately, we lose the ability to optimize over the set.
 
+#exercise[Marginals of CCE in Two-Player Zero-Sum Games][
+  Consider a two-player zero-sum game. Let $mu in Delta(A_1 times A_2)$ be a coarse correlated equilibrium (CCE). Let $x in Delta(A_1)$ and $y in Delta(A_2)$ be the marginal strategies of $mu$, defined by:
+
+  $
+    x(a_1) = sum_(a_2 in A_2) mu(a_1, a_2) quad "and" quad y(a_2) = sum_(a_1 in A_1) mu(a_1, a_2).
+  $
+  Prove that the strategy profile $(x, y)$ is a Nash equilibrium, and therefore $x$ and $y$ are maxmin strategies. Furthermore, contrast this with marginalization in general-sum games.
+]
+
+#solution[
+  Let $v$ be the expected utility of Player 1 under the joint CCE distribution $mu$. Because the game is zero-sum, Player 2's expected utility under $mu$ is $-v$. By the definition of a CCE, Player 1 cannot strictly improve their expected utility by unilaterally deviating to any fixed action $a_1 ' in A_1$. We can write Player 1's expected utility for this deviation as:
+
+  $
+    & sum_(a_1 in A_1) sum_(a_2 in A_2) mu(a_1, a_2) u_1(a_1 ', a_2) <= v\
+    <=> quad & sum_(a_2 in A_2) [sum_(a_1 in A_1) mu(a_1, a_2)] u_1(a_1 ', a_2) <= v\
+    <=> quad & sum_(a_2 in A_2) y(a_2) u_1(a_1 ', a_2) <= v.
+  $
+
+  This is exactly the expected utility for Player 1 playing $a_1 '$ against Player 2's marginal strategy $y$. Therefore,
+
+  $
+    u_1(a_1 ', y) <= v quad forall a_1 ' in A_1.
+  $
+
+  Similarly, the CCE definition ensures Player 2 cannot improve from $-v$ by deviating to any $a_2 ' in A_2$. So,
+  $
+    u_2(x, a_2 ') <= -v quad forall a_2 ' in A_2.
+  $
+
+  Substituting $u_2 = -u_1$, this becomes
+
+  $
+    u_1(x, a_2 ') >= v quad forall a_2 ' in A_2.
+  $
+
+  Combining both bounds, we see that for any pure responses $a_1 '$ and $a_2 '$,
+
+  $
+    u_1(a_1 ', y) <= v <= u_1(x, a_2 ').
+  $
+
+  This forces $u_1(x, y) = v$. More importantly, it demonstrates that $x$ and $y$ are mutual best responses. If Player 2 plays $y$, Player 1 is capped at $v$ and cannot do better than playing $x$. If Player 1 plays $x$, Player 2 cannot do better than playing $y$. Thus, $(x, y)$ is a Nash equilibrium.
+
+  *Marginalization in general-sum games*
+
+  In a coarse correlated equilibrium (CCE), a trusted mediator draws from a joint distribution and privately recommends actions to each player. In general-sum games, this joint distribution is essential because it allows players to coordinate and avoid mutually bad outcomes.
+
+  When you marginalize a CCE, you remove this coordination and force players to randomize independently. Because the players are now acting blindly relative to one another, the risk of uncoordinated, mutual bad outcomes increases. Consequently, players gain new incentives to unilaterally deviate to protect themselves, meaning the marginal strategies no longer form a Nash equilibrium. 
+
+  In contrast, two-player zero-sum games have perfectly opposed interests, with $U_2 = -U_1$. As shown above, the marginal strategies form a Nash equilibrium and satisfy the maximin conditions. Intuitively, in this case there are no mutually beneficial outcomes that require coordination through the joint distribution. Thus, removing the correlation does not introduce new incentives to deviate, allowing the marginal strategies to retain their equilibrium properties.
+]
+
 == Correlated equilibrium <sec-ce>
 
 The concept of _correlated equilibrium_ is an intermediate relaxation between Nash equilibrium and coarse correlated equilibrium.
@@ -290,11 +407,68 @@ The concept of _correlated equilibrium_ is an intermediate relaxation between Na
 
 #remark[
   A CCE is a relaxation of a CE, whereby the functions $phi.alt_i$ considered are only _constant_ functions. Furthermore, it is not hard to show from expanding the definition that any Nash equilibrium is a CE. Thus, the set of CEs is a superset of the set of Nash equilibria and a subset of the set of CCEs.
-]
+]<rem-ce-subset-cce>
 
 All remarks made about the computation of CCEs in normal-form games apply to CEs as well. In particular, the set of CEs is a convex polytope, and a CE can be computed in polynomial time using linear programming.
 
 However, the remark about computation in imperfect-information sequential games does not apply to CEs. Whether a CE can be computed efficiently in such games is an open question in the field. Some mild evidence suggests that the problem might be hard. Intuitively, the issue is that the number of functions $phi.alt$ in those games might be too large to control.
+
+#exercise[Equivalence of CE and CCE for two-action games][
+  Prove that if every player has exactly two actions, the set of coarse correlated equilibrium (CCE) and correlated equilibrium (CE) coincide.
+]
+
+#solution[
+  Let the action space for player $i$ be $A_i = {x, y}$. We must show that CE $subset.eq$ CCE, and conversely, CCE $subset.eq$ CE for two-action games.
+
+  *Every CE is a CCE.*
+  
+  From @rem-ce-subset-cce we know that CE $subset.eq$ CCE for all games.
+
+  *Every CCE is a CE when $|A_i| = 2$.*
+
+  Let $mu$ be a CCE. So,
+  $
+    E_((a_1, dots, a_n) tilde mu) [u_i (a_i', a_(-i))] <= E_((a_1, dots, a_n) tilde mu) [u_i (a_i, a_(-i))]
+  $
+
+  must hold for any fixed deviation. Consider a unilateral deviation by player $i$ to always play $x$. Expanding the expectation over the possible recommended actions $a_i in {x, y}$ gives:
+
+  $
+    sum_(a_(-i)) mu(x, a_(-i)) u_i (x, a_(-i)) + sum_(a_(-i)) mu(y, a_(-i)) u_i (x, a_(-i))\
+    <= sum_(a_(-i)) mu(x, a_(-i)) u_i (x, a_(-i)) + sum_(a_(-i)) mu(y, a_(-i)) u_i (y, a_(-i))
+  $
+
+  Subtracting the common term $sum_(a_(-i)) mu(x, a_(-i)) u_i (x, a_(-i))$ from both sides:
+
+  #set math.equation(numbering: "(1)")
+  $
+    sum_(a_(-i)) mu(y, a_(-i)) u_i (x, a_(-i)) <= sum_(a_(-i)) mu(y, a_(-i)) u_i (y, a_(-i))
+  $ <eq:ce-cce-dev-x>
+
+  Similarly, consider a unilateral deviation to always play $y$. Expanding the CCE expectation and simplifying gives:
+
+  $
+    sum_(a_(-i)) mu(x, a_(-i)) u_i (y, a_(-i)) <= sum_(a_(-i)) mu(x, a_(-i)) u_i (x, a_(-i))
+  $ <eq:ce-cce-dev-y>
+  #set math.equation(numbering: none)
+
+  To prove $mu$ is a CE, we must show that the CE inequality holds for all possible functions $phi_i: A_i -> A_i$. Since $A_i = {x, y}$, there are exactly four such functions:
+
+  1. *Always deviate to $x$ or always deviate to $y$* ($phi_i (a_i) = x$ or $phi_i (a_i) = y$): These are satisfied because $mu$ is a CCE.
+
+  2. *Identity* ($phi_i (a_i) = a_i$): This trivially holds as an equality since the expected payoffs remain completely unchanged.
+
+  3. *Swap* ($phi_i (x) = y$ and $phi_i (y) = x$): The expected utility of swapping recommended actions must not exceed the expected utility of playing the recommendations. The required CE inequality for the swap function is:
+
+  $
+    sum_(a_(-i)) mu(x, a_(-i)) u_i (y, a_(-i)) + sum_(a_(-i)) mu(y, a_(-i)) u_i (x, a_(-i))\
+    <= sum_(a_(-i)) mu(x, a_(-i)) u_i (x, a_(-i)) + sum_(a_(-i)) mu(y, a_(-i)) u_i (y, a_(-i))
+  $
+
+  This expression is exactly the sum of inequalities (@eq:ce-cce-dev-x) and (@eq:ce-cce-dev-y). Since both inequalities are true by the assumption that $mu$ is a CCE, their sum must also hold.
+
+  Because all four possible modification functions satisfy the CE requirement, $mu$ is a CE.
+]
 
 == How to think about correlated play in games
 
