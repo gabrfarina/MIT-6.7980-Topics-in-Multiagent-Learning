@@ -1,0 +1,100 @@
+name: Course HTML review
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Existing open PR to build and compare
+        required: true
+        type: string
+  pull_request:
+    types: [opened, synchronize, reopened]
+permissions:
+  contents: read
+  pull-requests: read
+concurrency:
+  group: course-html-${{ github.event.pull_request.number || inputs.pr_number }}
+  cancel-in-progress: true
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          path: tooling
+          persist-credentials: false
+      - name: Resolve current PR
+        id: pr
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 tooling/scripts/pr_checks/resolve.py
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: refs/pull/${{ steps.pr.outputs.pr_number }}/head
+          path: proposed
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - name: Cache compiler dependencies
+        id: compiler-cache
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ${{ runner.temp }}/course-cargo
+          key: course-html-v1-${{ runner.os }}-${{ hashFiles('tooling/html-exporter/Cargo.lock') }}
+      - name: Install fixed browser and rendering tools
+        run: |
+          echo 'ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true' | sudo debconf-set-selections
+          sudo apt-get update -qq
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y ttf-mscorefonts-installer poppler-utils
+          python -m pip install -r tooling/scripts/visual_preview/requirements.txt
+          npm ci --ignore-scripts --prefix tooling/scripts/pr_checks
+          cd tooling/scripts/pr_checks
+          npx playwright install --with-deps chromium
+          curl -fsSL https://github.com/typst/typst/releases/download/v0.15.1/typst-x86_64-unknown-linux-musl.tar.xz -o /tmp/typst.tar.xz
+          tar -xJf /tmp/typst.tar.xz -C /tmp
+          echo /tmp/typst-x86_64-unknown-linux-musl >> "$GITHUB_PATH"
+      - name: Check review tooling
+        run: |
+          python -m unittest discover -s tooling/scripts/pr_checks -p 'test_*.py'
+          node --test tooling/scripts/pr_checks/test_math.cjs
+          node --test tooling/scripts/pr_checks/test_browser.cjs
+      - name: Build, audit and compare HTML
+        env:
+          BASE_SHA: ${{ steps.pr.outputs.base_sha }}
+          HEAD_SHA: ${{ steps.pr.outputs.head_sha }}
+          PR_NUMBER: ${{ steps.pr.outputs.pr_number }}
+          PR_CARGO_TARGET: ${{ runner.temp }}/course-cargo
+        run: python tooling/scripts/pr_checks/html_review.py --checkout proposed --base "$BASE_SHA" --head "$HEAD_SHA" --pr "$PR_NUMBER" --output review
+      - name: Save reports, screenshots and logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: course-pr-review
+          path: |
+            review/report.json
+            review/summary.md
+            review/*.log
+            review/*.png
+            review/browser/
+            review/work-before/html/
+            review/work-after/html/
+          retention-days: 14
+          if-no-files-found: error
+      - name: Save compiler cache even when content checks fail
+        if: always() && steps.compiler-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ${{ runner.temp }}/course-cargo
+          key: ${{ steps.compiler-cache.outputs.cache-primary-key }}

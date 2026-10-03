@@ -14,6 +14,7 @@
 !/docs/
 !/slides/
 !/.vscode/
+!/.github/
 # Publish configured course slides, while keeping editable deck sources private.
 /slides/*
 !/slides/L00_course_intro.pdf
@@ -24,9 +25,11 @@
 !/slides/L04_learning_in_games.html
 !/slides/L05_learning_in_games.pdf
 !/slides/L05_learning_in_games.html
+!/slides/L06_bandit.pdf
 
 # Build products, editor state, and local secrets.
 **/target/
+**/node_modules/
 **/__pycache__/
 **/*.pyc
 **/.DS_Store

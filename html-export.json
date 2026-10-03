@@ -17,7 +17,8 @@
     "brouwer": "slides/L02_sperner.pdf",
     "nash-properties": "slides/L03_nash_properties.pdf",
     "learning-foundations": "slides/L04_learning_in_games.pdf",
-    "learning-algorithms": "slides/L05_learning_in_games.pdf"
+    "learning-algorithms": "slides/L05_learning_in_games.pdf",
+    "bandit": "slides/L06_bandit.pdf"
   },
   "interactive_slides": {
     "learning-foundations": "slides/L04_learning_in_games.html",
