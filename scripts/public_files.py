@@ -44,6 +44,18 @@ def interactive_slide_output(source: str) -> str:
     return 'slides/' + Path(source).name
 
 
+def interactive_page_output(source: str) -> str:
+    if (not isinstance(source, str) or Path(source).suffix.lower() != '.html'
+            or Path(source).parent != Path('interactive')):
+        raise ValueError(f'Configured interactive pages must be standalone interactive/*.html: {source!r}')
+    return 'interactive/' + Path(source).name
+
+
+def standalone_sources(config: dict) -> set[str]:
+    """Published HTML that must embed its assets: interactive slides and pages."""
+    return set(config.get('interactive_slides', {}).values()) | set(config.get('interactive_pages', {}).values())
+
+
 class StandaloneSlides(HTMLParser):
     """Check standalone assets and keep private speaker notes out of published slides."""
     def __init__(self):
@@ -122,10 +134,14 @@ def copied_files(config: dict) -> dict[str, str]:
     files = {'assets/course/' + name: source for name, source in COURSE_FIGURES.items()}
     owners = {}
     for field, output_name in (('slides', slide_output),
-                               ('interactive_slides', interactive_slide_output)):
+                               ('interactive_slides', interactive_slide_output),
+                               ('interactive_pages', interactive_page_output)):
         slides = config.get(field, {})
         if not isinstance(slides, dict):
-            raise ValueError(f'{field} must map stable lecture IDs to source paths.')
+            raise ValueError(f'{field} must map stable IDs to source paths.')
+        if field == 'interactive_pages' and (bad := [key for key in slides if not isinstance(key, str)
+                                                     or not re.fullmatch(r'[a-z][a-z0-9-]*', key)]):
+            raise ValueError('Invalid interactive page IDs: ' + ', '.join(map(repr, bad)))
         for source in slides.values():
             output = output_name(source)
             key = output.casefold()
@@ -184,13 +200,13 @@ def validate_inputs(config: dict, modules: list[dict], root: Path) -> None:
         result = subprocess.run(['pdfinfo', str(root / source)], capture_output=True, text=True)
         if result.returncode:
             raise ValueError(f'Invalid slide PDF: {source}\n{result.stderr.strip()}')
-    for source in set(config.get('interactive_slides', {}).values()):
+    for source in standalone_sources(config):
         validate_standalone_slide(root / source)
 
 
 def copy_public_files(config: dict, root: Path, destination: Path) -> None:
     # Recheck at the copy boundary even if a caller skipped validate_inputs.
-    for source in set(config.get('interactive_slides', {}).values()):
+    for source in standalone_sources(config):
         validate_standalone_slide(root / source)
     for output, source in copied_files(config).items():
         target = destination / output
