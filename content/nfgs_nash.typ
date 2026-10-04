@@ -1,4 +1,5 @@
 #import "meta/gabri_notes.typ": *
+#import "meta/reference-solutions.typ": reference-solutions
 #show: gabri_notes.with(
   lec_num: 1,
   date: [Tue, Sep 15, 2026],
@@ -229,6 +230,225 @@ By invoking #lecture-link("brouwer", <sec-brouwer-general>)[Brouwer's fixed-poin
 #corollary[
   Since $phi$ is continuous and maps the nonempty compact convex set $Delta (A_1) times dots.h.c times Delta (A_n)$ into itself, by Brouwer's fixed point theorem, it has a fixed point. By @thm-nash-fixed-points, this implies that every game has (at least) one Nash equilibrium in mixed strategies.
 ] <cor-nash-existence>
+
+= Computing maxmin strategies with linear programming <sec-maxmin-lp>
+
+#exercise[Maxmin Strategies as Linear Programs][
+Consider a two-player finite normal-form game. Let Player 1 have actions $A_1={1,dots,m}$ and Player 2 have actions $A_2={1,dots,n}$, and let $M in RR^(m times n)$ denote Player 1's payoff matrix. Thus, if Player 1 uses a mixed strategy $vx in Delta(A_1)$ and Player 2 chooses pure action $j$, Player 1's expected payoff is
+$
+sum_(i=1)^m x_i M_(i j).
+$
+
+Recall that a maxmin strategy for Player 1 maximizes the payoff that Player 1 can guarantee regardless of Player 2's strategy.
+
+*Problem 1: Maxmin as a linear program.* Introduce a variable $v$ representing the payoff that Player 1 can guarantee. Show that computing a maxmin strategy for Player 1 is equivalent to the linear program
+$
+max_(vx,v) quad v
+$
+subject to
+$
+sum_(i=1)^m x_i M_(i j) >= v
+quad "for every " j in A_2,
+$
+$
+sum_(i=1)^m x_i=1,
+quad
+x_i >= 0
+quad "for every " i in A_1.
+$
+
+Explain why it is sufficient to impose one payoff constraint for each *pure* action of Player 2, even though the definition of a maxmin strategy allows Player 2 to use an arbitrary mixed strategy.
+
+*Problem 2: Theater or football.* Consider the theater-or-football game:
+#align(center)[
+#table(
+  columns: (auto, auto, auto),
+  align: center,
+  inset: 6pt,
+  stroke: 0.4pt + luma(170),
+  table.header([*Player 1 / Player 2*], [*insist*], [*accept*]),
+  [*insist*], [$(0,0)$], [$(5,1)$],
+  [*accept*], [$(1,5)$], [$(0,0)$],
+)
+]
+
+Let $p$ be the probability that Player 1 plays *insist*, so that Player 1 plays *accept* with probability $1-p$.
+
+1. Write Player 1's maxmin problem as a linear program in the variables $p$ and $v$.
+2. Plot the feasible region in the $(p,v)$ plane.
+3. Find the optimal value $v^*$ and an optimal maxmin strategy for Player 1.
+4. Compare the maxmin strategy you found with Player 1's strategy in the mixed Nash equilibrium of the theater-or-football game. Are they the same?
+] <ex-maxmin-lp>
+
+#reference-solutions[
+== Detailed solutions
+
+#solution[Problem 1][
+Let $vx in Delta(A_1)$ be Player 1's mixed strategy. If Player 2 chooses pure action $j$, Player 1 obtains expected payoff
+$
+u_1(vx,j)
+=
+sum_(i=1)^m x_i M_(i j).
+$
+
+Suppose Player 1 wants to guarantee payoff at least $v$. Then this payoff must be at least $v$ regardless of which action Player 2 chooses. Therefore we require
+$
+sum_(i=1)^m x_i M_(i j) >= v
+quad
+"for every " j in A_2.
+$
+
+Player 1's probabilities must also form a valid mixed strategy:
+$
+sum_(i=1)^m x_i=1,
+quad
+x_i >= 0
+quad
+"for every "i.
+$
+
+Thus Player 1 can compute a maxmin strategy by solving
+$
+max_(vx,v) quad v
+$
+subject to
+$
+sum_(i=1)^m x_i M_(i j) >= v
+quad
+"for every "j in A_2,
+$
+$
+sum_(i=1)^m x_i=1,
+quad
+x_i >= 0.
+$
+
+The objective and all constraints are linear in the variables $vx$ and $v$, so this is a linear program.
+
+It remains to explain why constraints against pure actions of Player 2 suffice. Let $vy in Delta(A_2)$ be any mixed strategy of Player 2. Then
+$
+u_1(vx,vy)
+=
+sum_(j=1)^n y_j u_1(vx,j).
+$
+
+If every pure-action payoff satisfies
+$
+u_1(vx,j) >= v,
+$
+then
+$
+u_1(vx,vy)
+=
+sum_(j=1)^n y_j u_1(vx,j)
+>=
+sum_(j=1)^n y_j v
+=
+v.
+$
+
+Thus satisfying the constraint against every pure action automatically guarantees the same payoff against every mixed strategy.
+
+Conversely, pure strategies are themselves mixed strategies, so any guarantee against all mixed strategies must in particular hold against every pure strategy. Hence the linear program computes exactly the maxmin value.
+]
+
+#solution[Problem 2][
+Let $p$ be the probability that Player 1 plays *insist*. Then $1-p$ is the probability of *accept*.
+
+If Player 2 plays *insist*, Player 1's expected payoff is
+$
+0 p + 1(1-p)=1-p.
+$
+
+If Player 2 plays *accept*, Player 1's expected payoff is
+$
+5p + 0(1-p)=5p.
+$
+
+Therefore Player 1's maxmin linear program is
+$
+max_(p,v) quad v
+$
+subject to
+$
+v <= 1-p,
+$
+$
+v <= 5p,
+$
+$
+v >= 0,
+$
+$
+0 <= p <= 1.
+$
+
+The feasible region consists of the points lying below both lines
+$
+v=1-p
+quad "and" quad
+v=5p,
+$
+with $0 <= p <= 1$.
+
+Since the objective is to maximize $v$, we move upward in the feasible region until reaching its highest point. The optimum occurs where the two binding constraints intersect:
+$
+1-p=5p.
+$
+
+Therefore
+$
+6p=1,
+$
+so
+$
+p^*=frac(1,6).
+$
+
+Substituting into either constraint,
+$
+v^*
+=
+5p^*
+=
+frac(5,6).
+$
+
+Thus Player 1's maxmin strategy is
+$
+vx_1^*
+=
+(frac(1,6),frac(5,6)),
+$
+where the coordinates correspond to *(insist, accept)*.
+
+Under this strategy, Player 1 receives exactly $5/6$ whether Player 2 plays *insist* or *accept*:
+$
+1-frac(1,6)=frac(5,6),
+quad
+5 dot frac(1,6)=frac(5,6).
+$
+
+Hence Player 1 guarantees a payoff of $5/6$.
+
+The feasible region can be visualized as the intersection of the half-planes below $v=1-p$ and $v=5p$, together with $0 <= p <= 1$. The optimal point is
+$
+(p^*,v^*)
+=
+(frac(1,6),frac(5,6)).
+$
+#align(center)[
+  #image(
+    "figures/nfgs_nash/maxmin_theater_football.svg",
+    width: 25%,
+  )
+]
+
+Finally, this maxmin strategy is *not* the same as Player 1's strategy in the mixed Nash equilibrium. In the mixed Nash equilibrium, Player 1 plays *insist* with probability $5/6$ and *accept* with probability $1/6$. In contrast, the maxmin strategy plays *insist* with probability $1/6$.
+
+This illustrates that outside two-player zero-sum games, a maxmin strategy need not coincide with a Nash-equilibrium strategy. The maxmin strategy optimizes against the worst possible behavior of the opponent, whereas a Nash strategy is chosen as a best response to the opponent's equilibrium behavior.
+]
+]
 
 = Bibliography for this lecture
 
