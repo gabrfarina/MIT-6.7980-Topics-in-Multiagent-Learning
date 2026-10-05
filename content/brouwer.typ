@@ -340,13 +340,15 @@ The grid has about $N^2 = 2^(2 m)$ points, but the bound is about $N$, not $N^2$
 
 == Numbers ($w = 12$)
 
+// The zero-width spaces (\u{200b}) let the two longest numbers wrap on phone
+// screens in the HTML notes, where the table would otherwise be wider than the page.
 #table(
   columns: 4,
   align: (left, right, right, right),
   table.header([], [$N$], [diagonal squares $K$], [lower bound $ceil((K-2) \/ 4)$]),
   [Game, medium grid (77 × 77 points)], [76], [6], [1 (trivial)],
   [$m = 20$], [1,048,575], [87,380], [21,845],
-  [$m = 40$], [≈ 1.1 trillion], [91,625,968,980], [22,906,492,245],
+  [$m = 40$], [≈ 1.1 trillion], [91,625,\u{200b}968,980], [22,906,\u{200b}492,245],
 )
 
 On a screen-sized grid the bound says almost nothing. It only grows large because it doubles with every bit.
