@@ -278,6 +278,36 @@ In games with more than two players, the behavior of Nash equilibria can be even
 
 If one is willing to stomach a worst-case superpolynomial runtime, some methods exist. While the Lemke-Howson algorithm cannot be used beyond two-player games, other methods (such as #citep(<Porter2008Jul>)) still apply.
 
+@tab-nash-summary summarizes how the properties of Nash equilibria change across the three classes of games studied in this section.
+
+#figure(
+  kind: table,
+  supplement: [Table],
+  caption: [Properties of Nash equilibria across the classes of games studied in this section.],
+)[
+  #set par(justify: false)
+  #set text(hyphenate: false)
+  #table(
+    stroke: none,
+    columns: (auto, 1fr, 1fr, 1fr),
+    align: left + top,
+    inset: .6em,
+    table.header([], [*Computational*], [*Algebraic*], [*Topological*]),
+    [*Two-player \ zero-sum*],
+    [Polynomial time via linear programming (#ref(label("thm:nash is mm"), supplement: [Thm.]))],
+    [A rational equilibrium exists for rational payoffs (@cor-two-player-rational[Cor.])],
+    [Convex and compact, a product of maxmin sets (#ref(label("cor:nash product"), supplement: [Cor.]), @cor-nash-convex[Cor.])],
+    [*Two-player \ general-sum*],
+    [A linear complementarity problem; Lemke-Howson is not polynomial-time in the worst case],
+    [A rational equilibrium exists for rational payoffs (@cor-two-player-rational[Cor.])],
+    [Can be non-convex, and even non-contractible (@rem-kohlberg-mertens[Rem.])],
+    [*More than \ two players*],
+    [Hard even to approximate],
+    [May require irrational numbers (@ex-irrational-nash[Ex.]), and even arbitrary algebraic numbers (@rem-nash-universality[Rem.])],
+    [Fully mixed equilibria can be isomorphic to any real algebraic variety (@rem-nash-universality[Rem.])],
+  )
+] <tab-nash-summary>
+
 = Correlated and coarse correlated equilibrium
 
 The discussion above shows that Nash equilibria can be hard to compute and might not form a convex (or even contractible) set. This motivates the study of _correlated equilibria_ #citep(<Aumann1974Mar>) and _coarse correlated equilibria_ #citep(<moulin1978strategically>), which are a relaxation of Nash equilibria that are easier to compute, always form a convex set, and for which rational solutions always exist when the payoffs are rational. As we will show starting in a few lectures, another major advantage of correlated equilibria is that they can be learned from repeated play, in a way that is fundamentally incompatible with Nash equilibria.#footnote[A paradigm that has been successful in applications is to learn a correlated equilibrium from repeated play, and then marginalize it into a profile that is hoped to be close to a Nash equilibrium. This was used for example to reach superhuman performance in multiplayer poker #citep(<Brown2019Aug>).]
