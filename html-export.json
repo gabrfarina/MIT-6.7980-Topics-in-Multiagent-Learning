@@ -24,6 +24,9 @@
     "learning-foundations": "slides/L04_learning_in_games.html",
     "learning-algorithms": "slides/L05_learning_in_games.html"
   },
+  "interactive_pages": {
+    "lemke-howson": "interactive/lemke_howson.html"
+  },
   "notes": [
     {
       "source": "content/nfgs_nash.typ",

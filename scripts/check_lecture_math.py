@@ -202,6 +202,191 @@ class LectureMathChecks(unittest.TestCase):
         local=sum(max(sum(x[i]*(g[j]-g@matrix[:,i]) for matrix,x,g in history) for j in range(3)) for i in range(3))
         self.assertAlmostEqual(swap,local)
 
+    def test_lemke_howson_examples_by_exact_pivoting(self):
+        # Symmetric example of nash_algorithms.typ: vertices, doubly represented
+        # actions, and the equilibrium reached for each special action.
+        R = [[4, 8, 1], [2, 7, 3], [9, 4, 5]]
+        vertices, picked = symmetric_lemke_howson(R, 2)
+        self.assertEqual(vertices, [(0, 0, 0), (0, F(1, 8), 0), (F(1, 14), F(5, 56), 0),
+                                    (F(4, 173), F(18, 173), F(13, 173))])
+        self.assertEqual(picked, [1, 3, 2])
+        self.assertEqual(support_equilibria(R, transpose(R), symmetric=True),
+                         [((0, 0, 1),) * 2, ((0, F(2, 5), F(3, 5)),) * 2,
+                          ((F(4, 35), F(18, 35), F(13, 35)),) * 2])
+        for k, sequence, end in ((1, [3, 1], (0, 0, 1)), (2, [1, 3, 2], (F(4, 35), F(18, 35), F(13, 35))),
+                                 (3, [3], (0, 0, 1))):
+            vertices, picked = symmetric_lemke_howson(R, k)
+            self.assertEqual((picked, normalize(vertices[-1])), (sequence, end))
+        self.assertEqual(symmetric_lemke_howson(R, 1)[0][1:], [(F(1, 9), 0, 0), (0, 0, F(1, 5))])
+
+        # Asymmetric example (von Stengel's 3 x 2 game).
+        R, C = [[3, 3], [2, 5], [0, 6]], [[3, 2], [2, 6], [3, 1]]
+        mixed, pure, other = ((0, F(1, 3), F(2, 3)), (F(1, 3), F(2, 3))), ((1, 0, 0), (1, 0)), \
+            ((F(4, 5), F(1, 5), 0), (F(2, 3), F(1, 3)))
+        self.assertEqual(sorted(support_equilibria(R, C)), sorted([pure, other, mixed]))
+        steps = bimatrix_lemke_howson(R, C, 2)
+        self.assertEqual(steps, [
+            ('P', 2, 5, ((0, F(1, 6), 0), (0, 0))), ('Q', 5, 3, ((0, F(1, 6), 0), (0, F(1, 6)))),
+            ('P', 3, 4, ((0, F(1, 8), F(1, 4)), (0, F(1, 6)))),
+            ('Q', 4, 2, ((0, F(1, 8), F(1, 4)), (F(1, 12), F(1, 6))))])
+        expected = {1: ([4, 1], pure), 2: ([5, 3, 4, 2], mixed), 3: ([4, 1, 3], pure),
+                    4: ([1, 4], pure), 5: ([3, 4, 2, 5], mixed)}
+        for k, (sequence, end) in expected.items():
+            steps = bimatrix_lemke_howson(R, C, k)
+            x, y = steps[-1][3]
+            self.assertEqual(([s[2] for s in steps], (normalize(x), normalize(y))), (sequence, end))
+
+        # Dropping label 1 at the mixed equilibrium reaches the third one in two pivots.
+        G2 = symmetrize(R, C)
+        x, y = mixed
+        z = x + y
+        u = [sum(G2[i][j] * z[j] for j in range(5)) for i in range(5)]
+        start = {i for i in range(5) if z[i]} | {5 + i for i in range(5) if u[i] != max(u[:3] if i < 3 else u[3:])}
+        vertices, picked = symmetric_lemke_howson(G2, 1, basis=start)
+        self.assertEqual(len(picked), 2)
+        self.assertEqual((normalize(vertices[-1][:3]), normalize(vertices[-1][3:])), other)
+
+        # The symmetric algorithm on [[0, R], [C^T, 0]] repeats the asymmetric pivots.
+        rng = random.Random(6798)
+        for _ in range(40):
+            m, n = rng.randint(1, 4), rng.randint(1, 4)
+            R = [[rng.randint(1, 9) for _ in range(n)] for _ in range(m)]
+            C = [[rng.randint(1, 9) for _ in range(n)] for _ in range(m)]
+            for k in range(1, m + n + 1):
+                steps = bimatrix_lemke_howson(R, C, k)
+                vertices, picked = symmetric_lemke_howson(symmetrize(R, C), k)
+                self.assertEqual(picked, [s[2] for s in steps])
+                self.assertEqual(vertices[1:], [s[3][0] + s[3][1] for s in steps])
+
+
+def transpose(M):
+    return [list(column) for column in zip(*M)]
+
+
+def normalize(v):
+    return tuple(F(a) / sum(v) for a in v)
+
+
+def symmetrize(R, C):
+    m, n = len(R), len(R[0])
+    return [[0] * m + list(R[i]) for i in range(m)] + [list(transpose(C)[j]) + [0] * n for j in range(n)]
+
+
+def pivot_path(tableaus, k, side):
+    """Complementary pivoting on tableaus {name: (rows, rhs, basis, labels)} of
+    systems M v + s = 1. Drops label k, starting in tableau `side`, and pivots
+    with the lexicographic minimum ratio test until label k is picked up."""
+    label, steps, left = k, [], None
+    while True:
+        rows, rhs, basis, labels = tableaus[side]
+        # Enter the nonbasic variable with this label, other than the one that
+        # just left (with a single tableau, both are momentarily nonbasic).
+        col = next(c for c in range(len(labels)) if labels[c] == label and c not in basis and c != left)
+        width = len(labels) - len(rows)
+        key = lambda r: [rhs[r] / rows[r][col]] + [rows[r][width + j] / rows[r][col] for j in range(len(rows))]
+        row = min((r for r in range(len(rows)) if rows[r][col] > 0), key=key)
+        p, leaving = rows[row][col], basis[row]
+        rows[row], rhs[row] = [a / p for a in rows[row]], rhs[row] / p
+        for r in range(len(rows)):
+            if r != row:
+                f = rows[r][col]
+                rows[r] = [a - f * b for a, b in zip(rows[r], rows[row])]
+                rhs[r] -= f * rhs[row]
+        basis[row] = col
+        steps.append((side, label, labels[leaving]))
+        yield steps[-1]
+        if labels[leaving] == k:
+            return
+        label = labels[leaving]
+        left = leaving if len(tableaus) == 1 else None
+        side = next(s for s in tableaus if s != side) if len(tableaus) > 1 else side
+
+
+def tableau(M, labels, basis=None):
+    rows = [[F(a) for a in M[i]] + [F(int(i == j)) for j in range(len(M))] for i in range(len(M))]
+    rhs, start = [F(1)] * len(M), list(range(len(M[0]), len(M[0]) + len(M)))
+    for col in sorted(set(basis or start) - set(start)):  # pivot to a given basis
+        row = next(r for r in range(len(M)) if start[r] not in (basis or start) and rows[r][col] != 0)
+        p = rows[row][col]
+        rows[row], rhs[row] = [a / p for a in rows[row]], rhs[row] / p
+        for r in range(len(M)):
+            if r != row:
+                f = rows[r][col]
+                rows[r] = [a - f * b for a, b in zip(rows[r], rows[row])]
+                rhs[r] -= f * rhs[row]
+        start[row] = col
+    return rows, rhs, start, labels
+
+
+def value(t, cols):
+    return tuple(t[1][t[2].index(c)] if c in t[2] else 0 for c in cols)
+
+
+def symmetric_lemke_howson(R, k, basis=None):
+    """Walk on R z <= 1, z >= 0; z_i and w_i both represent action i."""
+    n = len(R)
+    t = tableau(R, [i % n + 1 for i in range(2 * n)], basis)
+    vertices, picked = [value(t, range(n))], []
+    for _, _, label in pivot_path({'Z': t}, k, 'Z'):
+        vertices.append(value(t, range(n)))
+        picked.append(label)
+    return vertices, picked
+
+
+def bimatrix_lemke_howson(R, C, k):
+    """P = {x >= 0 : C^T x <= 1} and Q = {y >= 0 : R y <= 1}, with labels
+    1..m for Row's actions and m+1..m+n for Column's."""
+    m, n = len(R), len(R[0])
+    P = tableau(transpose(C), list(range(1, m + n + 1)))
+    Q = tableau(R, list(range(m + 1, m + n + 1)) + list(range(1, m + 1)))
+    return [(side, dropped, picked, (value(P, range(m)), value(Q, range(n))))
+            for side, dropped, picked in pivot_path({'P': P, 'Q': Q}, k, 'P' if k <= m else 'Q')]
+
+
+def support_equilibria(R, C, symmetric=False):
+    """Equilibria with equal-size supports (all of them for non-degenerate games)."""
+    m, n, found = len(R), len(R[0]), []
+    for size in range(1, min(m, n) + 1):
+        for I, J in product(combinations(range(m), size), combinations(range(n), size)):
+            if symmetric and I != J:
+                continue
+            sol = []
+            for M, rows, cols in ((transpose(C), J, I), (R, I, J)):
+                # Mix over `cols` so that every action in `rows` earns the same payoff.
+                A = [[M[i][j] for j in cols] + [-1] for i in rows] + [[1] * size + [0]]
+                p = solve_exact(A, [0] * size + [1])
+                if p is None:
+                    break
+                v = [F(0)] * len(M[0])
+                for j, q in zip(cols, p):
+                    v[j] = q
+                sol.append(tuple(v))
+            if len(sol) < 2 or min(sol[0] + sol[1]) < 0:
+                continue
+            x, y = sol
+            u = [sum(R[i][j] * y[j] for j in range(n)) for i in range(m)]
+            w = [sum(C[i][j] * x[i] for i in range(m)) for j in range(n)]
+            if all(u[i] == max(u) for i in I) and all(w[j] == max(w) for j in J) and (x, y) not in found:
+                found.append((x, y))
+    return found
+
+
+def solve_exact(A, b):
+    """Probabilities (all but the last unknown) of the square system A v = b,
+    or None if it is singular."""
+    a = [[F(v) for v in row] + [F(c)] for row, c in zip(A, b)]
+    n = len(a)
+    for c in range(n):
+        p = next((r for r in range(c, n) if a[r][c] != 0), None)
+        if p is None:
+            return None
+        a[c], a[p] = a[p], a[c]
+        for r in range(n):
+            if r != c:
+                f = a[r][c] / a[c][c]
+                a[r] = [x - f * y for x, y in zip(a[r], a[c])]
+    return [a[r][n] / a[r][r] for r in range(n)][:-1]
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

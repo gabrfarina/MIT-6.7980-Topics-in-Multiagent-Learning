@@ -3,6 +3,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
+import public_files
 from public_files import (COURSE_FIGURES, copy_font_assets, copy_public_files, note_outputs,
                           required_files, validate_inputs, validate_public_path)
 
@@ -145,6 +146,52 @@ class PublicFilesTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'speaker notes'):
             copy_public_files(self.config, self.root, destination)
         self.assertFalse(destination.exists())
+
+    def page(self, markup='<html><body><a href="../index.html">Course</a><script>run();</script></body></html>'):
+        self.config['interactive_pages'] = {'lemke-howson': 'interactive/lemke_howson.html'}
+        path = self.root / 'interactive/lemke_howson.html'
+        path.parent.mkdir(exist_ok=True)
+        path.write_text(markup)
+        return path
+
+    def test_interactive_pages_copy_to_their_own_directory(self):
+        source = self.page()
+        self.validate()
+        destination = self.root / 'output'
+        copy_public_files(self.config, self.root, destination)
+        required = required_files(self.config)
+        self.assertIn('interactive/lemke_howson.html', required)
+        self.assertEqual((destination / 'interactive/lemke_howson.html').read_bytes(), source.read_bytes())
+        validate_public_path('interactive/lemke_howson.html', required)
+
+    def test_interactive_page_schema_ids_and_paths_fail_before_copying(self):
+        self.page()
+        cases = [
+            (['interactive/lemke_howson.html'], 'must map'),
+            ({'lemke-howson': 'interactive/lemke_howson.js'}, 'standalone interactive'),
+            ({'lemke-howson': 'slides/lemke_howson.html'}, 'standalone interactive'),
+            ({'Lemke Howson': 'interactive/lemke_howson.html'}, 'Invalid interactive page IDs'),
+            ({'lemke-howson': 'interactive/missing.html'}, 'Missing course source'),
+        ]
+        for mapping, message in cases:
+            with self.subTest(mapping=mapping), self.assertRaisesRegex(ValueError, message):
+                self.config['interactive_pages'] = mapping
+                self.validate()
+
+    def test_interactive_page_assets_must_be_embedded(self):
+        for resource in ('<script src="https://cdn.example.com/lib.js"></script>',
+                         '<link rel="stylesheet" href="https://fonts.example.com/css">',
+                         '<style>@font-face { src: url(font.woff) }</style>'):
+            with self.subTest(resource=resource), self.assertRaisesRegex(ValueError, 'must'):
+                self.page('<html><body>' + resource + '</body></html>')
+                self.validate()
+
+    def test_published_lemke_howson_page_is_standalone(self):
+        config = {'interactive_pages': {'lemke-howson': 'interactive/lemke_howson.html'}}
+        copied = public_files.copied_files(config)
+        self.assertEqual(copied, {**{'assets/course/' + k: v for k, v in COURSE_FIGURES.items()},
+                                  'interactive/lemke_howson.html': 'interactive/lemke_howson.html'})
+        public_files.validate_standalone_slide(ROOT / 'interactive/lemke_howson.html')
 
     def test_note_filename_collision_fails_before_compilation(self):
         self.config['notes'].append({'source': 'other/TOPIC.typ'})
