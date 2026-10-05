@@ -221,6 +221,44 @@ The general FTRL/OMD bound in @ftrl-omd-regret-bound implies @mwu-regret-bound; 
 
 For now, we remark a crucial aspect of MWU. Compared with the regret bound of RM and RM#super[+], the regret bound of MWU has only a _logarithmic_ dependence on the number of actions $|A|$. Despite in practice RM/RM#super[+] tend to outperform MWU (all while getting rid of any hyperparameter tuning), this property has profound _theoretical_ implications, especially in combinatorial games where the effective number of actions is exponential. The gist of it is that several important classes of games can be converted into _exponentially large_ normal-form games (this is the case of sequential games, for example). Since MWU only has logarithmic dependence on the number of actions of the resulting normal-form games, this shows that---at least ignoring computation---external regret minimization is possible with polynomial dependence on the game size even in these classes of complex, structured games.
 
+#exercise[No-regret learning in graphical games][
+  Consider a game with $n$ players sitting at the vertices of a $d$-regular graph. Each player has the same action set $A$, with $|A| = m$, and payoffs in $[-1, 1]$. The utility $u_i$ of player $i$ depends only on their own action $a_i$ and on the actions $a_(N(i))$ of their $d$ neighbors $N(i)$.
+  + How many numbers are needed to write down the game as a generic normal-form game? How many when exploiting the graph structure?
+  + How many variables does the natural LP formulation of a #lecture-link("correlated", <def-cce>)[coarse correlated equilibrium] have?
+  + Suppose every player $j$ plays a mixed strategy $vx_j^((t)) in Delta(A)$. Give a formula for the gradient vector $vg_i^((t))$ of player $i$, and bound the time needed to compute it.
+  + Suppose all players run MWU in the #lecture-link("learning_intro", <def-canonical-learning>)[canonical learning setup]. How many rounds $T$ suffice to guarantee an $epsilon$-approximate coarse correlated equilibrium, that is, a correlated strategy that satisfies the constraints of a coarse correlated equilibrium up to an additive $epsilon$?
+  + What is the overall running time?
+  + Compare with (i) ignoring the graph structure, and (ii) using Regret Matching instead of MWU. Comment.
+] <ex-graphical-game>
+
+#solution[
+  *Part (a).* A generic normal-form game stores one payoff per player and per action profile, that is, $n dot m^n$ numbers. With the graph structure, $u_i$ is a table indexed by $(a_i, a_(N(i)))$, so $n dot m^(d+1)$ numbers suffice: polynomial in $n$ and $m$ when $d$ is constant.
+
+  *Part (b).* The variables of the LP are the probabilities $mu_(a_1, ..., a_n) >= 0$ that the correlated strategy assigns to each action profile $(a_1, ..., a_n) in A^n$, so there are $m^n$ variables. The constraints are one incentive constraint per player and per deviation ($n dot m$ in total), one normalization constraint, and the $m^n$ nonnegativity constraints. Compared with Part (a), the number of variables is a $1\/n$ fraction of the size of the normal-form representation, but exponentially larger than the $n dot m^(d+1)$ numbers that describe the graphical game. The ellipsoid-against-hope framework of #lecture-link("eah")[] avoids this blowup; it discusses graphical games in which each player has at most $k$ neighbors, which here is $k = d$.
+
+  *Part (c).* The gradient is the vector of expected payoffs of each action. Since $u_i$ only depends on the neighbors, and players randomize independently,
+  $
+    vg_i^((t))[a] = sum_(a_(N(i)) in A^d) u_i (a, a_(N(i))) product_(j in N(i)) vx_j^((t))[a_j] qquad forall a in A.
+  $
+  Each of the $m$ entries is a sum of $m^d$ terms, each costing $O(d)$ operations, for a total of $O(d dot m^(d+1))$ time per player. Without the graph structure the sum would range over all $m^(n-1)$ profiles of the other players.
+
+  *Part (d).* Since payoffs are in $[-1, 1]$, we have $norm(vg_i^((t)))_oo <= 1$, so by @mwu-regret-bound with $eta = sqrt(log m \/ T)$ each player has regret at most $2 sqrt(T log m)$. By #lecture-link("learning_intro", <thmce-formal>)[], the average correlated distribution of play $vmu^((T)) = 1/T sum_(t=1)^T vx_1^((t)) ⊗ dots.c ⊗ vx_n^((t))$ is an $epsilon$-approximate coarse correlated equilibrium with
+  $
+    epsilon = max_i ("Reg"_i^((T))) / T <= 2 sqrt((log m) / T).
+  $
+  Hence $T = ceil(4 log m \/ epsilon^2)$ rounds suffice, independent of $n$ and $d$.
+
+  *Part (e).* Each round costs $O(d dot m^(d+1))$ per player for the gradient, plus $O(m)$ for the MWU update, so the total is
+  $
+    O(T dot n dot d dot m^(d+1)) = O((n d dot m^(d+1) log m) / epsilon^2),
+  $
+  which is polynomial in the size $n dot m^(d+1)$ of the game and in $1\/epsilon$.
+
+  *Part (f).* (i) Ignoring the graph, computing the $n dot m$ gradient entries in each round would require summing over $n dot m^n$ terms, exponential in the number of players. The number of rounds is the same: the structure helps the _computation_ of the feedback, not the regret bound. (ii) With Regret Matching the bound $2 sqrt(T m)$ gives $T = ceil(4 m \/ epsilon^2)$, so both the number of rounds and the total running time grow by a factor $m \/ log m$. This is only a polynomial factor, so the running time remains polynomial in the size of the game; the logarithmic dependence of MWU becomes essential only when the number of actions itself is exponential.
+
+  Finally, note that the equilibrium is a distribution over $m^n$ action profiles, the same objects as the variables of the LP in Part (b), yet it is never written out explicitly: it is stored as $T$ product distributions, that is, $T dot n dot m = O(n m log m \/ epsilon^2)$ numbers.
+]
+
 = More general approaches: FTRL and OMD <sec-ftrl>
 
 Finally, we turn our attention to the third way of obtaining no-regret algorithms, that is, by considering a regularized (i.e., smoothed) version of the follow-the-leader algorithm discussed above. The idea is that, instead of playing by always putting 100% of the probability mass on the action with highest cumulated regret, we look for the distribution that maximizes the expected cumulated regret, _minus_ some regularization term that prevents us from putting all the mass on a single action.
