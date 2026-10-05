@@ -356,6 +356,24 @@ The goal of the Lemke-Howson algorithm is to find a democracy in the given polyt
   - between $ve_(j_t)^T R vz <= 1$ and $z_(j_t) >= 0$, un-tighten the one that defines an edge $\( vv_t vv_(t + 1) \) != \( vv_(t - 1) vv_t \)$.
   - for Step $t + 1$, jump to $vv_(t + 1)$.
 
+Each step of the algorithm is a pivoting step of the simplex method, so the walk can be implemented with the same bookkeeping. Introduce a slack variable $w_i := 1 - ve_i^T R vz$ for every action $i$, so that the polytope becomes ${ \( vz \, vw \) : R vz + vw = vone \, vz >= 0 \, vw >= 0 }$, and action $i$ is represented exactly when $z_i = 0$ or $w_i = 0$. Call $z_i$ and $w_i$ _complementary_. A vertex is described by its $n$ _basic_ variables, which are the ones allowed to be nonzero; the other $n$ variables are zero, i.e., their inequalities are tight. Un-tightening an inequality means letting its variable enter the basis, and the inequality that becomes tight is found by the minimum ratio test, exactly as in the simplex method. This gives @algo-lemke-howson.
+
+#pseudocode-list(
+  max-width: true,
+  numbered-title: [Lemke-Howson (symmetric version)],
+  caption: [Pivoting implementation of the algorithm above, for a non-degenerate polytope $R vz <= vone \, vz >= 0$.],
+)[
+  + Start from the basis ${ w_1 \, ... \, w_n }$, i.e., the vertex $vv_0 = \( 0 \, ... \, 0 \)$, and let the entering variable be $u <- z_k$, where $k$ is the special action.
+  + *loop*
+    + Increase $u$ from $0$, updating the basic variables so that $R vz + vw = vone$ keeps holding, until some basic variable $u'$ reaches $0$. Let $u$ enter the basis and $u'$ leave it.
+    + *if* $u'$ is $z_k$ or $w_k$ *then*
+      + *return* $vz \/ norm(vz)_1$, a symmetric Nash equilibrium.
+    + *else*
+      + $u'$ belongs to the action that is now represented twice. Let $u <-$ the complement of $u'$.
+] <algo-lemke-howson>
+
+Line 3 moves along an edge of the polytope, from $vv_t$ to $vv_(t + 1)$. Non-degeneracy guarantees that exactly one basic variable reaches $0$ first. Without the non-degeneracy assumption, ties in this ratio test can be broken by the lexicographic rule of the simplex method, which amounts to the perturbation of the exercise above.
+
 We are now ready to show that the algorithm is guaranteed to terminate at a non-zero democracy, thereby recovering a Nash equilibrium of the game.
 
 #theorem[
@@ -403,6 +421,207 @@ We make some final remarks about the Lemke-Howson algorithm.
 - The proof works by virtue of a parity argument, reminiscent of the proof of Sperner’s lemma. It identifies a directed path on the vertices of the polytope whose sink is a solution.
 - Its worst-case running time is exponential in the number of actions. This lower bound was established by Savani and von Stengel~#citep(<SavaniVS06>).
 - There are generalizations of the Lemke-Howson algorithm for multi-player games working with manifolds instead of polytopes. See Rosenmüller~#citep(<Rosenmuller71>) and Wilson~#citep(<Wilson71>).
+
+== A worked example <sec-lemke-howson-example>
+
+The examples of this section and the next can also be explored in an #interactive-link("lemke_howson")[interactive version], which steps through the pivots on the simplices, the polytopes, and the tableaux, compares all choices of the dropped label, and runs the algorithm on games of your choice.
+
+Consider the symmetric $3 times 3$ game whose row player's payoff matrix is
+
+$ R = mat(4, 8, 1; 2, 7, 3; 9, 4, 5) . $
+
+All entries are positive, so the polytope $R vz <= vone \, vz >= 0$ is bounded. The game has three symmetric equilibria: $\( 0 \, 0 \, 1 \)$, $\( 0 \, 2\/5 \, 3\/5 \)$, and $\( 4\/35 \, 18\/35 \, 13\/35 \)$. @tab-lemke-howson-symmetric traces the algorithm with special action $k = 2$.
+
+#figure(
+  kind: table,
+  supplement: [Table],
+  caption: [The Lemke-Howson algorithm on the game $R$ above, with special action $k = 2$.],
+)[
+  #table(
+    stroke: none,
+    columns: 5,
+    align: center + horizon,
+    inset: .5em,
+    table.header[*Step* $t$][*Un-tightened*][*Becomes tight*][*Vertex* $vv_t$][*Represented twice*],
+    [$0$], [], [], [$\( 0 \, 0 \, 0 \)$], [none: democracy],
+    [$1$], [$z_2 >= 0$], [$ve_1^T R vz <= 1$], [$\( 0 \, 1\/8 \, 0 \)$], [action $1$],
+    [$2$], [$z_1 >= 0$], [$ve_3^T R vz <= 1$], [$\( 1\/14 \, 5\/56 \, 0 \)$], [action $3$],
+    [$3$], [$z_3 >= 0$], [$ve_2^T R vz <= 1$], [$\( 4\/173 \, 18\/173 \, 13\/173 \)$], [none: democracy],
+  )
+] <tab-lemke-howson-symmetric>
+
+At $vv_1$ and $vv_2$, action $2$ is not represented and exactly one other action is represented twice, as property $Pi$ requires. The final vertex $vv_3$ is a democracy, and $vv_3 \/ norm(vv_3)_1 = \( 4\/35 \, 18\/35 \, 13\/35 \)$ is the fully mixed symmetric equilibrium. In the pivoting language of @algo-lemke-howson, the entering and leaving variables are $z_2 \/ w_1$, then $z_1 \/ w_3$, then $z_3 \/ w_2$.
+
+The special action is an arbitrary choice, and different choices can lead to different equilibria. @fig-lemke-howson-symmetric shows the walk for each choice, drawn in the simplex: a nonzero vertex $vz$ is drawn at $vz \/ norm(vz)_1$, and the vertex $vv_0 = 0$ as the node marked $bold(0)$ outside the simplex. A point of the simplex is colored $i$ when $i$ is a best response to it, i.e., when $ve_i^T R vz = 1$ can hold, and the side of the simplex where $z_i = 0$ also carries color $i$. A democracy is therefore a point that sees all three colors.
+
+#figure(caption: [Lemke-Howson paths for the game $R$ above, for each special action. Numbers indicate the step $t$ at which each vertex $vv_t$ is reached; the circled vertex is the democracy where the algorithm stops.])[
+  #image(
+    "figures/nash_algorithms/symmetric_paths.svg",
+    width: 100%,
+    alt: "Three copies of the simplex of mixed strategies, colored by best response, with the Lemke-Howson path for special actions 1, 2, and 3.",
+  )
+] <fig-lemke-howson-symmetric>
+
+#figure(
+  kind: table,
+  supplement: [Table],
+  caption: [Comparing the three choices of special action $k$ for the game $R$ above.],
+)[
+  #table(
+    stroke: none,
+    columns: 4,
+    align: center + horizon,
+    inset: .5em,
+    table.header[*Special action* $k$][*Actions represented twice, in order*][*Pivots*][*Equilibrium reached*],
+    [$1$], [$3$], [$2$], [$\( 0 \, 0 \, 1 \)$],
+    [$2$], [$1 \, 3$], [$3$], [$\( 4\/35 \, 18\/35 \, 13\/35 \)$],
+    [$3$], [none], [$1$], [$\( 0 \, 0 \, 1 \)$],
+  )
+] <tab-lemke-howson-compare-symmetric>
+
+Two observations are worth making. First, the path for $k = 3$ has a single step: at $vv_1 = \( 0 \, 0 \, 1\/5 \)$, the inequality that becomes tight is $ve_3^T R vz <= 1$, which represents the special action itself, because action $3$ is a best response to itself. Second, no choice of special action reaches the equilibrium $\( 0 \, 2\/5 \, 3\/5 \)$. This is consistent with the correctness proof: the democracies other than $vv_0$ are endpoints of paths of the graph $G$, and only one of them is matched to $vv_0$. The remaining ones are matched with each other, which is also why the number of equilibria found this way is odd for non-degenerate games.
+
+== The asymmetric version <sec-lemke-howson-bimatrix>
+
+The original algorithm of Lemke and Howson~#citep(<LemkeHowson64>) works directly with a two-player game $\( R \, C \)$ in which Row has $m$ actions and Column has $n$ actions. Instead of one polytope, it uses one polytope per player, following the exposition of von Stengel~#citep(<vonStengel2002>):
+
+$ P := { vx in RR^m : vx >= 0 \, C^T vx <= vone } \, quad Q := { vy in RR^n : vy >= 0 \, R vy <= vone } . $
+
+As before, we assume that both polytopes are bounded and non-degenerate. Number Row's actions $1 \, ... \, m$ and Column's actions $m + 1 \, ... \, m + n$; these numbers are called _labels_. A point $vx in P$ has label $i in [m]$ if $x_i = 0$, and label $m + j$ if $\( C^T vx \)_j = 1$, i.e., if Column's action $j$ is a best response to $vx \/ norm(vx)_1$. Symmetrically, $vy in Q$ has label $i$ if $\( R vy \)_i = 1$ and label $m + j$ if $y_j = 0$. A pair $\( vx \, vy \)$ is _completely labeled_ if every label in $[m + n]$ is a label of $vx$ or of $vy$. Exactly as in the proof that democracies are equilibria, a completely labeled pair of vertices other than $\( 0 \, 0 \)$ gives the Nash equilibrium $\( vx \/ norm(vx)_1 \, vy \/ norm(vy)_1 \)$. The pair $\( 0 \, 0 \)$ is completely labeled too, and is called the _artificial equilibrium_.
+
+The algorithm starts from $\( 0 \, 0 \)$ and _drops_ a label $k$: if $k <= m$, it un-tightens $x_k >= 0$ in $P$, and otherwise it un-tightens $y_(k - m) >= 0$ in $Q$. The pivot picks up a new label. If that label is $k$, the pair is completely labeled again and the algorithm stops. Otherwise, the new label is now a label of both $vx$ and $vy$, and the algorithm drops it in the _other_ polytope, which picks up another label, and so on. The pivots therefore alternate between $P$ and $Q$, and between them exactly label $k$ is missing.
+
+The two versions are closely related. For the symmetrized game $cal(G)_2$ of Section~#ref(<sec:symmetrization>, supplement: none), the row player's payoff matrix is $mat(0, R; C^T, 0)$, and its Lemke-Howson polytope is
+
+$ { \( vx \, vy \) >= 0 : C^T vx <= vone \, R vy <= vone } = P times Q . $
+
+Action $i$ of $cal(G)_2$ is represented at $\( vx \, vy \)$ exactly when $i$ is a label of $vx$ or of $vy$. Hence the symmetric algorithm on $cal(G)_2$ with special action $k$ performs exactly the same pivots as the asymmetric algorithm on $\( R \, C \)$ dropping label $k$.
+
+#example[
+  Consider the $3 times 2$ game from~#citep(<vonStengel2002>):
+
+  $ R = mat(3, 3; 2, 5; 0, 6) \, quad C = mat(3, 2; 2, 6; 3, 1) . $
+
+  The matrix $R$ has a zero entry, but every column of $R$ and $C$ has a positive entry, so both polytopes are bounded. Labels $1 \, 2 \, 3$ are Row's actions and labels $4 \, 5$ are Column's. The game has three equilibria:
+  $ \( \( 1 \, 0 \, 0 \) \, \( 1 \, 0 \) \) \, quad \( \( 4\/5 \, 1\/5 \, 0 \) \, \( 2\/3 \, 1\/3 \) \) \, quad \( \( 0 \, 1\/3 \, 2\/3 \) \, \( 1\/3 \, 2\/3 \) \) . $
+
+  @tab-lemke-howson-bimatrix traces the algorithm when label $2$ is dropped, and @fig-lemke-howson-bimatrix draws the path. Each point of the left simplex is colored by Column's best responses to it (labels $4 \, 5$), and each point of the right segment by Row's best responses to it (labels $1 \, 2 \, 3$). A pivot in $P$ moves $vx$ and a pivot in $Q$ moves $vy$.
+
+  #figure(
+    kind: table,
+    supplement: [Table],
+    caption: [The asymmetric Lemke-Howson algorithm on the $3 times 2$ game above, dropping label $2$. The duplicate label after each step is the label picked up, until label $2$ returns.],
+  )[
+    #table(
+      stroke: none,
+      columns: 6,
+      align: center + horizon,
+      inset: .5em,
+      table.header[*Step*][*Polytope*][*Label dropped*][*Label picked up*][$vx$][$vy$],
+      [$0$], [], [], [], [$\( 0 \, 0 \, 0 \)$], [$\( 0 \, 0 \)$],
+      [$1$], [$P$], [$2$], [$5$], [$\( 0 \, 1\/6 \, 0 \)$], [$\( 0 \, 0 \)$],
+      [$2$], [$Q$], [$5$], [$3$], [$\( 0 \, 1\/6 \, 0 \)$], [$\( 0 \, 1\/6 \)$],
+      [$3$], [$P$], [$3$], [$4$], [$\( 0 \, 1\/8 \, 1\/4 \)$], [$\( 0 \, 1\/6 \)$],
+      [$4$], [$Q$], [$4$], [$2$], [$\( 0 \, 1\/8 \, 1\/4 \)$], [$\( 1\/12 \, 1\/6 \)$],
+    )
+  ] <tab-lemke-howson-bimatrix>
+
+  After four pivots, label $2$ is picked up again and the algorithm stops at the equilibrium $\( \( 0 \, 1\/3 \, 2\/3 \) \, \( 1\/3 \, 2\/3 \) \)$.
+
+  #figure(caption: [The path of @tab-lemke-howson-bimatrix. Numbers indicate the step at which each point is reached; the circled points form the equilibrium where the algorithm stops.])[
+    #image(
+      "figures/nash_algorithms/bimatrix_path.svg",
+      width: 85%,
+      alt: "Row's simplex colored by Column's best responses and Column's segment colored by Row's best responses, with the alternating Lemke-Howson path for dropped label 2.",
+    )
+  ] <fig-lemke-howson-bimatrix>
+
+  Dropping a different label gives a different path, as @tab-lemke-howson-compare-bimatrix shows.
+
+  #figure(
+    kind: table,
+    supplement: [Table],
+    caption: [Comparing the five choices of dropped label for the $3 times 2$ game above.],
+  )[
+    #table(
+      stroke: none,
+      columns: 4,
+      align: center + horizon,
+      inset: .5em,
+      table.header[*Dropped label*][*Labels picked up, in order*][*Pivots*][*Equilibrium reached*],
+      [$1$], [$4 \, 1$], [$2$], [$\( \( 1 \, 0 \, 0 \) \, \( 1 \, 0 \) \)$],
+      [$2$], [$5 \, 3 \, 4 \, 2$], [$4$], [$\( \( 0 \, 1\/3 \, 2\/3 \) \, \( 1\/3 \, 2\/3 \) \)$],
+      [$3$], [$4 \, 1 \, 3$], [$3$], [$\( \( 1 \, 0 \, 0 \) \, \( 1 \, 0 \) \)$],
+      [$4$], [$1 \, 4$], [$2$], [$\( \( 1 \, 0 \, 0 \) \, \( 1 \, 0 \) \)$],
+      [$5$], [$3 \, 4 \, 2 \, 5$], [$4$], [$\( \( 0 \, 1\/3 \, 2\/3 \) \, \( 1\/3 \, 2\/3 \) \)$],
+    )
+  ] <tab-lemke-howson-compare-bimatrix>
+
+  As in the symmetric example, one equilibrium, $\( \( 4\/5 \, 1\/5 \, 0 \) \, \( 2\/3 \, 1\/3 \) \)$, is not reached from the artificial equilibrium with any label. It is the other endpoint of paths that start at an equilibrium: for example, dropping label $1$ at $\( \( 0 \, 1\/3 \, 2\/3 \) \, \( 1\/3 \, 2\/3 \) \)$ leads to it in two pivots.
+]
+
+== Different labels, different pairings <sec-lemke-howson-pairing>
+
+Fix a non-degenerate game and a label $k$. As in the proof of Theorem~#ref(label("thm:Lemke-Howson's correctness"), supplement: none), the pairs of vertices $\( vx \, vy \) in P times Q$ that have every label except possibly $k$ form a graph made of paths and cycles. The endpoints of the paths are exactly the completely labeled pairs: the artificial equilibrium, which we denote $E_0$, and the Nash equilibria $E_1 \, ... \, E_N$. Each path joins two endpoints, so the paths for label $k$ _pair up_ $E_0 \, E_1 \, ... \, E_N$, and the algorithm can start at any endpoint: dropping label $k$ at $E_i$ follows the path to the equilibrium paired with $E_i$. Since $E_0$ is paired with exactly one equilibrium, the remaining equilibria are paired among themselves, and $N$ is odd.
+
+This raises two questions. If a different label is dropped, can the algorithm reach a different equilibrium? And does the pairing itself change? The answer to both is yes, and small examples already show it. @fig-lemke-howson-pairings draws the pairing for every label of two games.
+
+#figure(caption: [The pairings of the endpoints $E_0 \, E_1 \, ...$ induced by each label, in (a) the $3 times 2$ game of @sec-lemke-howson-bimatrix and (b) the $3 times 3$ game below. Two endpoints are joined when the path of that label connects them; $E_0$ (shaded) is the artificial equilibrium.])[
+  #image(
+    "figures/nash_algorithms/pairings.svg",
+    width: 100%,
+    alt: "For each dropped label, the equilibria of two games drawn on a circle, with the pairs joined by Lemke-Howson paths connected by colored segments.",
+  )
+] <fig-lemke-howson-pairings>
+
+*The $3 times 2$ game.* Number its equilibria as in @sec-lemke-howson-bimatrix:
+
+$ E_1 = \( \( 1 \, 0 \, 0 \) \, \( 1 \, 0 \) \) \, quad E_2 = \( \( 4\/5 \, 1\/5 \, 0 \) \, \( 2\/3 \, 1\/3 \) \) \, quad E_3 = \( \( 0 \, 1\/3 \, 2\/3 \) \, \( 1\/3 \, 2\/3 \) \) . $
+
+Labels $1$, $3$, and $4$ induce the pairing ${ E_0 \, E_1 } \, { E_2 \, E_3 }$, while labels $2$ and $5$ induce ${ E_0 \, E_3 } \, { E_1 \, E_2 }$. So the algorithm, started at $E_0$, reaches $E_1$ or $E_3$ depending on the label, and the pairing of the two remaining endpoints changes with it. The equilibrium $E_2$ is never paired with $E_0$. It can still be found by following two paths in sequence: drop label $2$ at $E_0$ to reach $E_3$, then drop label $1$ at $E_3$ to reach $E_2$.
+
+*A $3 times 3$ game.* The game
+
+$ R = mat(8, 1, 8; 9, 4, 0; 5, 3, 7) \, quad C = mat(5, 1, 8; 9, 1, 7; 5, 8, 6) $
+
+is non-degenerate and has five equilibria:
+
+$
+  E_1 = \( \( 1 \, 0 \, 0 \) \, \( 0 \, 0 \, 1 \) \) \, quad E_2 = \( \( 0 \, 1 \, 0 \) \, \( 1 \, 0 \, 0 \) \) \, quad E_3 = \( \( 2\/5 \, 3\/5 \, 0 \) \, \( 8\/9 \, 0 \, 1\/9 \) \) \, \
+  E_4 = \( \( 2\/9 \, 0 \, 7\/9 \) \, \( 0 \, 1\/3 \, 2\/3 \) \) \, quad E_5 = \( \( 0 \, 1\/4 \, 3\/4 \) \, \( 0 \, 7\/8 \, 1\/8 \) \) .
+$
+
+Its six labels induce four different pairings, shown in @tab-lemke-howson-pairings.
+
+#figure(
+  kind: table,
+  supplement: [Table],
+  caption: [The pairings induced by each label in the $3 times 3$ game above, and the number of pivots from $E_0$ to its partner.],
+)[
+  #table(
+    stroke: none,
+    columns: 3,
+    align: center + horizon,
+    inset: .5em,
+    table.header[*Labels*][*Pairing*][*Pivots from* $E_0$],
+    [$1$ and $6$], [${ E_0 \, E_1 } \, { E_2 \, E_3 } \, { E_4 \, E_5 }$], [$2$],
+    [$2$ and $4$], [${ E_0 \, E_2 } \, { E_1 \, E_3 } \, { E_4 \, E_5 }$], [$2$],
+    [$3$], [${ E_0 \, E_5 } \, { E_1 \, E_4 } \, { E_2 \, E_3 }$], [$4$],
+    [$5$], [${ E_0 \, E_2 } \, { E_1 \, E_4 } \, { E_3 \, E_5 }$], [$3$],
+  )
+] <tab-lemke-howson-pairings>
+
+Started at $E_0$, the algorithm finds $E_1$, $E_2$, or $E_5$, depending on the label. Different labels can induce the same pairing, as labels $1$ and $6$ do, and labels can agree on the partner of $E_0$ but not on the rest, as labels $2$, $4$, and $5$ do. The equilibria $E_3$ and $E_4$ are never paired with $E_0$, but they can again be reached by following paths with different labels in sequence: $E_0 -> E_2 -> E_3$ with labels $2$ and $1$, and $E_0 -> E_1 -> E_4$ with labels $1$ and $3$. In both examples, every equilibrium can be reached from $E_0$ in this way.
+
+The #interactive-link("lemke_howson")[interactive version] draws these pairings for any game you enter.
+
+#exercise[
+  In the $3 times 2$ game, start at the vertex $\( vx \, vy \) = \( \( 0 \, 1\/8 \, 1\/4 \) \, \( 1\/12 \, 1\/6 \) \)$ of $P times Q$, which corresponds to $E_3$, and drop label $1$. Carry out the pivots by hand, listing the labels of $vx$ and of $vy$ after each one, and check that the path ends at $E_2$ after two pivots.
+]
+
+#solution[
+  At the start, $vx$ has labels $1 \, 4 \, 5$ and $vy$ has labels $2 \, 3$. Dropping label $1$ increases $x_1$ in $P$. The first inequality to become tight is $x_3 >= 0$, giving $vx = \( 2\/7 \, 1\/14 \, 0 \)$ with labels $3 \, 4 \, 5$. Label $3$ is now duplicate, so it is dropped in $Q$: the inequality $\( R vy \)_3 <= 1$ is un-tightened, and $\( R vy \)_1 <= 1$ becomes tight at $vy = \( 2\/9 \, 1\/9 \)$, with labels $1 \, 2$. Label $1$ is back, and normalizing gives $\( \( 4\/5 \, 1\/5 \, 0 \) \, \( 2\/3 \, 1\/3 \) \) = E_2$.
+]
 
 = Bibliography for this lecture
 
