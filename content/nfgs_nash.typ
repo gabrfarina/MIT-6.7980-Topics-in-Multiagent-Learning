@@ -8,6 +8,14 @@
 
 Normal-form games model simultaneous-move interactions with a single move (think about rock-paper-scissors). Despite their simplicity, normal-form games will provide a natural ground for looking into important concepts in multiagent settings, such as notions of equilibria (Nash, maxmin, correlated, $...$), and learning from repeated play. In the second part of the course, we will move on to notions of games that explicitly capture more complex phenomena, such as sequential moves and imperfect information.
 
+*What is a game?* Games are thought experiments that help us _predict rational behavior in situations of conflict_. Each part of this phrase has a specific meaning:
+
+- _Situation of conflict:_ every player's actions affect the outcomes of the others.
+- _Rational behavior:_ each player wants to maximize their own expected utility. There is no altruism, envy, masochism, or externality.
+- _Predict:_ we want to know what happens when the game is played. Such predictions are called _solution concepts_. The Nash equilibrium, which is the focus of this lecture, is the most prominent one.
+
+Many situations are able to be modeled as games. Besides recreational games such as rock-paper-scissors, poker, Go, and Diplomacy, game-theoretic models apply to auctions, markets, logistics, budget allocation, generative adversarial networks, multi-robot interactions, fraud detection systems, cyber-defense, and agentic AI.
+
 = Normal-form games and the Nash equilibrium <sec-normal-form>
 
 When introducing a (finite) normal-form game, we need to specify the following quantities:
@@ -43,11 +51,27 @@ We will sometimes intersperse deterministic actions and mixed strategies freely 
 
 == Dominant-strategy equilibrium
 
-The question of what constitutes rational play for players can get complicated depending on the game. But, in some lucky cases, like the prisoner's dilemma game above, it turns out that some actions are just _better_ than others, _no matter what the other players do_. In such cases, we say that a player has a _dominant strategy_. In the case above, both Player 1 and Player 2 have a dominant strategy to confess$.$ In this case, we expect that the players will play their dominant strategy, and this is called a _dominant-strategy equilibrium_.
+The question of what constitutes rational play for players can get complicated depending on the game. But, in some lucky cases, like the prisoner's dilemma game above, it turns out that some actions are just _better_ than others, _no matter what the other players do_. In such cases, we say that a player has a _dominant strategy_. In the case above, both Player 1 and Player 2 have a dominant strategy to confess. Indeed, consider Player 1: if Player 2 denies, confessing yields a payoff of $0$ instead of $-1$; if Player 2 confesses, confessing yields $-2$ instead of $-3$. Either way, Player 1 is strictly better off confessing, and by symmetry the same holds for Player 2. When every player has a dominant strategy, we expect that the players will play it, and the resulting strategy profile is called a _dominant-strategy equilibrium_.
+
+The prisoner's dilemma also shows that equilibrium play need not be good for the players. At the dominant-strategy equilibrium, both players receive $-2$, whereas if both had denied, both would have received $-1$. Each player's individual incentive to confess leads to an outcome that is worse for _everyone_.
+
+Unfortunately, dominant strategies are the exception rather than the rule. Most games of interest have no dominant-strategy equilibrium, as the following example shows.
+
+#example[Rock-paper-scissors][
+  #wrapped-figure(side: right, text-width: 55%)[
+    In rock-paper-scissors, each player simultaneously picks one of three actions. Rock beats scissors, scissors beats paper, and paper beats rock; the winner receives a payoff of $1$, the loser $-1$, and a tie gives $0$ to both players. This is the payoff matrix on the right.
+  ][
+    #image("figures/nfgs_nash/rock_paper_scissors.svg", width: 142.42pt)
+  ]
+
+  No action of Player 1 is better than the others no matter what Player 2 does. Every action is the best reply to one of the opponent's actions and the worst reply to another: rock is the best reply to scissors but the worst reply to paper, paper is the best reply to rock but the worst reply to scissors, and scissors is the best reply to paper but the worst reply to rock. Which action is best depends entirely on what the opponent does.
+
+  In fact, not even a randomized strategy of Player 1 can be dominant. Suppose $vx_1 in Delta (A_1)$ were dominant. Against scissors, rock earns the largest payoff in the game, $1$, and it is the only action that does so; hence, for $vx_1$ to be at least as good as rock against scissors, $vx_1$ must put all of its mass on rock. By the same argument applied to paper, against which only scissors earns $1$, $vx_1$ must put all of its mass on scissors. These two requirements are incompatible, so Player 1 has no dominant strategy. By symmetry, neither does Player 2, and the game has no dominant-strategy equilibrium.
+]
 
 == Maxmin strategies
 
-The benefit of dominant-strategy equilibria is that they require no counterspeculation: some strategies just are better no matter what anyone else does. However, in many games, no player has a dominant strategy. Consider, for example, rock-paper-scissor: all actions are symmetric, and no action is strictly better than the others. How can we find a good strategy for that?
+The benefit of dominant-strategy equilibria is that they require no counterspeculation: some strategies just are better no matter what anyone else does. However, as rock-paper-scissors shows, in many games no player has a dominant strategy: the best action depends on what the other players do. How can we find a good strategy in such games?
 
 One way to think about this is to consider the worst-case scenario: what is the best strategy for a player if they assume the other players are trying to minimize their payoff? This is the idea behind _maxmin strategies_. A maxmin strategy for Player $i$ is a strategy $vx_i$ that maximizes the minimum payoff that Player $i$ can get, that is,
 
@@ -56,9 +80,45 @@ $
   upright("for all") j != i) u_i (vx_i \, vx_(- i)) \,
 $
 
-where the notation $vx_(- i)$ is popular syntactic sugar to denote the tuple $(vx_j)_(j != i)$.#footnote[This notation appears often in game theory, since we are often interested in studying the effect of changing a _single_ player $i$'s strategy, while keeping all “the other” strategies $vx_(- i)$ fixed.]  Thinking back about rock-paper-scissors, it is clear that the maxmin strategy is to play uniformly at random: the opponent could exploit any other strategy more than the uniform one, by playing the counteraction more often.
+where the notation $vx_(- i)$ is popular syntactic sugar to denote the tuple $(vx_j)_(j != i)$.#footnote[This notation appears often in game theory, since we are often interested in studying the effect of changing a _single_ player $i$'s strategy, while keeping all “the other” strategies $vx_(- i)$ fixed.]  In words, a maxmin strategy _prepares for the worst_: it is the strategy whose guaranteed payoff, against the most harmful possible behavior of the other players, is as large as possible.
 
-The above idea has some merits, especially in two-player zero-sum games, that is, those two-player games where $u_1 (a_1 \, a_2) + u_2 (a_1 \, a_2) = 0$ for all combinations of actions. In those games, players are in direct competition, so it makes sense to assume that the opponent is “out to get us.” But in more general games, the maxmin strategy can be too conservative, since it assumes that all other players have nothing better going on than to minimize our payoff, even if that hurts them.
+Thinking back about rock-paper-scissors, intuition suggests that the maxmin strategy is to play uniformly at random: the opponent could exploit any other strategy more than the uniform one, by playing the counteraction more often. The following example makes this intuition precise.
+
+#example[Maxmin strategies in rock-paper-scissors][
+  In rock-paper-scissors, rock beats scissors, scissors beats paper, and paper beats rock; the winner receives a payoff of $1$, the loser $-1$, and a tie gives $0$ to both players. Write $vx = (x_R \, x_P \, x_S)$ for the strategy of Player 1 and $vy = (y_R \, y_P \, y_S)$ for the strategy of Player 2, where the subscripts denote rock, paper, and scissors. Summing over the nine pairs of actions, the expected utility of Player 1 is
+
+  $
+    u_1 (vx \, vy) = x_R (y_S - y_P) + x_P (y_R - y_S) + x_S (y_P - y_R) .
+  $
+
+  Preparing for the worst means solving $max_(vx in Delta (A_1)) min_(vy in Delta (A_2)) u_1 (vx \, vy)$. We solve the two optimization problems from the inside out.
+
+  *The worst case for a fixed strategy.* Fix $vx$. The expected utility $u_1 (vx \, vy) = y_R u_1 (vx \, R) + y_P u_1 (vx \, P) + y_S u_1 (vx \, S)$ is an average of the utilities against the three actions of Player 2, and an average is never smaller than its smallest term. Hence, the most harmful behavior of Player 2 is always attained by a deterministic action, and
+
+  $
+    min_(vy in Delta (A_2)) u_1 (vx \, vy) = min {underbrace(x_P - x_S, "vs. rock") \, underbrace(x_S - x_R, "vs. paper") \, underbrace(x_R - x_P, "vs. scissors")} .
+  $
+
+  *The best worst case.* The three quantities in the minimum sum to $0$, so their minimum is at most their average, which is $0$. Furthermore, the minimum equals $0$ only if all three quantities are equal to $0$, that is, only if $x_R = x_P = x_S$. Hence,
+
+  $
+    max_(vx in Delta (A_1)) min_(vy in Delta (A_2)) u_1 (vx \, vy) = 0 \, #h(2em) "attained uniquely at" #h(2em) vx^* = (1/3 \, 1/3 \, 1/3) .
+  $
+
+  Every other strategy guarantees a strictly negative payoff, because Player 2 can counter whichever action Player 1 favors. For instance, the strategy $vx = (1/2 \, 1/2 \, 0)$ that never plays scissors earns $1/2$ against rock and $0$ against scissors, but $-1/2$ against paper. Since the game is symmetric, the same computation shows that the unique maxmin strategy of Player 2 is also uniform, $vy^* = (1/3 \, 1/3 \, 1/3)$, which guarantees Player 2 a payoff of $0$ as well.
+] <ex:rps-maxmin>
+
+The maxmin strategies of rock-paper-scissors enjoy a further remarkable property. Suppose that Player 2 plays the uniform strategy $vy^*$. Then every action of Player 1 has the same expected utility,
+
+$
+  u_1 (R \, vy^*) = u_1 (P \, vy^*) = u_1 (S \, vy^*) = 1/3 (0 + 1 - 1) = 0 \,
+$
+
+and so every strategy of Player 1, including $vx^*$, earns exactly $0$ against $vy^*$. In particular, no strategy of Player 1 does better against $vy^*$ than $vx^*$ does: $vx^*$ is _optimal against_ $vy^*$. By symmetry, $vy^*$ is optimal against $vx^*$ too. So, even though each player derived their strategy by assuming the worst about the opponent, neither player has any reason to regret this choice once they see what the opponent actually plays.
+
+This is not a coincidence specific to rock-paper-scissors: the same happens in _every_ two-player zero-sum game, that is, those two-player games where $u_1 (a_1 \, a_2) + u_2 (a_1 \, a_2) = 0$ for all combinations of actions. In such games, a pair of maxmin strategies always consists of strategies that are optimal against each other. This fact is a consequence of #lecture-link("correlated", <sec-zero-sum>)[von Neumann's minimax theorem], which states that in two-player zero-sum games the order of the maximization and the minimization does not matter, _i.e._, $max_(vx) min_(vy) u_1 (vx \, vy) = min_(vy) max_(vx) u_1 (vx \, vy)$. We will study this connection in depth when we return to two-player zero-sum games.
+
+As we have just seen, the above idea has particular merit in two-player zero-sum games. In those games, players are in direct competition, so it makes sense to assume that the opponent is “out to get us.” But in more general games, the maxmin strategy can be too conservative, since it assumes that all other players have nothing better going on than to minimize our payoff, even if that hurts them.
 
 == The Nash equilibrium <sec-nash-equilibrium>
 
@@ -104,6 +164,12 @@ Before continuing, we consider two examples that help illustrate a couple of imp
   This is not a coincidence: in two-player nondegenerate games, there is always an _odd_ number of Nash equilibria. This fact comes from more profound connections with some combinatorial objects that we will uncover quite soon.
 ]
 
+#remark[
+  All the games considered above are _one-shot games of complete information_. _Complete information_ means that the players know everything about each other's payoffs. _One-shot_ means that the players meet for a single interaction, with no stages or sequential decisions.
+
+  One-shot games are also meant to model repeated occurrences of the same conflict, provided there are no strategic correlations between occurrences. If such correlations exist, we leave the realm of one-shot games and enter that of _repeated games_. 
+]
+
 = Existence of mixed-strategy Nash equilibrium <sec-nash-existence>
 
 In 1950, John Nash established one of the most celebrated results in game theory:#footnote[John Nash went on to win the Nobel prize in economics for his fundamental contributions to game theory.] mixed-strategies Nash equilibria exist in all games, no matter the number of players or number of actions. The proof of Nash is nonconstructive, and fundamentally boils down to showing that one can think of Nash equilibria as fixed points. Two remarks are in order:
@@ -146,11 +212,12 @@ $
 where we used the fact that $sum_(a_i in A_i) x_(i \, a_i) = 1$ since $vx_i$ is a valid strategy. Finally, observe that $phi$ is a continuous function.  The following example visualizes the Nash improvement function in the small games we have seen so far.
 
 #example[
-  The plots below visualize the displacement $phi (vx_1 \, vx_2) - (vx_1 \, vx_2)$ induced by the Nash improvement function for four games, whose payoff matrices are noted below each plot, after projecting away the probability of the first action of each player (and keeping around only the probability of the second action, which is sufficient to uniquely recover the strategy of the player since each player only has two actions). The black dots denote the fixed points of the Nash improvement function. These correspond exactly to the Nash equilibria of the game, as we make formal below.
+  The plots below visualize the displacement $phi (vx_1 \, vx_2) - (vx_1 \, vx_2)$ induced by the Nash improvement function for four games, whose payoff matrices are noted below each plot #footnote[In each payoff matrix, Player 1 (blue) picks a row, *T*\op or *B*\ottom, and Player 2 (red) picks a column, *L*\eft or *R*\ight. Each cell lists Player 1's payoff first and Player 2's second. In the plots, the horizontal axis is Player 1's probability of playing B, and the vertical axis is Player 2's probability of playing R.], after projecting away the probability of the first action of each player (and keeping around only the probability of the second action, which is sufficient to uniquely recover the strategy of the player since each player only has two actions). The black dots denote the fixed points of the Nash improvement function. These correspond exactly to the Nash equilibria of the game, as we make formal below.
 
   #align(center)[
     #image("figures/nfgs_nash/nash_plots.svg", width: 100.0%)
-  ]
+  ]  
+
 
   The background of the plots highlights the angle of displacement induced by the Nash improvement function, according to the gradient wheel shown below here.
 

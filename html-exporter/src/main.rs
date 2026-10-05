@@ -1019,6 +1019,13 @@ fn render_document(
     html.push_str("<script>\n");
     html.push_str(include_str!("sidenotes.js"));
     html.push_str("</script>\n");
+    html.push_str("<script>\n");
+    html.push_str(include_str!("solutions.js"));
+    html.push_str("</script>\n");
+    html.push_str(
+        "<noscript><style>.solution-wrapper .env.proof[data-proof-kind=\"Solution\"]\
+         {display:block}.solution-toggle{display:none}</style></noscript>\n",
+    );
     html.push_str(settled_hash_scroll_script());
     html.push_str("</body>\n</html>\n");
     html

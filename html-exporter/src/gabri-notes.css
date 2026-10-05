@@ -901,6 +901,33 @@ code {
     font-weight: var(--environment-label-weight)
 }
 
+.solution-wrapper .env.proof[data-proof-kind="Solution"] {
+    display: none;
+    margin-top: .5rem
+}
+
+.solution-wrapper.solution-revealed .env.proof[data-proof-kind="Solution"] {
+    display: block
+}
+
+.solution-toggle {
+    font: inherit;
+    font-family: var(--sans);
+    font-weight: var(--environment-label-weight);
+    color: var(--accent-dark);
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+    border-radius: 3px;
+    padding: .3rem .7rem;
+    cursor: pointer
+}
+
+.solution-toggle:hover,
+.solution-toggle:focus-visible {
+    background: var(--accent);
+    color: #fff
+}
+
 .env.algorithm {
     --algorithm-rule: 2.25px solid #111;
     --algorithm-midrule: 1.25px solid #1f1f1f;
