@@ -341,6 +341,23 @@ We are now ready to show that the algorithm is guaranteed to terminate at a non-
   Given the claim, the proof is concluded.
 ]
 
+#exercise[Necessity of non-degeneracy][
+  Look up the definition of non-degeneracy in the original paper of Lemke and Howson~#citep(<LemkeHowson64>). What exactly does degeneracy break in the path-following argument of Theorem~#ref(label("thm:Lemke-Howson's correctness"), supplement: none)? How does perturbation fix the problem?
+] <ex-lh-degeneracy>
+
+#solution[
+  *Definition.* Lemke and Howson~#citep(<LemkeHowson64>) call a game non-degenerate if the inequalities that are tight at any point are linearly independent. For our polytope $P := { vz : R vz <= vone, vz >= 0 }$, this means that for every $vz in P$ the vectors ${ ve_i : z_i = 0 } union { R^T ve_i : ve_i^T R vz = 1 }$ are linearly independent. Hence no point of $P$ makes more than $n$ inequalities tight, and every vertex makes exactly $n$ of them tight. In game-theoretic terms, no mixed strategy with support of size $k$ has more than $k$ pure best responses.
+
+  *What degeneracy breaks.* The lemma that every non-zero democracy is a symmetric Nash equilibrium does not use non-degeneracy. What breaks is the path-following argument, which relies on every vertex having exactly $n$ tight inequalities.
+  + At a vertex with more than $n$ tight inequalities, un-tightening one of them while keeping the others tight may not define an edge: the remaining tight inequalities can pin down the vertex itself, and the step has length $0$.
+  + Several inequalities can become tight at once at the end of an edge, so a vertex can have two doubly represented actions. Then property $Pi$ fails, and the rule “un-tighten the other inequality representing $j_t$” is ambiguous.
+  + As a result, vertices of $G$ need not have degree $1$ or $2$. Then $G$ is no longer a disjoint union of paths and cycles, the walk from $vv_0$ can branch or cycle, and democracies need not be endpoints of paths, so the argument of Theorem~#ref(label("thm:Lemke-Howson's correctness"), supplement: none) fails.
+
+  *How perturbation fixes it.* Replace each inequality $ve_i^T R vz <= 1$ by $ve_i^T R vz <= 1 + epsilon^i$ for a small $epsilon > 0$. If the tight vectors at some point were linearly dependent, say $sum_(j in J) lambda_j ve_j + sum_(i in S) mu_i R^T ve_i = 0$ with some $mu_i != 0$, then taking the inner product with that point would give $sum_(i in S) mu_i (1 + epsilon^i) = 0$, a non-zero polynomial equation in $epsilon$. Fixing one such linear dependency for each of the finitely many linearly dependent sets of inequalities, every $epsilon > 0$ below the smallest positive root of these polynomials makes the perturbed polytope non-degenerate, and such an $epsilon$ can be written with polynomially many bits. The distinct powers $epsilon^i$ matter, since shifting every right-hand side by the same amount does not break ties between inequalities.
+
+  The algorithm then terminates at a non-zero democracy of the perturbed polytope, whose set $B$ of $n$ tight inequalities defines an invertible linear system. Setting $epsilon = 0$ in that system yields a point $vz_0$ at which the inequalities in $B$ are still tight. For $epsilon$ small enough, $vz_0$ is also feasible, since the slack of every other inequality is a polynomial in $epsilon$ that is positive for all small $epsilon > 0$, hence non-negative at $epsilon = 0$. Moreover, $vz_0 != 0$, since $B$ contains some inequality $ve_i^T R vz <= 1 + epsilon^i$. So $vz_0$ is a non-zero democracy of $P$, and $vz_0 \/ norm(vz_0)_1$ is a symmetric Nash equilibrium of the original game.
+]
+
 We make some final remarks about the Lemke-Howson algorithm.
 
 - The algorithm provides an alternative proof that a Nash equilibrium exists in 2-player games. In particular, the existence of a Nash equilibrium is implied by the correctness of the algorithm.
