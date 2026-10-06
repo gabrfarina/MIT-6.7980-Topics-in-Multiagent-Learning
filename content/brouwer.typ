@@ -99,7 +99,7 @@ We formalize these ideas in the next sections, arriving at two results. First, w
   #align(center)[
     #image("figures/brouwer/example_games.svg", width: 100.0%)
   ]
-]
+] <ex:sperner-toy-games>
 
 It is worth noting that the trichromatic triangles obtained via the above reduction are not always in the proximity of exact fixed points of the function. Unless the discretization is fine enough and $f$ has extra properties, we will only guarantee that the trichromatic triangles are in the proximity of approximate fixed points. While this is not the case in the examples above, it can be the case.
 
@@ -224,12 +224,12 @@ At this point, the proof of Sperner's lemma is immediate. A graph in which each 
 
 == Following the paths in the toy games <sec-sperner-toy-paths>
 
-The paths below follow the Sperner discretizations in Example L2.3.
+The paths below follow the Sperner discretizations in @ex:sperner-toy-games.
 
 #figure(
   context {
     // Keep the diagram editable with this lecture. Use the same payoff matrices,
-    // color tie-breaking, grid helper, and drawing style as Example L2.3.
+    // color tie-breaking, grid helper, and drawing style as the toy-game example.
     import "@preview/cetz:0.3.4"
     import "figures/libs/sperner.typ": _sperner_grid, sperner_w, sperner_h
     import "figures/libs/nash.typ": softbr
@@ -257,7 +257,7 @@ The paths below follow the Sperner discretizations in Example L2.3.
     }
 
     // Rows run from top to bottom, as in libs/sperner.typ.
-    // Preserve the tie-breaking of the original Example L2.3 figure.
+    // Preserve the tie-breaking of the original toy-game figure.
     let toy-coloring(A1, A2, n: 8) = {
       let f = improvement(A1, A2)
       let rows = ()
@@ -394,7 +394,7 @@ The paths below follow the Sperner discretizations in Example L2.3.
       diagram
     }
   },
-  caption: [Sperner paths for the three games in Example L2.3.],
+  caption: [Sperner paths for the three games in @ex:sperner-toy-games.],
 ) <fig-sperner-toy-paths>
 
 = Beyond the unit square <sec-brouwer-general>
