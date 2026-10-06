@@ -44,7 +44,7 @@ To represent a normal-form game, it is common to use a matrix representation.
   Suppose Player 1 and Player 2 from the prisoner's dilemma (Example 1.1) randomize their actions. Let Player 1 flip a fair coin, playing the strategy $vx_1 = (0.5 \, 0.5)$ for (Deny, Confess). Let Player 2 lean heavily toward denying, playing $vx_2 = (0.8 \, 0.2)$.
 
   Player 1's expected utility is simply the sum of their payoffs for each possible outcome, weighted by the joint probability of that outcome occurring:
-  
+
   $ u_1 (vx_1 \, vx_2) & = (0.5)(0.8)(-1) + (0.5)(0.2)(-3) + (0.5)(0.8)(0) + (0.5)(0.2)(-2) \
     & = -0.4 - 0.3 + 0 - 0.2 \
     & = -0.9 . $
@@ -80,6 +80,213 @@ Unfortunately, dominant strategies are the exception rather than the rule. Most 
   No action of Player 1 is better than the others no matter what Player 2 does. Every action is the best reply to one of the opponent's actions and the worst reply to another: rock is the best reply to scissors but the worst reply to paper, paper is the best reply to rock but the worst reply to scissors, and scissors is the best reply to paper but the worst reply to rock. Which action is best depends entirely on what the opponent does.
 
   In fact, not even a randomized strategy of Player 1 can be dominant. Suppose $vx_1 in Delta (A_1)$ were dominant. Against scissors, rock earns the largest payoff in the game, $1$, and it is the only action that does so; hence, for $vx_1$ to be at least as good as rock against scissors, $vx_1$ must put all of its mass on rock. By the same argument applied to paper, against which only scissors earns $1$, $vx_1$ must put all of its mass on scissors. These two requirements are incompatible, so Player 1 has no dominant strategy. By symmetry, neither does Player 2, and the game has no dominant-strategy equilibrium.
+]
+
+== Iterated removal of dominated strategies <sec-iterated-dominance>
+
+The idea of dominance can also be useful even when a player does not have a dominant strategy. An action that is clearly inferior can be removed from consideration, and after doing so, some actions that were not originally dominated may become dominated in the smaller game. Repeating this process is called _iterated removal of dominated strategies_.
+
+We will focus here on dominance by pure actions. An action $a_i in A_i$ is _strictly dominated_ by another action $b_i in A_i$ if
+
+$
+  u_i(b_i \, a_(-i)) > u_i(a_i \, a_(-i))
+$
+
+for every action profile $a_(-i)$ of the other players.
+
+Similarly, $a_i$ is _weakly dominated_ by $b_i$ if
+
+$
+  u_i(b_i \, a_(-i)) >= u_i(a_i \, a_(-i))
+$
+
+for every $a_(-i)$, with strict inequality for at least one $a_(-i)$.
+
+In _iterated removal of dominated strategies_, we repeatedly remove a currently dominated action and reconsider dominance in the reduced game. A natural question is whether the final reduced game depends on the order in which dominated actions are removed.
+
+#exercise[Does the order of elimination matter?][
+Throughout this exercise, consider only dominance by pure actions.
+
+*Problem 1: Strict dominance.*
+
+Suppose that at each step we may remove any action that is currently strictly dominated.
+
+1. Suppose action $a_i$ is strictly dominated by $b_i$. Show that removing some other action cannot cause $a_i$ to stop being strictly dominated, unless the removed action is $b_i$ itself.
+
+2. Now suppose $b_i$ is removed because it is strictly dominated by another action $c_i$. Show that, in the resulting reduced game, $c_i$ strictly dominates $a_i$.
+
+3. Use these observations to argue that, in a finite game, the set of actions surviving iterated removal of *strictly* dominated actions does not depend on the order of removal.
+
+*Problem 2: Weak dominance.*
+
+Now consider the following two-player game:
+
+#align(center)[
+  #table(
+    columns: (auto, auto, auto, auto),
+    align: center,
+    inset: 6pt,
+    stroke: 0.4pt + luma(170),
+    table.header(
+      [*Player 1 / Player 2*],
+      [*$L$*],
+      [*$M$*],
+      [*$R$*],
+    ),
+    [*$T$*], [$(1,1)$], [$(1,0)$], [$(0,0)$],
+    [*$B$*], [$(1,1)$], [$(0,1)$], [$(1,0)$],
+  )
+]
+
+1. Show that, in the original game, both $M$ and $R$ are weakly dominated by $L$ for Player 2.
+
+2. First remove $R$. In the resulting game, determine whether either of Player 1's actions becomes weakly dominated. Continue removing weakly dominated actions until no further removal is possible.
+
+3. Instead, return to the original game and first remove $M$. Again, continue removing weakly dominated actions until no further removal is possible.
+
+4. Compare the two final reduced games. Does iterated removal of weakly dominated actions depend on the order of removal?
+
+5. Explain intuitively why the argument from Problem 1 fails for weak dominance.
+] <ex-iterated-dominance>
+
+#reference-solutions[
+== Detailed solutions
+
+#solution[Problem 1][
+Suppose that $a_i$ is strictly dominated by $b_i$. Then, for every currently available action profile $a_(-i)$ of the other players,
+
+$
+  u_i(b_i \, a_(-i)) > u_i(a_i \, a_(-i)).
+$
+
+If some action other than $b_i$ is removed, the set of opponent action profiles only becomes smaller. The same strict inequality therefore continues to hold for every remaining $a_(-i)$, so $a_i$ remains strictly dominated by $b_i$.
+
+The only interesting case is when $b_i$ itself is removed. Since an action can only be removed at this stage if it is strictly dominated, suppose that $b_i$ is strictly dominated by $c_i$. Then, for every remaining $a_(-i)$,
+
+$
+  u_i(c_i \, a_(-i))
+  >
+  u_i(b_i \, a_(-i))
+  >
+  u_i(a_i \, a_(-i)).
+$
+
+Hence $c_i$ strictly dominates $a_i$ in the reduced game.
+
+Therefore, removing the action that dominates $a_i$ does not save $a_i$: another surviving action takes its place as a strict dominator. Repeating this argument along any chain of removed actions shows that changing the order of elimination cannot make a strictly dominated action survive.
+
+Since the game is finite, every sequence of eliminations eventually terminates. The set of actions remaining after all possible strictly dominated actions have been removed is therefore independent of the order in which they were removed.
+]
+
+#solution[Problem 2][
+Consider Player 2's payoffs.
+
+For $L$, the payoffs against $(T,B)$ are
+
+$
+  (1,1).
+$
+
+For $M$, they are
+
+$
+  (0,1),
+$
+
+and for $R$, they are
+
+$
+  (0,0).
+$
+
+Therefore $L$ weakly dominates $M$, since
+
+$
+  1 > 0
+  quad "against" quad T,
+$
+
+while
+
+$
+  1 = 1
+  quad "against" quad B.
+$
+
+Similarly, $L$ weakly dominates $R$ since
+
+$
+  1 > 0
+$
+
+against both $T$ and $B$.
+
+Now first remove $R$. The remaining payoff matrix for Player 1 is
+
+#align(center)[
+  #table(
+    columns: (auto, auto, auto),
+    align: center,
+    inset: 6pt,
+    stroke: 0.4pt + luma(170),
+    table.header(
+      [*Player 1 / Player 2*],
+      [*$L$*],
+      [*$M$*],
+    ),
+    [*$T$*], [$1$], [$1$],
+    [*$B$*], [$1$], [$0$],
+  )
+]
+
+Thus $T$ weakly dominates $B$: the two actions give the same payoff against $L$, while $T$ gives a strictly higher payoff against $M$.
+
+We may therefore remove $B$. Once only $T$ remains, Player 2 receives payoff $1$ from $L$ and payoff $0$ from $M$, so $M$ is dominated by $L$. Removing $M$ leaves only
+
+$
+  (T,L).
+$
+
+Now return to the original game and instead remove $M$ first. Player 1's remaining payoffs are
+
+#align(center)[
+  #table(
+    columns: (auto, auto, auto),
+    align: center,
+    inset: 6pt,
+    stroke: 0.4pt + luma(170),
+    table.header(
+      [*Player 1 / Player 2*],
+      [*$L$*],
+      [*$R$*],
+    ),
+    [*$T$*], [$1$], [$0$],
+    [*$B$*], [$1$], [$1$],
+  )
+]
+
+Now $B$ weakly dominates $T$: the two actions give the same payoff against $L$, while $B$ gives a strictly higher payoff against $R$.
+
+We may therefore remove $T$. Once only $B$ remains, Player 2 receives payoff $1$ from $L$ and payoff $0$ from $R$, so $R$ is dominated by $L$. Removing $R$ leaves only
+
+$
+  (B,L).
+$
+
+Thus the two valid elimination orders produce different outcomes:
+
+$
+  (T,L)
+  quad "versus" quad
+  (B,L).
+$
+
+Iterated removal of weakly dominated actions is therefore not, in general, order-independent.
+
+The difference from strict dominance comes from the possibility of _ties_. A weak dominance relationship may depend on one particular opponent action being the place where the inequality is strict. If that opponent action is removed, the strict inequality may disappear, leaving only equality and destroying the weak dominance relationship.
+
+With strict dominance, by contrast, the inequality is strict against every remaining opponent action. Removing actions therefore cannot destroy the strict advantage, which is what makes iterated removal of strictly dominated actions order-independent.
+]
 ]
 
 == Maxmin strategies
@@ -184,19 +391,19 @@ In general, defining what constitutes “optimal play” is tricky. But we can s
 ]
 #proof[
   Let $vx = (vx_1 \, ... \, vx_n)$ be a strategy profile. Assume there exists a strictly profitable randomized deviation $vx'_i in Delta (A_i)$ for player $i$, meaning:
-  
+
   $ u_i (vx'_i \, vx_(- i)) > u_i (vx_i \, vx_(- i)) . $
 
   By the definition of expected utility for a mixed strategy, this is the weighted sum of the pure action payoffs:
-  
+
   $ sum_(a_i in A_i) x'_(i \, a_i) u_i (a_i \, vx_(- i)) > u_i (vx_i \, vx_(- i)) . $
 
   For the sake of contradiction, assume that no deterministic action is strictly profitable. Thus, for all $a_i in A_i$:
-  
+
   $ u_i (a_i \, vx_(- i)) <= u_i (vx_i \, vx_(- i)) . $
 
   Because $vx'_i$ is a valid strategy in $Delta (A_i)$, we know $x'_(i \, a_i) >= 0$ for all $a_i$ and $sum_(a_i in A_i) x'_(i \, a_i) = 1$. Multiplying our assumption by the probabilities $x'_(i \, a_i)$ and summing over all $a_i in A_i$ yields:
-  
+
   $ sum_(a_i in A_i) x'_(i \, a_i) u_i (a_i \, vx_(- i)) & <= sum_(a_i in A_i) x'_(i \, a_i) u_i (vx_i \, vx_(- i)) \
     & = u_i (vx_i \, vx_(- i)) sum_(a_i in A_i) x'_(i \, a_i) \
     & = u_i (vx_i \, vx_(- i)) . $
@@ -225,7 +432,7 @@ In general, defining what constitutes “optimal play” is tricky. But we can s
 #remark[
   All the games considered above are _one-shot games of complete information_. _Complete information_ means that the players know everything about each other's payoffs. _One-shot_ means that the players meet for a single interaction, with no stages or sequential decisions.
 
-  One-shot games are also meant to model repeated occurrences of the same conflict, provided there are no strategic correlations between occurrences. If such correlations exist, we leave the realm of one-shot games and enter that of _repeated games_. 
+  One-shot games are also meant to model repeated occurrences of the same conflict, provided there are no strategic correlations between occurrences. If such correlations exist, we leave the realm of one-shot games and enter that of _repeated games_.
 ]
 
 = Existence of mixed-strategy Nash equilibrium <sec-nash-existence>
@@ -274,7 +481,7 @@ where we used the fact that $sum_(a_i in A_i) x_(i \, a_i) = 1$ since $vx_i$ is 
 
   #align(center)[
     #image("figures/nfgs_nash/nash_plots.svg", width: 100.0%)
-  ]  
+  ]
 
 
   The background of the plots highlights the angle of displacement induced by the Nash improvement function, according to the gradient wheel shown below here.
