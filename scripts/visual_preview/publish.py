@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import re
 import urllib.error
+from urllib.parse import urlencode
 import urllib.request
 
 from PIL import Image
@@ -31,6 +32,34 @@ class GitHub:
                      "X-GitHub-Api-Version": "2022-11-28"}, method=method)
         with urllib.request.urlopen(req, timeout=60) as response:
             return json.load(response)
+
+
+def pull_request_candidates(github, run):
+    """Resolve PRs using GitHub run metadata, including runs from forks."""
+    if run["pull_requests"]:
+        return run["pull_requests"]
+    # Fork runs can have no PR association, and looking up their commit in the
+    # base repository can also return nothing. Query the source branch instead.
+    source = run.get("head_repository") or {}
+    owner = (source.get("owner") or {}).get("login")
+    branch = run.get("head_branch")
+    if not owner or not source.get("full_name") or not branch:
+        print("PR lookup unavailable: workflow run has no source repository or branch")
+        return []
+    candidates = []
+    page = 1
+    while True:
+        query = urlencode({"state": "open", "head": f"{owner}:{branch}",
+                           "per_page": 100, "page": page})
+        prs = github.api("GET", f"pulls?{query}")
+        candidates.extend(pr for pr in prs
+                          if (pr["head"].get("repo") or {}).get("full_name") == source["full_name"]
+                          and pr["head"]["ref"] == branch)
+        if len(prs) < 100:
+            break
+        page += 1
+    print(f"Source-branch lookup found {len(candidates)} candidate PR(s)")
+    return candidates
 
 
 def validate_report(folder, pr, base, head):
@@ -128,13 +157,13 @@ def main():
         candidates = [{"number": int(metadata["pr"])}]
         expected_head = metadata["head"]
     else:
-        candidates = run["pull_requests"] or api("GET", f"commits/{run['head_sha']}/pulls")
+        candidates = pull_request_candidates(github, run)
         expected_head = run["head_sha"]
     prs = [api("GET", f"pulls/{p['number']}") for p in candidates]
     prs = [p for p in prs if p["state"] == "open" and p["head"]["sha"] == expected_head
            and p["base"]["repo"]["full_name"] == github.repo]
     if len(prs) != 1:
-        print("No unique current PR; skipping stale or unrelated run")
+        print(f"Skipping publication: {len(candidates)} candidate PR(s), {len(prs)} matching open PR(s)")
         return
     pr = prs[0]
     number, head = pr["number"], pr["head"]["sha"]

@@ -59,6 +59,11 @@ and validates the report, paths, image type, dimensions and size. Artifacts are
 data, never executed. Old runs cannot replace the current head's preview. The
 only branches it writes are `visual-previews-pr-N`, one for each PR.
 
+When GitHub omits a fork run's PR association, both publishers query open PRs by
+the source repository owner and branch, verify the source repository and branch,
+and require exactly one open PR with the run's head commit targeting this repository.
+The PR number is never taken from a PR-triggered build's artifact.
+
 Image commits are intentionally retained so existing comment links keep working.
 For long-running deployment, periodically archive/clean those branches when old
 previews are no longer needed.

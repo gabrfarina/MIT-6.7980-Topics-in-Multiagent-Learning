@@ -1,11 +1,12 @@
 """Publish bounded data only, from a verified read-only workflow run."""
+from datetime import datetime, timezone
 import html
 import json
 import os
 from pathlib import Path
 import re
 import sys
-from urllib.parse import quote
+from urllib.parse import quote, urlencode
 
 from PIL import Image
 
@@ -48,6 +49,37 @@ def validate(folder,pr,base,head,kind):
     return report,images
 
 
+def publish_html_check(api,run,report,run_url):
+    """Attach manual and automatic HTML results to the PR's own commit."""
+    name='Course HTML review'
+    external_id=f"course-pr-html:{run['id']}"
+    head=report['head']
+    existing=None
+    page=1
+    while True:
+        query=urlencode(dict(check_name=name,filter='all',per_page=100,page=page))
+        checks=api('GET',f'commits/{head}/check-runs?{query}')['check_runs']
+        for check in checks:
+            if (check.get('external_id')==external_id and check['head_sha']==head
+                    and check['app']['slug']=='github-actions'):
+                existing=check['id']
+        if len(checks)<100:
+            break
+        page+=1
+    errors=sum(x['level']=='error' for x in report['findings'])
+    passed=run['conclusion']=='success' and not errors and not report.get('failed')
+    body=dict(name=name,external_id=external_id,details_url=run_url,status='completed',
+              conclusion='success' if passed else 'failure',
+              completed_at=datetime.now(timezone.utc).isoformat(),
+              output=dict(title='HTML checks passed' if passed else 'HTML checks failed',
+                          summary=f"PR #{report['pr']} at `{head[:7]}`, integrated into target `{report['base'][:7]}`. "
+                                  f"{errors} reported errors. [Full report and build logs]({run_url})."))
+    if existing:
+        api('PATCH',f'check-runs/{existing}',body)
+    else:
+        api('POST','check-runs',dict(body,head_sha=head))
+
+
 def main():
     github=image_publish.GitHub()
     api=github.api
@@ -72,15 +104,21 @@ def main():
         default=api('GET','')['default_branch']
         if run['head_branch']!=default or api('GET',f"compare/{run['head_sha']}...{default}")['status'] not in ('ahead','identical'):
             raise ValueError('Manual run must originate from trusted default branch')
+        if kind=='html':
+            # The trusted workflow's title records its input independently of
+            # the artifact produced while executing the proposed site build.
+            requested=re.fullmatch(r'HTML review for PR #([1-9][0-9]*)',run.get('display_title',''))
+            if not requested or int(requested[1])!=metadata['pr']:
+                raise ValueError('Cannot verify the manual HTML PR; rerun the HTML review from the default branch')
         candidates=[{'number':int(metadata['pr'])}]
         expected_head=metadata['head']
     else:
-        candidates=run['pull_requests'] or api('GET',f"commits/{run['head_sha']}/pulls")
+        candidates=image_publish.pull_request_candidates(github,run)
         expected_head=run['head_sha']
     prs=[api('GET',f"pulls/{p['number']}") for p in candidates]
     prs=[p for p in prs if p['state']=='open' and p['head']['sha']==expected_head and p['base']['repo']['full_name']==github.repo]
     if len(prs)!=1:
-        print('Skipping stale or unrelated run')
+        print(f'Skipping publication: {len(candidates)} candidate PR(s), {len(prs)} matching open PR(s)')
         return
     pr=prs[0]
     number,head=pr['number'],pr['head']['sha']
@@ -129,6 +167,8 @@ def main():
         if len(comments)<100:
             break
     api('PATCH' if comment else 'POST',f'issues/comments/{comment}' if comment else f'issues/{number}/comments',{'body':'\n'.join(body)})
+    if kind=='html':
+        publish_html_check(api,run,report,f"https://github.com/{github.repo}/actions/runs/{run['id']}")
     print(f'Published {kind} review on PR {number}')
 
 
