@@ -190,51 +190,6 @@ Now that our boundary coloring is standard, we can easily show Sperner's lemma u
 
 For the standard Sperner coloring of @fig:sperner-coloring, the corresponding graph is shown just above on the left.
 
-== Properties of the Sperner graph <sec-sperner-graph>
-
-As you might have guessed from the picture, the following key properties hold.
-
-#theorem[
-  In any Sperner graph, the following properties hold:
-
-  #[
-    #set enum(numbering: "(1)")
-    + every node has outdegree and indegree at most $1$;
-    + any node with indegree $1$ and outdegree $0$ is a trichromatic triangle (marked green in the figure above);
-    + any node with outdegree $1$ and indegree $0$ is a trichromatic triangle (marked green), with the only exception of the bottom-left node (marked purple).
-  ]
-] <thm:sperner-graph-properties>
-
-#proof[
-  #[
-    #set enum(numbering: "(1)")
-    + follows by noticing that every cell has at most one _red-yellow_ edge that one can use to exit this cell while keeping red on the left, and at most one _red-yellow_ edge that one can use to enter this cell while keeping red on the left.
-    + can be shown by contradiction. Take any node with indegree $1$ and outdegree $0$, and assume for contradiction that it is not a trichromatic triangle. Since the indegree is $1$, one of the sides of the cell corresponding to the node is red-yellow and this edge can be crossed to enter into this cell from a neighboring cell. Let us now consider the third vertex of the cell. Since by assumption the cell is not trichromatic, the third vertex is either red or yellow. Either case results in another red-yellow edge that one would be able to cross to exit the cell keeping red on the left. The only reason why this would not mean that the outdegree of the node corresponding to that cell is $1$ is that this edge lies on the boundary of the grid. However, there are no such red-yellow edges on the boundary of the grid in the standard Sperner coloring. There is a unique red-yellow edge in the standard boundary coloring (at the bottom left cell) but this is an entry door, not an exit one.
-    + can be shown with a similar argument as (2).
-  ]
-]
-
-== Completing the proof of Sperner's lemma
-
-At this point, the proof of Sperner's lemma is immediate. A graph in which each node has indegree at most one and outdegree at most one is composed of connected components that can only be singleton nodes, directed paths, or directed simple cycles. Only paths have nodes with outdegree $1$ and indegree $0$, or outdegree $0$ and indegree $1$; each has exactly one of each. Note also that the standard boundary coloring forces the bottom left cell not to be trichromatic, and node corresponding to this cell to have outdegree $1$ and indegree $0$. So this node must be the source of a path. The sink of that path is trichromatic as per~@thm:sperner-graph-properties. If there are other paths, both their source and their sink are trichromatic, as per~@thm:sperner-graph-properties. Hence, there are an odd number of trichromatic triangles in any standard Sperner coloring, and therefore any Sperner coloring.
-
-= Why the proof is not an efficient algorithm <sec-sperner-computation>
-
-This proof of @thm-sperner also gives us an algorithm to find a trichromatic triangle: start at the bottom-left cell and follow the path in the Sperner graph until it stops. Why, then, is finding trichromatic triangles considered a hard computational problem?
-
-It is not if the coloring of the grid is given explicitly as an input. Writing down the colors of an $N times N$ grid already takes $N^2$ space, and the walk visits at most $2 (N - 1)^2$ cells. So following the path takes time linear in the size of the input. That's computationally feasible.
-
-It can break if the coloring is given as a description only. For example, if the colors come from an input Boolean circuit that reads the coordinates of a point and outputs its color, it can describe a grid far larger (exponentially large) than the size of the circuit, so we can no longer afford to walk the path. The only way left is to reason about the circuit and find the triangle from it directly. In our case, the coloring of the grid is not given explicitly. By @sec-brouwer-approximation, we get the coloring from the improvement function and the grid diameter $delta$ chosen in @cor:sperner; the grid then has about $1\/delta$ points per side, and $delta$ itself is given with about $log(1\/delta)$ bits. So if we take $1\/delta = 2^n$ then our grid is of the size $2^n times 2^n$. Thus a walk can take time in the order of $2^(2 n)$, but our input is only the game and about $n$ bits for $delta$. So in this case the algorithm takes exponential time in the input.
-
-The alternative is to inspect the improvement function and work out where the colors must clash, without following the path at all. No general technique for this is known. So a trichromatic triangle is guaranteed to exist, and is easy to check once found, but no polynomial-time algorithm is known for finding one in a grid described this way. This gap is made precise by #lecture-link("tfnp", <sec-end-of-line>)[the End-of-Line problem].
-
-
-#example[
-  The accompanying #link("https://colab.research.google.com/drive/1VyefBluGV8LUO3cj5zc8WJhNmqI9gAoV?usp=sharing")[notebook] puts this proof to work for two-player two-action games: it constructs the Sperner coloring induced by the players' best-response map and uses a trichromatic triangle to recover a Nash equilibrium. This gives a concrete computational view of the existence argument developed above.
-]
-
-== Following the paths in the toy games <sec-sperner-toy-paths>
-
 The paths below follow the Sperner discretizations in @ex:sperner-toy-games.
 
 #figure(
@@ -407,6 +362,49 @@ The paths below follow the Sperner discretizations in @ex:sperner-toy-games.
   },
   caption: [Sperner paths for the three games in @ex:sperner-toy-games.],
 ) <fig-sperner-toy-paths>
+
+== Properties of the Sperner graph <sec-sperner-graph>
+
+As you might have guessed from the picture, the following key properties hold.
+
+#theorem[
+  In any Sperner graph, the following properties hold:
+
+  #[
+    #set enum(numbering: "(1)")
+    + every node has outdegree and indegree at most $1$;
+    + any node with indegree $1$ and outdegree $0$ is a trichromatic triangle (marked green in the figure above);
+    + any node with outdegree $1$ and indegree $0$ is a trichromatic triangle (marked green), with the only exception of the bottom-left node (marked purple).
+  ]
+] <thm:sperner-graph-properties>
+
+#proof[
+  #[
+    #set enum(numbering: "(1)")
+    + follows by noticing that every cell has at most one _red-yellow_ edge that one can use to exit this cell while keeping red on the left, and at most one _red-yellow_ edge that one can use to enter this cell while keeping red on the left.
+    + can be shown by contradiction. Take any node with indegree $1$ and outdegree $0$, and assume for contradiction that it is not a trichromatic triangle. Since the indegree is $1$, one of the sides of the cell corresponding to the node is red-yellow and this edge can be crossed to enter into this cell from a neighboring cell. Let us now consider the third vertex of the cell. Since by assumption the cell is not trichromatic, the third vertex is either red or yellow. Either case results in another red-yellow edge that one would be able to cross to exit the cell keeping red on the left. The only reason why this would not mean that the outdegree of the node corresponding to that cell is $1$ is that this edge lies on the boundary of the grid. However, there are no such red-yellow edges on the boundary of the grid in the standard Sperner coloring. There is a unique red-yellow edge in the standard boundary coloring (at the bottom left cell) but this is an entry door, not an exit one.
+    + can be shown with a similar argument as (2).
+  ]
+]
+
+== Completing the proof of Sperner's lemma
+
+At this point, the proof of Sperner's lemma is immediate. A graph in which each node has indegree at most one and outdegree at most one is composed of connected components that can only be singleton nodes, directed paths, or directed simple cycles. Only paths have nodes with outdegree $1$ and indegree $0$, or outdegree $0$ and indegree $1$; each has exactly one of each. Note also that the standard boundary coloring forces the bottom left cell not to be trichromatic, and node corresponding to this cell to have outdegree $1$ and indegree $0$. So this node must be the source of a path. The sink of that path is trichromatic as per~@thm:sperner-graph-properties. If there are other paths, both their source and their sink are trichromatic, as per~@thm:sperner-graph-properties. Hence, there are an odd number of trichromatic triangles in any standard Sperner coloring, and therefore any Sperner coloring.
+
+= Why the proof is not an efficient algorithm <sec-sperner-computation>
+
+This proof of @thm-sperner also gives us an algorithm to find a trichromatic triangle: start at the bottom-left cell and follow the path in the Sperner graph until it stops. Why, then, is finding trichromatic triangles considered a hard computational problem?
+
+It is not if the coloring of the grid is given explicitly as an input. Writing down the colors of an $N times N$ grid already takes $N^2$ space, and the walk visits at most $2 (N - 1)^2$ cells. So following the path takes time linear in the size of the input. That's computationally feasible.
+
+It can break if the coloring is given as a description only. For example, if the colors come from an input Boolean circuit that reads the coordinates of a point and outputs its color, it can describe a grid far larger (exponentially large) than the size of the circuit, so we can no longer afford to walk the path. The only way left is to reason about the circuit and find the triangle from it directly. In our case, the coloring of the grid is not given explicitly. By @sec-brouwer-approximation, we get the coloring from the improvement function and the grid diameter $delta$ chosen in @cor:sperner; the grid then has about $1\/delta$ points per side, and $delta$ itself is given with about $log(1\/delta)$ bits. So if we take $1\/delta = 2^n$ then our grid is of the size $2^n times 2^n$. Thus a walk can take time in the order of $2^(2 n)$, but our input is only the game and about $n$ bits for $delta$. So in this case the algorithm takes exponential time in the input.
+
+The alternative is to inspect the improvement function and work out where the colors must clash, without following the path at all. No general technique for this is known. So a trichromatic triangle is guaranteed to exist, and is easy to check once found, but no polynomial-time algorithm is known for finding one in a grid described this way. This gap is made precise by #lecture-link("tfnp", <sec-end-of-line>)[the End-of-Line problem].
+
+
+#example[
+  The accompanying #link("https://colab.research.google.com/drive/1VyefBluGV8LUO3cj5zc8WJhNmqI9gAoV?usp=sharing")[notebook] puts this proof to work for two-player two-action games: it constructs the Sperner coloring induced by the players' best-response map and uses a trichromatic triangle to recover a Nash equilibrium. This gives a concrete computational view of the existence argument developed above.
+]
 
 = Beyond the unit square <sec-brouwer-general>
 
