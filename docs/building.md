@@ -11,20 +11,20 @@ extension. Each lecture and supplementary reading is a standalone
 `content/<topic>.typ` document that imports `meta/gabri_notes.typ`, the default
 PDF style. Its styles, figures, and bibliography all live below `content/`,
 inside Typst's default project root. No root override, input variables, target
-flags, or generated source file is needed:
+flags, or generated source file is needed; load the vendored fonts explicitly:
 
 ```sh
-typst compile content/nfgs_nash.typ
+typst compile --font-path html-exporter/assets/fonts content/nfgs_nash.typ
 ```
 
 The checked-in `.vscode/settings.json` selects the paged target and loads the
-bundled Frutiger fonts via
+bundled Source Sans 3 fonts via
 [Tinymist's fontPaths setting](https://myriad-dreamin.github.io/tinymist/config/vscode.html#tinymistfontpaths).
-For standalone CLI compilation on another machine, install those fonts for the
-same typography; Typst can still compile using fallback fonts.
+The CLI font-path option embeds these same static faces directly into PDFs;
+no system font installation or network font service is needed.
 
-`make check-pdf` compiles every authored note without compiler flags or
-`TYPST_*` environment overrides, writing PDFs and diagnostics under
+`make check-pdf` compiles every authored note with the vendored fonts and its
+default project root, without `TYPST_*` environment overrides, writing PDFs and diagnostics under
 `.build/standalone-pdfs/`. This check also runs as part of `make check`.
 PDFs created alongside the lecture sources by the editor or CLI are ignored by
 Git; the site build writes its published PDFs under `html/pdf/`.
@@ -52,12 +52,18 @@ See #lecture-link("learning_intro", <sec-learning-zero-sum>)[the self-play proof
 By #lecture-link("learning_intro", <thm-regret-gap>)[], the saddle-point gap vanishes.
 // Renders: By Theorem L4.9, ...
 
-// Use none to refer to a whole lecture, including its number and title:
-#lecture-link("kernelized", none)[] develops this construction.
+// Omit the label and body to link the whole lecture, including its number and title:
+#lecture-link("efg_intro")
+// Renders: Lecture 7, “Modeling extensive-form games”.
+
+#lecture-link("kernelized") develops this construction.
 // Renders: Lecture 16, “High-dimensional games” develops this construction.
 ```
 
 Both styles export `lecture-link` from `content/meta/lecture-links.typ`.
+The older `#lecture-link("efg_intro", none)[]` form remains supported.
+The body is optional for labeled links too: `#lecture-link("learning_intro", <thm-regret-gap>)`.
+Use `#lecture-link("efg_intro")[the modeling notes]` to add descriptive text.
 Use the source basename and an authored destination label consisting of letters,
 digits, hyphens, or underscores, starting with a letter. Keep the label with its
 topic when moving a section or result. The helper adds the numbered reference
@@ -111,6 +117,13 @@ generates the course index and syllabus PDF, and assembles `html/`. The bundle
 target requires Typst 0.15.1 and currently uses its experimental feature flag.
 `make bundle` also produces `dist/6.7980-notes.zip`.
 
+Before copying slides into the site, the build exports each configured
+interactive slide PDF from its standalone HTML deck. It waits for the deck and
+fonts to load, prints every view, and checks the PDF page count. A changed HTML
+deck, missing PDF, or `--force` regenerates the PDF; an unchanged deck is reused.
+Install Chrome or Chromium for this step, or set `CHROME_BIN` to its executable.
+No npm installation is needed.
+
 `make figures` rebuilds just the SVGs beside their sources. The figure builder
 discovers new standalone sources automatically, skips shared libraries and
 include-only component plots, and expands `gate.typ` into all six gate SVGs.
@@ -147,7 +160,7 @@ After the Rust converter has been built, a quicker rebuild is:
 python3 scripts/build_site.py --skip-build --zip
 ```
 
-Builds reuse unchanged figure variants, native lecture bundles, individual
+Builds reuse unchanged figure variants, interactive slide PDFs, native lecture bundles, individual
 postprocessed HTML pages, and the syllabus PDF. Dependency records include the
 files actually read by Typst, compiler settings, and output checksums; missing
 or modified outputs are rebuilt. Each lecture's final HTML is checked separately.
@@ -173,7 +186,7 @@ Compiler diagnostics are saved under `.build/logs/`. Build products in `.build/`
 
 All lecture and supplementary PDFs share `content/meta/gabri_notes.typ`.
 The print style uses A4 pages, 1.3-inch side margins, 1.6-inch top/bottom margins,
-10.2pt New Computer Modern body text, and Frutiger Bold headings. A ruled opening
+10.2pt New Computer Modern body text, and Source Sans 3 Bold headings. A ruled opening
 panel carries the course, date, lecture title, and instructor. Each footer keeps
 the full authored title beside the lecture identifier and a right-aligned
 current/total page count. Long titles wrap without hyphenation; section markers
@@ -279,7 +292,7 @@ The same figure builder runs during the full site build. Editable sources
 live under `content/figures/`; the dynamics helpers are in
 `content/meta/dyns.typ`. SVGs beside the sources use the lecture PDF typography.
 The builder also generates `.build/html-figures/` variants with Georgia body
-labels and Frutiger bold labels to match the HTML pages, preserving mathematical
+labels and Source Sans 3 bold labels to match the HTML pages, preserving mathematical
 fonts and explicit sans-serif labels. Georgia must be installed or supplied via
 `TYPST_FONT_PATHS`; the build checks availability. Generated HTML sources select
 these variants automatically; standalone figure PDFs are neither needed nor generated.
@@ -349,9 +362,13 @@ example above. Keep mathematical arguments in math, for example
 
 ## Typography and verification
 
-The build loads the bundled regular and bold Frutiger faces from
-`html-exporter/assets/fonts`.
-The font files and other third-party assets retain their respective terms.
+The build loads the vendored static Source Sans 3 Regular (400) and Bold (700)
+faces from `html-exporter/assets/fonts`. They are licensed under SIL OFL 1.1;
+the license and pinned provenance ship beside the fonts. PDFs use New Computer
+Modern for regular and italic body text. The shared `content/meta/typography.typ`
+helper selects Source Sans 3 at the original authored sizes, without scaling.
+Webfonts are self-hosted WOFF copies; regular is used for dates, small links, and diagram labels.
+See the font directory README for reproducible font and webfont generation.
 
 `make check` runs the Python and Rust regression suites, verifies local links
 and image occurrences, validates each “How to cite” URL against the generated

@@ -13,7 +13,7 @@ With this lecture we begin to explore what it means to "learn" in a game, and ho
 
 What does it mean to "learn" in games? Multiple answers are correct. However, today we focus on a powerful answer through the concept of _hindsight rationality_.
 
-Take the point of view of _one_ player in a game, and denote with $cX$ be their set of available strategies. In #lecture-link("nfgs_nash", <sec-normal-form>)[normal-form games], we have seen that a strategy is just a distribution over the set of available actions $A$ for the player, so $cX = Delta(A)$.
+Take the point of view of _one_ player in a game, and denote with $cX$ be their set of available strategies. In #lecture-link("nfgs_nash", <sec-normal-form>)[normal-form games], we have seen that a strategy is just a distribution over the set of available actions $A$ for the player, so $cX = Delta(A)$. This framework will seamlessly apply to imperfect-information extensive-form games (#lecture-link("efg_intro")) as well, where $cX$ will be a more complicated (but still convex and compact) set of strategies.
 At each time $t =1,2,...$, the player will play some strategy $vx^((t)) in cX$, receive some form
 of feedback, and will incorporate that feedback to formulate a "better" strategy $vx^((t+1)) in cX$ for the next repetition of the game. A typical (and natural) choice of "feedback" is just the utility of the player, given what all the other agents played. However, for the purposes of the abstract model we are building today, let's not make any assumptions about how the feedback is assigned; we will strive to build algorithms that perform competitively under _any_ feedback---even adversarial one.
 
@@ -46,6 +46,19 @@ We have thus arrived at the following formalization.
 
 Calls to `NextStrategy` and `ObserveUtility` keep alternating to each other: first, the regret minimizer will output a point $vx^((1))$, then it will received feedback $u^((1))$ from the environment, then it will output a new point $vx^((2))$, and so on.
 The decision making encoded by the regret minimizer is _online_, in the sense that at each time $t$, the output of the regret minimizer can depend on the prior outputs $vx^((1)), ...,vx^((t-1))$ and corresponding observed utility functions $u^((1)),...,u^((t-1))$, but no information about future utilities is available.
+
+== Interaction and feedback models
+
+At each round $t$, the learner chooses a strategy using information from earlier rounds. Then, the learner receives feedback and uses it to choose a strategy for round $t+1$. There are two separate choices: how the learner acts, and what feedback they receive.
+
+For a finite action set $A$, a _deterministic action_ means directly choosing and playing one action $a in A$. A _randomized strategy_ is a distribution $vx in Delta(A)$ where the learner samples and plays an action $a$ from the distribution. For example, in a coin game, $(0.7, 0.3)$ is the strategy of playing Heads with probability $0.7$ and Tails with probability $0.3$.
+
+In the _full-information_ feedback setting the learner observes the entire utility function $u^((t)): X -> RR$ after choosing $vx^((t)) in X$. In a normal-form game, this means learning the utility of every action including the ones not played. The learner then evaluates how any strategy would have performed before choosing for round $t+1$. This model is directly tied to online convex optimization because we observe the entire utility function and can directly optimize based on it.
+
+In the _bandit_ feedback setting, the learner only observes the realized utility of the action actually played. For a randomized strategy, that's the utility of the sampled action, not the expected utility $u^((t))(vx^((t)))$ of the distribution itself. The utilities of unplayed actions, the counterfactuals, stay hidden. Bandit algorithms have to work around this by building a gradient estimator that extracts information about the unseen utilities from the strategy played and the one piece of feedback observed.
+
+Strategy and feedback are two independent choices. The strategy axis is about what the learner plays, either one action or a sample from a full distribution. The feedback axis is about what comes back afterward, either the whole utility function $u^((t))$ including counterfactuals or a single real number. These choices can be combined freely. For example, playing a deterministic action does not imply bandit feedback: the learner can play one action and still observe the entire utility function $u^((t))$.
+
 
 == Notable choices of transformations $Phi$ <sec-regret-transformations>
 The size of the set of transformations $Phi$ considered by the player defines
@@ -244,7 +257,7 @@ The very _existence_ of regret minimizers is a powerful enough fact to imply the
 The previous result is in fact a direct corollary of the more general connection between $Phi$-regret minimization and the set of coarse-correlated equilibria in multiplayer general-sum games. We present a general form of this connection in the next theorem.
 
 #theorem[Formal version of #ref(<thmce-informal>, supplement: "Theorems") and #ref(<thmcce-informal>, supplement: "")][
-  Let $vx^((t))_1, ..., vx^((t))_n$ the strategies played by the players at any time $t$, and let $Phi"-Reg"_i^((t))$ denote the internal regret incurred by Player $i$ up to time $t$. Consider now the average correlated distribution of play up to any time $T$, that is, the distribution $vmu^((T))$ that selects a time $overline(t)$ uniformly at random from the set ${1,...,T }$, and selects actions $(a_1,..., a_n)$ independendently according to the $vx_i^((overline(t)))$, that is,
+  Let $vx^((t))_1, ..., vx^((t))_n$ the strategies played by the players at any time $t$, and let $Phi"-Reg"_i^((t))$ denote the $Phi$-regret incurred by Player $i$ up to time $t$. Consider now the average correlated distribution of play up to any time $T$, that is, the distribution $vmu^((T))$ that selects a time $overline(t)$ uniformly at random from the set ${1,...,T }$, and selects actions $(a_1,..., a_n)$ independendently according to the $vx_i^((overline(t)))$, that is,
   $
     vmu^((T)) := 1 / T sum_(t=1)^T vx_1^((t))⊗...⊗ vx_n^((t)).
   $
@@ -285,4 +298,4 @@ The previous result is in fact a direct corollary of the more general connection
   where the second equality follows by linearity of $phi.alt$ and $u_i$. Taking now a maximum over $phi.alt in Phi$, and recognizing the definition of $Phi$-regret on the right-hand side, we obtain the desired inequality.
 ]
 
-Note that @thmce-formal holds for any set $Phi$. The approximate equilibria found this way are sometimes called approximate $Phi$-equilibria. In the special cases of $Phi =$ all constant transformations, it is clear that the previous result implies convergence to the set of coarse correlated equilibria. For correlated equilibria, we need to convince ourselves that any arbitrary mapping $A -> A$ can be represented via a stochastic matrix. This is indeed the case, by constructing the matrix whose columns indicate what action is assigned to each action in $A$ by the mapping. (You should convince yourself!) Finally, for the case of $Phi =$ all probability mass transportations, it is enough to note that the $Phi$-regret of any stochastic matrix transformations is at most $|A|$ times larger than the worst possible regret of a probability mass transportation between two actions.
+Note that @thmce-formal holds for any set $Phi$. The approximate equilibria found this way are sometimes called approximate "$Phi$-equilibria". In the special cases of $Phi =$ all constant transformations, it is clear that the previous result implies convergence to the set of coarse correlated equilibria. For correlated equilibria, we need to convince ourselves that any arbitrary mapping $A -> A$ can be represented via a stochastic matrix. This is indeed the case, by constructing the matrix whose columns indicate what action is assigned to each action in $A$ by the mapping. (You should convince yourself!) Finally, for the case of $Phi =$ all probability mass transportations, it is enough to note that the $Phi$-regret of any stochastic matrix transformations is at most $|A|$ times larger than the worst possible regret of a probability mass transportation between two actions.

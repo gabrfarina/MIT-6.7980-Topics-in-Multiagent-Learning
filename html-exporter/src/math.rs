@@ -796,10 +796,13 @@ fn accent_mark_command(args: &[Arg], context: ConvertContext) -> String {
         .or_else(|| positional_arg(args, 0))
         .map(|value| convert_expr_with_context(value, context))
         .unwrap_or_default();
-    let command = named_arg(args, "accent")
+    let Some(command) = named_arg(args, "accent")
         .and_then(quoted_literal)
         .and_then(accent_mark_to_command)
-        .unwrap_or("hat");
+    else {
+        // An unknown accent must retain Typst's SVG, never silently become a hat.
+        return UNSUPPORTED_MATH.to_owned();
+    };
     format!("\\{command}{{{}}}", body.trim())
 }
 
@@ -807,7 +810,9 @@ fn accent_mark_to_command(accent: &str) -> Option<&'static str> {
     match accent {
         "\u{302}" | "\\u{302}" => Some("hat"),
         "\u{303}" | "\\u{303}" => Some("tilde"),
+        "\u{304}" | "\\u{304}" | "\u{305}" | "\\u{305}" => Some("overline"),
         "\u{307}" | "\\u{307}" => Some("dot"),
+        "\u{308}" | "\\u{308}" => Some("ddot"),
         "\u{20d7}" | "\\u{20d7}" => Some("vec"),
         _ => None,
     }
@@ -1878,6 +1883,17 @@ mod tests {
             ),
             r"\hat{\boldsymbol{x}}"
         );
+    }
+
+    #[test]
+    fn low_level_accents_never_silently_become_hats() {
+        for (mark, command) in [("304", "overline"), ("305", "overline"), ("308", "ddot")] {
+            let repr = format!(r#"accent(base: [x], accent: "\u{{{mark}}}")"#);
+            assert_eq!(typst_repr_to_katex(&repr), format!("\\{command}{{x}}"));
+        }
+        assert_eq!(typst_repr_to_katex("accent(base: [x], accent: \"\u{304}\")"), r"\overline{x}");
+        assert_eq!(typst_repr_to_katex(r#"accent(base: [x], accent: "\u{30a}")"#), "");
+        assert_eq!(typst_repr_to_katex("accent(base: [x])"), "");
     }
 
     #[test]

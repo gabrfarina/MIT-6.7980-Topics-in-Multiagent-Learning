@@ -28,6 +28,7 @@
 #import "notation.typ": html-xhat as xhat, html-yhat as yhat, html-mU as mU, html-upsans as upsans
 #import "markers.typ": paragraph-marker
 #import "lecture-links.typ": lecture-link, lecture-title
+#import "typography.typ": course-sans-font
 
 #let thmcounters = state("thmcounters", (:))
 
@@ -177,7 +178,7 @@
   set cite(style: "alphanum.csl")
   set math.equation(supplement: none)
   show cite: set text(fill: blue.darken(40%))
-  show strong: set text(font: "Frutiger", weight: "bold")
+  show strong: set text(font: course-sans-font, weight: "bold")
   show heading: it => {
     let tag = html-heading-tag(it.level)
     // Export authored safe labels even without a reference in this document.
@@ -783,7 +784,20 @@
 #let remark = thm-factory("remark")
 #let proof = proof-factory("proof")
 #let proofsketch = proof-factory("Proof Sketch")
-#let solution = proof-factory("solution")
+
+// Published solutions stay collapsed until a reader opts in, so an exercise
+// still reads as a question on first pass. See solutions.js for the toggle.
+#let solution = {
+  let render-solution = proof-factory("solution")
+  (..args, body) => html.elem("div", attrs: (class: "solution-wrapper"))[
+    #html.elem("button", attrs: (
+      type: "button",
+      class: "solution-toggle",
+      "aria-expanded": "false",
+    ))[Show solution]
+    #render-solution(..args, body)
+  ]
+}
 
 #let dt(s) = {
   (

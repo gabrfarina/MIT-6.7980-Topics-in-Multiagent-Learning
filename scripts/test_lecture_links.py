@@ -43,19 +43,34 @@ class LectureLinkValidationTests(unittest.TestCase):
                     validate_lecture_links(self.root, self.config)
 
     def test_whole_lecture_needs_no_heading(self):
-        self.source.write_text('#lecture-link("two", none)[]')
         self.target.write_text('No numbered headings.')
-        self.assertEqual(validate_lecture_links(self.root, self.config), 1)
+        for call in ('#lecture-link("two")', '#lecture-link("two")[]',
+                     '#lecture-link("two")[the notes]', '#lecture-link("two", none)',
+                     '#lecture-link("two", none)[]'):
+            with self.subTest(call=call):
+                self.source.write_text(call)
+                self.assertEqual(validate_lecture_links(self.root, self.config), 1)
+
+    def test_label_without_body_still_checks_destination(self):
+        self.source.write_text('#lecture-link("two", <missing-result>)')
+        with self.assertRaisesRegex(ValueError, 'expected one labeled section or environment'):
+            validate_lecture_links(self.root, self.config)
 
     def test_unpublished_note_is_rejected(self):
         self.config['notes'].pop()
-        with self.assertRaisesRegex(ValueError, 'unknown linked lecture'):
-            validate_lecture_links(self.root, self.config)
+        for call in ('#lecture-link("two", <stable-result>)[The result]',
+                     '#lecture-link("two")'):
+            with self.subTest(call=call):
+                self.source.write_text(call)
+                with self.assertRaisesRegex(ValueError, 'unknown linked lecture'):
+                    validate_lecture_links(self.root, self.config)
 
     def test_dynamic_or_local_destinations_are_rejected(self):
         for call in ('#lecture-link(name, <stable-result>)[Result]',
                      '#lecture-link("../two", <stable-result>)[Result]',
-                     '#lecture-link("one", <stable-result>)[Result]'):
+                     '#lecture-link("one", <stable-result>)[Result]',
+                     '#lecture-link(name)', '#lecture-link("../two")',
+                     '#lecture-link("one")', '#lecture-link("two", destination)'):
             with self.subTest(call=call):
                 self.source.write_text(call)
                 with self.assertRaises(ValueError):
@@ -104,6 +119,8 @@ class LectureLinkRenderingTests(unittest.TestCase):
   #lecture-link("destination", <target-section>)[]
   #lecture-link("destination", <target-appendix>)[]
   #lecture-link("destination", none)[]
+  #lecture-link("destination")
+  #lecture-link("destination")[the _notes_]
 ]
 #document("{destination}", title: lecture-title({json.dumps(number)}, [Destination]))[
   #show: gabri_notes.with(lec_num: {json.dumps(number)}, title: [Destination])
@@ -131,11 +148,14 @@ class LectureLinkRenderingTests(unittest.TestCase):
                         f'the result (Theorem\u00a0{prefix}.{n})',
                         f'Section\u00a0{prefix}.{n}', f'Section\u00a0{prefix}.A',
                         f'{kind}\u00a0{number}, “Destination”',
+                        f'{kind}\u00a0{number}, “Destination”',
+                        f'the notes ({kind}\u00a0{number}, “Destination”)',
                     ])
                     self.assertIn('em', page.references[0]['tags'])
                     self.assertEqual([ref['href'] for ref in page.references], [
                         'destination.html#target-theorem', 'destination.html#target-section',
                         'destination.html#target-appendix', 'destination.html',
+                        'destination.html', 'destination.html',
                     ])
                     for ref in page.references[:3]:
                         self.assertIn(ref['href'].split('#')[1], target.ids)
@@ -207,12 +227,16 @@ class LectureLinkRenderingTests(unittest.TestCase):
         output = self.compile('''
 #show: gabri_notes.with(lec_num: 5, title: [Source])
 See #lecture-link("learning_intro", <sec-learning-zero-sum>)[the _self-play_ proof].
+See #lecture-link("efg_intro").
 ''')
         page = ReferencePage(output.read_text())
         self.assertEqual(page.references[0]['href'], 'learning_intro.html#sec-learning-zero-sum')
         self.assertEqual(''.join(page.references[0]['text']),
                          'the self-play proof (Lecture\u00a04, “Learning in games: Foundations”)')
         self.assertIn('em', page.references[0]['tags'])
+        self.assertEqual(page.references[1]['href'], 'efg_intro.html')
+        self.assertEqual(''.join(page.references[1]['text']),
+                         'Lecture\u00a07, “Modeling extensive-form games”')
 
     def test_direct_headers_support_reordered_arguments_and_literal_title_forms(self):
         helper = ROOT / 'content/meta/lecture-links.typ'
@@ -261,6 +285,7 @@ See #lecture-link("learning_intro", <sec-learning-zero-sum>)[the _self-play_ pro
         text = subprocess.check_output(['pdftotext', str(source), '-'], text=True)
         self.assertIn('Theorem S8.2', text)
         self.assertIn('Section S8.A', text)
+        self.assertIn('the notes (Supplementary Reading S8, “Destination”)', ' '.join(text.split()))
 
     @unittest.skipUnless(shutil.which('pdfinfo'), 'Poppler is required for PDF links')
     def test_standalone_pdf_uses_canonical_web_links_and_honors_override(self):
@@ -271,9 +296,11 @@ See #lecture-link("learning_intro", <sec-learning-zero-sum>)[the _self-play_ pro
                 output = self.compile('''
 #show: gabri_notes.with(lec_num: 5, title: [PDF source])
 See #lecture-link("learning_intro", <sec-learning-zero-sum>)[the self-play proof].
+See #lecture-link("efg_intro").
 ''', html=False, inputs=inputs)
                 urls = subprocess.check_output(['pdfinfo', '-url', str(output)], text=True)
                 self.assertIn(base + 'learning_intro.html#sec-learning-zero-sum', urls)
+                self.assertIn(base + 'efg_intro.html', urls)
 
     def test_native_html_bibliographies_and_first_citation_notes_stay_with_their_lecture(self):
         output = self.compile('''

@@ -20,7 +20,18 @@
   (lec_num: eval(number.captures.first()), title: eval(title.captures.first()))
 }
 
-#let lecture-link(note, destination, body) = context {
+// Omit the destination and body for a whole-lecture reference. Keep accepting
+// positional labels and trailing content blocks for existing references.
+#let lecture-link(note, ..args) = context {
+  let positional = args.pos()
+  assert(args.named().len() == 0 and positional.len() <= 2,
+    message: "Expected a lecture name, an optional destination label, and optional link text.")
+  let destination = positional.at(0, default: none)
+  let body = positional.at(1, default: [])
+  if positional.len() == 1 and type(destination) == content {
+    body = destination
+    destination = none
+  }
   assert(note.match(regex("^[a-z][a-z0-9_]*$")) != none,
     message: "Expected a lecture source basename (without .typ).")
   assert(destination == none or type(destination) == label,

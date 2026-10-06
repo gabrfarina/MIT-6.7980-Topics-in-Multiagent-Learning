@@ -1,6 +1,7 @@
 #import "gabri-schedule.typ": break-badge, email, lecture, module, no-class, proj, schedule
 #import "fall-2026-calendar.typ": calendar-exceptions, class-dates
 #import "gabri-schedule.typ": item as schedule-item
+#import "../content/meta/typography.typ": course-sans-font
 
 // Shared course facts. The website reads this metadata from the same syllabus.
 #let course = (
@@ -20,9 +21,12 @@
      email: "gfarina@mit.edu", office: "45-501F", building: "the College of Computing building",
      url: "https://www.mit.edu/~gfarina"),
   ),
+  other_staff: (
+    (name: "Brian Hu Zhang", email: "zhangbh@mit.edu", office: "32-G540"),
+  ),
   tas: (
     (name: "Kat Fedorova", email: "fedorova@mit.edu", office_hours: "Wednesdays, 2-3 pm, room 32-G5 (lounge of 5th floor, Gates tower)"),
-    (name: "Mingyang Liu", email: "liumy19@mit.edu", office_hours: "Fridays, 5:30-6:30 pm, room 45-500A"),
+    (name: "Mingyang Liu", email: "liumy19@mit.edu", office_hours: "Fridays, 5:30-6:30 pm, room 45-501N"),
     (name: "Daniel Xia", email: "dxia03@mit.edu", office_hours: "Mondays, 10-11 am, room 45-509"),
     (name: "Rui Yao", email: "rayyao@mit.edu", office_hours: "Tuesdays, 3:30-4:30 pm, room 32-G5 (lounge of 5th floor, Gates tower)"),
   ),
@@ -54,8 +58,8 @@
 #set list(tight: true, marker: sym.triangle.r.filled)
 #set text(font: "New Computer Modern", size: 9.5pt)
 #set par(justify: true, leading: .6em, spacing: 1.15em)
-#show strong: set text(font: "Frutiger")
-#show heading: set text(font: "Frutiger")
+#show strong: set text(font: course-sans-font)
+#show heading: set text(font: course-sans-font)
 #show heading: set block(above: 6mm, below: 5mm)
 
 #align(center)[
@@ -65,6 +69,7 @@
 ]
 #v(0mm)
 
+#set par(spacing: 1em)
 #item("Lecture")[#course.days, #course.time, in room #raw(course.room).]
 
 #item("Instructors")[
@@ -74,6 +79,8 @@
   ]
   #course.meetings
 ]
+
+#item("Other Staff")[#course.other_staff.map(person => [#person.name (#email(person.email)), office #raw(person.office).]).join(" ")]
 
 #item("Teaching assistants")[
   #for person in course.tas [
@@ -117,6 +124,7 @@
 ]
 
 #pagebreak()
+#set par(spacing: 1.15em)
 = Description
 
 #course-text("description")[

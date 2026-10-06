@@ -5,10 +5,12 @@ import json
 from html import escape
 from pathlib import Path
 import re
+import shutil
 
 
 from course_data import read_course_data, with_course_data, paragraphs, rich_html
-from public_files import copy_public_files, note_outputs, slide_output, validate_inputs
+from public_files import (copy_font_assets, copy_public_files, interactive_slide_output, note_outputs,
+                          slide_output, validate_inputs)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -118,7 +120,8 @@ def validate_readings(config: dict, modules: list[dict]) -> None:
         raise ValueError('Readings are out of syllabus order.')
 
 
-def render_index(config: dict, modules: list[dict], *, stylesheet_version: str = '') -> str:
+def render_index(config: dict, modules: list[dict], *, stylesheet_version: str = '',
+                 notes_stylesheet_version: str = '') -> str:
     config = resolve_readings(config, modules)
     site = config['site']
     course = config['course']['info']
@@ -127,6 +130,11 @@ def render_index(config: dict, modules: list[dict], *, stylesheet_version: str =
         f'<li><a class="person-name" href="{escape(p["url"], quote=True)}">{escape(p["name"])}</a>'
         f'<a href="mailto:{escape(p["email"], quote=True)}">{escape(p["email"])}</a>'
         f'<span>Office {escape(p["office"])}</span></li>' for p in course['instructors'])
+    other_staff = ''.join(
+        f'<li><span class="person-name">{escape(p["name"])}</span>'
+        f'<a href="mailto:{escape(p["email"], quote=True)}">{escape(p["email"])}</a>'
+        f'<span>Office {escape(p["office"])}</span></li>'
+        for p in course['other_staff'])
     tas = ''.join(
         f'<li><span class="person-name">{escape(p["name"])}</span>'
         f'<a href="mailto:{escape(p["email"], quote=True)}">{escape(p["email"])}</a>'
@@ -159,11 +167,17 @@ def render_index(config: dict, modules: list[dict], *, stylesheet_version: str =
                 f'aria-label="Read notes: {escape(c["short_title"], quote=True)}">HTML</a>'
                 f'<a class="pdf-link" href="{note_outputs(c)["pdf"]}" '
                 f'aria-label="PDF: {escape(c["short_title"], quote=True)}">PDF</a>' for c in notes)
-            slides = config.get('slides', {}).get(row['id'])
-            if slides:
-                slides_href = escape(slide_output(slides), quote=True)
+            interactive = config.get('interactive_slides', {}).get(row['id'])
+            if interactive:
+                slides_href = escape(interactive_slide_output(interactive) + '?overview=1', quote=True)
                 links += (f'<a class="pdf-link slides-link" href="{slides_href}" '
-                          f'aria-label="Slides (PDF): {escape(row["title"], quote=True)}">Slides (PDF)</a>')
+                          f'aria-label="Slides: {escape(row["title"], quote=True)}">Slides</a>')
+            else:
+                slides = config.get('slides', {}).get(row['id'])
+                if slides:
+                    slides_href = escape(slide_output(slides), quote=True)
+                    links += (f'<a class="pdf-link slides-link" href="{slides_href}" '
+                              f'aria-label="Slides (PDF): {escape(row["title"], quote=True)}">Slides (PDF)</a>')
             if not links:
                 links = ('<span class="notes-pending">Not yet posted</span>'
                          if number != 0 and module['title'] != 'Project work and presentations' else '')
@@ -207,7 +221,7 @@ def render_index(config: dict, modules: list[dict], *, stylesheet_version: str =
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="{escape(site['event'])}, {escape(site['term'])}. {escape(site['title'])}. Course schedule, lecture notes, and syllabus.">
 <title>{escape(site['event'])} · {escape(site['title'])} · {escape(site['term'])}</title>
-<link rel="stylesheet" href="assets/notes.css">
+<link rel="stylesheet" href="assets/notes.css{('?v=' + escape(notes_stylesheet_version, quote=True)) if notes_stylesheet_version else ''}">
 <link rel="stylesheet" href="assets/course.css{('?v=' + escape(stylesheet_version, quote=True)) if stylesheet_version else ''}">
 </head>
 <body class="course-home">
@@ -259,11 +273,17 @@ def render_index(config: dict, modules: list[dict], *, stylesheet_version: str =
   <dl><div><dt>Lectures</dt><dd>{escape(course['days'])}<br><span class="lecture-time">{escape(course['time'])}</span></dd></div><div><dt>Room</dt><dd>{escape(course['room'])}</dd></div></dl>
 </section>
 <section id="people" class="course-people" aria-label="Teaching team">
-  <h2>Instructors</h2>
-  <ul class="instructor-list">{instructors}</ul>
-  <p class="office-hours">{escape(course['meetings'])}</p>
-  <h2 id="ta-title">Teaching assistants</h2>
-  <ul class="ta-list" aria-labelledby="ta-title">{tas}</ul>
+  <div class="course-instructors">
+    <h2>Instructors</h2>
+    <ul class="instructor-list">{instructors}</ul>
+    <p class="office-hours">{escape(course['meetings'])}</p>
+    <h2 id="other-staff-title">Other Staff</h2>
+    <ul class="other-staff-list" aria-labelledby="other-staff-title">{other_staff}</ul>
+  </div>
+  <div class="course-assistants">
+    <h2 id="ta-title">Teaching assistants</h2>
+    <ul class="ta-list" aria-labelledby="ta-title">{tas}</ul>
+  </div>
 </section>
 <section class="course-repository" aria-labelledby="repository-title"><h2 id="repository-title"><a href="{escape(course['github'], quote=True)}">GitHub repository <span aria-hidden="true">↗</span></a></h2></section>
 <section class="course-prerequisites" aria-labelledby="prerequisites-title"><h2 id="prerequisites-title">Prerequisites</h2>{paragraphs(prose['Prerequisites'])}</section>
@@ -289,9 +309,14 @@ if __name__ == '__main__':
         stylesheet = ROOT / 'html/assets/course.css'
         stylesheet.parent.mkdir(parents=True, exist_ok=True)
         stylesheet.write_bytes((ROOT / 'html-exporter/src/course.css').read_bytes())
+        notes_stylesheet = stylesheet.with_name('notes.css')
+        notes_stylesheet.write_bytes((ROOT / 'html-exporter/src/gabri-notes.css').read_bytes())
+        copy_font_assets(ROOT, ROOT / 'html')
         copy_public_files(config, ROOT, ROOT / 'html')
         version = sha256(stylesheet.read_bytes()).hexdigest()[:12]
-        (ROOT / 'html/index.html').write_text(render_index(config, modules, stylesheet_version=version))
+        notes_version = sha256(notes_stylesheet.read_bytes()).hexdigest()[:12]
+        (ROOT / 'html/index.html').write_text(render_index(
+            config, modules, stylesheet_version=version, notes_stylesheet_version=notes_version))
         print('Updated html/index.html from the evaluated syllabus.')
     else:
         print('Resolved course configuration: .build/html-export.json')

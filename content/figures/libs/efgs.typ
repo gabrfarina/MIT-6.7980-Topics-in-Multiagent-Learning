@@ -1,4 +1,5 @@
 #import "@preview/cetz:0.3.4"
+#import "../../meta/typography.typ": course-sans
 
 #let _num-slash = key => {
   key
@@ -186,7 +187,7 @@
           let p = map-pos(nodes.at(inodes.at(0)))
           (p.at(0) - 3.8mm, p.at(1) + .5mm)
         }
-        content(p)[#text(font: "Frutiger", fill: blue)[#name]]
+        content(p)[#course-sans(fill: blue)[#name]]
       }
     }
     for info in infosets.pos() {
@@ -250,7 +251,7 @@
           c.at(0) += 1mm
         }
         if show-label {
-          outlined-content(c)[#text(font: "Frutiger", action-name(action))]
+          outlined-content(c)[#course-sans(action-name(action))]
         }
       }
     }

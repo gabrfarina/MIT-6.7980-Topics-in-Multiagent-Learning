@@ -54,8 +54,8 @@ at the end of this guide.
    `myriad-dreamin.tinymist`.
 
 Be sure to open the **whole repository folder** in VS Code so its checked-in
-settings take effect. They configure the paged preview and the bundled course
-fonts.
+settings take effect. They configure the paged preview and the vendored Source Sans 3
+fonts (SIL OFL 1.1). Regular and italic PDF body text uses New Computer Modern.
 
 ## Edit with a side-by-side preview
 
@@ -138,6 +138,10 @@ and state whether you checked the Tinymist preview, compiled a PDF, or ran
 the website checks.
 Further commits pushed to the same branch update the pull request.
 
+PRs also receive [automated source and HTML checks](docs/pr-checks.md), including
+desktop/mobile HTML comparison images alongside the PDF preview. These checks
+help catch rendering and integration problems; they do not replace mathematical review.
+
 ## Optional command-line and website checks
 
 To compile an individual note from a terminal, install the
@@ -153,12 +157,12 @@ With Python **3.10 or later** and Make installed, `make check-pdf` checks that
 all lecture and supplementary notes compile.
 
 To check the website too, also install a current stable Rust toolchain with
-Cargo, Node.js **22 or later**, Poppler (providing `pdfinfo`), and the Georgia
+Cargo, Node.js **22 or later**, Chrome or Chromium, Poppler (providing `pdfinfo`), and the Georgia
 font used in website figures. See the [build guide](docs/building.md) for font
 requirements and figure workflows. Initial builds download dependencies.
 
 ```sh
-make html       # build the website and PDFs
+make html       # build the website and PDFs, including interactive slide PDFs
 make force      # rebuild everything, bypassing incremental caches
 make check      # run tests and validate the built website
 make serve      # serve the result locally; stop with Ctrl+C

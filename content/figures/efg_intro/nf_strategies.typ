@@ -1,5 +1,6 @@
 #set page(width: auto, height: auto, margin: 0mm, fill: none)
 #import "../libs/typography.typ": figure-font, figure-style
+#import "../../meta/typography.typ": course-sans
 #set text(font: figure-font, size: 10pt)
 #show: figure-style
 #import "../kernelized/vertices.typ": draw-tree
@@ -15,7 +16,7 @@
       columns: (3.3mm,) * 9,
       row-gutter: 0mm,
       align: center,
-      ..range(9).map(i => text(gray, size: 7pt, font: "Frutiger")[#{ i + 1 }]),
+      ..range(9).map(i => course-sans(fill: gray, size: 7pt)[#{ i + 1 }]),
       ..range(9).map(i => s.at(i)),
     )) #h(-1.5mm) )]
 }

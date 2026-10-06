@@ -1,14 +1,15 @@
+/* Vendored Source Sans 3 under SIL OFL 1.1; see assets/fonts/README.md. */
 @font-face {
-    font-family: "Frutiger Notes";
-    src: url("fonts/Frutiger-Regular.ttf?v=6a341a4de340") format("truetype");
+    font-family: "Source Sans 3";
+    src: url("fonts/SourceSans3-Regular-web.woff?v=3dbf4ec102f9") format("woff");
     font-style: normal;
     font-weight: 400;
     font-display: swap
 }
 
 @font-face {
-    font-family: "Frutiger Notes";
-    src: url("fonts/Frutiger-Bold.ttf?v=ffc7587273fb") format("truetype");
+    font-family: "Source Sans 3";
+    src: url("fonts/SourceSans3-Bold-web.woff?v=46e53922ba57") format("woff");
     font-style: normal;
     font-weight: 700;
     font-display: swap
@@ -27,7 +28,7 @@
     --brown: #8a4c20;
     --brown-soft: #faf4ee;
     --serif: Georgia, "Times New Roman", Times, serif;
-    --sans: "Frutiger Notes", "Frutiger", "Helvetica Neue", Arial, sans-serif;
+    --sans: "Source Sans 3", "Helvetica Neue", Arial, sans-serif;
     --environment-label-weight: 600;
     --page-total: 828px;
     --rail-width: 270px;
@@ -204,7 +205,7 @@ a:hover {
 }
 
 .citation-note-key {
-    font-family: "Frutiger Notes", var(--serif);
+    font-family: "Source Sans 3", var(--serif);
     font-weight: 700;
     color: var(--brown)
 }
@@ -297,7 +298,7 @@ figure[id],
     background: transparent;
     border: 0;
     color: var(--accent) !important;
-    font-family: "Frutiger Notes", var(--serif);
+    font-family: "Source Sans 3", var(--serif);
     font-size: .72rem;
     font-weight: 700;
     line-height: 1.1
@@ -341,7 +342,7 @@ figure[id],
     gap: .28rem;
     cursor: pointer;
     color: var(--brown);
-    font-family: "Frutiger Notes", var(--serif);
+    font-family: "Source Sans 3", var(--serif);
     font-size: .68rem;
     font-weight: 700;
     letter-spacing: .04em;
@@ -802,6 +803,30 @@ code {
     padding: .16rem 0 .16rem .85rem
 }
 
+.env.proof[data-proof-kind="Solution"] {
+    display: none
+}
+
+.env.proof[data-proof-kind="Solution"].is-visible {
+    display: block
+}
+
+.solution-toggle {
+    margin: .75rem 0 .2rem;
+    padding: .25rem .55rem;
+    border: 1px solid #c9c2bb;
+    border-radius: 3px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font: inherit;
+    font-size: .9em
+}
+
+.solution-toggle:hover {
+    background: var(--block)
+}
+
 .proof-qed {
     float: right;
     margin-left: 1em;
@@ -900,6 +925,33 @@ code {
     font-weight: var(--environment-label-weight)
 }
 
+.solution-wrapper .env.proof[data-proof-kind="Solution"] {
+    display: none;
+    margin-top: .5rem
+}
+
+.solution-wrapper.solution-revealed .env.proof[data-proof-kind="Solution"] {
+    display: block
+}
+
+.solution-toggle {
+    font: inherit;
+    font-family: var(--sans);
+    font-weight: var(--environment-label-weight);
+    color: var(--accent-dark);
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+    border-radius: 3px;
+    padding: .3rem .7rem;
+    cursor: pointer
+}
+
+.solution-toggle:hover,
+.solution-toggle:focus-visible {
+    background: var(--accent);
+    color: #fff
+}
+
 .env.algorithm {
     --algorithm-rule: 2.25px solid #111;
     --algorithm-midrule: 1.25px solid #1f1f1f;
@@ -936,7 +988,7 @@ code {
 .env.algorithm .env-title::before {
     content: "Algorithm " counter(algorithm) ". ";
     margin-right: .25rem;
-    font-family: "Frutiger Notes", var(--serif);
+    font-family: "Source Sans 3", var(--serif);
     font-weight: var(--environment-label-weight)
 }
 
@@ -1419,7 +1471,7 @@ figcaption {
 
 figcaption .figcaption-label {
     color: var(--ink);
-    font-family: "Frutiger Notes", var(--serif);
+    font-family: "Source Sans 3", var(--serif);
     font-weight: var(--environment-label-weight)
 }
 
@@ -1581,7 +1633,7 @@ figcaption .figcaption-label {
 .callout-title {
     margin: 0 0 .35rem;
     color: var(--ink);
-    font-family: "Frutiger Notes", var(--serif);
+    font-family: "Source Sans 3", var(--serif);
     font-weight: 700
 }
 

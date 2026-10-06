@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compile every authored note to PDF with Typst's default project settings."""
+"""Compile every authored note with its default project root and vendored fonts."""
 from concurrent.futures import ThreadPoolExecutor
 import os
 from pathlib import Path
@@ -21,7 +21,8 @@ def check_pdfs() -> None:
 
     def compile_note(source: Path) -> bool:
         result = subprocess.run(
-            ['typst', 'compile', source.name, str(output / source.with_suffix('.pdf').name)],
+            ['typst', 'compile', '--font-path', str(ROOT / 'html-exporter/assets/fonts'),
+             source.name, str(output / source.with_suffix('.pdf').name)],
             cwd=source.parent, env=env, capture_output=True, text=True,
         )
         diagnostics = result.stdout + result.stderr
@@ -35,7 +36,7 @@ def check_pdfs() -> None:
         results = list(pool.map(compile_note, sources))
     if not all(results):
         raise RuntimeError(f'{results.count(False)} note(s) failed default PDF compilation.')
-    print(f'All {len(sources)} notes compile without compiler flags.', flush=True)
+    print(f'All {len(sources)} notes compile with the vendored fonts and default project root.', flush=True)
 
 
 if __name__ == '__main__':
