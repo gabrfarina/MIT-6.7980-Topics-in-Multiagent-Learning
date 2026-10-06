@@ -128,6 +128,30 @@ class NoteStyleTests(unittest.TestCase):
             self.assertIn('aria-label="Full width"', html)
             self.assertIn('aria-label="Partial width"', html)
 
+    def test_html_solutions_are_wrapped_in_a_reveal_toggle(self):
+        with tempfile.TemporaryDirectory() as directory:
+            folder = Path(directory)
+            source = folder / 'probe.typ'
+            source.write_text(
+                f'#import {json.dumps(str(ROOT / "content/meta/gabri_notes_html.typ"))}: *\n'
+                '#show: gabri_notes.with(lec_num: 1, title: [Solution probe])\n'
+                '#exercise[Probe exercise][Show that probes compile.]\n'
+                '#solution[Probes compile because Typst says so.]\n')
+            output = source.with_suffix('.html')
+            result = subprocess.run(
+                ['typst', 'compile', '--root', ROOT.anchor, '--features', 'html',
+                 '--format', 'html', str(source), str(output)],
+                capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            html = output.read_text()
+            wrapper = re.search(
+                r'<div class="solution-wrapper">.*?</div>\s*</section>\s*</div>',
+                html, re.S)
+            self.assertIsNotNone(wrapper, html)
+            self.assertIn('class="solution-toggle"', wrapper[0])
+            self.assertIn('>Show solution<', wrapper[0])
+            self.assertIn('data-proof-kind="Solution"', wrapper[0])
+
     def test_styles_reject_removed_compiler_inputs(self):
         with tempfile.TemporaryDirectory() as directory:
             source = Path(directory) / 'probe.typ'

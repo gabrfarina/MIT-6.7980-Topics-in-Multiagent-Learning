@@ -1,0 +1,6 @@
+{
+  "name": "course-pr-html-checks",
+  "private": true,
+  "version": "1.0.0",
+  "dependencies": {"playwright": "1.56.1"}
+}
