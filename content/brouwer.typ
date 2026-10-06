@@ -349,7 +349,7 @@ The paths below follow the Sperner discretizations in Example L2.3.
       (rows: padded, triangles: triangles, paths: paths, next: next, prev: prev)
     }
 
-    let panel(title, A1, A2, equilibria) = {
+    let panel(title, A1, A2) = {
       let graph = sperner-graph(toy-coloring(A1, A2))
       cetz.canvas(length: .5cm, {
         import cetz.draw: *
@@ -374,22 +374,14 @@ The paths below follow the Sperner discretizations in Example L2.3.
             circle(center(id), radius: .55mm, fill: paint, stroke: none)
           }
         }
-        // Exact fixed points, distinct from the centers of trichromatic cells.
-        for (p, q) in equilibria {
-          let point = pos((1 + 8 * p, 1 + 8 * q))
-          circle(point, radius: .85mm, fill: black, stroke: .35mm + white)
-        }
         content(pos((5, 11.1)), emph(title))
       })
     }
 
     let drawing = grid(columns: 3, column-gutter: 3mm, align: top + center,
-      panel("Theater or football", tof_A1, tof_A2,
-        ((0, 1), (1, 0), (1 / 6, 1 / 6))),
-      panel("Prisoner's dilemma", pdi_A1, pdi_A2,
-        ((1, 1),)),
-      panel("Penalty shot game", psg_A1, psg_A2,
-        ((.5, .5),)),
+      panel("Theater or football", tof_A1, tof_A2),
+      panel("Prisoner's dilemma", pdi_A1, pdi_A2),
+      panel("Penalty shot game", psg_A1, psg_A2),
     )
     let diagram = context {
       let width = if for-html { 585pt } else { 405pt }
