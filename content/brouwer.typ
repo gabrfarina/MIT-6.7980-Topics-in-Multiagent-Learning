@@ -337,6 +337,22 @@ _Continuity_, _compactness_, and _convexity_ are each necessary in Brouwer's the
   ]
 ]
 
+#exercise[Brouwer on a Polytope][
+  Suppose you are given a program $P$ that computes a function $f$ mapping a polytope in $RR^n$ to itself, and that the polytope is given in the form $matA vx <= vb$. With black-box access to $P$, construct a program $P'$ that computes a continuous function $g : [0,1]^n -> [0,1]^n$ such that, given a fixed point of $g$, one can recover a fixed point of $f$. In other words, show that computing Brouwer fixed points of an endomorphism of a polytope $matA vx <= vb$ reduces in polynomial time to computing fixed points of an endomorphism of $[0,1]^n$.
+
+  #solution[
+    Write $Q := {vx in RR^n : matA vx <= vb}$. A polytope is bounded, so it sits inside some box, and an affine map $T$ carries that box onto $[0,1]^n$. Let $K := T(Q)$, a polytope inside the cube.
+
+    The obstacle is that $f$ is defined only on $K$, while we need a map on all of $[0,1]^n$. So we first push each point of the cube onto $K$, and only then apply $f$. Let $pi(vy)$ be the point of $K$ nearest to $vy$; it is unique because $K$ is closed and convex, it depends continuously on $vy$, and it leaves the points of $K$ where they are. Put
+    $ g(vy) := T(f(T^(-1)(pi(vy)))), quad vy in [0,1]^n . $
+    Read from the inside out, this says: snap $vy$ onto $K$, undo the rescaling, apply $f$, and rescale back. Each step is continuous, so $g$ is, and every value it takes lies in $K$. So $g$ maps the cube to itself and Brouwer gives it a fixed point $vy$.
+
+    The point is now that $vy$ is a value of $g$, so it lies in $K$, where the projection does nothing. Hence $g(vy) = vy$ reads $T(f(T^(-1)(vy))) = vy$, which says exactly that $T^(-1)(vy)$ is a fixed point of $f$. The same observation rules out spurious fixed points: $g$ never takes a value outside $K$, so no point out there can be fixed by it, however the projection moved it.
+
+    Each evaluation of $g$ costs one projection, which is a convex quadratic program, and one call to $P$.
+  ]
+]
+
 = Bibliography for this lecture
 
 #lec_bibliography("meta/refs.bib", title: none)
