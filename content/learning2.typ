@@ -102,6 +102,60 @@ all times $t$. This corresponds to predicting that the feedback is slow-changing
   $
 ]
 
+#exercise[OMWU as predictive OMD][
+  Let $Delta^n := {vx in RR^n_(>=0) : sum_(i=1)^n x_i = 1}$ be the probability simplex, and consider the predictive OMD algorithms defined above with
+  - domain $cX := "ri"(Delta^n) = {vx in Delta^n : x_i > 0 " for all " i}$;
+  - regularizer the negative entropy $psi(vx) := sum_(i=1)^n x_i log x_i$;
+  - a generic stepsize $eta > 0$;
+  - initialization $vz^((1)) = vx^((1)) := argmin_(vx in cX) psi(vx) = vone\/n$, the uniform distribution, and initial prediction $vm^((1)) := 0$.
+
+  Let $vg^((1)), vg^((2)), ...$ be the gradient vectors observed by the algorithm, and write $vs^((t)) := sum_(tau=1)^t vg^((tau))$, with $vs^((0)) := 0$. The gradients may depend on the past iterates, as happens when the algorithm plays a game against other learners.
+
+  Recall that _optimistic MWU (OMWU)_ plays $tilde(vx)^((1)) := vone\/n$ and, for $t >= 1$,
+  $
+    tilde(vx)^((t+1)) := "softmax"(eta vr^((t)) + eta (vr^((t)) - vr^((t-1)))), quad "where" quad vr^((t)) := sum_(tau=1)^t (vg^((tau)) - ip(vg^((tau)), tilde(vx)^((tau))) vone)
+  $
+  and $vr^((0)) = vr^((-1)) := 0$.
+
+  Prove that, with the optimistic prediction $vm^((t+1)) := vg^((t))$, both the non-reflected and the reflected variants of predictive OMD produce exactly the OMWU iterates, that is, $vx^((t)) = tilde(vx)^((t))$ for all $t >= 1$.
+
+  _Hint:_ First show that for every $vy in "ri"(Delta^n)$ and $vu in RR^n$, the unique maximizer of $ip(vu, vx) - 1 / eta div(vx, vy, dgf: psi)$ over $vx in "ri"(Delta^n)$ is given by $x_i prop y_i e^(eta u_i)$.
+]
+
+#solution[
+  Throughout, we use two facts. First, $"softmax"(vv)_i := e^(v_i) \/ sum_j e^(v_j)$ is invariant to adding a constant vector, that is, $"softmax"(vv + c vone) = "softmax"(vv)$ for all $c in RR$. Second, if $y_i prop e^(v_i)$ (meaning that $y_i = c e^(v_i)$ for some $c > 0$ independent of $i$) and $vy in Delta^n$, then $vy = "softmax"(vv)$.
+
+  *Step 1 (one entropic OMD step).* Let $vy in "ri"(Delta^n)$ and $vu in RR^n$. Since $nabla psi(vy) = (1 + log y_i)_(i=1)^n$ and $sum_i x_i = sum_i y_i = 1$, for every $vx in "ri"(Delta^n)$,
+  $
+    div(vx, vy, dgf: psi) = sum_(i=1)^n x_i log x_i - sum_(i=1)^n y_i log y_i - sum_(i=1)^n (1 + log y_i)(x_i - y_i) = sum_(i=1)^n x_i log(x_i / y_i),
+  $
+  the Kullback--Leibler divergence $"KL"(vx || vy)$. Let $Z := sum_(j=1)^n y_j e^(eta u_j)$ and let $vp$ be defined by $p_i := y_i e^(eta u_i) \/ Z$, so that $vp in "ri"(Delta^n)$ and $eta u_i = log(p_i \/ y_i) + log Z$. Then, using again $sum_i x_i = 1$,
+  $
+    ip(vu, vx) - 1 / eta div(vx, vy, dgf: psi)
+    = 1 / eta sum_(i=1)^n x_i (log(p_i / y_i) + log Z - log(x_i / y_i))
+    = 1 / eta (log Z - "KL"(vx || vp)).
+  $
+  By Gibbs' inequality, $"KL"(vx || vp) >= 0$, with equality if and only if $vx = vp$. Since $vp in "ri"(Delta^n)$ is feasible, the unique maximizer is $vp$, that is, $x_i prop y_i e^(eta u_i)$.
+
+  *Step 2 (non-reflected variant).* We show that $vz^((t)) = "softmax"(eta vs^((t-1)))$ and $vx^((t)) = "softmax"(eta (vs^((t-1)) + vm^((t))))$ for all $t >= 1$ and any predictions $vm^((t))$. By Step 1, the two steps of non-reflected predictive OMD read
+  $
+    z_i^((t+1)) prop z_i^((t)) exp(eta g_i^((t))), qquad x_i^((t+1)) prop z_i^((t+1)) exp(eta m_i^((t+1))).
+  $
+  For $vz$, we proceed by induction. The base case $vz^((1)) = vone\/n = "softmax"(0)$ holds because $vs^((0)) = 0$. If $vz^((t)) = "softmax"(eta vs^((t-1)))$, then $z_i^((t+1)) prop exp(eta s_i^((t-1))) exp(eta g_i^((t))) = exp(eta s_i^((t)))$, so $vz^((t+1)) = "softmax"(eta vs^((t)))$. For $vx$, the case $t = 1$ holds because $vx^((1)) = vone\/n$ and $vs^((0)) + vm^((1)) = 0$. For $t >= 1$, substituting the formula for $vz^((t+1))$ gives $x_i^((t+1)) prop exp(eta (s_i^((t)) + m_i^((t+1))))$, so $vx^((t+1)) = "softmax"(eta (vs^((t)) + vm^((t+1))))$.
+
+  *Step 3 (reflected variant).* We show that $vx^((t)) = "softmax"(eta (vs^((t-1)) + vm^((t))))$ for all $t >= 1$ here as well. By Step 1, the reflected update reads $x_i^((t+1)) prop x_i^((t)) exp(eta (g_i^((t)) + m_i^((t+1)) - m_i^((t))))$. The base case $vx^((1)) = vone\/n = "softmax"(eta (vs^((0)) + vm^((1))))$ holds as in Step 2. If $vx^((t)) = "softmax"(eta (vs^((t-1)) + vm^((t))))$, then the predictions telescope:
+  $
+    x_i^((t+1)) prop exp(eta (s_i^((t-1)) + m_i^((t)))) exp(eta (g_i^((t)) + m_i^((t+1)) - m_i^((t)))) = exp(eta (s_i^((t)) + m_i^((t+1)))),
+  $
+  so $vx^((t+1)) = "softmax"(eta (vs^((t)) + vm^((t+1))))$.
+
+  *Step 4 (conclusion).* We show $vx^((t)) = tilde(vx)^((t))$ by induction on $t$. Both algorithms start from the uniform distribution. Suppose the iterates coincide up to time $t$. Then both algorithms observe the same gradients $vg^((1)), ..., vg^((t))$, even if these depend on the past iterates. By Steps 2 and 3, with $vm^((t+1)) = vg^((t))$, both predictive OMD variants play
+  $
+    vx^((t+1)) = "softmax"(eta (vs^((t)) + vg^((t)))).
+  $
+  On the other hand, by definition of $vr^((t))$, we have $vr^((t)) = vs^((t)) - c_t vone$ and $vr^((t)) - vr^((t-1)) = vg^((t)) - ip(vg^((t)), tilde(vx)^((t))) vone$ for some $c_t in RR$. So the argument of the softmax in the OMWU update is $eta (vs^((t)) + vg^((t)))$ plus a constant multiple of $vone$. By shift invariance of the softmax, $tilde(vx)^((t+1)) = "softmax"(eta (vs^((t)) + vg^((t)))) = vx^((t+1))$.
+]
+
 In two-player games, optimism serves as a form of _negative_ momentum that pushes the iterates towards the equilibrium. We illustrate this in the following example. We will give a quantitative analysis of the effect of optimism in the convergence of learning algorithms in @sec-iterate-convergence.
 
 #example[
