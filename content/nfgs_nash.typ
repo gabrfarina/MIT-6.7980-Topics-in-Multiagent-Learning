@@ -233,7 +233,7 @@ By invoking #lecture-link("brouwer", <sec-brouwer-general>)[Brouwer's fixed-poin
 
 = Exercises <sec-nash-exercises>
 
-#exercise[Another Look at the Nash Improvement Function (10 points)][
+#exercise[Another Look at the Nash Improvement Function][
 In this problem, we will go through Nash’s original proof to show that Nash equilibria are the fixed points of the improvement function.
 
 Recall the Nash improvement function discussed in class: given player strategies $x_1 in  Delta (A_1) \,  ...  \, x_n in  Delta (A_n)$, the Nash improvement function $phi : Delta (A_1) times  dots.h.c  times  Delta (A_n) ->  Delta (A_1) times  dots.h.c  times  Delta (A_n)$ is given by:
@@ -251,7 +251,7 @@ $
 
 is the expected regret that player $i$ experiences with respect to action $a_i in  A_i$.
 
-*Problem 1.1 (2 points).* Show that if $r_(i \, a_i) (x_1 \,  ...  \, x_n)>0$ for some player $i in [n]$ and action $a_i in  A_i$, then $phi_(i \, a_i) (x_1 \,  ...  \, x_n)>0$.
+*Problem 1.1.* Show that if $r_(i \, a_i) (x_1 \,  ...  \, x_n)>0$ for some player $i in [n]$ and action $a_i in  A_i$, then $phi_(i \, a_i) (x_1 \,  ...  \, x_n)>0$.
 
 #reference-solutions(title: [Show / hide solution to Problem 1.1])[
 #solution[Problem 1.1][
@@ -286,7 +286,7 @@ This conclusion holds even when $x_(i \, a_i)=0$: an action with positive regret
 ]
 ]
 
-*Problem 1.2 (3 points).* Show that the expected regret player $i$ experiences satisfies
+*Problem 1.2.* Show that the expected regret player $i$ experiences satisfies
 
 $
 sum_(a_i in  A_i) r_(i \, a_i) (x_1 \,  ...  \, x_n) dot.op  x_(i \, a_i)=0.
@@ -334,7 +334,7 @@ This identity holds at every strategy profile, whether or not it is a Nash equil
 
 Now, select any fixed point $(x_1^(*) \,  ...  \, x_n^(*))$ of function $phi$, i.e. such that $phi_(i \, a_i) (x_1^(*) \,  ...  \, x_n^(*))=x_(i \, a_i)^(*)$ for all players $i$ and action $a_i in  A_i$.
 
-*Problem 1.3 (5 points).* Show that the above results imply that, for any player $i in [n]$ and action $a_i in  A_i$,
+*Problem 1.3.* Show that the above results imply that, for any player $i in [n]$ and action $a_i in  A_i$,
 
 $
 r_(i \, a_i) (x_1^(*) \,  ...  \, x_n^(*)) <= 0.
@@ -463,7 +463,7 @@ No player benefits from a unilateral deviation. This is exactly the definition o
 ]
 ]
 
-*Problem 1.4 (Supplementary; ungraded).* Prove the converse: if $(x_1 \,  ...  \, x_n)$ is a Nash equilibrium, then it is a fixed point of $phi$. Together with Problem 1.3, conclude that
+*Problem 1.4.* Prove the converse: if $(x_1 \,  ...  \, x_n)$ is a Nash equilibrium, then it is a fixed point of $phi$. Together with Problem 1.3, conclude that
 
 $
 phi (x_1 \,  ...  \, x_n)=(x_1 \,  ...  \, x_n)
