@@ -243,37 +243,6 @@ There is a $d$-dimensional generalization of Sperner's lemma, which can be used 
 
 Note that while Sperner's lemma states the existence of an odd number of trichromatic triangles, the compactness argument above fails to prove that there are an odd number of Nash equilibria. The supplementary reading on #lecture-link("nash_algorithms", <sec-lemke-howson>)[Lemke-Howson algorithm] develops a constructive proof of oddness for 2-player games. Wilson's Oddness Theorem then extends this result, stating that for almost all finite normal-form games - specifically, all "non-degenerate" games - the number of Nash equilibria is finite and odd #citep(<Wilson71>). The proof uses differential topology rather than combinatorics. It assigns each equilibrium an index of ±1 and shows that these indices must sum to 1, so the total number of Nash equilibria in such games must be odd.
 
-= Problems <sec-brouwer-problems>
-
-#exercise[Splitting the Rent][
-  
-  Three roomates (Costis, Nathan, and Gabriele) just moved in together to a 3-bedroom apartment. They want to decide who gets which room and how to split the \$3000 rent. Call the rooms $R,Y,B$ (red, yellow, blue) and the roommates $C,N,G$. Rooms are not identical and different roommates may value them differently.
-  
-  Define a "valid rent split" to be a tuple of three non-negative integers $p_R, p_Y, p_B >= 0$ with $p_R + p_Y + p_B = 3000$. Each roommate $C,N,G$ has a desire function $d_C, d_N, d_G : ZZ_(>=0)^3 -> {R,Y,B}$ respectively that maps a valid rent split to a room they prefer. For example, $d_C (p_R, p_Y, p_B)=R$ means that Costis prefers the red room at these prices. Assume that if some room has price 0, then _every_ roommate prefers it to any room with non-zero price. Specifically,
-  - if $p_R = 0$, $d_C (p_R,p_Y,p_B) = d_N (p_R,p_Y,p_B) = d_G (p_R,p_Y,p_B) = R$
-  - if $p_Y = 0$ and $p_R>0$, $d_C (p_R,p_Y,p_B) = d_N (p_R,p_Y,p_B) = d_G (p_R,p_Y,p_B) = Y$
-  - if $p_B = 0$ and $p_R,p_Y>0$, $d_C (p_R,p_Y,p_B) = d_N (p_R,p_Y,p_B) = d_G (p_R,p_Y,p_B) = B$
-  
-  #strong[(a) 15 points.] Prove that there exists: (i) an assignment of roommates to rooms $r_C, r_N, r_G in {R, Y, B}$ (a permutation), and (ii) a valid rent split $p_R,p_Y,p_B$ such that everyone is _almost happy_. For every roommate $i in {C,N,G}$ there exists a valid rent split $p'_R,p'_Y,p'_B$ with $|p_R - p'_R| <= 1$ for all $r in {R, Y, B}$ such that $d_i (p'_R,p'_Y,p'_B)=r_i$.
-
-  Hint: The discrete set of valid rent splits triangulate the simplex of non-negative triples summing to 3000. Consider a Sperner-style labeling of this triangulation.
-
-  #solution[
-    Consider the set of valid rent splits $ Delta={(p_R,p_Y,p_B) in ZZ_(>=0)^3 : p_R + p_Y + p_B = 3000} $
-    This is a triangulation of the simplex of non-negative triples summing to 3000, where neighboring vertices differ by at most 1 in every coordinate. We assign one of the roommates as the owner of each vertex $v=(p_R, p_Y, p_B)$. Namely,
-    the owner of vertex $v$ is the $i$th element of ${C, N, G}$ with $i = (p_R + 2 * p_Y) mod 3$. Each triangle then has one vertex owned by each roommate. We color each vertex $(p_R, p_Y, p_B)$ according the preference of the owner $d_i (p_R, p_Y, p_B)$. We override the coloring of the vertex $(0, 3000, 0)$ to be B so the boundary conditions of the Sperner coloring are satisfied. Also note the overridden triangle $(0, 3000, 0), (1, 2999, 0), (0, 2999, 1)$ is not trichromatic. By Sperner's lemma, there exists at least one trichromatic triangle. At this triangle, we have all three roommates, and all three colors. Picking any of the three vertices of this triangle as the prices, we have a valid rent split and an assignment of roommates to rooms that makes everyone almost happy - unhappy roommates would be happy with their rooms at the prices given by an adjacent vertex.
-  ]
-  
-  #strong[(b) 10 points.] Design an algorithm that computes an assignment and prices that make every roommate almost happy (in the sense above). Your algorithm can query the desire functions $d_C,d_N,d_G$ on valid rent splits $(p_R,p_Y,p_B)$. For example, querying $d_C (p_R,p_Y,p_B)$ is asking Costis "Given valid rent split $(p_R,p_Y,p_B)$, which room do you prefer?"
-
-  Hint: Use these queries to implement the proof of Sperner's lemma we saw in class.
-
-  #solution[
-    Iterate over all valid rent splits $(p_R,p_Y,p_B)$. At each valid rent split, we consider the triangle above and below it. For each triangle, for each vertex we identify the owner as the $i$th entry of ${C, N, G}$ with $i = (p_R + 2 * p_Y) mod 3 $. We then use the desire function ($d_C,d_N,d_G$) of the owner of that vertex to determine its coloring. If we find a trichromatic triangle, we return the prices corresponding to one of  the vertices of that triangle, and the room assignment given by the owners of each vertex and their desired rooms at those vertices. This algorithm runs in polynomial time with respect to the price of the apartment, $n=3000$, as there are $O(n^2)$ valid rent splits.
-  ]
-]
-
-
 = Necessity of the hypotheses <sec-brouwer-hypotheses>
 
 _Continuity_, _compactness_, and _convexity_ are each necessary in Brouwer's theorem, as the following one- and two-dimensional counterexamples show. Since compactness in $RR^d$ means closed _and_ bounded, we treat those halves separately.
@@ -337,6 +306,36 @@ _Continuity_, _compactness_, and _convexity_ are each necessary in Brouwer's the
 
     #v(1mm)
     #align(center)[#image("figures/brouwer/convexity_relaxed.svg", width: 198pt)]
+  ]
+]
+
+= Problems <sec-brouwer-problems>
+
+#exercise[Splitting the Rent][
+  
+  Three roomates (Costis, Nathan, and Gabriele) just moved in together to a 3-bedroom apartment. They want to decide who gets which room and how to split the \$3000 rent. Call the rooms $R,Y,B$ (red, yellow, blue) and the roommates $C,N,G$. Rooms are not identical and different roommates may value them differently.
+  
+  Define a "valid rent split" to be a tuple of three non-negative integers $p_R, p_Y, p_B >= 0$ with $p_R + p_Y + p_B = 3000$. Each roommate $C,N,G$ has a desire function $d_C, d_N, d_G : ZZ_(>=0)^3 -> {R,Y,B}$ respectively that maps a valid rent split to a room they prefer. For example, $d_C (p_R, p_Y, p_B)=R$ means that Costis prefers the red room at these prices. Assume that if some room has price 0, then _every_ roommate prefers it to any room with non-zero price. Specifically,
+  - if $p_R = 0$, $d_C (p_R,p_Y,p_B) = d_N (p_R,p_Y,p_B) = d_G (p_R,p_Y,p_B) = R$
+  - if $p_Y = 0$ and $p_R>0$, $d_C (p_R,p_Y,p_B) = d_N (p_R,p_Y,p_B) = d_G (p_R,p_Y,p_B) = Y$
+  - if $p_B = 0$ and $p_R,p_Y>0$, $d_C (p_R,p_Y,p_B) = d_N (p_R,p_Y,p_B) = d_G (p_R,p_Y,p_B) = B$
+  
+  #strong[(a) 15 points.] Prove that there exists: (i) an assignment of roommates to rooms $r_C, r_N, r_G in {R, Y, B}$ (a permutation), and (ii) a valid rent split $p_R,p_Y,p_B$ such that everyone is _almost happy_. For every roommate $i in {C,N,G}$ there exists a valid rent split $p'_R,p'_Y,p'_B$ with $|p_R - p'_R| <= 1$ for all $r in {R, Y, B}$ such that $d_i (p'_R,p'_Y,p'_B)=r_i$.
+
+  Hint: The discrete set of valid rent splits triangulate the simplex of non-negative triples summing to 3000. Consider a Sperner-style labeling of this triangulation.
+
+  #solution[
+    Consider the set of valid rent splits $ Delta={(p_R,p_Y,p_B) in ZZ_(>=0)^3 : p_R + p_Y + p_B = 3000} $
+    This is a triangulation of the simplex of non-negative triples summing to 3000, where neighboring vertices differ by at most 1 in every coordinate. We assign one of the roommates as the owner of each vertex $v=(p_R, p_Y, p_B)$. Namely,
+    the owner of vertex $v$ is the $i$th element of ${C, N, G}$ with $i = (p_R + 2 * p_Y) mod 3$. Each triangle then has one vertex owned by each roommate. We color each vertex $(p_R, p_Y, p_B)$ according the preference of the owner $d_i (p_R, p_Y, p_B)$. We override the coloring of the vertex $(0, 3000, 0)$ to be B so the boundary conditions of the Sperner coloring are satisfied. Also note the overridden triangle $(0, 3000, 0), (1, 2999, 0), (0, 2999, 1)$ is not trichromatic. By Sperner's lemma, there exists at least one trichromatic triangle. At this triangle, we have all three roommates, and all three colors. Picking any of the three vertices of this triangle as the prices, we have a valid rent split and an assignment of roommates to rooms that makes everyone almost happy - unhappy roommates would be happy with their rooms at the prices given by an adjacent vertex.
+  ]
+  
+  #strong[(b) 10 points.] Design an algorithm that computes an assignment and prices that make every roommate almost happy (in the sense above). Your algorithm can query the desire functions $d_C,d_N,d_G$ on valid rent splits $(p_R,p_Y,p_B)$. For example, querying $d_C (p_R,p_Y,p_B)$ is asking Costis "Given valid rent split $(p_R,p_Y,p_B)$, which room do you prefer?"
+
+  Hint: Use these queries to implement the proof of Sperner's lemma we saw in class.
+
+  #solution[
+    Iterate over all valid rent splits $(p_R,p_Y,p_B)$. At each valid rent split, we consider the triangle above and below it. For each triangle, for each vertex we identify the owner as the $i$th entry of ${C, N, G}$ with $i = (p_R + 2 * p_Y) mod 3 $. We then use the desire function ($d_C,d_N,d_G$) of the owner of that vertex to determine its coloring. If we find a trichromatic triangle, we return the prices corresponding to one of  the vertices of that triangle, and the room assignment given by the owners of each vertex and their desired rooms at those vertices. This algorithm runs in polynomial time with respect to the price of the apartment, $n=3000$, as there are $O(n^2)$ valid rent splits.
   ]
 ]
 

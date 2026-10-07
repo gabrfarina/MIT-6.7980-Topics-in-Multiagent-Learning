@@ -108,6 +108,10 @@ $ B dot.op L dot.op \( n k \)^(O \( n k \)) . $
 
 Recall that the bits required to represent a $n$-player game with $k$ actions per player is $L dot.op n dot.op k^n$. So the running time of our algorithm could be exponential in the description of the game, e.g.~when $n$ stays constant and $k$ goes to infinity. On the other hand, the running time is quasi-polynomial if the growth of $k$ is bounded by a polynomial in $n$.#footnote[A _quasi-polynomial-time algorithm_ for some computational task is an algorithm that solves an instance $Pi$ of the task in time $2^(op("poly") \( log d \( Pi \) \))$, where $d \( Pi \)$ is the description complexity of instance $Pi$. If the polynomial in the exponent of the running time is of degree $1$ the algorithm is called _polynomial-time_.]
 
+#exercise[
+  For a two-player game, given the supports $S_C$ and $S_R$, if there are finitely many Nash equilibria with that support, must there be only one? What about an n-player game?
+] <S01-ImprovementP3.3>
+
 = Algorithms for Symmetric Games
 #label("sec:symmetric games")
 
@@ -381,6 +385,111 @@ We make some final remarks about the Lemke-Howson algorithm.
 
 = Appendix A: Solutions to Selected Exercises
 
+== Solution to #ref(<S01-ImprovementP3.3>)
+
+#toggle[Reveal Solution to #ref(<S01-ImprovementP3.3>)][
+  #proof[
+  Consider an two-player game $cal(G):= (R,C)$. Suppose we are given the supports $S_R$ and $S_C$ and know that there are finitely many Nash equilibria with these supports. We will prove that there must be only one such Nash equilibrium.
+
+  Assume for sake of contradiction that there are at least two Nash equilibria $(vx_1, vy_1)$ and $(vx_2, vy_2)$ with supports $S_R$ and $S_C$.
+
+  For any $t in [0,1]$, define
+  $
+    bold(x)_t := t bold(x)_1 + (1-t) bold(x)_2 quad upright("and") quad
+    bold(y)_t := t bold(y)_1 + (1-t) bold(y)_2.
+  $
+
+  Since both Nash equilibria have the same supports, for every $t in (0,1)$ $vx_t$ and $vy_t$ also have the same supports, since the coordinates corresponding to the common support will be strictly positive for linear combinations.
+
+  We now show that $(bold(x)_t, bold(y)_t)$ is also a Nash equilibrium.
+
+  Since $(bold(x)_1, bold(y)_1)$ and $(bold(x)_2, bold(y)_2)$ are Nash equilibria, every row in $S_R$ is a best response to both $bold(y)_1$ and $bold(y)_2$. Thus, there exist $u_1,u_2 in bb(R)$ such that
+  $
+  R_(S_R,S_C) bold(y)_1 = u_1 bold(1)
+  quad
+  upright("and")
+  quad
+  R_(S_R,S_C) bold(y)_2 = u_2 bold(1).
+  $
+
+  where $R_(S_R,S_C)$ is the payoff matrix restricted to the rows and columns of the supports.
+
+  By linearity in the opponent's mixed strategy,
+  $
+  R_(S_R,S_C) bold(y)_t
+  = t R_(S_R,S_C) bold(y)_1
+  + (1-t) R_(S_R,S_C) bold(y)_2
+  = (t u_1 + (1-t)u_2) bold(1).
+  $
+
+  Hence every row in $S_R$ is a best response to $bold(y)_t$.
+
+  Similarly, because every column in $S_C$ is a best response to both $bold(x)_1$ and $bold(x)_2$, we find that every column in $S_C$ is a best response to the linear combination $bold(x)_t$.
+
+  Finally, since $bold(x)_t$ and $bold(y)_t$ assign probability zero to actions outside $S_R$ and $S_C$, respectively, and every action in their supports is a best response to the opponent's strategy, $(bold(x)_t, bold(y)_t)$ is a Nash equilibrium.
+
+  Thus, for every $t in (0,1)$, there is a Nash equilibrium with supports $S_R$ and $S_C$. Since the two original equilibria are distinct, these equilibria are distinct for infinitely many values of $t$.
+
+  This contradicts the assumption that there are only finitely many Nash equilibria with supports $S_R$ and $S_C$. Therefore, there can be only one Nash equilibrium with the given supports in a two-player game.
+
+  \
+
+  In contrast, for $n$-player games with $n >= 3$, the analogous statement is *false*.
+  That is, it is possible to have finitely many Nash equilibria with the same supports, but more than one such equilibrium.
+
+  The key difference from the two-player case is that, in an $n$-player
+  game, a player's expected payoff is generally *multilinear* in the
+  other players' mixed strategies. Thus, the indifference conditions are
+  not linear in all players' strategies simultaneously, and they may have
+  multiple isolated solutions.
+
+  We present a counterexample in the case of $n=3$. Consider the following symmetric three-player game with two actions,
+  $0$ and $1$. For a player, let the difference between the payoff from
+  action $1$ and the payoff from action $0$ depend on the number $k$ of
+  the other two players who choose action $1$. Define
+
+  $ d(0) = 3, quad d(1) = -5, quad d(2) = 3. $
+
+  Suppose that player $i$ independently chooses action $1$ with
+  probability $p_i$. The expected payoff difference between choosing action
+  $1$ and choosing action $0$ for player 1 is then
+
+  $ 3(1-p_2)(1-p_3) - 5p_2(1-p_3) - 5(1-p_2)p_3 + 3p_2p_3. $
+
+  Player 1 satisfies the conditions for Nash equilibrium when they are indifferent to the action they take, in other words, when
+
+  $ 3 - 8p_2 - 8p_3 + 16p_2p_3 = 0. $
+
+  Similarly, the other two players require
+
+  $ 3-8p_1-8p_3+16p_1p_3&=0 \
+    3-8p_1-8p_2+16p_1p_2&=0. $
+
+  Subtracting pairs of equations yields the equations
+
+  $ (p_1-p_2)(1-2p_3)=0 \
+    (p_2-p_3)(1-2p_1)=0 \
+    (p_3-p_1)(1-2p_2)=0. $
+
+  Suppose some player chooses to use a mixed strategy with probability $1/2$. Without loss of generality suppose $p_1 = 1/2$. Then the original expected payoff condition for player 2 reduces to
+
+  $ 3-8p_1-8p_3+16p_1p_3& = -1 $
+
+  which contradicts the indifference condition. Thus, there are no Nash equilibria when $p_i = 1/2$, so for Nash equilibrium to hold, we must have $p_1 = p_2 = p_3 = p$, In this case, the indifference conditions reduce to 
+
+  $ 3 - 16p + 16 p^2 = 0, $
+
+  which yields solutions $p = 1/4$ or $p = 3/4. $
+
+  This gives two distinct completely mixed Nash equilibria:
+
+  $ (1/4, 1/4, 1/4)
+    quad "and" quad
+    (3/4, 3/4, 3/4). $
+
+  Both equilibria have the same support, as every player assigns positive probability to both actions. Furthermore, we have proven that there are no further Nash equilibria for this game. Hence, unlike the two-player case, finiteness of the number of Nash equilibria with a given support does *not* imply uniqueness when there are three or more players.
+  ]
+]
 == Solution to #ref(<S01-ImprovementP3.1>)
 
 #toggle[Reveal Solution to #ref(<S01-ImprovementP3.1>)][
