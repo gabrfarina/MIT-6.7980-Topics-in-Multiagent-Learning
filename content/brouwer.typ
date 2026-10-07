@@ -337,6 +337,39 @@ _Continuity_, _compactness_, and _convexity_ are each necessary in Brouwer's the
   ]
 ]
 
+#exercise[No Retraction onto the Boundary][
+  Let $D := {vz in RR^2 : norm(vz)_2 <= 1}$ be the closed unit disk and let $partial D$ be its boundary circle. A _retraction_ of $D$ onto $partial D$ is a continuous function $r : D -> partial D$ with $r(vz) = vz$ for every $vz in partial D$, as drawn below. Without the condition on $partial D$, the constant $vz |-> (1,0)$ would qualify.
+
+  #align(center)[#image("figures/brouwer/retraction_idea.svg", width: 91pt)]
+
+  #strong[(a)] Show that there is no retraction of $D$ onto $partial D$.
+
+  Hint: Brouwer applied to $r$ itself is vacuous, since $r$ already fixes every point of $partial D$. Apply it to a different function built from $r$.
+
+  #solution[
+    Suppose $r$ is such a retraction, and set $f(vz) := -r(vz)$. Then $f$ is continuous, and $norm(f(vz))_2 = norm(r(vz))_2 = 1$ for every $vz in D$, so $f$ maps $D$ into $partial D subset.eq D$. Since $D$ is nonempty, compact, and convex, Brouwer's theorem (@sec-brouwer-general) yields $vz^(*) in D$ with $vz^(*) = f(vz^(*)) = -r(vz^(*))$. The left-hand side lies in $partial D$, as $f$ only takes values there, so $r$ fixes it: $r(vz^(*)) = vz^(*)$. Hence $vz^(*) = -vz^(*)$, that is, $vz^(*) = 0$. But $0 in.not partial D$, a contradiction. So no such $r$ exists.
+
+    #align(center)[#image("figures/brouwer/retraction_proof.svg", width: 104pt)]
+  ]
+
+  #strong[(b)] Show the converse: if there is no retraction of $D$ onto $partial D$, then every continuous $f : D -> D$ has a fixed point. Together with (a), this says that Brouwer's theorem on the disk and the no-retraction statement are equivalent.
+
+  Hint: If $f$ has no fixed point, then $f(vz) != vz$ for every $vz$, so the ray starting at $f(vz)$ and passing through $vz$ is well defined. Where does it leave the disk?
+
+  #solution[
+    Suppose $f : D -> D$ is continuous and has no fixed point. Then $f(vz) != vz$ for every $vz in D$, so the ray from $f(vz)$ through $vz$ is well defined. Let $r(vz)$ be the point where it crosses $partial D$, as in the figure.
+
+    #align(center)[#image("figures/brouwer/retraction_ray.svg", width: 104pt)]
+
+    We check that $r$ is a retraction.
+    + $r(vz) in partial D$ by construction.
+    + If $vz in partial D$, the ray reaches the circle at $vz$ itself, so $r(vz) = vz$.
+    + $r$ is continuous. Write $r(vz) = f(vz) + t (vz - f(vz))$, where $t >= 1$ is the larger root of the quadratic equation $norm(f(vz) + t (vz - f(vz)))_2^2 = 1$ in $t$. Its coefficients depend continuously on $vz$, and its two roots are distinct because the line through $f(vz)$ and $vz$ contains two points of $D$ and so cannot be tangent to the circle. Hence $t$, and with it $r$, depends continuously on $vz$.
+
+    So $r$ is a retraction of $D$ onto $partial D$, which contradicts (a). Therefore $f$ has a fixed point.
+  ]
+]
+
 = Bibliography for this lecture
 
 #lec_bibliography("meta/refs.bib", title: none)
