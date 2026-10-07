@@ -149,6 +149,59 @@ This is indeed the case, as shown by #citet(<syrgkanis2015fast>).
 #remark[
   A consequence of the previous regret bound is the fact that---assuming $vm^((t)) = vg^((t))$ is _omniscent_---the regret of the learning algorithm _does not grow with time_.]
 
+A similar phenomenon occurs in continuous time, where the learner reacts to the current gradient instantaneously and there is no discretization error.
+
+#exercise[Continuous-time FTRL incurs constant regret][
+  Let $cX subset.eq RR^d$ be convex and compact, let $psi : cX -> RR$ be a distance-generating function, $1$-strongly convex with respect to a norm $norm(dot.c)$, and let $eta > 0$. For every $vs in RR^d$, let
+  $
+    F(vs) := max_(xhat in cX) {ip(vs, xhat) - 1 / eta psi(xhat)}, qquad vx^* (vs) := argmax_(xhat in cX) {ip(vs, xhat) - 1 / eta psi(xhat)},
+  $
+  where the maximizer is unique by strong convexity of $psi$. Let $vg : [0, oo) -> RR^d$ be a continuous gradient signal, and let $vs(t) := integral_0^t vg(tau) dif tau$. _Continuous-time FTRL_ plays $vx(t) := vx^* (vs(t))$ at every time $t >= 0$, and its regret up to time $T >= 0$ is
+  $
+    "Reg"(T) := max_(xhat in cX) integral_0^T ip(vg(t), xhat - vx(t)) dif t.
+  $
+  Prove that, for every $T >= 0$ and every continuous signal $vg$,
+  $
+    "Reg"(T) <= (max_(xhat in cX) psi(xhat) - min_(xhat in cX) psi(xhat)) / eta.
+  $
+
+  _Hint:_ Show that $dif / (dif t) F(vs(t)) = ip(vg(t), vx(t))$. You may use that the maximizer map is continuous; in fact, the stability of FTRL gives $norm(vx^* (vs) - vx^* (vs')) <= eta norm(vs - vs')_*$.
+]
+
+#solution[
+  *Step 1 (the derivative of the potential).* For any $vs, vs' in RR^d$, the point $vx^* (vs)$ is feasible in the problem defining $F(vs')$, so
+  $
+    F(vs') >= ip(vs', vx^* (vs)) - 1 / eta psi(vx^* (vs)) = F(vs) + ip(vs' - vs, vx^* (vs)).
+  $
+  Exchanging the roles of $vs$ and $vs'$ gives $F(vs) >= F(vs') + ip(vs - vs', vx^* (vs'))$. Together,
+  $
+    ip(vs' - vs, vx^* (vs)) <= F(vs') - F(vs) <= ip(vs' - vs, vx^* (vs')).
+  $
+  Fix $t >= 0$, apply this with $vs = vs(t)$ and $vs' = vs(t + h)$, and divide by $h != 0$ (the inequalities flip when $h < 0$). As $h -> 0$, the difference quotient $(vs(t + h) - vs(t)) \/ h$ tends to $vg(t)$ by the fundamental theorem of calculus, since $vg$ is continuous, and $vx^* (vs(t + h)) -> vx(t)$ by continuity of $vx^*$ and $vs$. Both bounds therefore tend to $ip(vg(t), vx(t))$, so
+  $
+    dif / (dif t) F(vs(t)) = ip(vg(t), vx(t)).
+  $
+  The right-hand side is continuous in $t$, so integrating from $0$ to $T$ gives
+  $
+    integral_0^T ip(vg(t), vx(t)) dif t = F(vs(T)) - F(vs(0)) = F(vs(T)) + 1 / eta min_(xhat in cX) psi(xhat),
+  $
+  where we used $vs(0) = 0$ and $F(0) = max_(xhat in cX) {-psi(xhat) \/ eta} = -min_(xhat in cX) psi(xhat) \/ eta$.
+
+  *Step 2 (the regret bound).* Fix any comparator $xhat in cX$. Then $integral_0^T ip(vg(t), xhat) dif t = ip(vs(T), xhat) <= F(vs(T)) + psi(xhat) \/ eta$ by definition of $F$. Subtracting the identity of Step 1,
+  $
+    integral_0^T ip(vg(t), xhat - vx(t)) dif t <= 1 / eta (psi(xhat) - min_(xhat' in cX) psi(xhat')) <= 1 / eta (max_(xhat' in cX) psi(xhat') - min_(xhat' in cX) psi(xhat')).
+  $
+  Taking the maximum over $xhat in cX$ proves the claim. For instance, for the negative entropy on the simplex $Delta(A)$, continuous-time FTRL is continuous-time MWU, and the bound reads $"Reg"(T) <= (log |A|) \/ eta$.
+
+  *Proof of the stability bound.* Let $vx := vx^* (vs)$ and $vx' := vx^* (vs')$. The objective $phi_vs (xhat) := ip(vs, xhat) - psi(xhat) \/ eta$ is $(1 \/ eta)$-strongly concave and maximized at $vx$, so $phi_vs (vx) - phi_vs (vx') >= norm(vx - vx')^2 \/ (2 eta)$, and symmetrically $phi_(vs') (vx') - phi_(vs') (vx) >= norm(vx - vx')^2 \/ (2 eta)$. Adding the two inequalities, the $psi$ terms cancel and
+  $
+    1 / eta norm(vx - vx')^2 <= ip(vs - vs', vx - vx') <= norm(vs - vs')_* norm(vx - vx'),
+  $
+  which gives $norm(vx - vx') <= eta norm(vs - vs')_*$.
+
+  _Remark._ Compared with the #lecture-link("learning1", <ftrl-omd-regret-bound>)[discrete-time regret bound for FTRL], the term $eta sum_t norm(vg^((t)))_*^2$ is absent: it is entirely due to discretization. In continuous time there is no trade-off in choosing $eta$, and the regret stays bounded by a constant at all times.
+]
+
 == Accelerated learning of Nash equilibria in two-player zero-sum games <sec-fast-zero-sum>
 
 As noted by #citep(<syrgkanis2015fast>), the RVU bound implies accelerated convergence to Nash equilibria in two-player zero-sum games. The proof is quite elementary, and we present it next.
