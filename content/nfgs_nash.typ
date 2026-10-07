@@ -464,10 +464,9 @@ The pure equilibria are $(U \, L)$ and $(D \, L)$, corresponding to $p=1$ and $p
 ]
 ]
 
-] <ex-small-game-equilibria>
-
 #reference-solutions(title: [Show / hide answer summary])[
-== Answer summary
+#block(breakable: false)[
+*Answer summary*
 
 Here $(p \, q)$ records the probabilities of $U$ and $L$, respectively. Dominant-strategy equilibria use the non-strict convention stated in the exercise.
 
@@ -491,6 +490,9 @@ Here $(p \, q)$ records the probabilities of $U$ and $L$, respectively. Dominant
 )
 ]
 ]
+]
+
+] <ex-small-game-equilibria>
 
 = Bibliography for this lecture
 
