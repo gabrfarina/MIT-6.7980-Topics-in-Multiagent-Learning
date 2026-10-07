@@ -301,10 +301,10 @@ We mention the following regret bound for the general case. The supplementary re
 
 Multiplicative weights update is the special case of _both FTRL and OMD_ in which the regularizer $psi$ is set to the _negative entropy_ function
 $ H(vx) := sum_(a in A) x_a log x_a, $
-with the convention $0 log 0 = 0$. In this section we look at the shape of $H$, prove the properties that make it a good regularizer for the simplex, and derive MWU and its regret bound (@mwu-regret-bound) from FTRL, OMD, and @ftrl-omd-regret-bound. Throughout, $m := |A|$.
+with the convention $0 log 0 = 0$. This section shows what $H$ looks like, proves the properties that make it a good regularizer for the simplex, and uses them to derive MWU and its regret bound (@mwu-regret-bound) from FTRL and OMD. Throughout, $m := |A|$.
 
 #example[
-  @fig-entropy displays the negative entropy for $m = 2$ and $m = 3$ actions. With two actions, the simplex is a segment and $H$ is the convex curve $x |-> H(x, 1 - x)$. With three actions, the simplex is a triangle and $H$ is a bowl hanging below it. The bowl touches the triangle only at its corners, the pure strategies, where $H = 0$. Its lowest point is the uniform strategy, at height $-log 3$. Every edge of the triangle is a copy of the two-action simplex, and along each edge the bowl coincides with the two-action curve (blue). Near the edges, the walls of the bowl become vertical.
+  @fig-entropy displays the negative entropy for $m = 2$ and $m = 3$ actions. With two actions, the simplex is a segment and $H$ is the convex curve $x |-> H(x, 1 - x)$. With three actions, the simplex is a triangle and $H$ is a bowl hanging below it. The bowl touches the triangle only at its corners, the pure strategies, where $H = 0$. Its lowest point lies below the uniform strategy, at height $-log 3$. Every edge of the triangle is a copy of the two-action simplex, and along each edge the bowl follows the two-action curve (blue). Near the edges the walls become vertical; this steepness matters below.
 ]
 
 #figure(
@@ -360,7 +360,7 @@ The next lemma makes these observations precise.
   For $psi = H$, @lem-entropy-properties turns this into Pinsker's inequality $"KL"(xhat || vx) >= 1/2 norm(xhat - vx)_1^2$.
 ]
 
-The steep boundary is what makes the entropy convenient. FTRL and OMD maximize a linear function minus a multiple of $H$, and because the walls of the bowl in @fig-entropy are vertical, the maximizer can never lie on the boundary of $Delta(A)$. Away from the boundary, the only constraint is that the coordinates sum to $1$, so the maximizer can be found by setting a gradient to zero. This yields closed forms for both algorithms.
+The steep boundary is what makes the entropy convenient. FTRL and OMD maximize a linear function minus a multiple of $H$, and because the walls of the bowl in @fig-entropy are vertical, the maximizer never lies on the boundary of $Delta(A)$. Away from the boundary, the only constraint is that the coordinates sum to $1$, so the maximizer is found by setting a gradient to zero, with one Lagrange multiplier for that constraint. This gives closed forms for both algorithms.
 
 #theorem[MWU is FTRL and OMD with the entropy regularizer][
   Let $eta > 0$.
@@ -374,7 +374,7 @@ The steep boundary is what makes the entropy convenient. FTRL and OMD maximize a
   $
     f(vx^* + epsilon (ve_b - ve_a)) - f(vx^*) = epsilon (r_b - r_a) - 1 / eta (epsilon log epsilon + (x^*_a - epsilon) log(x^*_a - epsilon) - x^*_a log x^*_a).
   $
-  The last two terms in the parentheses differ by $O(epsilon)$, while $-epsilon log epsilon$ is positive and much larger than $epsilon$ as $epsilon -> 0$. So the change is positive for small $epsilon$, contradicting optimality. Hence $vx^*$ lies in the relative interior, where the only active constraint is $sum_a hat(x)_a = 1$. The first-order optimality conditions state that there is $lambda in RR$ with
+  Here $(x^*_a - epsilon) log(x^*_a - epsilon) - x^*_a log x^*_a = O(epsilon)$, while $-epsilon log epsilon > 0$ is much larger than $epsilon$ as $epsilon -> 0$. Hence the change is positive for small $epsilon$, contradicting optimality. Hence $vx^*$ lies in the relative interior, where the only active constraint is $sum_a hat(x)_a = 1$. The first-order optimality conditions state that there is $lambda in RR$ with
   $
     r_a - 1 / eta (1 + log x^*_a) = lambda quad forall a in A, quad "that is," quad x^*_a = exp(eta r_a) dot exp(-1 - eta lambda).
   $
@@ -389,9 +389,9 @@ The steep boundary is what makes the entropy convenient. FTRL and OMD maximize a
   _Iterates._ FTRL plays $vx^((t)) = "softmax"(eta vr^((t-1)))$, which is @algo-mwu verbatim. Unrolling the OMD update from the uniform strategy gives $x_a^((t)) prop exp(eta sum_(tau=1)^(t-1) g_a^((tau)))$. The vectors $sum_(tau=1)^(t-1) vg^((tau))$ and $vr^((t-1))$ differ by a multiple of $vone$, and the softmax is unchanged when the same constant is added to every entry, so this is again $"softmax"(eta vr^((t-1)))$.
 ]
 
-The OMD form explains the name of the algorithm: each step _multiplies_ the weight of every action $a$ by the factor $exp(eta g_a^((t)))$, which grows with the utility the action just received, and then renormalizes.
+The OMD form explains the algorithm's name: each step _multiplies_ the weight of every action $a$ by $exp(eta g_a^((t)))$, a factor that grows with the utility the action just received, and then renormalizes.
 
-With the lemma in hand, the regret bound for MWU follows from the general bound for FTRL and OMD.
+The regret bound for MWU now follows from the general bound for FTRL and OMD.
 
 #corollary[Regret bound for MWU from @ftrl-omd-regret-bound][
   Apply @ftrl-omd-regret-bound with $psi = H$ and $norm(dot.c) = norm(dot.c)_1$, whose dual norm is $norm(dot.c)_* = norm(dot.c)_oo$; $H$ qualifies by @lem-entropy-properties. For FTRL, $B = max H - min H = 0 - (-log m) = log m$. For OMD started at $overline(vx)$, the Bregman divergence is $div(vx, overline(vx), dgf: H) = sum_a x_a log(m x_a) = H(vx) + log m$, so again $B = log m$. Substituting gives @mwu-regret-bound:
@@ -405,9 +405,9 @@ With the lemma in hand, the regret bound for MWU follows from the general bound 
 $
   vx_eta := argmax_(xhat in Delta(A)) {ip(vr, xhat) - 1 / eta psi(xhat)}
 $
-for the fixed regret vector $vr = (1, 2\/5, 0)$, as the learning rate $eta$ grows from $0$ to $oo$. Two differences stand out.
-- _Interior versus boundary._ With the entropy, $vx_eta = "softmax"(eta vr)$ has full support for every $eta$, and reaches the pure strategy $ve_1$ only in the limit $eta -> oo$; this is the steep boundary at work. With the Euclidean regularizer, $vx_eta = Pi_(Delta(A))(eta vr)$ is a Euclidean projection. As long as it stays in the interior it equals $vx_eta = overline(vx) + eta (vr - 7\/15 dot vone)$, which moves along a straight line and reaches the edge $x_3 = 0$ at $eta = 5\/7$. It then slides along the edge and reaches $ve_1$ at the finite value $eta = 5\/3$.
-- _Dependence on the number of actions._ The two regularizers trade off differently the two quantities in @ftrl-omd-regret-bound. The Euclidean regularizer has a small range, $B = 1/2 - 1/(2m) < 1/2$, but it is strongly convex only with respect to $norm(dot.c)_2$, whose dual norm is again $norm(dot.c)_2$. Since $norm(vg)_2^2$ can be as large as $m$ when $norm(vg)_oo <= 1$, the resulting bound is of order $sqrt(T m)$ (@ogd-regret-bound). The entropy has a larger range, $B = log m$, which however grows only logarithmically in $m$; in exchange, it is strongly convex with respect to the larger norm $norm(dot.c)_1$, whose dual norm satisfies $norm(vg)_oo <= 1$. This is the source of the _logarithmic_ dependence on the number of actions highlighted in @sec-mwu.
+for the fixed regret vector $vr = (1, 2\/5, 0)$ as the learning rate $eta$ grows from $0$ to $oo$. Two differences stand out.
+- _Interior versus boundary._ With the entropy, $vx_eta = "softmax"(eta vr)$ has full support for every $eta$ and reaches the pure strategy $ve_1$ only in the limit $eta -> oo$; this is the steep boundary at work. With the Euclidean regularizer, $vx_eta = Pi_(Delta(A))(eta vr)$ is a Euclidean projection. While it stays in the interior, it equals $overline(vx) + eta (vr - 7\/15 dot vone)$, where $7\/15$ is the average entry of $vr$. This point moves along a straight line and reaches the edge $x_3 = 0$ at $eta = 5\/7$. It then slides along that edge and reaches $ve_1$ at the finite value $eta = 5\/3$.
+- _Dependence on the number of actions._ The bound of @ftrl-omd-regret-bound balances two quantities: the range $B$ of the regularizer and the dual norm of the gradients. The Euclidean regularizer has a small range, $B = 1/2 - 1/(2m) < 1/2$, but it is strongly convex only with respect to $norm(dot.c)_2$, which is its own dual norm, and $norm(vg)_2^2$ can be as large as $m$ when $norm(vg)_oo <= 1$. The result is a bound of order $sqrt(T m)$ (@ogd-regret-bound). The entropy has a larger range, $B = log m$, but it is strongly convex with respect to $norm(dot.c)_1$, whose dual norm is $norm(dot.c)_oo$, and $norm(vg)_oo <= 1$ no matter how large $m$ is. Paying $log m$ in the range to avoid a factor $m$ in the gradients is the source of the _logarithmic_ dependence on the number of actions noted in @sec-mwu.
 
 #figure(
   image(
