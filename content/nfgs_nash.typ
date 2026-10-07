@@ -1,4 +1,5 @@
 #import "meta/gabri_notes.typ": *
+#import "meta/reference-solutions.typ": reference-solutions
 #show: gabri_notes.with(
   lec_num: 1,
   date: [Tue, Sep 15, 2026],
