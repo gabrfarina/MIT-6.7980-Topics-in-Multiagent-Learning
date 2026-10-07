@@ -40,7 +40,7 @@ In this lecture, we revisit Nash equilibrium computation in general games. We wi
 
 = Support Enumeration Algorithms
 
-To develop support enumeration algorithms, we will study whether knowing the _support_ of a Nash equilibrium, i.e.~the actions that are assigned non-zero probability, can reduce the computational complexity of solving for a Nash equilibrium. We will start with two-player games and proceed to general-sum games.
+To develop support enumeration algorithms, we will study whether knowing the _support_ of a Nash equilibrium, i.e.~the actions that are assigned non-zero probability, can reduce the computational complexity of solving for a Nash equilibrium. We will start with two-player games and proceed to games with more players.
 
 == Two-player games
 
@@ -52,12 +52,12 @@ $
                upright("max ") 1 & \
       upright("s.t. ") ve_i^T R vy & >= ve_k^T R vy \, forall i in S_R \, forall k in \[ m \] \
                        vx^T C ve_j & >= vx^T C ve_k \, forall j in S_C \, forall k in \[ n \] \
-                     sum x_i = 1 & upright(" and ") sum y_i = 1 \
+                     sum x_i = 1 & upright(" and ") sum y_j = 1 \
   x_i >= 0 \, forall i in S_R & upright(" and ") x_i = 0 \, forall i in \[ m \] \\ S_R \
   y_j >= 0 \, forall j in S_C & upright(" and ") y_j = 0 \, forall j in \[ n \] \\ S_C
 $
 
-The feasibility of this linear program follows from the fact that $S_R$ and $S_C$ are the supports in some Nash equilibrium of the game. This Nash equilibrium is a feasible solution to this linear program. In the other direction, any feasible solution to the above linear program is a Nash equilibrium. This is because if $\( vx \, vy \)$ is a feasible solution to the above linear program, then $vx$ places positive probability only on a subset of $S_R$ and  $vy$ places positive probability only on a subset of $S_C$. At the same time, the first couple of constraints imply that any action in $S_R$ must be a best response to $vy$ and any action in $S_C$ must be a best response to $vy$. Putting these together we have the implications, which mean that $\( vx \, vy \)$ is a Nash equilibrium:
+The feasibility of this linear program follows from the fact that $S_R$ and $S_C$ are the supports in some Nash equilibrium of the game. This Nash equilibrium is a feasible solution to this linear program. In the other direction, any feasible solution to the above linear program is a Nash equilibrium. This is because if $\( vx \, vy \)$ is a feasible solution to the above linear program, then $vx$ places positive probability only on a subset of $S_R$ and  $vy$ places positive probability only on a subset of $S_C$. At the same time, the first couple of constraints imply that any action in $S_R$ must be a best response to $vy$ and any action in $S_C$ must be a best response to $vx$. Putting these together we have the implications, which mean that $\( vx \, vy \)$ is a Nash equilibrium:
 
 $
   & forall i : med med x_i > 0 med med => i in S_R med med => i med upright("is a best response to ") vy \; med upright("and")\
@@ -65,6 +65,51 @@ $
 $
 
 If we don't  know the supports of some Nash equilibrium, we can enumerate over all possible pairs of supports $\( S_R \, S_C \) subset.eq \[ m \] times \[ n \]$, and try to find a feasible solution of the corresponding linear program. As a Nash equilibrium always exists, at least one of these linear programs will be feasible. So the overall running time will be $2^(m + n) dot.op op("poly") \( \| R \| \, \| C \| \)$, where the $2^(m + n)$ factor is due to trying all possible pairs of supports, and the polynomial factor in the descriptions of the matrices $R$ and $C$ is determined by the complexity of solving a linear program.
+
+#pseudocode-list(
+  max-width: true,
+  numbered-title: [Support enumeration for two-player games],
+  caption: [Each guess of supports costs one linear program; the first feasible one yields a Nash equilibrium.],
+)[
+  + *For* every pair of nonempty supports $S_R subset.eq [m]$ and $S_C subset.eq [n]$:
+    + Solve the linear program above for $(S_R, S_C)$.
+    + *If* it is feasible, *return* its solution $(vx, vy)$.
+]
+
+#example[Support enumeration in a $3 times 2$ game][
+  Consider the following game, taken from #citet(<vonStengel2007equilibrium>). On the left are the payoffs (Row's first). On the right, we plot Row's expected payoff $ve_i^T R vy$ for each action $i$ as a function of $y_2$, the probability that Column plays action $2$. The bold upper envelope marks Row's best responses.
+
+  #align(center)[
+    #image(
+      "figures/nash_algorithms/support_example.svg",
+      width: 100%,
+      alt: "A three-by-two game and Row's three payoff lines as a function of Column's probability of action 2. The upper envelope bends at one third and two thirds; actions 1 and 3 tie at one half, below action 2.",
+    )
+  ]
+
+  First, guess $S_R = {2, 3}$ and $S_C = {1, 2}$. The constraints for $i = 2$ and $i = 3$ require both actions to be best responses to $vy$, i.e., $ve_2^T R vy = ve_3^T R vy >= ve_1^T R vy$. Since $y_1 = 1 - y_2$, this reads $2 + 3 y_2 = 6 y_2 >= 3$. So $y_2 = 2/3$, and Row's actions $2$ and $3$ both earn $4 > 3$. Similarly, the constraints for Column require $vx^T C ve_1 = vx^T C ve_2$ with $x_1 = 0$, i.e., $2 x_2 + 3 x_3 = 6 x_2 + x_3$. Together with $x_2 + x_3 = 1$, this gives $vx = (0, 1/3, 2/3)$. So the linear program is feasible, and $(vx, vy) = ((0, 1/3, 2/3), (1/3, 2/3))$ is a Nash equilibrium.
+
+  Next, guess $S_R = {1, 3}$ and $S_C = {1, 2}$. The constraints for Row now require $3 = 6 y_2 >= 2 + 3 y_2$. The equality forces $y_2 = 1/2$, but then action $2$ earns $7/2 > 3$, so the linear program is infeasible. As the hollow marker in the plot shows, actions $1$ and $3$ only tie where neither is a best response. The constraints over all $k in [m]$, and not just $k in S_R$, are what rule out this guess.
+
+  Running through all $(2^3 - 1)(2^2 - 1) = 21$ pairs of supports, exactly three linear programs are feasible. They yield the three Nash equilibria of the game, which are the left endpoint and the two kinks of the envelope in the plot:
+
+  #align(center, table(
+    columns: 4,
+    align: center + horizon,
+    inset: 5pt,
+    stroke: .2mm,
+    table.header[$S_R$][$S_C$][$vx$][$vy$],
+    [${1}$], [${1}$], [$(1, 0, 0)$], [$(1, 0)$],
+    [${1, 2}$], [${1, 2}$], [$(4/5, 1/5, 0)$], [$(2/3, 1/3)$],
+    [${2, 3}$], [${1, 2}$], [$(0, 1/3, 2/3)$], [$(1/3, 2/3)$],
+  ))
+
+  The companion notebook #link("https://github.com/gabrfarina/MIT-6.7980-Topics-in-Multiagent-Learning/blob/main/content/notebooks/nash_algorithms/support_enumeration.ipynb")[`support_enumeration.ipynb`] implements the algorithm in a few lines of Python and reproduces this example.
+]
+
+#remark[
+  In practice, the enumeration order matters. If the game is _nondegenerate_ (no mixed strategy with support of size $s$ has more than $s$ pure best responses), then the two supports in any Nash equilibrium have the same size, so it suffices to try pairs with $|S_R| = |S_C|$. Trying small, balanced supports first, while discarding actions that are conditionally dominated, works well on many games~#citep(<Porter2008Jul>). The worst case remains exponential.
+]
 
 As a corollary of the correctness of the above algorithm, we also get a proof of the existence of Nash equilibria that use rational numbers of polynomial bit complexity in the size of the game.
 
@@ -81,7 +126,7 @@ As illustrated by the #lecture-link("correlated", <sec-irrational-equilibria>)[i
 == $n$-player games
 #label("sec:support enumeration for n players")
 
-Now, let's consider how to generalize the approach to $n$-player games, for $n > 2$. Suppose that someone told us the support $S_i subset.eq A_i$ of each player $i$'s mixed strategy in some Nash equilibrium of the game. Given this information, we could solve the following program to find a Nash equilibrium $vx = \( vx_1 \, ... \, vx_n \) in Delta \( A_1 \) times ... times Delta \( A_n \)$:
+Now, let's consider how to generalize the approach to $n$-player games, for $n > 2$. Suppose that someone told us the support $S_i subset.eq A_i$ of each player $i$'s mixed strategy in some Nash equilibrium of the game. Given this information, a Nash equilibrium $vx = \( vx_1 \, ... \, vx_n \) in Delta \( A_1 \) times ... times Delta \( A_n \)$ is a solution to the following feasibility problem. Unlike the two-player case, it is in general _not_ a linear program, but a system of polynomial equations and inequalities:
 
 $
   forall med upright("player") med i : med med med & u_i \( a_i \; vx_(- i) \) >= u_i \( a'_i \; vx_(- i) \) \, forall a_i in S_i \, forall a'_i in A_i \;\
@@ -96,7 +141,40 @@ $
   forall med upright("players") med i \, forall a_i in A_i : med med x_(i \, a_i) > 0 med med => a_i in S_i med med => a_i med upright("is a best response to ") vx_(- i) .
 $
 
-However, notice that now $u_i \( a_i \; vx_(- i) \)$ is not linear in $vx$, but a polynomial of degree $n - 1$. So the above problem amounts to solving a system of polynomial equations and inequalities in the variables $vx$.
+However, notice that now $u_i \( a_i \; vx_(- i) \)$ is not linear in $vx$, but a polynomial of degree $n - 1$. Indeed, expanding the expectation over the other players' actions gives
+
+$ u_i \( a_i \; vx_(- i) \) = sum_(a_(- i) in A_(- i)) u_i \( a_i \, a_(- i) \) product_(j != i) x_(j \, a_j) \, $
+
+where every term multiplies $n - 1$ probabilities, one from each other player. So the above problem amounts to solving a system of polynomial equations and inequalities in the variables $vx$. With $n = 2$, each product has a single factor. Row's constraints are then linear in $vy$ and Column's are linear in $vx$, which recovers the linear program of the previous section. With $n >= 3$, the products of variables cannot be avoided in general. No linear program with rational coefficients can capture the equilibria of every three-player game. A feasible linear program with rational coefficients has a rational solution, but some three-player games have #lecture-link("correlated", <sec-irrational-equilibria>)[only irrational equilibria].
+
+#example[Support enumeration in a three-player game][
+  In the following game, each player has two actions. Player $1$ picks the row, player $2$ the column, and player $3$ the table, and each cell lists the payoffs $(u_1, u_2, u_3)$.
+
+  #align(center)[
+    #image(
+      "figures/nash_algorithms/three_player_game.svg",
+      width: 72%,
+      alt: "Two two-by-two payoff tables of a three-player game, one for each action of player 3, with payoff triples in each cell.",
+    )
+  ]
+
+  Write $p := x_(1, 1)$, $q := x_(2, 1)$, and $r := x_(3, 1)$ for the probabilities of action $1$, and guess the full supports $S_1 = S_2 = S_3 = {1, 2}$. Each player must then be indifferent between their two actions. For player $1$, this means
+
+  $
+    0 & = u_1(1 ; vx_(-1)) - u_1(2 ; vx_(-1)) \
+      & = q r - 3 q (1 - r) + 3 (1 - q) r - 3 (1 - q)(1 - r) = 6 r - 2 q r - 3 .
+  $
+
+  Doing the same for players $2$ and $3$ produces the system
+
+  $
+    6 r - 2 q r - 3 = 0, quad 3 - 2 p - 2 r - p r = 0, quad 6 p - 4 p q - 3 = 0, quad p, q, r in [0, 1] .
+  $
+
+  Each equation is bilinear, i.e., a polynomial of degree $n - 1 = 2$, rather than linear. Solving the first and third equations for $r$ and $p$ and substituting into the second gives $8 q^2 - 24 q + 9 = 0$, whose only root in $[0, 1]$ is $q = (6 - 3 sqrt(2)) / 4$. Then $p = 1 / sqrt(2)$ and $r = 2 - sqrt(2)$, so this guess yields a fully mixed equilibrium with _irrational_ probabilities. The square roots come from the products of variables: a linear program with rational coefficients would have had a rational solution.
+
+  For smaller supports, the inequalities $u_i (a_i ; vx_(-i)) >= u_i (a'_i ; vx_(-i))$ against unused actions $a'_i in.not S_i$ are polynomial inequalities, and they must be checked as well. Enumerating the remaining $3^3 - 1 = 26$ support profiles yields two more equilibria, both pure: action profiles $(1, 2, 1)$ and $(2, 1, 2)$. The #link("https://github.com/gabrfarina/MIT-6.7980-Topics-in-Multiagent-Learning/blob/main/content/notebooks/nash_algorithms/support_enumeration.ipynb")[companion notebook] builds and solves these polynomial systems symbolically.
+]
 
 To analyze the running time, let us suppose for simplicity that every player has $k$ actions. Then the above problem is a system of $M = O \( n dot.op k^2 \)$ polynomial equations and inequalities, of degree $D = n - 1$ in $N = n dot.op k$ variables.#footnote[We can reduce the number of constraints to $M = O \( n dot.op k \)$ as, if we are a bit less wasteful, we can write $O \( k \)$ as opposed to $O \( k^2 \)$ constraints per player. But this won't affect the running-time asymptotics.] This can be solved, to $B$ bits of accuracy per variable, using tools from the existential theory of the reals~#citep(<renegar1992computational>), in time
 
