@@ -14,11 +14,11 @@ Like in our prior lectures, we will study _linear_ settings, where our sequentia
 
 As a general principle, algorithms for the _bandit_ setting are constructed from regret minimizers for the full-information setting. Indeed, the key idea is to construct an _estimator_ $tilde(vg)^((t))$ of the (unobserved) utility gradient $vg^((t))$, and feed that into a full-information regret minimizer. The estimator is constructed from the observed utility $w^((t))$ and the chosen strategy $vx^((t))$.
 
-The utility function can still be picked adversarially by the environment. However, to get guarantees, it is necessary to reduce the power of the environment by letting the utility $u^((t))$ only depend on $vx^((1)), ..., vx^((t-1))$ but _not_ on $vx^((t))$. In other words, the environment can pick the utility adaptively, but must decide the utility _before_ the learner picks the strategy, and not after. This restriction still allows convergence to equilibria if bandit algorithms are used by players to iteratively update their strategies in games.
+The utility function can still be picked adversarially by the environment, and the adversary knows the learner's algorithm. The utility $u^((t))$ may depend on the history $vx^((1)), ..., vx^((t-1))$, but it is chosen without knowledge of the current played strategy $vx^((t))$. In particular, the adversary can predict the output $vy^((t))$ of the full-information regret minimizer from the history, but the strategy sampler may use private randomness to transform $vy^((t))$ into $vx^((t))$. Since the adversary does not observe the sampler's coin tosses, she cannot determine $vx^((t))$ exactly before choosing the utility function. This restriction still allows convergence to equilibria if bandit algorithms are used by players to iteratively update their strategies in games.
 
 Typically, the construction of bandit algorithms follows the template shown in @fig-bandit.
 #figure(
-  caption: [General template for bandit learning algorithms. $cX$ is the space of strategies of the learner. The output of the "strategy sampler" is a strategy from a restricted set of strategies. The name "strategy sampler" is generally a misnomer, but it is fitting in the widely-studied setting where $cX=Delta(A)$ for some finite set of actions $A$. In this case, a common instantiation of the strategy sampler is to take as input a distribution $vp^((t)) in Delta(A)$ and sample an action $a^((t)) ~ vp^((t))$. In this case, $vx^((t))$ would be a single-atom distribution with an atom at $a^((t))$. But, in general, we allow for more general $cX$'s and more general samplers.],
+  caption: [General template for bandit learning algorithms. The strategy sampler receives the output $vy^((t))$ of the full-information regret minimizer and produces the played strategy $vx^((t))$. The dice and lock indicate that it may use private randomness: even if the adversary knows the learning algorithm and can predict $vy^((t))$, she does not observe the sampler's coin tosses and therefore cannot predict $vx^((t))$ exactly. In the widely studied setting $cX = Delta(A)$ for a finite action set $A$, the sampler draws $a^((t)) ~ vy^((t))$ and returns $vx^((t)) = ve_(a^((t)))$. More generally, the sampler can be defined for arbitrary strategy sets $cX$.],
 )[
   #image(
     "figures/bandit/bandit.svg",
@@ -27,7 +27,14 @@ Typically, the construction of bandit algorithms follows the template shown in @
   )
 ] <fig-bandit>
 
-Some loss-based algorithms obtain pseudoregret bounds without an explicit exploration mixture. High-probability guarantees require additional control of estimation errors; a uniform mixture alone does not provide that guarantee. We explain the difference next.
+#paragraph-marker() *Randomization is necessary.*~~
+Suppose $cX = [0,1]$ and the learner is deterministic, so that $x^((t))$ is a fixed function of the feedback history $w^((1)), ..., w^((t-1))$. The adversary knows the algorithm. It can therefore simulate the learner on the feedback sequence $w^((1)) = ... = w^((T)) = 0$, and compute in advance the strategies $x^((1)), ..., x^((T))$ that the learner would play. Let $sigma = +1$ if $sum_(t=1)^T (1 - x^((t))) >= T/2$ and $sigma = -1$ otherwise, and let the adversary play the utilities
+$ u^((t))(x) = sigma (x - x^((t))). $
+Each $u^((t))$ is fixed before round $t$ and does not depend on the learner's play at round $t$. Since $u^((t))(x^((t))) = 0$, the learner indeed observes $w^((t)) = 0$ at every round, so it plays exactly the strategies the adversary predicted, and its total utility is $0$. However, the fixed strategy $hat(x) = 1$ (if $sigma = +1$) or $hat(x) = 0$ (if $sigma = -1$) obtains total utility $sum_t (1 - x^((t)))$ or $sum_t x^((t))$ respectively, which is at least $T/2$ by the choice of $sigma$. Hence $"Reg"^((T)) >= T/2$, which is linear in $T$.
+
+(The utilities above are affine in $x$; they are linear on $cX = Delta({0,1})$, identifying $x$ with the probability of action $1$. They take values in $[-1,1]$. The map $u |-> (1+u)\/2$ brings them to $[0,1]$ and halves the regret to $T/4$.)
+
+The argument fails for randomized learners because the adversary cannot predict the random $x^((t))$, and the feedback $w^((t))$ is no longer a deterministic constant. Randomization is therefore necessary in the bandit setting. It also means that the trajectory $(vx^((t)), vg^((t)))_t$ is random, so we must specify which notion of regret we bound.
 
 #paragraph-marker() *Stochastic regret guarantees.*~~
 Because online learning algorithms benefit from randomization, as is crucially the case in bandit settings, the regret of a bandit algorithm is a random variable. This adds a layer of complexity when approaching the analysis of bandit algorithms. As a rule of thumb, three "flavors" of guarantees are typically considered in the literature. We list them from the weakest (and easiest to obtain) to the strongest (and hardest to obtain):
@@ -52,7 +59,14 @@ Because online learning algorithms benefit from randomization, as is crucially t
 
 To make sense of the measures with respect to which the expectations and probabilities are computed in the above definitions, consider a randomized algorithm for the learner that takes as input the history, $(vx^((tau)),w^((tau)))_(tau<t)$, observable to the learner so far and produces a strategy $vx^((t))$ and, similarly, a randomized algorithm for the adversary that takes as input the history, $(vx^((tau)),u^((tau)))_(tau<t)$, observable to the adversary so far and chooses a utility function $u^((t))$. Pitting the two algorithms against each other defines a probability measure with respect to which the above expectations and probabilities are defined.
 
-Finally, notice that Pseudoregret and expected regret guarantees are different, since $max EE <= EE max$, but the converse is not true in general. This means that bounding expected regret automatically bounds the pseudoregret but the opposite is not necessarily the case. In fact, bounds on the pseudoregret are _not_ strong enough to conclude convergence to the set of equilibria, in general.
+#paragraph-marker() *Pseudoregret versus expected regret.*~~
+Since $max EE <= EE max$, we always have $"PseudoReg"^((T)) <= EE["Reg"^((T))]$. The two notions compare the learner against different benchmarks: pseudoregret competes with the best fixed strategy _in expectation_, while expected regret competes with the best fixed strategy _in hindsight on each realization_. They coincide when the benchmark does not depend on the learner's randomness. For instance, if the adversary is oblivious, so the sequence $vg^((1)), ..., vg^((T))$ is fixed in advance, then $max_(xhat) sum_t ip(vg^((t)), xhat)$ is deterministic and $max$ and $EE$ can be exchanged. Against an adaptive adversary, $vg^((t))$ depends on the learner's past random plays, so the best fixed strategy varies across realizations and the two can differ.
+
+#paragraph-marker() *Consequences for equilibria.*~~
+Suppose each of $n$ players runs a bandit algorithm in a repeated game, and player $i$'s utility gradient $vg_i^((t))$ is determined by the opponents' realized actions $a_(-i)^((t))$, so that $ip(vg_i^((t)), vx_i^((t))) = u_i(a^((t)))$. Two empirical distributions of play can be considered.
+- The _expected empirical distribution_ $bar(mu)(a) = 1/T sum_t PP[a^((t)) = a]$, which averages over the randomness of the algorithms. If every player has pseudoregret at most $epsilon T$, then $bar(mu)$ is an $epsilon$-approximate coarse correlated equilibrium (CCE).
+- The _realized empirical distribution_ $hat(mu) = 1/T sum_t delta_(a^((t)))$ of a single run. Its CCE gap for player $i$ equals $"Reg"_i^((T)) \/ T$ exactly, so showing that $hat(mu)$ is an approximate CCE needs a bound on the regret itself: in expectation (for the expected gap) or with high probability.
+Pseudoregret bounds alone do not control $hat(mu)$.
 
 #v(-1mm)
 = Adversarial bandit learning in normal-form games
@@ -60,21 +74,21 @@ Finally, notice that Pseudoregret and expected regret guarantees are different, 
 Let's start from the case of normal-form games, in which our decision maker faces the choice of picking an action out of a finite set $A$. The setting in this case is also known as _adversarial multi-armed bandit problem_. We have $cX = Delta(A)$.
 
 #paragraph-marker() *Strategy sampler.*~~
-In this settings, most algorithms use the natural strategy sampler: given a distribution $vp^((t)) in Delta(A)$, the decision maker samples an action $a^((t)) in A$ according to the probabilities in $vp^((t))$. The vector $vx^((t))$ is then set to the deterministic distribution $ve_(a^((t)))$. Clearly,
-$EE_t [vx^((t))] = vp^((t)).$
+In this settings, most algorithms use the natural strategy sampler: given a distribution $vy^((t)) in Delta(A)$, the decision maker samples an action $a^((t)) in A$ according to the probabilities in $vy^((t))$. The vector $vx^((t))$ is then set to the deterministic distribution $ve_(a^((t)))$. Clearly,
+$EE_t [vx^((t))] = vy^((t)).$
 
 #paragraph-marker() *Gradient estimator.*~~ For this setting, the standard gradient estimator is the _importance sampling_ estimator. Given the utility scalar $w^((t)) in [0, 1]$, the importance sampling estimator is defined as
-$ tilde(vg)^((t)) := (w^((t)) / p^((t))_(a^((t)))) ve_(a^((t))) in RR^A. $
+$ tilde(vg)^((t)) := (w^((t)) / y^((t))_(a^((t)))) ve_(a^((t))) in RR^A. $
 
-#theorem[Assume $p^((t))_a>0$ for every action. Let $w^((t)) = ip(vg^((t)), vx^((t)))$ where $vg^((t))$ is some unknown utility gradient. Then, the importance sampling estimator $tilde(vg)^((t))$ is unbiased, that is,
+#theorem[Assume $y^((t))_a>0$ for every action. Let $w^((t)) = ip(vg^((t)), vx^((t)))$ where $vg^((t))$ is some unknown utility gradient. Then, the importance sampling estimator $tilde(vg)^((t))$ is unbiased, that is,
   $EE_t [tilde(vg)^((t))] = vg^((t)).$
 ]
 #v(-2mm)
 #proof[
-  The result follows by direct calculation. The randomness is due to the sampling of the action $a^((t))$. Each action $a in A$ is sampled with probability $p^((t))_a$. Hence,
+  The result follows by direct calculation. The randomness is due to the sampling of the action $a^((t))$. Each action $a in A$ is sampled with probability $y^((t))_a$. Hence,
   $
-    EE_t [tilde(vg)^((t))] = sum_(a in A) p^((t))_a (g^((t))_a / p^((t))_a) ve_a = sum_(a in A) p^((t))_a (
-      ip(vg^((t)), ve_(a)) / p^((t))_a
+    EE_t [tilde(vg)^((t))] = sum_(a in A) y^((t))_a (g^((t))_a / y^((t))_a) ve_a = sum_(a in A) y^((t))_a (
+      ip(vg^((t)), ve_(a)) / y^((t))_a
     ) ve_a = sum_(a in A) g^((t))_a ve_a = vg^((t)).
   $
   #v(-6mm)
@@ -84,8 +98,8 @@ $ tilde(vg)^((t)) := (w^((t)) / p^((t))_(a^((t)))) ve_(a^((t))) in RR^A. $
 
 Exp3 (short for "exponential weights for exploration and exploitation") adapts #lecture-link("learning1", <sec-mwu>)[multiplicative weights] to bandit feedback and was introduced by #citet(<auer2002nonstochastic>). We use a variant that needs no explicit exploration mixture. Convert rewards $g^((t))_a in [0,1]$ into losses $ell^((t))_a=1-g^((t))_a$. This changes neither realized regret nor pseudoregret.
 
-Start with positive weights $W_(1,a)=1$. At time $t$, sample action $a^((t))$ from $p^((t))_a=W_(t,a)/sum_b W_(t,b)$ and observe its loss. Set
-$ hat(vell)^((t))=frac(1-w^((t)), p^((t))_(a^((t)))) ve_(a^((t))), quad W_(t+1,a)=W_(t,a) exp(-eta hat(ell)^((t))_a). $
+Start with positive weights $W_(1,a)=1$. At time $t$, sample action $a^((t))$ from $y^((t))_a=W_(t,a)/sum_b W_(t,b)$ and observe its loss. Set
+$ hat(vell)^((t))=frac(1-w^((t)), y^((t))_(a^((t)))) ve_(a^((t))), quad W_(t+1,a)=W_(t,a) exp(-eta hat(ell)^((t))_a). $
 Equivalently, the full-information utility learner receives $-hat(vell)^((t))$.
 
 #theorem[Exp3][
@@ -96,10 +110,10 @@ Equivalently, the full-information utility learner receives $-hat(vell)^((t))$.
 #proofsketch[
   Because the estimates are nonnegative, $exp(-z)<=1-z+z^2/2$ applies for every $z=eta hat(ell)^((t))_a$, even if an estimate is large. The exponential-weights potential bound against each fixed action $a$ is
   $
-    sum_t ip(vp^((t)), hat(vell)^((t))) - sum_t hat(ell)^((t))_a <= frac(log K, eta) + eta/2 sum_t sum_b p^((t))_b (hat(ell)^((t))_b)^2.
+    sum_t ip(vy^((t)), hat(vell)^((t))) - sum_t hat(ell)^((t))_a <= frac(log K, eta) + eta/2 sum_t sum_b y^((t))_b (hat(ell)^((t))_b)^2.
   $
   Conditional unbiasedness identifies the expected loss terms, while
-  $ EE_(t)[sum_b p^((t))_b (hat(ell)^((t))_b)^2]=sum_b (ell^((t))_b)^2 <= K. $
+  $ EE_(t)[sum_b y^((t))_b (hat(ell)^((t))_b)^2]=sum_b (ell^((t))_b)^2 <= K. $
   Take expectations and then maximize over the fixed comparator. This proves pseudoregret; it does not interchange a random hindsight maximum with expectation.
 ]
 
@@ -122,7 +136,7 @@ A simplified analysis can also be found in #citep(<zimmert2021tsallis>).
 
 Exp3.P uses both uniform exploration and an upper-confidence correction to reward estimates #citep(<auer2002nonstochastic>). For $K=|A|>=2$, let $vy^((t))$ be normalized positive weights and sample from
 $ vp^((t))=(1-gamma)vy^((t))+gamma vone/K. $
-With the reward estimator $tilde(vg)$ defined earlier, update the weights by
+With the reward estimator $tilde(vg)$ defined earlier, computed using the sampling probabilities $p^((t))_(a^((t)))$ in place of $y^((t))_(a^((t)))$, update the weights by
 $ W_(t+1,a)=W_(t,a) exp(eta (tilde(g)^((t))_a + frac(alpha, p^((t))_a sqrt(K T)))). $
 The positive bonus accounts for uncertainty; uniform exploration bounds inverse sampling probabilities. This is a different estimator/update from the loss-form Exp3 above.
 
