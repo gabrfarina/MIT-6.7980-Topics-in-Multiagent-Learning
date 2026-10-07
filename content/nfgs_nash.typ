@@ -439,8 +439,7 @@ $
 $
 #align(center)[
   #image(
-    "figures/nfgs_nash/maxmin_theater_football.svg",
-    width: 25%,
+    "figures/nfgs_nash/maxmin_theater_football.svg",width: 170pt,
   )
 ]
 
