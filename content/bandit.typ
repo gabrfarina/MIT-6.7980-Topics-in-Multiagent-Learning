@@ -23,7 +23,7 @@ Typically, the construction of bandit algorithms follows the template shown in @
   #image(
     "figures/bandit/bandit.svg",
     width: 100%,
-    alt: "Bandit algorithm template: observed utility enters a gradient estimator, then a full-information regret minimizer, exploration mixture, and strategy sampler.",
+    alt: "Bandit algorithm template: observed utility enters a gradient estimator, then a full-information regret minimizer, whose output feeds a strategy sampler that uses private randomness, indicated by a die and a lock.",
   )
 ] <fig-bandit>
 
