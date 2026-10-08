@@ -133,7 +133,56 @@ $
     u_n (overline(vx)_1, ..., overline(vx)_(n-1), hat(vx)_n)
   }.
 $
-(You should try to prove this!)
+#proof[
+  Let
+  $
+    overline(u)(vx_n) := u_n (overline(vx)_1, ..., overline(vx)_(n-1), vx_n)
+  $
+  and let $vx_n^star in argmax_(vx_n in cX_n) overline(u)(vx_n)$ be a best response to the average opponent profile. Define the realized payoff noise terms
+  $
+    Z_t := u_n(vx_1^((t)), ..., vx_(n-1)^((t)), vx_n^((t))) - overline(u)(vx_n^((t))),
+  $
+  $ 
+    Z_t^star := u_n(vx_1^((t)), ..., vx_(n-1)^((t)), vx_n^star) - overline(u)(vx_n^star).
+  $
+  Since the opponents sample their strategies independently at time $t$, and since Player $n$'s strategy at time $t$ is chosen using only the past, we have
+  $ 
+    EE[Z_t | F_(t-1)] = 0, 
+    	quad EE[Z_t^star | F_(t-1)] = 0,
+  $
+  where $F_(t-1)$ is the history up to time $t-1$. Thus $(Z_t)$ and $(Z_t^star)$ are bounded martingale differences. This is exactly the place where the martingale structure is used: for each fixed $vx_n$, Azuma-Hoeffding gives exponential tail bounds on the partial sums $sum_(s=1)^t Z_s$ and $sum_(s=1)^t Z_s^star$. Hence for every $epsilon > 0$,
+  $
+    sum_(T=1)^oo P(abs(1/T sum_(t=1)^T Z_t) > epsilon) < oo,
+    
+    
+    sum_(T=1)^oo P(abs(1/T sum_(t=1)^T Z_t^star) > epsilon) < oo.
+  $
+  By the Borel-Cantelli lemma, it follows that
+  $
+    1/T sum_(t=1)^T Z_t -> 0
+    quad "and" quad
+    1/T sum_(t=1)^T Z_t^star -> 0
+    quad "almost surely."
+  $
+
+  Now use regret. By definition of external regret,
+  $
+    sum_(t=1)^T u_n(vx_1^((t)), ..., vx_(n-1)^((t)), vx_n^star)
+    - sum_(t=1)^T u_n(vx_1^((t)), ..., vx_(n-1)^((t)), vx_n^((t)))
+    \le "Reg"_n^((T)).
+  $
+  Rewriting each utility as its mean plus noise gives
+  $
+    T \cdot overline(u)(vx_n^star) - T \cdot overline(u)(1/T sum_(t=1)^T vx_n^((t)))
+    \le "Reg"_n^((T)) + sum_(t=1)^T (Z_t - Z_t^star).
+  $
+  Divide by $T$ and use the fact that regret is sublinear, i.e. $"Reg"_n^((T))/T -> 0$, together with the two Borel-Cantelli conclusions above. We obtain
+  $
+    overline(u)(vx_n^star) - overline(u)(1/T sum_(t=1)^T vx_n^((t))) -> 0
+    quad "almost surely."
+  $
+  Therefore the Cesàro average of the learner's strategies asymptotically achieves the value of an optimal best response against the mean opponent profile. Since $cX_n$ is compact and $overline(u)$ is continuous, this means the average strategy converges almost surely to the set of best responses.
+]
 
 == Learning a Nash equilibrium in two-player zero-sum games <sec-learning-zero-sum>
 
