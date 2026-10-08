@@ -256,7 +256,7 @@ Switching gears from the previous sections, we turn to algorithms for computing 
 
 == Preparation: symmetry and non-degeneracy
 
-To simplify our presentation, we will assume that the input game is a symmetric $n times n$ game, i.e. $C = R^T$, and we will target finding a symmetric equilibrium of this game, which is guaranteed to exist by Theorem~#ref(label("thm:existence of symmetric equilibria"), supplement: none). From our work in Section~#ref(<sec:symmetrization>, supplement: none), we can make this assumption that the game is symmetric without loss of generality. Indeed, if a given game is asymmetric we can polynomial-time reduce it to a symmetric one. The original version of the Lemke-Howson algorithm applies directly to asymmetric games, but we believe that its presentation for symmetric games is a bit simpler.
+To simplify our presentation, we will assume that the input game is a symmetric $n times n$ game, i.e. $C = R^T$, and we will target finding a symmetric equilibrium of this game, which is guaranteed to exist by Theorem~#ref(label("thm:existence of symmetric equilibria"), supplement: none). From our work in Section~#ref(<sec:symmetrization>, supplement: none), we can make this assumption that the game is symmetric without loss of generality. Indeed, if a given game is asymmetric we can polynomial-time reduce it to a symmetric one. The original version of the Lemke-Howson algorithm applies directly to asymmetric games, but we believe that its presentation for symmetric games is a bit simpler (see #ref(<ex-lh-symmetry>)).
 
 The idea of the algorithm is to perform pivoting steps between the vertices of a polytope related to the game until a Nash equilibrium is found. The ($n$-dimensional) polytope of interest is given by
 
@@ -385,6 +385,10 @@ We make some final remarks about the Lemke-Howson algorithm.
 - The proof works by virtue of a parity argument, reminiscent of the proof of Sperner’s lemma. It identifies a directed path on the vertices of the polytope whose sink is a solution.
 - Its worst-case running time is exponential in the number of actions. This lower bound was established by Savani and von Stengel~#citep(<SavaniVS06>).
 - There are generalizations of the Lemke-Howson algorithm for multi-player games working with manifolds instead of polytopes. See Rosenmüller~#citep(<Rosenmuller71>) and Wilson~#citep(<Wilson71>).
+
+#exercise[
+  We presented the Lemke-Howson algorithm for symmetric games, relying on the symmetrization of Section~#ref(<sec:symmetrization>, supplement: none), but the original algorithm of Lemke and Howson~#citep(<LemkeHowson64>) does not require symmetry. Explain how the algorithm and its labeling work without the symmetry assumption, and what the symmetric presentation simplifies.
+] <ex-lh-symmetry>
 
 = Bibliography for this lecture
 
@@ -557,4 +561,35 @@ Then for any Nash equilibrium $(bold(x)_1,...,bold(x)_n)$, by definition,
 
   Our constants shift every payoff of a given player by the same amount, and therefore preserve that player's preferences over strategies. In this example, choosing \(c=-1/2\) makes the column player's average of the payoff entries zero (the row player's average of payoff entries is already zero). Nevertheless, the resulting game is not zero-sum, which requires $sum_i u_i=0$, that is, the SUM of all payoffs of all players to be zero for any selection of pure strategies.
 
+]
+
+== Solution to #ref(<ex-lh-symmetry>)
+
+#toggle[Reveal Solution to #ref(<ex-lh-symmetry>)][
+  #proof[
+  Let $(R, C)$ be an $m times n$ game with positive entries, as we may assume by #ref(<S01-ImprovementP3.1>). Instead of a single polytope, the original algorithm works with one polytope for each player:
+
+  $ P := { vx in RR^m : vx >= 0, C^T vx <= vone }, quad Q := { vy in RR^n : R vy <= vone, vy >= 0 }, $
+
+  both of which are bounded because the entries of $R$ and $C$ are positive. Number the row actions $1, ..., m$ and the column actions $m + 1, ..., m + n$. Each of these $m + n$ actions owns exactly one inequality of $P$ and one inequality of $Q$: row action $i$ owns $x_i >= 0$ in $P$ and $ve_i^T R vy <= 1$ in $Q$, while column action $m + j$ owns $ve_j^T C^T vx <= 1$ in $P$ and $y_j >= 0$ in $Q$. We call the actions whose inequalities are tight at a point the _labels_ of that point:
+
+  $
+    L(vx) & := { i : x_i = 0 } union { m + j : ve_j^T C^T vx = 1 } , \
+    L(vy) & := { i : ve_i^T R vy = 1 } union { m + j : y_j = 0 } .
+  $
+
+  Since $C^T vx <= vone$, a column label $m + j$ of $vx$ means that $j$ is a best response of the column player to $vx$, and similarly a row label $i$ of $vy$ means that $i$ is a best response of the row player to $vy$. Labels play the role of represented actions: an action is represented at a pair $(vx, vy)$ when it belongs to $L(vx) union L(vy)$, and the analog of a democracy is a _completely labeled_ pair, that is, a pair of vertices with $L(vx) union L(vy) = { 1, ..., m + n }$.
+
+  The lemma on democracies carries over with the same proof. If $(vx, vy)$ is completely labeled, then every row action $i$ with $x_i > 0$ must have label $i$ in $L(vy)$, so $ve_i^T R vy = 1 >= ve_k^T R vy$ for every row action $k$, i.e., $i$ is a best response to $vy$; likewise, every column action played by $vy$ is a best response to $vx$. Moreover, $vx = 0$ forces $vy = 0$: no inequality $ve_j^T C^T vx <= 1$ is tight at $vx = 0$, so every column label must come from $y_j = 0$. Symmetrically, $vy = 0$ forces $vx = 0$. Hence every completely labeled pair other than $(0, 0)$ has $vx != 0$ and $vy != 0$, and $(vx \/ norm(vx)_1, vy \/ norm(vy)_1)$ is a Nash equilibrium of $(R, C)$.
+
+  Non-degeneracy now requires every vertex of $P$ to have exactly $m$ labels and every vertex of $Q$ to have exactly $n$ labels. The algorithm fixes a label $k in { 1, ..., m + n }$, which plays the role of the special action, and walks on pairs of vertices $(vx, vy)$ of $P$ and $Q$, starting from the completely labeled pair $(0, 0)$. The first step drops label $k$: it un-tightens the inequality of $k$ that is tight at $(0, 0)$, which is $x_k >= 0$ in $P$ if $k$ is a row action and $y_(k - m) >= 0$ in $Q$ if $k$ is a column action, and moves the corresponding point along the resulting edge. In general, suppose that a step moves $vx$ along an edge of $P$; steps that move $vy$ are symmetric. At the other endpoint, exactly one new inequality of $P$ becomes tight, so $vx$ picks up exactly one new label $ell$. If $ell = k$, the pair is completely labeled and the algorithm stops. Otherwise, $ell$ was already in $L(vy)$, because every label other than $k$ was present before the step and the inequality of $ell$ in $P$ was not tight; so $ell$ is now a duplicate label, and the next step drops it from $vy$ by un-tightening its inequality in $Q$ and moving $vy$ along an edge of $Q$. Since each label owns exactly one inequality in each polytope, a duplicate label is always shared between $vx$ and $vy$, and the walk alternates between moving $vx$ in $P$ and moving $vy$ in $Q$. Every pair visited strictly between the start and the end has all labels except $k$, exactly one of them twice, which is property $Pi$ for pairs. The proof of Theorem~#ref(label("thm:Lemke-Howson's correctness"), supplement: none) then goes through with vertices replaced by pairs of vertices: completely labeled pairs have degree $1$ and pairs satisfying $Pi$ have degree $2$ in the auxiliary graph, so the walk from $(0, 0)$ follows a path that ends at a completely labeled pair other than $(0, 0)$, that is, at a Nash equilibrium.
+
+  In fact, the original algorithm is exactly the algorithm of these notes run on the symmetrized game $cal(G)_2$ of Section~#ref(<sec:symmetrization>, supplement: none). The row player's payoff matrix in $cal(G)_2$ is $mat(0, R; C^T, 0)$, so writing $vz = (vx, vy)$ with $vx in RR^m$ and $vy in RR^n$, the polytope of $cal(G)_2$ is
+
+  $ { vz : mat(0, R; C^T, 0) vz <= vone, vz >= 0 } = { (vx, vy) : R vy <= vone, C^T vx <= vone, vx >= 0, vy >= 0 } = P times Q . $
+
+  Action $i <= m$ of $cal(G)_2$ is represented at $(vx, vy)$ exactly when $x_i = 0$ or $ve_i^T R vy = 1$, that is, when $i in L(vx) union L(vy)$; and action $m + j$ is represented exactly when $y_j = 0$ or $ve_j^T C^T vx = 1$, that is, when $m + j in L(vx) union L(vy)$. So the democracies of $cal(G)_2$ are the completely labeled pairs, and property $Pi$ with special action $k$ is property $Pi$ for pairs with missing label $k$. Moreover, every edge of the product $P times Q$ is either an edge of $P$ times a vertex of $Q$ or a vertex of $P$ times an edge of $Q$, so every step of the symmetric algorithm on $cal(G)_2$ moves either $vx$ in $P$ or $vy$ in $Q$, never both. The two algorithms therefore take exactly the same steps, and the final normalization $(vx \/ norm(vx)_1, vy \/ norm(vy)_1)$ is the one in the proof that equilibria of $cal(G)_2$ yield equilibria of $cal(G)_1$.
+
+  This shows what the symmetric presentation simplifies, and that it loses no generality. The original algorithm keeps track of two polytopes, two kinds of labels in each of them, and a walk on pairs of vertices that alternates between $P$ and $Q$. The symmetric presentation replaces all of this by a single polytope, a single set of actions, each represented by one of its two inequalities, and a single rule: un-tighten the other inequality representing the doubly represented action. The alternation between the two players is then encoded in the product structure of the polytope of $cal(G)_2$ and never has to be tracked explicitly, and the lemma on democracies needs a single best-response condition instead of one for each player. The cost is only notational, since the polytope of $cal(G)_2$ has dimension $m + n$, the same as $P times Q$. A genuine difference arises only when the input game is itself symmetric, i.e., $C = R^T$. The symmetric algorithm then works directly in the $n$-dimensional polytope ${ vz : R vz <= vone, vz >= 0 }$ and returns a symmetric equilibrium, whereas the original algorithm walks on $P times Q$ with $P = Q$, in dimension $2 n$, and may return an asymmetric one. For example, in the game of chicken with $R = mat(3, 2; 4, 1)$, where the first action is to swerve, the original algorithm ends at a pure equilibrium in which exactly one player swerves, for every choice of the missing label $k$, while the symmetric algorithm finds the symmetric mixed equilibrium $((1\/2, 1\/2), (1\/2, 1\/2))$.
+  ]
 ]
