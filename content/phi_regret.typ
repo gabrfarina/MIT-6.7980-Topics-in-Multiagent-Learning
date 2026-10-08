@@ -66,8 +66,31 @@ We now claim that the algorithm described above is a swap regret minimizer for $
 = The general case: Gordon-Greenwald-Marks's reduction <sec-ggm>
 
 Blum-Mansour's swap regret minimization algorithm is a special case of a much more general construction. #citet(<gordon2008no>) show that $Phi$-regret minimization for a strategy set $cX$ can be constructed starting from the following two ingredients:
-+ an _external_ regret minimization for the set $Phi$; and
-+ a _fixed point oracle_ $Phi$, that is, an algorithm that given any $phi.alt in Phi$ outputs a fixed point $phi.alt(vx) = vx in cX$.
++ an _external_ regret minimizer for the set $Phi$; and
++ a _fixed point oracle_ for $Phi$, that is, an algorithm that given any $phi.alt in Phi$ outputs a fixed point $phi.alt(vx) = vx in cX$.
+
+Recall that a transformation set is a collection of maps of the strategy set into itself,
+$ Phi subset.eq {phi.alt : cX -> cX}, $
+and that $Phi$-regret measures the realized play against rewriting every strategy by one fixed $phi.alt in Phi$. Mathematically, $Phi$ here plays the role that the strategy set $cX$ has played so far. #lecture-link("learning_intro", <def-external-regret>)[The definition of an external regret minimizer] is stated for an arbitrary set, so we may instantiate it with $Phi$ in place of $cX$: an _external regret minimizer for the set $Phi$_ is an online algorithm $cR$ that:
+
+- on each call to `NextStrategy()`, outputs a _transformation_ $phi.alt^((t)) in Phi$; and
+- on each call to `ObserveUtility`$(U^((t)))$, observes a linear utility function $U^((t)) : Phi -> RR$ scoring the transformation it just output,
+
+and whose cumulative regret, measured against the single best transformation in hindsight,
+#set math.equation(numbering: "(1)")
+$
+  "Reg"_Phi^((T)) := max_(hat(phi.alt) in Phi) {
+    sum_(t=1)^T (U^((t))(hat(phi.alt)) - U^((t))(phi.alt^((t))))
+  },
+$ <eq-def-regphi>
+#set math.equation(numbering: none)
+grows sublinearly in $T$.
+
+#remark[
+  Nothing above is specific to $Phi$: the definition of an external regret minimizer applies to any set. The reduction of #citet(<gordon2008no>) does, however, carry two standing assumptions beyond it. In their framework $Phi$ is realized as a convex and compact subset of an appropriate vector or function space, and the utilities handed to $cR$ have uniformly bounded subgradients.
+
+  Both are easy to verify in the finite-dimensional linear setting of this lecture, where a transformation is just a matrix. For swap regret, $cX = Delta^n$ and $Phi$ is the set of $n times n$ stochastic matrices, cut out of $RR^(n times n)$ by the $O(n^2)$ linear constraints $P_(i,j) >= 0$ and $sum_(i=1)^n P_(i,j) = 1$, hence convex and compact; and $U^((t))$ is linear in $phi.alt$ by (@ggm-utility), so its subgradients are bounded whenever the observed utilities are.
+]
 
 Intuitively, the external regret minimizer for $Phi$ has the role of tracking which transformation $phi.alt$ the decision maker should focus on at each time. The linear utility function $U^((t)) : Phi -> RR$ observed by the external regret minimizer is constructed from the last-output strategy $vx^((t))$ and the utility function $u^((t))$ observed at time $t$, according to the formula
 #set math.equation(numbering: "(1)")
@@ -75,7 +98,7 @@ $
   U^((t))(phi.alt) = u^((t))(phi.alt(vx^((t)))),
 $ <ggm-utility>
 #set math.equation(numbering: none)
-where $vx^((t))$ is the last-output strategy.
+where $vx^((t))$ is the last-output strategy. Note that $U^((t))$ is indeed a _linear_ function of $phi.alt$, as required by the definition recalled above: for a fixed $vx^((t))$, the evaluation map $phi.alt |-> phi.alt(vx^((t)))$ is linear in $phi.alt$, and $u^((t))$ is linear by assumption, so their composition (@ggm-utility) is linear in $phi.alt$ too.
 The final construction is as follows:
 
 - Each call to `NextStrategy` first calls $cR$.`NextStrategy` to obtain the next transformation $phi.alt^((t))$. Then, a fixed point $vx^((t)) = phi.alt^((t))(vx^((t))) in cX$ is computed and output.
@@ -100,7 +123,7 @@ Graphically, we can summarize the process as in the following block diagram.
     Phi"-Reg"^((T)) = "Reg"_Phi^((T)) qquad forall T = 1, 2, ... .
   $
   Because the regret cumulated by $cR$ grows sublinearly by hypothesis of it being a regret minimizer, then so does the $Phi$-regret of the $Phi$-regret minimization algorithm defined above.
-]
+] <thm-ggm>
 #proof[
   The proof of correctness of the above construction is deceptively simple.
   Since $cR$ outputs transformations $phi.alt^((1)),phi.alt^((2)),... in Phi$ and receives utilities $phi.alt |-> u^((1))(phi.alt(vx^((1)))), phi.alt |-> u^((2)) (phi.alt (vx^((2))) ), ...$, its cumulative regret $R^((T))$ is by definition
@@ -212,6 +235,24 @@ With multiplicative weights as the external regret minimizer, TreeSwap achieves 
     "Reg"^((M)) <= 2 sqrt(M log n) = 2 sqrt((log n) / M) dot M <= epsilon / 2 dot M.
   $
   Applying @thm-treeswap with $epsilon\/2$ in place of $epsilon$, and using $1\/d <= epsilon\/2$, gives $"SwapReg"^((T)) <= (epsilon\/2 + epsilon\/2) T$.
+]
+
+= Problems <sec-problems>
+
+#exercise[
+  Computing an exact fixed point is hard in general, yet @thm-ggm assumes the oracle returns one. Suppose instead it is only guaranteed to return a point satisfying $norm(phi.alt^((t))(vx^((t))) - vx^((t)))_1 <= eps_t$. How does the guarantee degrade, and what must hold of the tolerances $eps_t$ for the construction to remain a $Phi$-regret minimizer?
+] <ex-approx-fixed-point>
+
+#solution[
+  Measure the fixed point error in the $ell_1$ norm, as in the statement, and suppose the utility gradients are bounded in the dual norm: $u^((t))(vx) = ip(vg^((t)), vx)$ with $norm(vg^((t)))_oo <= C_2$.
+
+  The proof of @thm-ggm used the fixed point property exactly once, to replace $phi.alt^((t))(vx^((t)))$ by $vx^((t))$. Keeping that term instead leaves an extra sum that does not depend on the comparator, and whose $t$-th term Hölder's inequality bounds by $norm(vg^((t)))_oo dot norm(phi.alt^((t))(vx^((t))) - vx^((t)))_1 <= C_2 eps_t$. Hence
+  #set math.equation(numbering: "(1)")
+  $
+    Phi"-Reg"^((T)) <= "Reg"_Phi^((T)) + C_2 sum_(t=1)^T eps_t,
+  $ <eq-approx-regret>
+  #set math.equation(numbering: none)
+  with @thm-ggm the case $eps_t = 0$. The construction therefore remains a $Phi$-regret minimizer as soon as $sum_(t=1)^T eps_t = o(T)$; in particular $eps_t = o(1)$ suffices, and no rate on $eps_t$ is required. #citet(<gordon2008no>) take $eps_t = 1\/sqrt(t)$, for which $sum_(t=1)^T eps_t = O(sqrt(T))$.
 ]
 
 #lec_bibliography("meta/refs.bib")
