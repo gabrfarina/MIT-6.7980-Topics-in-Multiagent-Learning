@@ -1,5 +1,4 @@
 #import "meta/gabri_notes.typ": *
-#import "meta/reference-solutions.typ": reference-solutions
 #show: gabri_notes.with(
   lec_num: 1,
   date: [Tue, Sep 15, 2026],
@@ -234,7 +233,7 @@ By invoking #lecture-link("brouwer", <sec-brouwer-general>)[Brouwer's fixed-poin
 = Computing maxmin strategies with linear programming <sec-maxmin-lp>
 
 #exercise[Maxmin Strategies as Linear Programs][
-Consider a two-player finite normal-form game. Let Player 1 have actions $A_1={1,dots,m}$ and Player 2 have actions $A_2={1,dots,n}$, and let $M in RR^(m times n)$ denote Player 1's payoff matrix. Thus, if Player 1 uses a mixed strategy $vx in Delta(A_1)$ and Player 2 chooses pure action $j$, Player 1's expected payoff is
+Consider a two-player finite normal-form game. Let Player 1 have actions $A_1={1,dots,m}$ and Player 2 have actions $A_2={1,dots,n}$, and let $M in RR^(m times n)$ denote Player 1's payoff matrix. Thus, if Player 1 uses a mixed strategy $vx in Delta (A_1)$ and Player 2 chooses pure action $j$, Player 1's expected payoff is
 $
 sum_(i=1)^m x_i M_(i j).
 $
@@ -280,13 +279,12 @@ Let $p$ be the probability that Player 1 plays *insist*, so that Player 1 plays 
 4. Compare the maxmin strategy you found with Player 1's strategy in the mixed Nash equilibrium of the theater-or-football game. Are they the same?
 ] <ex-maxmin-lp>
 
-#reference-solutions[
 == Detailed solutions
 
 #solution[Problem 1][
-Let $vx in Delta(A_1)$ be Player 1's mixed strategy. If Player 2 chooses pure action $j$, Player 1 obtains expected payoff
+Let $vx in Delta (A_1)$ be Player 1's mixed strategy. If Player 2 chooses pure action $j$, Player 1 obtains expected payoff
 $
-u_1(vx,j)
+u_1 (vx,j)
 =
 sum_(i=1)^m x_i M_(i j).
 $
@@ -325,22 +323,22 @@ $
 
 The objective and all constraints are linear in the variables $vx$ and $v$, so this is a linear program.
 
-It remains to explain why constraints against pure actions of Player 2 suffice. Let $vy in Delta(A_2)$ be any mixed strategy of Player 2. Then
+It remains to explain why constraints against pure actions of Player 2 suffice. Let $vy in Delta (A_2)$ be any mixed strategy of Player 2. Then
 $
-u_1(vx,vy)
+u_1 (vx,vy)
 =
-sum_(j=1)^n y_j u_1(vx,j).
+sum_(j=1)^n y_j u_1 (vx,j).
 $
 
 If every pure-action payoff satisfies
 $
-u_1(vx,j) >= v,
+u_1 (vx,j) >= v,
 $
 then
 $
-u_1(vx,vy)
+u_1 (vx,vy)
 =
-sum_(j=1)^n y_j u_1(vx,j)
+sum_(j=1)^n y_j u_1 (vx,j)
 >=
 sum_(j=1)^n y_j v
 =
@@ -447,7 +445,7 @@ Finally, this maxmin strategy is *not* the same as Player 1's strategy in the mi
 
 This illustrates that outside two-player zero-sum games, a maxmin strategy need not coincide with a Nash-equilibrium strategy. The maxmin strategy optimizes against the worst possible behavior of the opponent, whereas a Nash strategy is chosen as a best response to the opponent's equilibrium behavior.
 ]
-]
+
 
 = Bibliography for this lecture
 
