@@ -123,7 +123,7 @@ Graphically, we can summarize the process as in the following block diagram.
     Phi"-Reg"^((T)) = "Reg"_Phi^((T)) qquad forall T = 1, 2, ... .
   $
   Because the regret cumulated by $cR$ grows sublinearly by hypothesis of it being a regret minimizer, then so does the $Phi$-regret of the $Phi$-regret minimization algorithm defined above.
-]
+] <thm-ggm>
 #proof[
   The proof of correctness of the above construction is deceptively simple.
   Since $cR$ outputs transformations $phi.alt^((1)),phi.alt^((2)),... in Phi$ and receives utilities $phi.alt |-> u^((1))(phi.alt(vx^((1)))), phi.alt |-> u^((2)) (phi.alt (vx^((2))) ), ...$, its cumulative regret $R^((T))$ is by definition
@@ -235,6 +235,24 @@ With multiplicative weights as the external regret minimizer, TreeSwap achieves 
     "Reg"^((M)) <= 2 sqrt(M log n) = 2 sqrt((log n) / M) dot M <= epsilon / 2 dot M.
   $
   Applying @thm-treeswap with $epsilon\/2$ in place of $epsilon$, and using $1\/d <= epsilon\/2$, gives $"SwapReg"^((T)) <= (epsilon\/2 + epsilon\/2) T$.
+]
+
+= Problems <sec-problems>
+
+#exercise[
+  Computing an exact fixed point is hard in general, yet @thm-ggm assumes the oracle returns one. Suppose instead it is only guaranteed to return a point satisfying $norm(phi.alt^((t))(vx^((t))) - vx^((t)))_1 <= eps_t$. How does the guarantee degrade, and what must hold of the tolerances $eps_t$ for the construction to remain a $Phi$-regret minimizer?
+] <ex-approx-fixed-point>
+
+#solution[
+  Measure the fixed point error in the $ell_1$ norm, as in the statement, and suppose the utility gradients are bounded in the dual norm: $u^((t))(vx) = ip(vg^((t)), vx)$ with $norm(vg^((t)))_oo <= C_2$.
+
+  The proof of @thm-ggm used the fixed point property exactly once, to replace $phi.alt^((t))(vx^((t)))$ by $vx^((t))$. Keeping that term instead leaves an extra sum that does not depend on the comparator, and whose $t$-th term Hölder's inequality bounds by $norm(vg^((t)))_oo dot norm(phi.alt^((t))(vx^((t))) - vx^((t)))_1 <= C_2 eps_t$. Hence
+  #set math.equation(numbering: "(1)")
+  $
+    Phi"-Reg"^((T)) <= "Reg"_Phi^((T)) + C_2 sum_(t=1)^T eps_t,
+  $ <eq-approx-regret>
+  #set math.equation(numbering: none)
+  with @thm-ggm the case $eps_t = 0$. The construction therefore remains a $Phi$-regret minimizer as soon as $sum_(t=1)^T eps_t = o(T)$; in particular $eps_t = o(1)$ suffices, and no rate on $eps_t$ is required. #citet(<gordon2008no>) take $eps_t = 1\/sqrt(t)$, for which $sum_(t=1)^T eps_t = O(sqrt(T))$.
 ]
 
 #lec_bibliography("meta/refs.bib")
