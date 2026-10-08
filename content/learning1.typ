@@ -303,7 +303,7 @@ We mention the following regret bound for the general case. The supplementary re
   $
   Define $F_t (vx):= eta  sum_(tau=1)^t ip( vg^((tau)), vx) - psi(vx)$, so that FTRL plays $vx^((t)) = arg max_(vx in cX) F_(t-1) (vx)$.
   Note that $F_t (vx)$ is $1$-strongly concave, so because $vx^((t))$ maximizes $F_(t-1)$, we have
-  $ 
+  $
   F_(t-1) (vx^((t)))-F_(t-1) (vx^((t+1))) >= 1/2 norm(vx^((t)) - vx^((t+1)))^2.
   $
   Thus, write
@@ -311,10 +311,10 @@ We mention the following regret bound for the general case. The supplementary re
     F_(t-1) (vx^((t))) - F_(t) (vx^((t+1))) &= F_(t-1) (vx^((t))) - F_(t-1) (vx^((t+1))) - eta ip(vg^((t)), vx^((t+1)))\ &>= 1/2 norm(vx^((t)) - vx^((t+1)))^2 -  eta ip(vg^((t)), vx^((t+1))).
   $
   Summing over $t=1,...,T$, we have
-  $ 
+  $
     F_0 (vx^((1))) - F_T (vx^((T+1))) >= 1/2 sum_(t=1)^T norm(vx^((t)) - vx^((t+1)))^2 - eta sum_(t=1)^T ip(vg^((t)), vx^((t+1))).
   $
-  Let $xhat$ be any point in $cX$. Then, we have $F_T (vx^((T+1)))>= F_T (xhat) = eta sum_(t=1)^T ip(vg^((t)), xhat) - psi(xhat)$ while $F_0(vx^((1))) = -min_(vx in cX) psi(vx)$.
+  Let $xhat$ be any point in $cX$. Then, we have $F_T (vx^((T+1)))>= F_T (xhat) = eta sum_(t=1)^T ip(vg^((t)), xhat) - psi(xhat)$ while $F_0 (vx^((1))) = -min_(vx in cX) psi(vx)$.
   Substituting, we have
   $
     sum_(t=1)^T ip(vg^((t)), xhat - vx^((t+1))) <= B/eta -1/(2eta) sum_(t=1)^T norm(vx^((t))-vx^((t+1)))^2.
@@ -325,23 +325,26 @@ We mention the following regret bound for the general case. The supplementary re
   $
   Now, we have
   $
-    &#hide[=]sum_(t=1)^T ip(vg^((t)), xhat - vx^((t))) \
-    &= sum_(t=1)^T ip(vg^((t)), xhat - vx^((t+1))) + sum_(t=1)^T ip(vg^((t)), vx^((t+1)) - vx^((t))) \
-    &<= (B/eta -1/(2eta) sum_(t=1)^T norm(vx^((t))-vx^((t+1)))^2 )+ (eta sum_(t=1)^T norm(vg^((t)))_*^2 + 1/(4eta) sum_(t=1)^T norm(vx^((t)) - vx^((t+1)))^2) \
-    &= B/eta + eta sum_(t=1)^T norm(vg^((t)))_*^2 - 1/(4eta) sum_(t=1)^T norm(vx^((t)) - vx^((t+1)))^2.
+    & sum_(t=1)^T ip(vg^((t)), xhat - vx^((t))) \
+    & qquad = sum_(t=1)^T ip(vg^((t)), xhat - vx^((t+1))) + sum_(t=1)^T ip(vg^((t)), vx^((t+1)) - vx^((t))) \
+    & qquad <= (B/eta - 1/(2eta) sum_(t=1)^T norm(vx^((t)) - vx^((t+1)))^2) \
+    & qquad quad + (eta sum_(t=1)^T norm(vg^((t)))_*^2 + 1/(4eta) sum_(t=1)^T norm(vx^((t)) - vx^((t+1)))^2) \
+    & qquad = B/eta + eta sum_(t=1)^T norm(vg^((t)))_*^2 - 1/(4eta) sum_(t=1)^T norm(vx^((t)) - vx^((t+1)))^2.
   $
   Because this is true for all $xhat in cX$, the same bound holds for $"Reg"^((T))$, as desired.
 
   For OMD, the proof is similar but slightly more involved.
-  Let 
+  Let
   $
-  Phi^((t))(vx) = - eta ip(vg^((t)), vx) + div(vx, vx^((t)), dgf: psi) = psi(vx) - psi(vx^((t))) -  eta ip(vg^((t)), vx) - ip(nabla psi(vx^((t))), vx - vx^((t))).
+    Phi^((t))(vx) & := - eta ip(vg^((t)), vx) + div(vx, vx^((t)), dgf: psi) \
+    & = psi(vx) - psi(vx^((t))) - eta ip(vg^((t)), vx) - ip(nabla psi(vx^((t))), vx - vx^((t))).
   $
-  Then, $Phi^((t))(vx)$ has the same curvature as $psi(vx)$ since $Phi^((t))-psi$ is affine, so $div(vx,y,dgf:Phi^((t)))=div(vx,y,dgf: psi)$ for all $t$.
+  Then, $Phi^((t))(vx)$ has the same curvature as $psi(vx)$ since $Phi^((t))-psi$ is affine, so $div(vx, vy, dgf: Phi^((t))) = div(vx, vy, dgf: psi)$ for all $t$.
   Note that $vx^((t+1))$ minimizes $Phi^((t))(vx)$ over $cX$ by definition, so we can write
   $
-    &#hide[=]Phi^((t))(xhat) - Phi^((t))(vx^((t+1))) \ &= ip(nabla Phi^((t))(vx^((t+1))), xhat - vx^((t+1))) + div( xhat, vx^((t+1)), dgf: Phi^((t))) \
-    &>= div(xhat, vx^((t+1)), dgf: psi),
+    & Phi^((t))(xhat) - Phi^((t))(vx^((t+1))) \
+    & qquad = ip(nabla Phi^((t))(vx^((t+1))), xhat - vx^((t+1))) + div(xhat, vx^((t+1)), dgf: Phi^((t))) \
+    & qquad >= div(xhat, vx^((t+1)), dgf: psi),
   $
   since $ip(nabla Phi^((t))(vx^((t+1))), xhat - vx^((t+1))) >= 0$ by the first-order optimality condition for $vx^((t+1))$.
   Expanding the definition of $Phi^((t))$ and rearranging, we have
