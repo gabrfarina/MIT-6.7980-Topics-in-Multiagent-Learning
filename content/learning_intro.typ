@@ -96,12 +96,6 @@ The special case where $Phi$ is chosen to be the set of constant transformations
 ] <def-external-regret>
 Again, the goal for a regret minimizer is to ensure its cumulative regret $"Reg"^((T))$ grows sublinearly in $T$.
 
-#strong[Terminological remark.] The name _regret minimizer_ is a bit of a misnomer. The goal is not to make regret as small as possible, but to guarantee that it grows sublinearly in $T$. A regret minimizer is an online algorithm that chooses its strategy for each round using the strategies played and the utility functions observed so far. It is not required to choose the strategy that would have been best in hindsight, and it is not required to minimize the regret accumulated up to round $t$. What matters is the regret's long run growth rate. If regret grows sublinearly, then regret divided by $T$ goes to zero as $T$ grows, meaning that on average per round, the algorithm does just as well as the best fixed strategy in hindsight. Poorer performance in early rounds is acceptable. The important thing is that the algorithm doesn't keep falling behind the best fixed strategy by a significant amount as more rounds are played.
-
-An important result asserts the existence of algorithms that guarantee sublinear regret for any convex and compact domain $cX$, typically of the order $"Reg"^((T)) = O(sqrt(T))$ asymptotically.
-
-As we will show below, external regret minimization alone is enough to guarantee convergence to Nash equilibrium in two-player zero-sum games, to coarse correlated equilibrium in multiplayer general-sum games, to best responses to static stochastic opponents in multiplayer general-sum games, and much more.
-
 #paragraph-marker() *Teaser: From regret minimization to $Phi$-regret minimization.*~~
 As discussed, regret minimization is _one_ instantiation of $Phi$-regret minimization---and perhaps the smallest sensible instantiation. Then, clearly, coming up with a regret minimizer for a set $cX$ cannot be harder than the problem of coming up with a $Phi$-regret minimizer for $cX$ for richer sets of transformation functions $Phi$. It might then seem surprising that there exists a construction that reduces $Phi$-regret minimization to regret minimization. #lecture-link("phi_regret", none)[] develops this reduction.
 
@@ -134,55 +128,41 @@ $
   }.
 $
 #proof[
-  Let
-  $
-    overline(u)(vx_n) := u_n (overline(vx)_1, ..., overline(vx)_(n-1), vx_n)
-  $
-  and let $vx_n^star in argmax_(vx_n in cX_n) overline(u)(vx_n)$ be a best response to the average opponent profile. Define the realized payoff noise terms
-  $
-    Z_t := u_n(vx_1^((t)), ..., vx_(n-1)^((t)), vx_n^((t))) - overline(u)(vx_n^((t))),
-  $
-  $ 
-    Z_t^star := u_n(vx_1^((t)), ..., vx_(n-1)^((t)), vx_n^star) - overline(u)(vx_n^star).
-  $
-  Since the opponents sample their strategies independently at time $t$, and since Player $n$'s strategy at time $t$ is chosen using only the past, we have
-  $ 
-    EE[Z_t | F_(t-1)] = 0, 
-    	quad EE[Z_t^star | F_(t-1)] = 0,
-  $
-  where $F_(t-1)$ is the history up to time $t-1$. Thus $(Z_t)$ and $(Z_t^star)$ are bounded martingale differences. This is exactly the place where the martingale structure is used: for each fixed $vx_n$, Azuma-Hoeffding gives exponential tail bounds on the partial sums $sum_(s=1)^t Z_s$ and $sum_(s=1)^t Z_s^star$. Hence for every $epsilon > 0$,
-  $
-    sum_(T=1)^oo P(abs(1/T sum_(t=1)^T Z_t) > epsilon) < oo,
-    
-    
-    sum_(T=1)^oo P(abs(1/T sum_(t=1)^T Z_t^star) > epsilon) < oo.
-  $
-  By the Borel-Cantelli lemma, it follows that
-  $
-    1/T sum_(t=1)^T Z_t -> 0
-    quad "and" quad
-    1/T sum_(t=1)^T Z_t^star -> 0
-    quad "almost surely."
-  $
+  Let $overline(u)(vx_n) := u_n (overline(vx)_1, ..., overline(vx)_(n-1), vx_n)$ be Player $n$'s
+  utility against the mean opponent profile (linear in $vx_n$), and let
+  $vx_n^star in argmax_(vx_n in cX_n) overline(u)(vx_n)$ be a best response to it. Let $F_(t-1)$ be
+  the history up to time $t-1$, including Player $n$'s internal randomness and choice of
+  $vx_n^((t))$.
 
-  Now use regret. By definition of external regret,
+  Since Player $n$ has sublinear external regret,
   $
-    sum_(t=1)^T u_n(vx_1^((t)), ..., vx_(n-1)^((t)), vx_n^star)
-    - sum_(t=1)^T u_n(vx_1^((t)), ..., vx_(n-1)^((t)), vx_n^((t)))
-    \le "Reg"_n^((T)).
+    1/T sum_(t=1)^T [u^((t))(vx_n^star) - u^((t))(vx_n^((t)))] <= "Reg"_n^((T)) / T -> 0.
   $
-  Rewriting each utility as its mean plus noise gives
+  The strategy $vx_n^((t))$ is determined by $F_(t-1)$ and the opponents' time $t$ samples are
+  independent of $F_(t-1)$ with means $overline(vx)_1, ..., overline(vx)_(n-1)$. Since $u_n$ is
+  multilinear, $EE[u^((t))(vx_n^star) - u^((t))(vx_n^((t))) | F_(t-1)] = overline(u)(vx_n^star) - overline(u)(vx_n^((t)))$.
+  Hence the difference between realized and expected utility
   $
-    T \cdot overline(u)(vx_n^star) - T \cdot overline(u)(1/T sum_(t=1)^T vx_n^((t)))
-    \le "Reg"_n^((T)) + sum_(t=1)^T (Z_t - Z_t^star).
+    xi_t := [u^((t))(vx_n^star) - u^((t))(vx_n^((t)))] - [overline(u)(vx_n^star) - overline(u)(vx_n^((t)))]
   $
-  Divide by $T$ and use the fact that regret is sublinear, i.e. $"Reg"_n^((T))/T -> 0$, together with the two Borel-Cantelli conclusions above. We obtain
+  is a bounded martingale difference sequence. By the martingale law of large numbers,
+  $1/T sum_(t=1)^T xi_t -> 0$ almost surely. Combining this with the regret bound gives
   $
-    overline(u)(vx_n^star) - overline(u)(1/T sum_(t=1)^T vx_n^((t))) -> 0
+    overline(u)(vx_n^star) - 1/T sum_(t=1)^T overline(u)(vx_n^((t))) -> 0
     quad "almost surely."
   $
-  Therefore the Cesàro average of the learner's strategies asymptotically achieves the value of an optimal best response against the mean opponent profile. Since $cX_n$ is compact and $overline(u)$ is continuous, this means the average strategy converges almost surely to the set of best responses.
+  Since $overline(u)$ is linear, $1/T sum_(t=1)^T overline(u)(vx_n^((t))) = overline(u)(1/T sum_(t=1)^T vx_n^((t)))$,
+  so
+  $
+    overline(u)(1/T sum_(t=1)^T vx_n^((t))) -> overline(u)(vx_n^star)
+    quad "almost surely."
+  $
+  As $cX_n$ is compact and $overline(u)$ is continuous, every limit point of the average
+  strategy attains the maximum of $overline(u)$, i.e., is a best response to
+  $(overline(vx)_1, ..., overline(vx)_(n-1))$. Hence the average strategy converges almost surely
+  to the set of best responses and to the best response itself if it is unique.
 ]
+
 
 == Learning a Nash equilibrium in two-player zero-sum games <sec-learning-zero-sum>
 
