@@ -58,12 +58,28 @@ $vr^((3)) = (1, 3\/2)$
 and so on...
 Overall, it's easy to see that in all this jumping around, the regrets grow linearly.
 
-Where to go from here? A few ideas seem natural:
-- We can replace picking the action with the highest regret with picking actions _proportionally_ to their regret; this leads to the algorithm called _Regret Matching_, which we will discuss in @sec-rm.
-- We can _smooth out_ the maximum operator by using the _softmax_ function. This leads to the _multiplicative weights update_ algorithm, which we will discuss in @sec-mwu.
-- We can _regularize_ the maximum operator by adding a term that penalizes large jumps in the strategy space. This leads to a very flexible algorithm called _follow-the-regularized-leader_ algorithm, which we will discuss in @sec-ftrl as well as in the supplementary reading on #lecture-link("learning2", <sec-predictivity>)[predictive learning algorithms].
+How do we fix this? The cumulative regret idea is right, but the problem is that it treats the current leader as the only action worth playing. When two actions are nearly tied, a tiny change in their regrets can make FTL switch all of its probability mass from one to the other. This is exactly the jumping around that caused regret to grow linearly in our example.
 
-All these ideas work. Before we move on, though, it is worth knowing that---while flawed---the follow-the-leader algorithm is not completely hopeless.
+There are several natural ways to soften this winner-take-all reaction:
+- We can replace picking the action with the highest regret with picking actions _proportionally_ to their positive regret. This leads to the algorithm called _Regret Matching_, which we will discuss in @sec-rm.
+- We can _smooth out_ the maximum operator by using the _softmax_ function. This leads to the _multiplicative weights update_ algorithm, which we will discuss in @sec-mwu.
+- We can _regularize_ the maximum operator by adding a term that penalizes overly concentrated strategies. This leads to a very flexible algorithm called _follow-the-regularized-leader_ algorithm, which we will discuss in @sec-ftrl as well as in the supplementary reading on #lecture-link("learning2", <sec-predictivity>)[predictive learning algorithms].
+
+The common idea in all these is smoothing the leader choice in FTL. To make this concrete, focus on two actions, with cumulative regrets $r_1$ and $r_2$. The horizontal axis below is their difference, $r_1-r_2$: at zero the actions are tied, and moving right means that action 1 has the larger regret. The vertical axis records the probability of choosing action 1.
+
+FTL has a discontinuity at the tie. Just to its left it assigns probability zero to action 1 and just to its right it assigns probability one. Thus, an arbitrarily small change in the regret vector near zero completely reverses the next action. This is precisely the instability exploited by the alternating example above. The other algorithms still prefer the action with higher regret, but express that preference gradually.
+
+#align(center)[
+  #image(
+    "figures/learning1/smoothed_ftl.svg",
+    width: 76%,
+    alt: "Probability assigned to one of two actions as its cumulative-regret advantage changes. FTL jumps at zero, while regret matching, multiplicative weights, and quadratic FTRL change more gradually.",
+  )
+]
+
+The curves have different shapes because the algorithms smooth FTL in different ways. What matters is that a small change in regrets causes only a small change in the strategy.
+
+Before we move on, though, it is worth knowing that---while flawed---the follow-the-leader algorithm is not completely hopeless.
 
 #remark[Fictitious play][
   In the #lecture-link("learning_intro", <def-canonical-learning>)[canonical learning setup], the use of follow-the-leader by all players goes under the name of _fictitious play_ #citep(<brown1949some>) #citep(<brown1951iterative>). In certain classes of games, including two-player zero-sum games, fictitious play is able to recover a Nash equilibrium, albeit with a potentially exponentially slow convergence rate #citep(<Robinson1951>).
