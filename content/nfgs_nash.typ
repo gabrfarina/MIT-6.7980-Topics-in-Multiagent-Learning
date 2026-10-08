@@ -1,5 +1,4 @@
 #import "meta/gabri_notes.typ": *
-#import "meta/reference-solutions.typ": reference-solutions
 #show: gabri_notes.with(
   lec_num: 1,
   date: [Tue, Sep 15, 2026],
@@ -150,7 +149,6 @@ Now consider the following two-player game:
 5. Explain intuitively why the argument from Problem 1 fails for weak dominance.
 ] <ex-iterated-dominance>
 
-#reference-solutions[
 == Detailed solutions
 
 #solution[Problem 1][
@@ -288,7 +286,7 @@ The difference from strict dominance comes from the possibility of _ties_. A wea
 
 With strict dominance, by contrast, the inequality is strict against every remaining opponent action. Removing actions therefore cannot destroy the strict advantage, which is what makes iterated removal of strictly dominated actions order-independent.
 ]
-]
+
 
 == Maxmin strategies
 
