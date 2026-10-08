@@ -115,7 +115,7 @@ The algorithm is presented in pseudocode in @algo-rm.
   The Regret Matching algorithm (@algo-rm) is an external regret minimizer, and satisfies the regret bound $"Reg"^((T)) <= Omega sqrt(T)$, where $Omega$ is the maximum norm of $norm(vg^((t)) - ip(vg^((t)), vx^((t))) vone)_2$ up to time $T$.
 
   In particular, if all the gradient vectors satisfy $norm(vg^((t)))_oo <= 1$ at all times $t$ then the regret satisfies $ "Reg"^((T)) <= 2 sqrt(T dot |A|). $
-]
+] <thm-rm-regret>
 #proof[
   We start by observing that, at all times $t$,
   $
@@ -220,6 +220,113 @@ Compared to RM, MWU has a different flavor: it uses _softmax_ instead of ReLU. T
 The general FTRL/OMD bound in @ftrl-omd-regret-bound implies @mwu-regret-bound; @sec-omd-mwu gives the entropy specialization.
 
 For now, we remark a crucial aspect of MWU. Compared with the regret bound of RM and RM#super[+], the regret bound of MWU has only a _logarithmic_ dependence on the number of actions $|A|$. Despite in practice RM/RM#super[+] tend to outperform MWU (all while getting rid of any hyperparameter tuning), this property has profound _theoretical_ implications, especially in combinatorial games where the effective number of actions is exponential. The gist of it is that several important classes of games can be converted into _exponentially large_ normal-form games (this is the case of sequential games, for example). Since MWU only has logarithmic dependence on the number of actions of the resulting normal-form games, this shows that---at least ignoring computation---external regret minimization is possible with polynomial dependence on the game size even in these classes of complex, structured games.
+
+== Worked example: three rounds of RM and MWU by hand <sec-rm-mwu-walkthrough>
+
+The pseudocode of @algo-rm and @algo-mwu is short, but it is easy to lose track of which quantity is computed when. Here we run both algorithms by hand for three rounds on the same utility vectors and record every intermediate quantity, using follow-the-leader as a baseline.
+
+*Setup.* The learner plays rock-paper-scissors, with actions $A = {upright(R), upright(P), upright(S)}$ listed in this order, and receives utility $+1$ for a win, $-1$ for a loss, and $0$ for a tie. The opponent plays Rock, then Paper, then Scissors. Entry $a$ of the utility vector $vg^((t))$ is the payoff that action $a$ would have earned against the opponent's move at time $t$, so
+$
+  vg^((1)) = (0, 1, -1), quad vg^((2)) = (-1, 0, 1), quad vg^((3)) = (1, -1, 0).
+$
+All three have $norm(vg^((t)))_oo <= 1$, as assumed in the simplified bounds of @thm-rm-regret and @mwu-regret-bound. Since $vg^((1)) + vg^((2)) + vg^((3)) = vzero$, every fixed action earns exactly $0$ in hindsight. The regret after the three rounds is therefore minus the total utility the learner collected:
+$
+  "Reg"^((3)) = max_(a in A) sum_(t=1)^3 g_a^((t)) - sum_(t=1)^3 ip(vg^((t)), vx^((t))) = -sum_(t=1)^3 ip(vg^((t)), vx^((t))).
+$
+
+*What happens in a round.* Each round $t$ of either algorithm performs the same four steps:
++ `NextStrategy()` turns the cumulated regrets $vr^((t-1))$ into a strategy $vx^((t))$. This is the only step in which RM and MWU differ.
++ The environment reveals $vg^((t))$, and the learner earns the expected utility $ip(vg^((t)), vx^((t)))$.
++ The _instantaneous regret_ $vg^((t)) - ip(vg^((t)), vx^((t))) vone$ records, for every action, how much better (or worse) it would have done than $vx^((t))$ in this round.
++ `ObserveUtility` adds it to the running total: $vr^((t)) = vr^((t-1)) + vg^((t)) - ip(vg^((t)), vx^((t))) vone$.
+
+#example[Regret Matching, step by step][
+  Both algorithms start from $vr^((0)) = vzero$. Since $[vr^((0))]^+ = vzero$, RM may play any strategy at $t = 1$; we pick the uniform one, as in the initialization of @algo-rm. Each column of the table is one round, and its last row determines the strategy of the next round.
+
+  #align(center, table(
+    columns: 4,
+    align: (left + horizon, center + horizon, center + horizon, center + horizon),
+    inset: (x: 2.2mm, y: 1.8mm),
+    stroke: (x, y) => (
+      top: if y == 0 { black + .4mm } else if y == 1 { black + .25mm } else { none },
+      bottom: if y == 6 { black + .4mm } else { none },
+    ),
+    table.header([], [$t = 1$], [$t = 2$], [$t = 3$]),
+    [strategy \ $vx^((t))$], $1/3 vec(1, 1, 1)$, $vec(0, 1, 0)$, $vec(0, 1, 0)$,
+    [utility vector \ $vg^((t))$], $vec(0, 1, -1)$, $vec(-1, 0, 1)$, $vec(1, -1, 0)$,
+    [expected utility \ $ip(vg^((t)), vx^((t)))$], $0$, $0$, $-1$,
+    [instantaneous regret \ $vg^((t)) - ip(vg^((t)), vx^((t))) vone$], $vec(0, 1, -1)$, $vec(-1, 0, 1)$, $vec(2, 0, 1)$,
+    [cumulated regret \ $vr^((t))$], $vec(0, 1, -1)$, $vec(-1, 1, 0)$, $vec(1, 1, 1)$,
+    [positive part \ $[vr^((t))]^+$], $vec(0, 1, 0)$, $vec(0, 1, 0)$, $vec(1, 1, 1)$,
+  ))
+
+  - *Round 1.* The uniform strategy earns $0$. Only Paper would have done better, so $[vr^((1))]^+ = (0, 1, 0)$ and RM puts all its probability on Paper. Whenever exactly one action has positive regret, RM plays the same action as follow-the-leader.
+  - *Round 2.* Paper ties against Paper. The regret of Scissors rises from $-1$ to $0$, but RM only reacts to _positive_ regrets, so it plays Paper again.
+  - *Round 3.* Scissors beats Paper and RM loses $1$. Now every action has cumulated regret $1$, so $vx^((4)) = (1\/3, 1\/3, 1\/3)$.
+
+  The total utility is $-1$, so $"Reg"^((3)) = 1 = max_(a in A) r_a^((3))$. Follow-the-leader (ties broken lexicographically) plays Rock, Paper, Paper and also ends with regret $1$; see @fig-rm-mwu-walkthrough.
+
+  The run also shows the two steps of the proof of @thm-rm-regret at work. First, each new instantaneous regret is orthogonal to the positive part of the previous cumulated regret, as in (@eqx): from the table, $ip((-1, 0, 1), (0, 1, 0)) = 0$ at $t = 2$ and $ip((2, 0, 1), (0, 1, 0)) = 0$ at $t = 3$.
+  Second, the potential $norm([vr^((t))]^+)_2^2$ therefore grows each round by at most the squared norm of the instantaneous regret. It takes the values $1, 1, 3$, and indeed $1 <= 0 + 2$, $1 <= 1 + 2$, and $3 <= 1 + 5$. With $Omega = norm((2, 0, 1))_2 = sqrt(5)$, the theorem guarantees $"Reg"^((3)) <= sqrt(5) dot sqrt(3) approx 3.87$.
+] <ex-rm-walkthrough>
+
+For MWU, one observation simplifies the arithmetic. Let $vG^((t)) := sum_(tau=1)^t vg^((tau))$ be the cumulated utility vector. The cumulated regret differs from it only by a multiple of $vone$:
+$
+  vr^((t)) = vG^((t)) - (sum_(tau=1)^t ip(vg^((tau)), vx^((tau)))) vone.
+$
+Adding the same constant $c$ to every entry does not change a softmax, because the factor $exp(eta c)$ cancels between numerator and denominator. Therefore
+$
+  vx^((t+1)) = "softmax"(eta vr^((t))) = "softmax"(eta vG^((t))), quad "that is," quad x_a^((t+1)) prop exp(eta G_a^((t))).
+$
+In other words, MWU's strategy depends only on the utilities the environment revealed, not on what the learner played. RM is different: its threshold $[dot]^+$ compares each action with the learner's own realized utility. We take $eta = log 2 approx 0.69$, which turns the weights into powers of two, $exp(eta G_a^((t))) = 2^(G_a^((t)))$, so every number below is an exact fraction. This is close to the value $sqrt(log 3 \/ 3) approx 0.61$ that @mwu-regret-bound prescribes for $T = 3$ and $|A| = 3$.
+
+#example[MWU, step by step][
+  The table has the same layout, with two changes: the first row holds the unnormalized weights $2^(vG^((t-1)))$ (taken entrywise), and the last row the cumulated utility $vG^((t))$.
+
+  #align(center, table(
+    columns: 4,
+    align: (left + horizon, center + horizon, center + horizon, center + horizon),
+    inset: (x: 2.2mm, y: 1.8mm),
+    stroke: (x, y) => (
+      top: if y == 0 { black + .4mm } else if y == 1 { black + .25mm } else { none },
+      bottom: if y == 7 { black + .4mm } else { none },
+    ),
+    table.header([], [$t = 1$], [$t = 2$], [$t = 3$]),
+    [weights \ $2^(vG^((t-1)))$], $vec(1, 1, 1)$, $vec(1, 2, 1\/2)$, $vec(1\/2, 2, 1)$,
+    [strategy \ $vx^((t))$], $1/3 vec(1, 1, 1)$, $1/7 vec(2, 4, 1)$, $1/7 vec(1, 4, 2)$,
+    [utility vector \ $vg^((t))$], $vec(0, 1, -1)$, $vec(-1, 0, 1)$, $vec(1, -1, 0)$,
+    [expected utility \ $ip(vg^((t)), vx^((t)))$], $0$, $-1\/7$, $-3\/7$,
+    [instantaneous regret \ $vg^((t)) - ip(vg^((t)), vx^((t))) vone$], $vec(0, 1, -1)$, $1/7 vec(-6, 1, 8)$, $1/7 vec(10, -4, 3)$,
+    [cumulated regret \ $vr^((t))$], $vec(0, 1, -1)$, $1/7 vec(-6, 8, 1)$, $1/7 vec(4, 4, 4)$,
+    [cumulated utility \ $vG^((t))$], $vec(0, 1, -1)$, $vec(-1, 1, 0)$, $vec(0, 0, 0)$,
+  ))
+
+  - *Round 1.* As for RM, the uniform strategy earns $0$.
+  - *Round 2.* The weights are $(2^0, 2^1, 2^(-1)) = (1, 2, 1\/2)$, which normalize to $(2\/7, 4\/7, 1\/7)$. MWU favors Paper, as RM did, but keeps some probability on Rock and Scissors. Against Paper, this hedge costs $1\/7$: the $2\/7$ on Rock loses and the $1\/7$ on Scissors wins.
+  - *Round 3.* The weights are $(1\/2, 2, 1)$, so $vx^((3)) = (1\/7, 4\/7, 2\/7)$. Mass moves from Rock (which just lost) to Scissors (which just won). Against Scissors, MWU loses $3\/7$, much less than RM's $1$: the $4\/7$ on Paper loses, but the $1\/7$ on Rock wins.
+
+  Since $vG^((3)) = vzero$, MWU also returns to the uniform strategy at $t = 4$. Its total utility is $-4\/7$, so $"Reg"^((3)) = 4\/7 = max_(a in A) r_a^((3))$. With $eta = log 2$, the bound of @mwu-regret-bound gives
+  $
+    "Reg"^((3)) & <= (log 3) / (log 2) + 3 log 2 - 1 / (8 log 2) (norm(vx^((2)) - vx^((1)))_1^2 + norm(vx^((3)) - vx^((2)))_1^2) \
+    & = (log 3) / (log 2) + 3 log 2 - 1 / (8 log 2) dot 136 / 441 approx 3.61,
+  $
+  where $norm(vx^((2)) - vx^((1)))_1 = 10\/21$ and $norm(vx^((3)) - vx^((2)))_1 = 2\/7$.
+] <ex-mwu-walkthrough>
+
+#figure(
+  image(
+    "figures/learning1/rm_mwu_walkthrough.svg",
+    width: 100%,
+    alt: "Strategies of follow-the-leader, Regret Matching, and MWU over four rounds of rock-paper-scissors, drawn on the probability simplex. Follow-the-leader jumps between the Rock and Paper corners, Regret Matching jumps from the center to the Paper corner and back, and MWU circles near the center.",
+  ),
+  caption: [The strategies $vx^((1)), dots, vx^((4))$ of @ex-rm-walkthrough and @ex-mwu-walkthrough, drawn on the simplex $Delta(A)$; corners are pure strategies and the center is the uniform strategy. Follow-the-leader jumps between corners, RM between the center and a corner, and MWU stays near the center.],
+) <fig-rm-mwu-walkthrough>
+
+The two runs illustrate four differences between RM and MWU.
+- *Sparsity versus full support.* RM gives zero probability to every action whose cumulated regret is not positive (as long as some action has positive regret), so it can commit to a pure strategy. MWU gives every action positive probability, proportional to $exp(eta G_a^((t)))$. Here, committing was costly: the cycling opponent punished RM's pure strategy in round 3, just as it punished follow-the-leader.
+- *How far the strategies move.* RM jumped from the center to a corner and back, moves of $ell_1$ length $norm((0, 1, 0) - (1\/3, 1\/3, 1\/3))_1 = 4\/3$. MWU never moved more than $10\/21$ in a single round (@fig-rm-mwu-walkthrough). This follows from MWU being FTRL with the entropy regularizer (@sec-omd-mwu): FTRL's strategies move by at most $eta norm(vg^((t)))_oo$ in $ell_1$ norm per round (@sec-ftrl), which is $log 2 approx 0.69$ here. This stability is what prevents the oscillations of follow-the-leader.
+- *Hyperparameters.* RM has no parameters. MWU depends on $eta$: as $eta -> 0$ it stays at the uniform strategy, and as $eta -> oo$ it puts all its mass on the actions with the largest cumulated utility, which is follow-the-leader.
+- *Worst-case bounds are loose on a single run.* The observed regrets ($1$ and $4\/7$) are far below the guarantees ($approx 3.87$ and $approx 3.61$), because the theorems must hold for _every_ sequence of utility vectors, including far more adversarial ones.
 
 = More general approaches: FTRL and OMD <sec-ftrl>
 

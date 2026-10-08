@@ -24,7 +24,7 @@
 #import "notation.typ": html-vmu as vmu, html-vnu as vnu, html-vlambda as vlambda, html-vrho as vrho
 #import "notation.typ": html-vpi as vpi
 #import "notation.typ": html-vU as vU, html-vV as vV, html-vW as vW, html-vone as vone
-#import "notation.typ": html-vA as vA, html-vR as vR
+#import "notation.typ": html-vA as vA, html-vR as vR, html-vG as vG, html-vzero as vzero
 #import "notation.typ": html-xhat as xhat, html-yhat as yhat, html-mU as mU, html-upsans as upsans
 #import "markers.typ": paragraph-marker
 #import "lecture-links.typ": lecture-link, lecture-title
