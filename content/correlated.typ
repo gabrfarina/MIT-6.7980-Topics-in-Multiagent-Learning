@@ -492,6 +492,25 @@ We can think of the correlation between the strategies of the players in a corre
 
 The distinction between correlated and coarse correlated equilibrium is in when the players decide when to commit to the recommended action. In a coarse correlated equilibrium, the players commit to the recommended action _before_ the recommendation is made. In a correlated equilibrium, the players commit to the recommended action _after_ the recommendation is made.
 
+#example[Distinguishing CCE and CE][
+  Consider a two-player game where Player 1 has actions ${ "Red" \, "Blue" \, "Green" }$, Player 2 has actions ${ "Circle" \, "Square" }$.
+
+  #align(center)[
+    #image("figures/correlated/cce_not_ce.svg")
+  ]
+
+  Let $vmu$ be a joint strategy with probability of $1 \/ 2$ on $("Red" \, "Circle")$ and probability of $1 \/ 2$ on $("Blue" \, "Square")$.
+
+  *$vmu$ is a CCE.*  In a CCE, a deviating player must commit to a single action _before_ seeing the recommendation. Under $vmu$, each player earns $EE_vmu [u_i (a_1 \, a_2)] = 4$. For Player 1, the best constant deviation is $"Green"$, which yields
+  $ 
+  EE_(a_2 ~ vmu) [u_1 ("Green" \, a_2)] = (1 \/ 2) dot.op 5 + (1 \/ 2) dot.op 0 = 5 \/ 2 <= 4,
+  $
+  Similarly, constant deviations by either player to a specific action leads to lower payoff. Hence no player gains by ignoring the mediator, and $vmu$ is a CCE.
+
+  *$vmu$ is not a CE.*  In a CE, a player may instead deviate _after_ seeing the recommendation. Suppose the mediator recommends $"Red"$ to Player 1. Since $("Red" \, "Circle")$ is the only case when $vmu$ recommends $"Red"$, Player 1 infers that Player 2 was recommended $"Circle"$. Switching to $"Green"$ then earns $5 > 4$. 
+  Because Player 1 has an incentive to deviate after the recommendation is made, $vmu$ is not CE.
+]
+
 = Bibliography for this lecture
 
 #lec_bibliography("meta/refs.bib", title: none)
