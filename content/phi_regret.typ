@@ -116,6 +116,10 @@ Graphically, we can summarize the process as in the following block diagram.
   where the right-hand side is exactly the cumulative $Phi$-regret $Phi"-Reg"^((T))$ incurred by $cR_Phi$.
 ]
 
+== Example: internal regret <sec-internal-regret>
+
+Internal regret uses the $n^2$ probability mass transports $phi.alt_(a -> b)$, which move all the probability of action $a$ onto action $b$ (#lecture-link("learning_intro", <sec-regret-transformations>)[]). To apply the reduction above, we take $Phi$ to be the convex hull of these maps. This does not change the regret, because each utility $U^((t))$ is linear, so its maximum over the convex hull is attained at a single $phi.alt_(a -> b)$. The resulting algorithm runs one external regret minimizer over the convex hull, and its fixed point step computes a stationary distribution of a Markov chain on the actions, as in Blum-Mansour's algorithm. Blum-Mansour's algorithm instead runs $n$ external regret minimizers and bounds the stronger swap regret. Internal regret is still enough for correlated equilibria, because swap regret is at most $n$ times the internal regret (#lecture-link("learning_intro", <thmce-formal>)[]).
+
 = The TreeSwap algorithm <sec-treeswap>
 
 Blum-Mansour's algorithm keeps one external regret minimizer per action, so the number of rounds it needs grows with the number of actions $n$. With suitably tuned external regret minimizers, it reaches an average swap regret $"SwapReg"^((T)) \/ T <= epsilon$ after roughly $n log n \/ epsilon^2$ rounds #citep(<blum2007external>). #citet(<dagan2024external>) give an alternative construction, called _TreeSwap_, whose number of rounds depends only logarithmically on $n$, at the price of a much worse dependence on the target regret $epsilon$.
