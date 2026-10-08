@@ -239,6 +239,185 @@ $
 
 This completes the sketch of the proof of the correctness of the Ellipsoid-Against-Hope algorithm.
 
+#let valpha = $bold(alpha)$
+#exercise[Recovering mixture weights with Farkas' lemma][
+  Let $D$ be the deviation set defined above, let $m = |D|$,
+  and suppose $T >= 1$ responses $vmu_1,...,vmu_T$
+  have been collected. Define the gain matrix $matA in RR^(m times T)$ by
+  $
+    A_(d,t) := EE_(a ~ vmu_t)[u_(i)(a'_i,a_(-i))-u_(i)(a_i,a_(-i))],
+    quad d=(i,a'_i).
+  $
+  Thus a row is a fixed deviation, a column is a response, and a positive
+  entry is a profitable deviation. Assume the *finite certificate*
+  $
+    {vnu in Delta(D) : matA^T vnu > 0} = emptyset.
+  $
+  All vector inequalities here are coordinatewise.
+
+  + Write the feasibility program for weights $valpha$ whose mixture
+    has nonpositive gain in every row. Convert it to an equality system
+    $matM vz=vb$, $vz>=0$, using one slack variable per row.
+  + Use the following form of Farkas' lemma: exactly one of
+    $exists vz>=0: matM vz=vb$ and
+    $exists vy: matM^T vy>=0, vb^T vy<0$ holds.#footnote[
+      See Boyd and Vandenberghe, _Convex Optimization_, Section 5.8.3,
+      page 263 (#link("https://web.stanford.edu/~boyd/cvxbook/bv_cvxbook.pdf")[book]),
+      for an equivalent form of Farkas' lemma.
+    ]
+    Show that infeasibility of the weight program would give a point in
+    the supposedly empty set. Explain the signs and the normalization.
+  + Prove that the resulting mixture $macron(vmu)=sum_t alpha_t vmu_t$
+    is a CCE. Explain why the finite certificate, rather than just the
+    response guarantee at each queried $vnu_t$, is needed.
+  + For an $epsilon.alt$-CCE, with $epsilon.alt>=0$, identify the
+    corresponding finite certificate and weight constraints.
+] <ex-eah-farkas>
+
+#solution[
+  *1. Encoding the weights.* We seek $valpha>=0$ with
+  $vone_T^T valpha=1$ and $matA valpha<=0$.
+  Here $vone_k$ is the vector of $k$ ones and $matI_m$ is the
+  $m times m$ identity matrix. Introducing nonnegative slacks
+  $vs in RR^m$ makes $matA valpha+vs=0$ equivalent to $matA valpha<=0$.
+  #block(breakable: false)[
+  Use the block system
+  $
+    matM=mat(matA, matI_m; vone_T^T, 0),
+    quad vz=binom(valpha,vs), quad vb=binom(0,1).
+  $
+  ]
+  The block dimensions are $(m+1) times (T+m)$ for $matM$,
+  $T+m$ for $vz$, and $m+1$ for $vb$. The last row enforces total weight
+  one and excludes the zero-weight solution.
+
+  *2. Reading the infeasibility certificate.* Suppose no such weights
+  exist. Farkas supplies $vy=binom(vr,beta)$, where $vr in RR^m$ and
+  $beta in RR$, such that
+  $
+    matA^T vr+beta vone_T>=0, quad vr>=0, quad beta<0.
+  $
+  The first inequalities come from the $T$ weight columns of $matM$;
+  $vr>=0$ comes from its $m$ slack columns; and $vb^T vy=beta<0$ comes
+  from the right-hand side. It follows that
+  $
+    matA^T vr>=-beta vone_T>0.
+  $
+  Since $T>=1$, this rules out $vr=0$. Thus $S=vone_m^T vr>0$, and
+  $vnu=vr/S$ is a distribution on $D$ satisfying
+  $
+    sum_(d in D) A_(d,t) nu_d >=frac(-beta,S)>0
+    quad forall t=1,...,T.
+  $
+  This contradicts the finite certificate, so feasible weights exist.
+  Strict positivity is essential: $matA^T vnu>=0$ allows zero scores
+  and does not contradict the certificate.
+
+  *3. Checking the equilibrium.* The weights define a probability
+  distribution because they are nonnegative and sum to one. Linearity
+  of expectation gives, for every deviation $d=(i,a'_i)$,
+  $
+    EE_(a ~ macron(vmu))[u_(i)(a'_i,a_(-i))-u_(i)(a_i,a_(-i))]
+    =sum_(t=1)^T alpha_t A_(d,t)
+    =(matA valpha)_d<=0.
+  $
+  These are exactly the CCE constraints. The proof requires the finite
+  certificate against *all saved responses*; the separate guarantees
+  $g(vmu_t,vnu_t)<=0$ at the queried pairs do not imply it.
+
+  *4. The approximate version.* Replace the finite certificate by
+  $
+    {vnu in Delta(D) : matA^T vnu>epsilon.alt vone_T}=emptyset
+  $
+  and seek $matA valpha<=epsilon.alt vone_m$, with the same simplex
+  constraints on $valpha$. Apply the argument above to
+  $matA-epsilon.alt vone_m vone_T^T$. Because both probability vectors
+  sum to one, subtracting this matrix shifts each deviation score by
+  exactly $epsilon.alt$. The resulting mixture is an
+  $epsilon.alt$-CCE. This requires the finite certificate, not merely
+  a small search volume.
+] <sol-eah-farkas>
+
+#block(breakable: false)[
+#example[A two-row coefficient calculation][
+  As an algebraic illustration of @ex-eah-farkas, consider
+  $
+    matA=mat(1,-2; -1,1).
+  $
+  Write the weight vector as $valpha=(w,1-w)^T$.
+  Neither column is coordinatewise nonpositive, but the mixture has gains
+  $matA valpha=binom(3w-2,1-2w)$. It is feasible exactly when
+  $1/2<=w<=2/3$. For example, $w=3/5$ gives gains
+  $(-1/5,-1/5)$ and slack vector $vs=(1/5,1/5)$.
+
+  A deviation distribution $vnu=(q,1-q)$ scores the columns as
+  $matA^T vnu=(2q-1,1-3q)$. Both scores would be strictly positive
+  only if $q>1/2$ and $q<1/3$, which is impossible. Thus the finite
+  certificate holds.
+] <ex-eah-farkas-coefficients>
+]
+
+#example[Sampling the final mixture][
+  Write each saved product response as
+  $vmu_t=vx_(1,t) ⊗ ... ⊗ vx_(n,t)$, where
+  $vx_(i,t) in Delta(A_i)$. To sample one profile from
+  $macron(vmu)=sum_(t=1)^T alpha_t vmu_t$:
+
+  + The mediator draws one common index $J$ with
+    $Pr(J=t)=alpha_t$.
+  + Conditional on this index, it draws each $a_i$ independently from
+    $vx_(i,J)$ and privately recommends $a_i$ to player $i$.
+
+  The law of total probability verifies the joint distribution:
+  $
+    Pr(a_1,...,a_n)=sum_(t=1)^T alpha_t
+    product_(i=1)^n x_(i,t)(a_i)=macron(vmu)(a_1,...,a_n).
+  $
+  Independence holds *conditional on $J$*. Keep $J$ private and draw
+  a new shared index for each profile.
+
+  For a separate example, two players choose $L$ or $R$. Each receives
+  utility $1$ when their actions match and $0$ otherwise:
+
+  #table(
+    columns: 3, align: center, inset: .4em, stroke: none,
+    table.header([Player 1 / Player 2], [$L$], [$R$]),
+    [$L$], [$(1,1)$], [$(0,0)$],
+    [$R$], [$(0,0)$], [$(1,1)$],
+  )
+
+  Use product responses $vmu_1=delta_((L,L))$ and
+  $vmu_2=delta_((R,R))$, with weights $alpha_1=3/4$ and $alpha_2=1/4$.
+  Both marginals put probability $3/4$ on $L$, but multiplying those
+  marginals gives a different joint distribution:
+
+  #table(
+    columns: 5, align: center, inset: .4em, stroke: none,
+    table.header([Distribution], [$(L,L)$], [$(L,R)$], [$(R,L)$], [$(R,R)$]),
+    [$macron(vmu)$], [$3/4$], [$0$], [$0$], [$1/4$],
+    [$macron(vmu)_1 ⊗ macron(vmu)_2$], [$9/16$], [$3/16$], [$3/16$], [$1/16$],
+  )
+
+  #block(breakable: false)[
+  Under the mixture, each player earns $1$. A fixed deviation to $L$
+  earns $3/4$, and a fixed deviation to $R$ earns $1/4$. Their gains
+  are $-1/4$ and $-3/4$, so the mixture is a CCE.
+  Under the product of its marginals, each player earns
+  $9/16+1/16=5/8$. Always choosing $L$ earns $3/4$, giving gain $1/8>0$.
+  Thus replacing the mixture by its marginal product can lose even
+  the CCE guarantee.
+  ]
+
+  If every player independently draws its own component index $J_i$,
+  the result is precisely the product of the marginals:
+  $
+    product_(i=1)^n (sum_(t=1)^T alpha_t x_(i,t)(a_i)).
+  $
+  Keeping the common index preserves the correlations encoded by the
+  list of product responses and their weights, without enumerating
+  all joint actions. The marginal product can still be a CCE in other cases.
+] <ex-eah-mixture-sampling>
+
 == Applications beyond normal-form games
 
 The above argument mostly uses ideas from convex optimization. In particular, it extends, with suitable oracle and encoding assumptions, to _multilinear games on compact convex domains_, that is, any setting with the following properties:
