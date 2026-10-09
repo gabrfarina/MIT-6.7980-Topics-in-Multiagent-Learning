@@ -32,6 +32,7 @@ check: check-pdf
 	cargo test --locked --manifest-path html-exporter/Cargo.toml
 	$(PYTHON) scripts/check_site.py html
 	node scripts/check_katex.cjs html
+	node scripts/check_sperner_explorer.cjs
 
 serve:
 	$(PYTHON) -m http.server 8798 --bind 127.0.0.1 --directory html
