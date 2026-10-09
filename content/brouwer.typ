@@ -337,6 +337,24 @@ _Continuity_, _compactness_, and _convexity_ are each necessary in Brouwer's the
   ]
 ]
 
+#exercise[Antipodal Points on the Sphere][
+  Write $S^2 := {vz in RR^3 : norm(vz)_2 = 1}$ for the unit sphere. You may assume the following result, the _Borsuk--Ulam theorem_, which is stronger than Brouwer's fixed point theorem: for every continuous $f : S^2 -> RR^2$ there is a point $vz in S^2$ with $f(vz) = f(-vz)$. In words, any two quantities varying continuously over the sphere agree at some pair of antipodal points.
+
+  #strong[(a)] Show that if temperature and pressure vary continuously over the surface of the earth, then some pair of antipodal points agree in both.
+
+  #solution[
+    Model the surface as $S^2$ and set $f(vz) := (T(vz), P(vz))$, with $T$ and $P$ the temperature and pressure at $vz$. Both are continuous, so $f : S^2 -> RR^2$ is continuous and the Borsuk--Ulam theorem supplies $vz$ with $f(vz) = f(-vz)$. Comparing coordinates, $T(vz) = T(-vz)$ and $P(vz) = P(-vz)$.
+  ]
+
+  #strong[(b)] Show that if only temperature mattered, the intermediate value theorem would suffice. Explain why the same argument does not handle both quantities at once.
+
+  #solution[
+    Put $g(vz) := T(vz) - T(-vz)$. Then $g(-vz) = -g(vz)$, so $g$ takes opposite values at the two ends of any path from $vz$ to $-vz$, and somewhere along it $g$ vanishes, which is to say $T(vz) = T(-vz)$.
+
+    The intermediate value theorem produces a zero of $g$ on each such path but gives no control over where it lies. Applying it again to $P(vz) - P(-vz)$ yields a zero of that function, at a point which in general differs from the first, and nothing forces the two to coincide. Matching both quantities at the same point is what requires the Borsuk--Ulam theorem.
+  ]
+]
+
 = Bibliography for this lecture
 
 #lec_bibliography("meta/refs.bib", title: none)
