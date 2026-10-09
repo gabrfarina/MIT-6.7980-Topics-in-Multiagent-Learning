@@ -75,6 +75,14 @@ We illustrate the previous theorem in the colored grid of @fig:sperner-coloring.
   ]
 ]
 
+== Necessity of hypothesis in Sperner
+<sec-sperner-necessity>
+
+Sperner's lemma has three boundary conditions. Let us say that we have an all blue colored $n$x$n$ grid. This violates the first condition and the left-most column contains blue. The second condition, where the bottom row cannot contain red, is satisfied. Finally the third condition, where the right-most and top rows cannot contain yellow, is satisfied. Since this grid is monochromatic, there are 0 trichromatic triangles. This violates the claims of at least one trichromatic triangle and an odd number of trichromatic triangles in Sperner's lemma.
+
+Similarly, having an all red colored $n$x$n$ grid violates only the second condition and an all yellow colored grid violates only the third condition. Each of these examples have 0 trichromatic triangles and causes Sperner's lemma to fail.
+
+
 == The connection between Brouwer and Sperner <sec-brouwer-sperner>
 
 What does Sperner's lemma have to do with Brouwer's fixed point theorem? The connection is not immediate, but upon second thought, several glimpses of connections emerge. For one, both results are existence results. Furthermore, both results are trivially false if the “boundary conditions” in their statements are violated. In the case of Brouwer's fixed point theorem,
@@ -340,6 +348,38 @@ _Continuity_, _compactness_, and _convexity_ are each necessary in Brouwer's the
 = Bibliography for this lecture
 
 #lec_bibliography("meta/refs.bib", title: none)
+
+== Problem 6.2
+
+KKM Lemma. Prove the following result: consider a triangle T with vertices A, B, C, and three closed sets $S_A$, $S_B$, $S_C$ contained within T such that
+- $A in S_A, B in S_B, C in S_C.$
+- The entire edge $overline(A)overline(B)$ is contained in $S_A union A_B union S_C$
+- The entire triangle T is contained in $S_A union A_B union S_C$.
+Then $S_A inter A_B inter S_C !=  nothing$; there is a point in all three sets.
+
+#proof[For every $n > 1$, we can divide the sides of $T$ into $n$ equal segments. We can then draw lines parallel to the untouched edge through these division points. This splits triangle $T$ into $n^2$ congruent triangles.  Let us call the diameter of triangle $T$ as $D$. Each of the smaller $n^2$ triangles has a diameter of $D/n$.
+
+Now we can color the smaller triangles. We want to color each vertex of this triangulation a label A, B, or C such that the vertex lies in $S_A, S_B, S_C$ respectively. We can label each of the vertices of $T$ A, B, and C with the labels A, B, and C. This is valid by the first KKM condition. Next, every vertex on the edge $overline(A)overline(B)$, not including the corners A and B, a label of whichever set contains it, A or B. We can apply this reasoning for the other two edges. This is valid by the second KKM condition. Finally, a vertex not on one of the edges of $T$ gets a label of whichever set contains it, A, B, or C. This is valid by the third hypothesis.
+
+Now we can see that each vertex of $T$ has a distinct color. The three edges of $T$ have only the colors of its endpoints. This is the definition of a Sperner coloring. Therefore, there must be at least one trichromatic triangle with vertices $a_n, b_n, c_n$ in which $a_n in A, b_n in B, c_n in C$. From our small triangle construction earlier, the pairwise distances in this trichromatic triangle are at most $D/n$.
+
+We know that T is closed and bounded in $RR^2$. Therefore, T is compact. By Bolzano-Weierstrass, the $a_n$ sequence has a convering subsequence $a_n_k arrow x^* in T$. Since we know that $abs(a_n_k - b_n_k) <= D/n_k arrow 0$ by the triangle inequality, we can also say that $b_n_k arrow x^*$ and $c_n_k arrow x^*$.
+
+We know that $S_A$ is a closed set and it contains every $a_n_k$. Therefore $S_A$ must contain $x^*$. Similarly, $x^* in S_B$ and $x^* in S_C$. Therefore, we can conclude that $x^* in S_A inter A_B inter S_C$.]
+
+
+== Problem 6.4
+Suppose you have a continuous curve $c_1$ that starts at $(0, 0)$ and ends at $(1, 1)$, and stays in the unit square. Suppose you have another continuous curve $c_2$ that starts at $(0, 1)$, ends at $(1, 0)$, and stays in the unit square. Use Brouwer's fixed point theorem to show that the two curves must have at least one intersection.
+
+#proof[Let us first define the cuntonuous curves $c_1 = (x_1(s), y_1(s))$ and $c_2 = (x_2(t), y_2(t))$ for $s, t in [0, 1]$. We know that from how we defined $c_1$ and $c_2$ that $c_1(0) = (0, 0)$, $c_1(1) = (1, 1)$, $c_2(0) = (0, 1)$, and $c_2(1) = (1, 0)$.
+
+Let us suppose for contradiction that for all $(s, t) in [0, 1]^2$, $c_1(s) != c_2(t)$. Then we can say that $d(s, t) = c_2(t) - c_1(s)$, where $d(s, t) != 0$. We can normalize this distance by $N(s, t) = max(abs(d_x), abs(d_y))$ where $N(s, t) > 0$. Let us call this normalized distance $K(s, t)$. Now $K(s, t) = d(s, t)/N(s, t)$ lies somewhere on the boundary of $[-1, 1]^2$. 
+
+We want to map $K(s, t)$ to $[0, 1]^2$. We can define $F(s, t) = 1/2 vec(1, 1) + 1/2 K(s, t)$. Since we built $F(s, t)$ off of our continuous $c_1$ and $c_2$ and $N(s, t)>0$, we know that $F(s, t)$ is a continuous map to itself or the unit square.
+
+Applying Brouwer's fixed point theorem to $F(s, t)$, we know there is a fixed point $(s^*, t^*) = F(s^*, t^*)$ that lies on the boundary of $[0, 1]^2$. This is impossible because our curves $c_1$ and $c_2$ both stay in the unit square. Therefore, there is no fixed point. This contradicts Brouwer's fixed point theorem. Our initial condition must be incorrect. There must be some $(s, t) in [0, 1]^2$ such that $c_1(s) = c_2(t)$ and the curves intersect.]
+
+
 
 #changelog[
   - Sep 24, 2025: fixed two typos (thanks Eric Yang Yu!)
