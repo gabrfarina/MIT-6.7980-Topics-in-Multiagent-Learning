@@ -140,4 +140,44 @@ The confidence parameter enters the logarithm and the bonus. Adding exploration 
 Today, we know that bandit optimization is possible well past probability simplexes. In fact, we can construct bandit algorithms for any convex and compact domain $cX subset.eq RR^d$.
 In particular, we mention the general general result by #citet(<abernethy2008competing>), who showed that the a bandit algorithm can be constructed starting from a full-information regret miminizer built using the FTRL algorithm with a self-concordant distance-generating function.
 
+= Problems
+
+#exercise[Variance of the importance-sampling estimator][
+  Let $A$ be finite, and suppose the gain vector $vg^((t)) in [0,1]^A$ is fixed before the learner samples $a^((t)) ~ vy^((t))$, where $y^((t))_a > 0$ for every $a in A$. The learner observes $w^((t)) = g^((t))_(a^((t)))$ and uses the importance-sampling estimator
+  $ tilde(vg)^((t))_a = (w^((t)) / y^((t))_a) 1{a^((t)) = a}. $
+  Compute the conditional variance of each coordinate $tilde(vg)^((t))_a$. Explain why these variances can be arbitrarily large while the conditional expectation of the weighted second moment $sum_(a in A) y^((t))_a (tilde(vg)^((t))_a)^2$ used in the Exp3 proof is bounded by $|A|$.
+]
+
+#solution[
+  Condition on the history and on $vg^((t))$, leaving only the action $a^((t))$ random. For each $a in A$,
+  $
+    EE_(t)[tilde(vg)^((t))_a] = g^((t))_a, quad
+    EE_(t)[(tilde(vg)^((t))_a)^2] = (g^((t))_a)^2 / y^((t))_a.
+  $
+  Hence
+  $ "Var"_(t)(tilde(vg)^((t))_a) = (g^((t))_a)^2 (1 / y^((t))_a - 1). $
+  If $g^((t))_a > 0$, this variance grows without bound as $y^((t))_a -> 0$. In the weighted second moment, however, the sampling probability cancels the inverse probability in expectation:
+  $
+    EE_(t)[sum_(a in A) y^((t))_a (tilde(vg)^((t))_a)^2]
+    = sum_(a in A) (g^((t))_a)^2 <= |A|.
+  $
+  This bounds the conditional *expectation* of the weighted second moment; its value for a particular sampled action can still be large.
+]
+
+#exercise[Zero pseudoregret need not yield a realized CCE][
+  Consider the two-player coordination game with actions ${0,1}$, where both players receive utility $1$ when their actions agree and $0$ otherwise. Player 1 flips a fair coin once and plays the resulting action in every round. Player 2 flips a fair coin independently in every round. Compute both players' pseudoregret after $T$ rounds. Does the realized empirical distribution of action profiles converge almost surely to a coarse correlated equilibrium (CCE)?
+]
+
+#solution[
+  Write $B$ for Player 1's initial coin toss and $C_t$ for Player 2's round-$t$ toss. Thus $a_1^((t))=B$ and $a_2^((t))=C_t$. For either player $i$, every fixed action $b in {0,1}$ earns expected utility $1/2$ in each round: Player 1 faces a fair $C_t$, while Player 2's expectation averages over the single fair toss $B$. The played actions also agree with probability $1/2$ in each round. Since the maximum in pseudoregret is taken *after* these expectations,
+  $
+    "PseudoReg"_i^((T))
+    = max_(b in {0,1}) EE[sum_(t=1)^T u_(i)(b, a_(-i)^((t))) - sum_(t=1)^T u_(i)(a_1^((t)), a_2^((t)))]
+    = 0
+  $
+  for both $i=1,2$ and every $T$.
+
+  Conditional on $B=b$, the strong law of large numbers gives a limiting realized empirical distribution with probability $1/2$ on $(b,0)$ and probability $1/2$ on $(b,1)$. Under this distribution, Player 2's expected utility is $1/2$, but the fixed deviation to action $b$ gives utility $1$. Its CCE inequality fails by $1/2$. Hence the realized empirical distribution converges almost surely, but its limit is *not* a CCE. Averaging over $B$ instead gives the uniform joint distribution, which is a CCE; this averaging conceals the incentive to deviate in each realized limit.
+]
+
 #lec_bibliography("meta/refs.bib")
