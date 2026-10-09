@@ -386,6 +386,47 @@ We make some final remarks about the Lemke-Howson algorithm.
 - Its worst-case running time is exponential in the number of actions. This lower bound was established by Savani and von Stengel~#citep(<SavaniVS06>).
 - There are generalizations of the Lemke-Howson algorithm for multi-player games working with manifolds instead of polytopes. See Rosenmüller~#citep(<Rosenmuller71>) and Wilson~#citep(<Wilson71>).
 
+= Further reading: approximate equilibria and $n$-player games <sec-lit-approx-nplayer>
+
+The algorithms in this lecture compute exact equilibria, and all of them take exponential time in the worst case. This section surveys, at a high level, what is known when we relax the goal to approximate equilibria, and when we move to games with more than two players. Throughout, payoffs lie in $[0, 1]$ and an _$eps$-approximate Nash equilibrium_ is as in @def-eps-nash: no player gains more than $eps$ by deviating unilaterally.
+
+== Approximate equilibria in two-player games <sec-lit-approx-two-player>
+
+*Polynomial time for a fixed constant $eps$.* A surprisingly simple algorithm finds a $1/2$-approximate equilibrium~#citep(<DaskalakisMP09:Note>). Row picks any action $i$. Column best responds to $i$ with some action $j$, and Row best responds to $j$ with some action $k$. Then Row mixes $i$ and $k$ with probability $1/2$ each, and Column plays $j$. Row loses at most $1/2 (R_(k j) - R_(i j)) <= 1/2$ relative to its best response $k$, and Column, whose action $j$ is optimal against half of Row's mixture, loses at most $1/2$ on the other half. A sequence of improvements followed. Tsaknakis and Spirakis~#citep(<TsaknakisS08:Optimization>) reached $eps approx 0.3393$ by a descent method on the players' maximum regret. The best guarantee known today is $eps = 1/3$, due to Deligkas, Fasoulakis, and Markakis~#citep(<DeligkasFM23:OneThird>).
+
+*Quasi-polynomial time for every constant $eps$.* The sampling argument of @sec-lmm gives an algorithm with running time $s^(O(log s \/ eps^2))$, where $s$ is the size of the game.
+
+*Lower bounds.* For $eps$ that shrinks inversely polynomially with the size of the game, computing an $eps$-approximate equilibrium is already PPAD-complete~#citep(<chen2009settling>). So, unless PPAD $subset.eq$ P, there is no algorithm whose running time is polynomial in both the size of the game and $1 \/ eps$ (see #lecture-link("tfnp", <sec-ppad>)[] and #lecture-link("ppad_completeness", <sec-generalized-circuits>)[]). For constant $eps$, Rubinstein~#citep(<Rubinstein16:Settling>) showed that quasi-polynomial time is necessary for some constant $eps > 0$. Specifically, he assumed that End-of-Line requires exponential time, a strengthening of PPAD $!=$ P called the Exponential Time Hypothesis for PPAD. Under this assumption, computing an $eps$-approximate equilibrium of an $N times N$ game requires time $N^(log^(1 - o(1)) N)$. The sampling algorithm of @sec-lmm is therefore essentially optimal for small constant $eps$. The main open question is the gap in between: for which constants $eps < 1/3$ can an $eps$-approximate equilibrium be found in polynomial time? Finally, these results measure the error additively. If the error is instead measured _relatively_, i.e., multiplicatively in the players' payoffs, the problem is PPAD-complete even for constant $eps$~#citep(<Daskalakis13:Approximating>).
+
+== Games with more than two players <sec-lit-n-player>
+
+*Exact equilibria.* With three or more players, equilibria can be #lecture-link("correlated", <sec-irrational-equilibria>)[irrational], so an exact equilibrium can only be described algebraically. Etessami and Yannakakis~#citep(<etessami2010fixedpoints>) showed that computing an exact equilibrium of a three-player game is complete for the class FIXP, which captures exact fixed points of algebraic functions. They also showed that computing a point within a small distance of an actual equilibrium is at least as hard as long-standing open problems in numerical computation, such as the square-root-sum problem. Deciding whether a game has an equilibrium with a given property, for example one in which a given player's expected payoff is at least a threshold, is complete for the existential theory of the reals~#citep(<GargMVY18:ETR>). On the algorithmic side, the support enumeration of Section~#ref(label("sec:support enumeration for n players"), supplement: none) solves each guess with algorithms for the existential theory of the reals, in time $(n k)^(O(n k))$ overall. Path-following methods generalize Lemke-Howson~#citep(<Rosenmuller71>, <Wilson71>, <GovindanW03:GlobalNewton>) and often work well in practice, but none has a polynomial worst-case guarantee.
+
+*Approximate equilibria of normal-form games.* For a small enough $eps$, computing an $eps$-approximate equilibrium is PPAD-complete for three or more players~#citep(<dgp09>), as for two players. For constant $eps$, the sampling idea of @sec-lmm extends to many players. Babichenko, Barman, and Peretz~#citep(<BabichenkoBP14:Simple>) showed that every $n$-player game with $m$ actions per player has an $eps$-approximate equilibrium in which each player mixes uniformly over a multiset of $O((log n + log m) \/ eps^2)$ actions. Enumerating these strategy profiles takes time quasi-polynomial in the size $n m^n$ of the game's payoff tables.
+
+*Succinct games.* A normal-form description has size exponential in $n$, so the guarantee above is weak in terms of the number of players. Games with many players are usually described succinctly, e.g., as graphical or polymatrix games, in which each player's payoff depends on only a few other players. Here even constant approximation is hard. Rubinstein~#citep(<Rubinstein18:Inapproximability>) showed that there is a constant $eps > 0$ for which computing an $eps$-approximate equilibrium is PPAD-complete, even in polymatrix games where every player has two actions and interacts with at most three others.
+
+*Query and communication complexity.* Suppose the algorithm can only query payoffs of individual action profiles. Then Babichenko~#citep(<Babichenko16:Query>) showed that, for some constant $eps$, finding an $eps$-approximate (well-supported) equilibrium of an $n$-player game with two actions per player takes $2^(Omega(n))$ queries, even for randomized algorithms. Hart and Mansour~#citep(<HartM10:HowLong>) showed a related exponential lower bound for uncoupled dynamics, in which each player knows only their own payoffs. This contrasts with #lecture-link("learning_intro", <sec-learning-correlated>)[coarse correlated and correlated equilibria], which simple no-regret dynamics approximate with a number of rounds polynomial in $n$, $m$, and $1 \/ eps$.
+
+The following table summarizes these bounds.
+
+#block(breakable: false, align(center, {
+  set par(justify: false)
+  table(
+  columns: 3,
+  align: left + horizon,
+  inset: 5pt,
+  stroke: .2mm,
+  table.header[*Setting*][*Best known algorithm*][*Hardness*],
+  [Two players, inverse-polynomial $eps$], [Exponential time (@sec-lemke-howson)], [PPAD-complete~#citep(<chen2009settling>)],
+  [Two players, constant $eps >= 1/3$], [Polynomial time~#citep(<DeligkasFM23:OneThird>)], [--],
+  [Two players, constant $eps < 1/3$], [$s^(O(log s \/ eps^2))$ (@sec-lmm)], [Quasi-polynomial time necessary under ETH for PPAD~#citep(<Rubinstein16:Settling>)],
+  [$n >= 3$ players, exact], [Exponential time (existential theory of the reals)], [FIXP-complete~#citep(<etessami2010fixedpoints>)],
+  [$n$ players, normal form, constant $eps$], [Quasi-polynomial in $n m^n$~#citep(<BabichenkoBP14:Simple>)], [PPAD-complete for small $eps$~#citep(<dgp09>)],
+  [$n$ players, succinct, constant $eps$], [Exponential time in $n$], [PPAD-complete~#citep(<Rubinstein18:Inapproximability>), and $2^(Omega(n))$ queries~#citep(<Babichenko16:Query>)],
+  )
+}))
+
 = Bibliography for this lecture
 
 #lec_bibliography("meta/refs.bib", title: none)
