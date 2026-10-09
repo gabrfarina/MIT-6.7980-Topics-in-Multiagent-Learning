@@ -299,33 +299,124 @@ We mention the following regret bound for the general case. The supplementary re
 
 == Multiplicative weights update (MWU) as a special case <sec-omd-mwu>
 
-#wrapped-figure(
-  [
-    Multiplicative weights update is the special case of _both FTRL and OMD_ in which the regularizer $psi$ is set to the _negative entropy_ function
-    $ H(vx) := sum_(a in A) x_a log x_a. $
+Multiplicative weights update is the special case of _both FTRL and OMD_ in which the regularizer $psi$ is set to the _negative entropy_ function
+$ H(vx) := sum_(a in A) x_a log x_a, $
+with the convention $0 log 0 = 0$. This section shows what $H$ looks like, proves the properties that make it a good regularizer for the simplex, and uses them to derive MWU and its regret bound (@mwu-regret-bound) from FTRL and OMD. Throughout, $m := |A|$.
 
-    #example[
-      The adjacent plot displays the negative entropy function in the case of $|A|=2$ actions.
-    ]
-  ],
-  [
-    #image(
-      "figures/learning1/entropy.svg",
-      width: 100%,
-      alt: "Negative entropy on a two-action simplex, minimized at the uniform distribution.",
-    )
-  ],
-  side: right,
-  text-width: 65%,
-)
+#example[
+  @fig-entropy displays the negative entropy for $m = 2$ and $m = 3$ actions. With two actions, the simplex is a segment and $H$ is the convex curve $x |-> H(x, 1 - x)$. With three actions, the simplex is a triangle and $H$ is a bowl hanging below it. The bowl touches the triangle only at its corners, the pure strategies, where $H = 0$. Its lowest point lies below the uniform strategy, at height $-log 3$. Every edge of the triangle is a copy of the two-action simplex, and along each edge the bowl follows the two-action curve (blue). Near the edges the walls become vertical; this steepness matters below.
+]
 
-The negative entropy function has the following properties:
-- it is $1$-strongly convex with respect to the $ell_1$ norm $norm(dot.c)_1$;
-- the maximum of the function is $0$, attained at any deterministic strategy;
-- the minimum is attained at the uniformly random strategy $ overline(vx) = ( 1\/m, ..., 1\/m), $
-  at which $H(overline(vx)) = m dot 1/m log 1/m = -log m$.
+#figure(
+  image(
+    "figures/learning1/entropy.svg",
+    width: 100%,
+    alt: "Left: the negative entropy of two actions, a convex curve that is 0 at both endpoints and minimized at one half. Right: the negative entropy of three actions, a bowl hanging below the triangle of mixed strategies, touching it only at the three corners and lowest at the uniform strategy, with value minus log 3. The edges of the bowl are copies of the two-action curve.",
+  ),
+  caption: [The negative entropy $H$ on the simplex for $m = 2$ (left) and $m = 3$ (right); darker shades are lower. The dashed triangle is $Delta(A)$ at height $0$. An interactive version of the right panel, which can be rotated, appears in the #link("https://www.mit.edu/~6.7980/slides/L05_learning_in_games.html")[lecture slides] (slide "Both algorithms work in a tunable geometry").],
+) <fig-entropy>
 
-Plugging the bound above into the general analysis of FTRL and OMD algorithms (@ftrl-omd-regret-bound) yields @mwu-regret-bound.
+The next lemma makes these observations precise.
+
+#lemma[Properties of the negative entropy][
+  + _Range._ For all $vx in Delta(A)$, $-log m <= H(vx) <= 0$. The maximum $0$ is attained exactly at the pure strategies, and the minimum $-log m$ exactly at the uniform strategy $overline(vx) := (1\/m, ..., 1\/m)$.
+  + _Steep boundary._ On the relative interior of $Delta(A)$, $nabla H(vx) = (1 + log x_a)_(a in A)$. In particular, $partial H \/ partial x_a -> -oo$ as $x_a -> 0$.
+  + _Strong convexity._ $H$ is $1$-strongly convex with respect to $norm(dot.c)_1$; that is, $(nabla H(vx) - nabla H(vx'))^top (vx - vx') >= norm(vx - vx')_1^2$ for all $vx, vx' in "ri" Delta(A)$.
+  + _Bregman divergence._ For $xhat in Delta(A)$ and $vx in "ri" Delta(A)$, the Bregman divergence of $H$ is the Kullback--Leibler divergence:
+    $ div(xhat, vx, dgf: H) = sum_(a in A) hat(x)_a log hat(x)_a / x_a =: "KL"(xhat || vx). $
+] <lem-entropy-properties>
+#proof[
+  _Range._ Each term $x_a log x_a$ is nonpositive for $x_a in [0, 1]$, and zero exactly when $x_a in {0, 1}$. Hence $H(vx) <= 0$, with equality exactly when every coordinate is $0$ or $1$, that is, at the pure strategies. For the lower bound, let $S := {a in A : x_a > 0}$ be the support of $vx$. Since $log$ is concave, Jensen's inequality with weights $x_a$ gives
+  $
+    -H(vx) = sum_(a in S) x_a log 1 / x_a <= log(sum_(a in S) x_a dot 1 / x_a) = log |S| <= log m.
+  $
+  Equality requires $|S| = m$ and, by strict concavity of $log$, all the values $1\/x_a$ to be equal; that is, $vx = overline(vx)$.
+
+  _Steep boundary._ This follows from $dif / (dif x) (x log x) = 1 + log x$.
+
+  _Strong convexity._ Let $vv := vx - vx'$ and $vz_s := vx' + s vv$ for $s in [0, 1]$; every $vz_s$ lies in $"ri" Delta(A)$. The Hessian of $H$ at $vz$ is $diag(1\/z_1, ..., 1\/z_m)$, so by the fundamental theorem of calculus
+  $
+    (nabla H(vx) - nabla H(vx'))^top vv = integral_0^1 vv^top nabla^2 H(vz_s) vv dif s = integral_0^1 sum_(a in A) v_a^2 / z_(s,a) dif s.
+  $
+  For every $vz in "ri" Delta(A)$, the Cauchy--Schwarz inequality and $sum_a z_a = 1$ give
+  $
+    norm(vv)_1^2 = (sum_(a in A) sqrt(z_a) dot abs(v_a) / sqrt(z_a))^2 <= (sum_(a in A) z_a)(sum_(a in A) v_a^2 / z_a) = sum_(a in A) v_a^2 / z_a.
+  $
+  Using this bound inside the integral gives $(nabla H(vx) - nabla H(vx'))^top vv >= norm(vv)_1^2$.
+
+  _Bregman divergence._ By the definition of the Bregman divergence and the gradient formula,
+  $
+    div(xhat, vx, dgf: H) & = sum_(a in A) hat(x)_a log hat(x)_a - sum_(a in A) x_a log x_a - sum_(a in A) (1 + log x_a)(hat(x)_a - x_a) \
+    & = sum_(a in A) hat(x)_a log hat(x)_a / x_a - sum_(a in A) (hat(x)_a - x_a),
+  $
+  and the last sum is $0$ because both $xhat$ and $vx$ sum to $1$.
+]
+
+#remark[Pinsker's inequality][
+  For any $1$-strongly convex $psi$, writing the Bregman divergence as an integral gives
+  $
+    div(xhat, vx, dgf: psi) = integral_0^1 (nabla psi(vx + s(xhat - vx)) - nabla psi(vx))^top (xhat - vx) dif s >= integral_0^1 s norm(xhat - vx)^2 dif s = 1 / 2 norm(xhat - vx)^2.
+  $
+  For $psi = H$, @lem-entropy-properties turns this into Pinsker's inequality $"KL"(xhat || vx) >= 1/2 norm(xhat - vx)_1^2$.
+]
+
+The steep boundary is what makes the entropy convenient. FTRL and OMD maximize a linear function minus a multiple of $H$, and because the walls of the bowl in @fig-entropy are vertical, the maximizer never lies on the boundary of $Delta(A)$. Away from the boundary, the only constraint is that the coordinates sum to $1$, so the maximizer is found by setting a gradient to zero, with one Lagrange multiplier for that constraint. This gives closed forms for both algorithms.
+
+#theorem[MWU is FTRL and OMD with the entropy regularizer][
+  Let $eta > 0$.
+  + _FTRL step._ For every $vr in RR^A$, $argmax_(xhat in Delta(A)) {ip(vr, xhat) - 1 / eta H(xhat)} = "softmax"(eta vr)$.
+  + _OMD step._ For every $vg in RR^A$ and $vx in "ri" Delta(A)$, the maximizer of $ip(vg, xhat) - 1 / eta div(xhat, vx, dgf: H)$ over $xhat in Delta(A)$ has coordinates
+    $ hat(x)_a = (x_a exp(eta g_a)) / (sum_(b in A) x_b exp(eta g_b)), quad a in A. $
+  Consequently, FTRL and OMD with $psi = H$, both started at the uniform strategy, produce exactly the iterates of MWU (@algo-mwu).
+] <thm-mwu-ftrl-omd>
+#proof[
+  _FTRL step._ The objective $f(xhat) := ip(vr, xhat) - 1 / eta H(xhat)$ is continuous and strictly concave on the compact set $Delta(A)$, so it has a unique maximizer $vx^*$. We first show that $vx^*$ has full support. Suppose instead that $x^*_b = 0$ for some $b$, and pick $a$ with $x^*_a > 0$. Moving a small mass $epsilon > 0$ from $a$ to $b$ changes the objective by
+  $
+    f(vx^* + epsilon (ve_b - ve_a)) - f(vx^*) = epsilon (r_b - r_a) - 1 / eta (epsilon log epsilon + (x^*_a - epsilon) log(x^*_a - epsilon) - x^*_a log x^*_a).
+  $
+  Here $(x^*_a - epsilon) log(x^*_a - epsilon) - x^*_a log x^*_a = O(epsilon)$, while $-epsilon log epsilon > 0$ is much larger than $epsilon$ as $epsilon -> 0$. Hence the change is positive for small $epsilon$, contradicting optimality. Hence $vx^*$ lies in the relative interior, where the only active constraint is $sum_a hat(x)_a = 1$. The first-order optimality conditions state that there is $lambda in RR$ with
+  $
+    r_a - 1 / eta (1 + log x^*_a) = lambda quad forall a in A, quad "that is," quad x^*_a = exp(eta r_a) dot exp(-1 - eta lambda).
+  $
+  The factor $exp(-1 - eta lambda)$ does not depend on $a$, so normalizing gives $vx^* = "softmax"(eta vr)$.
+
+  _OMD step._ By @lem-entropy-properties, the OMD objective is
+  $
+    ip(vg, xhat) - 1 / eta sum_(a in A) hat(x)_a log hat(x)_a / x_a = sum_(a in A) (g_a + 1 / eta log x_a) hat(x)_a - 1 / eta H(xhat),
+  $
+  which is the FTRL objective with $r_a = g_a + 1\/eta log x_a$. By the first part, its maximizer is the softmax of $eta g_a + log x_a$, whose coordinates are proportional to $x_a exp(eta g_a)$.
+
+  _Iterates._ FTRL plays $vx^((t)) = "softmax"(eta vr^((t-1)))$, which is @algo-mwu verbatim. Unrolling the OMD update from the uniform strategy gives $x_a^((t)) prop exp(eta sum_(tau=1)^(t-1) g_a^((tau)))$. The vectors $sum_(tau=1)^(t-1) vg^((tau))$ and $vr^((t-1))$ differ by a multiple of $vone$, and the softmax is unchanged when the same constant is added to every entry, so this is again $"softmax"(eta vr^((t-1)))$.
+]
+
+The OMD form explains the algorithm's name: each step _multiplies_ the weight of every action $a$ by $exp(eta g_a^((t)))$, a factor that grows with the utility the action just received, and then renormalizes.
+
+The regret bound for MWU now follows from the general bound for FTRL and OMD.
+
+#corollary[Regret bound for MWU from @ftrl-omd-regret-bound][
+  Apply @ftrl-omd-regret-bound with $psi = H$ and $norm(dot.c) = norm(dot.c)_1$, whose dual norm is $norm(dot.c)_* = norm(dot.c)_oo$; $H$ qualifies by @lem-entropy-properties. For FTRL, $B = max H - min H = 0 - (-log m) = log m$. For OMD started at $overline(vx)$, the Bregman divergence is $div(vx, overline(vx), dgf: H) = sum_a x_a log(m x_a) = H(vx) + log m$, so again $B = log m$. Substituting gives @mwu-regret-bound:
+  $
+    "Reg"^((T)) <= (log m) / eta + eta sum_(t=1)^T norm(vg^((t)))_oo^2 - 1 / (8 eta) sum_(t=2)^T norm(vx^((t)) - vx^((t-1)))_1^2.
+  $
+  If $norm(vg^((t)))_oo <= 1$ for all $t$, dropping the last (nonpositive) term and choosing $eta = sqrt(log m \/ T)$ gives $"Reg"^((T)) <= (log m)\/eta + eta T = 2 sqrt(T log m)$.
+] <cor-mwu-from-ftrl>
+
+*Entropy versus the Euclidean regularizer.* The squared Euclidean norm $psi(vx) = 1/2 norm(vx)_2^2$ is also a valid regularizer for the simplex, and leads to online projected gradient ascent (@sec-ogd). @fig-entropy-vs-euclidean compares the two through the FTRL point
+$
+  vx_eta := argmax_(xhat in Delta(A)) {ip(vr, xhat) - 1 / eta psi(xhat)}
+$
+for the fixed regret vector $vr = (1, 2\/5, 0)$ as the learning rate $eta$ grows from $0$ to $oo$. Two differences stand out.
+- _Interior versus boundary._ With the entropy, $vx_eta = "softmax"(eta vr)$ has full support for every $eta$ and reaches the pure strategy $ve_1$ only in the limit $eta -> oo$; this is the steep boundary at work. With the Euclidean regularizer, $vx_eta = Pi_(Delta(A))(eta vr)$ is a Euclidean projection. While it stays in the interior, it equals $overline(vx) + eta (vr - 7\/15 dot vone)$, where $7\/15$ is the average entry of $vr$. This point moves along a straight line and reaches the edge $x_3 = 0$ at $eta = 5\/7$. It then slides along that edge and reaches $ve_1$ at the finite value $eta = 5\/3$.
+- _Dependence on the number of actions._ The bound of @ftrl-omd-regret-bound balances two quantities: the range $B$ of the regularizer and the dual norm of the gradients. The Euclidean regularizer has a small range, $B = 1/2 - 1/(2m) < 1/2$, but it is strongly convex only with respect to $norm(dot.c)_2$, which is its own dual norm, and $norm(vg)_2^2$ can be as large as $m$ when $norm(vg)_oo <= 1$. The result is a bound of order $sqrt(T m)$ (@ogd-regret-bound). The entropy has a larger range, $B = log m$, but it is strongly convex with respect to $norm(dot.c)_1$, whose dual norm is $norm(dot.c)_oo$, and $norm(vg)_oo <= 1$ no matter how large $m$ is. Paying $log m$ in the range to avoid a factor $m$ in the gradients is the source of the _logarithmic_ dependence on the number of actions noted in @sec-mwu.
+
+#figure(
+  image(
+    "figures/learning1/entropy_vs_euclidean.svg",
+    width: 100%,
+    alt: "Two triangles of mixed strategies over three actions, shaded by the value of the regularizer, with level sets. On the left, the entropic FTRL point traces a curve from the uniform strategy towards the first corner, staying inside the triangle for every learning rate. On the right, the Euclidean FTRL point moves in a straight line to an edge, reached at learning rate 5/7, and then along the edge to the first corner, reached at learning rate 5/3.",
+  ),
+  caption: [The FTRL point $vx_eta$ for $vr = (1, 2\/5, 0)$ as $eta$ grows from $0$ (the uniform strategy) to $oo$, with the negative entropy (left) and the squared Euclidean norm (right). The background shows the level sets of each regularizer; darker shades are lower. The entropic path stays in the interior for every $eta$, while the Euclidean path hits the boundary at $eta = 5\/7$ and the corner $ve_1$ at $eta = 5\/3$.],
+) <fig-entropy-vs-euclidean>
 
 == Online Projected Gradient Ascent <sec-ogd>
 
