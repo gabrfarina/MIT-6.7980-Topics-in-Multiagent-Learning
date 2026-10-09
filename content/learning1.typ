@@ -221,6 +221,24 @@ The general FTRL/OMD bound in @ftrl-omd-regret-bound implies @mwu-regret-bound; 
 
 For now, we remark a crucial aspect of MWU. Compared with the regret bound of RM and RM#super[+], the regret bound of MWU has only a _logarithmic_ dependence on the number of actions $|A|$. Despite in practice RM/RM#super[+] tend to outperform MWU (all while getting rid of any hyperparameter tuning), this property has profound _theoretical_ implications, especially in combinatorial games where the effective number of actions is exponential. The gist of it is that several important classes of games can be converted into _exponentially large_ normal-form games (this is the case of sequential games, for example). Since MWU only has logarithmic dependence on the number of actions of the resulting normal-form games, this shows that---at least ignoring computation---external regret minimization is possible with polynomial dependence on the game size even in these classes of complex, structured games.
 
+#exercise[No-regret learning in graphical games][
+  Consider a graphical game played over a $d$-regular graph, where each of the $n$ nodes is a player with $m$ actions and payoffs in $[-1, 1]$. Each player's utility $u_i$ depends on their own action $a_i$ and the actions $a_(N(i))$ of their $d$ neighbors $N(i)$.
+  + How many numbers are needed to write down the game as a generic normal-form game? How many when exploiting the graph structure?
+  + How many variables does the natural LP formulation of a #lecture-link("correlated", <def-cce>)[coarse correlated equilibrium] have?
+  + Suppose all players run MWU in the #lecture-link("learning_intro", <def-canonical-learning>)[canonical learning setup]. How many rounds $T$ suffice to guarantee an $epsilon$-approximate coarse correlated equilibrium, that is, a correlated strategy that satisfies the constraints of a coarse correlated equilibrium up to an additive $epsilon$?
+  + What is the overall runtime?
+] <ex-graphical-game>
+
+#solution[
+  *Part 1.* Each $u_i$ only depends on $a_i$ and $a_(N(i))$, so it is a table with $m^(d+1)$ entries, and the game needs $n dot m^(d+1)$ numbers. A generic $n$-player game would need $n dot m^n$.
+
+  *Part 2.* The LP has one variable $mu_(a_1, ..., a_n)$ for each action profile, so $m^n$ variables. This is exponential in $n$, even though the game itself only takes $n dot m^(d+1)$ numbers. #lecture-link("eah")[] shows how to get around this.
+
+  *Part 3.* The payoffs are in $[-1, 1]$, so $norm(vg_i^((t)))_oo <= 1$ and @mwu-regret-bound gives each player regret at most $2 sqrt(T log m)$. By #lecture-link("learning_intro", <thmce-formal>)[], the average distribution of play is then an $epsilon$-approximate CCE with $epsilon <= 2 sqrt(log m \/ T)$. So we need $T = ceil(4 log m \/ epsilon^2)$ rounds, which does not depend on $n$ or $d$.
+
+  *Part 4.* In each round, player $i$ computes the expected utility of each of its $m$ actions. Each one is a sum over the $m^d$ action profiles of its neighbors, so this takes $O(d dot m^(d+1))$ time per player and $O(n d dot m^(d+1))$ per round. Over $T$ rounds, the total is $O(n d dot m^(d+1) log m \/ epsilon^2)$, polynomial in the size of the game and in $1\/epsilon$.
+]
+
 = More general approaches: FTRL and OMD <sec-ftrl>
 
 Finally, we turn our attention to the third way of obtaining no-regret algorithms, that is, by considering a regularized (i.e., smoothed) version of the follow-the-leader algorithm discussed above. The idea is that, instead of playing by always putting 100% of the probability mass on the action with highest cumulated regret, we look for the distribution that maximizes the expected cumulated regret, _minus_ some regularization term that prevents us from putting all the mass on a single action.
