@@ -215,7 +215,7 @@ This follows directly from the way Lemke-Howson works, which is similar to the s
   This gives a correspondence between nonzero solutions of the $(| A_1 | + | A_2 |)$-variable LCP and Nash equilibria of the game, as required.
 ]
 
-An interesting result about the computation of $epsilon.alt$-approximate Nash equilibria is due to #citet(<LMM03>), and is based on the observation that every game admits an $epsilon.alt$-approximate Nash equilibrium where the strategy of Player 1 is supported on at most $w := O (frac(log \| A_2 \|, epsilon.alt^2))$ strategies. This follows from using a Hoeffding bound on samples from the distribution of Player 1's strategy. One can then check any support for Player 1's strategy of size up to $w$, and for each such support, solve a linear program to verify if a Nash equilibrium with that support exists. This gives a subexponential-time algorithm (of order $O (s^(log s \/ epsilon.alt^2))$, where $s$ is the size of input) for computing an $epsilon.alt$-approximate Nash equilibrium.
+An interesting result about the computation of $epsilon.alt$-approximate Nash equilibria is due to #citet(<LMM03>), and is based on the observation that every two-player game with payoffs in $[0, 1]$ admits an $epsilon.alt$-approximate Nash equilibrium where the strategy of Player 1 is uniform over a multiset of $w := O (frac(log(2 \| A_2 \|), epsilon.alt^2))$ actions. This follows from using a Hoeffding bound on samples from Player 1's equilibrium strategy. One can then enumerate every such strategy for Player 1, and for each one, solve a linear program in Player 2's strategy to check whether the two together form an $epsilon.alt$-approximate Nash equilibrium. For rational payoffs and any fixed $epsilon.alt > 0$, this gives a quasi-polynomial-time algorithm, with running time $s^(O(log s \/ epsilon.alt^2))$, where $s$ is the encoding size of the game. The argument and the resulting algorithm are developed in detail in #ref(<sec-lmm>, supplement: [Appendix]).
 
 == Nash equilibrium in games with more than two players <sec-irrational-equilibria>
 
@@ -495,6 +495,63 @@ The distinction between correlated and coarse correlated equilibrium is in when 
 = Bibliography for this lecture
 
 #lec_bibliography("meta/refs.bib", title: none)
+
+#appendix[
+  = Appendix: Approximate equilibria with small supports <sec-lmm>
+
+  This appendix develops the result of #citet(<LMM03>) outlined in the discussion of two-player general-sum games, namely that every two-player game admits an approximate equilibrium in which each player's strategy is uniform over a multiset of only logarithmically many actions, for any fixed approximation level. We present a one-sided version of their sampling argument, in which only Player 1's strategy is made sparse. Throughout, we assume that all entries of $matU_1$ and $matU_2$ lie in $[0, 1]$, which fixes the scale against which approximation is measured.
+
+  #definition[$epsilon.alt$-approximate Nash equilibrium][
+    Let $epsilon.alt >= 0$. A strategy profile $(vx, vy) in Delta(A_1) times Delta(A_2)$ is an _$epsilon.alt$-approximate Nash equilibrium_ if no player can improve their expected utility by more than $epsilon.alt$ through a unilateral deviation, that is,
+    $
+      vx^top matU_1 vy >= ve_(a_1)^top matU_1 vy - epsilon.alt quad forall a_1 in A_1, qquad vx^top matU_2 vy >= vx^top matU_2 ve_(a_2) - epsilon.alt quad forall a_2 in A_2.
+    $
+  ] <def-eps-nash>
+
+  #definition[$k$-uniform strategy][
+    Let $k$ be a positive integer. A mixed strategy is #box[_$k$-uniform_] if it is the uniform distribution over a multiset of $k$ actions. Equivalently, every probability it assigns is an integer multiple of $1 \/ k$.
+  ]
+
+  The argument relies on the following concentration inequality.
+
+  #lemma[Hoeffding's inequality #citep(<Hoeffding1963Mar>)][
+    Let $Z_1, ..., Z_k$ be independent random variables taking values in $[0, 1]$, and let $overline(Z) := 1 / k sum_(t=1)^k Z_t$. Then, for every $delta > 0$,
+    $ Pr(|overline(Z) - EE[overline(Z)]| > delta) <= 2 exp(-2 k delta^2). $
+  ]
+
+  #theorem[
+    Let $(vx^*, vy^*)$ be a Nash equilibrium of a two-player game whose utility matrices $matU_1, matU_2$ have entries in $[0, 1]$, let $epsilon.alt > 0$, and let $k > 2 ln(2 abs(A_2)) \/ epsilon.alt^2$ be an integer. Then there exists a $k$-uniform strategy $xhat in Delta(A_1)$ such that $(xhat, vy^*)$ is an $epsilon.alt$-approximate Nash equilibrium.
+  ] <thm-lmm>
+
+  #proof[
+    Draw $k$ actions $a^((1)), ..., a^((k)) in A_1$ independently from $vx^*$, and let $xhat$ be their empirical distribution. By construction, $xhat$ is $k$-uniform, and every action it plays lies in the support of $vx^*$.
+
+    _Player 1's condition._ Since $(vx^*, vy^*)$ is a Nash equilibrium, every action in the support of $vx^*$ is a best response to $vy^*$. As $xhat$ only plays such actions, $xhat^top matU_1 vy^* = max_(a_1 in A_1) ve_(a_1)^top matU_1 vy^*$, so Player 1's condition holds exactly.
+
+    _Player 2's condition._ Fix an action $a_2 in A_2$. The quantity $xhat^top matU_2 ve_(a_2) = 1 / k sum_(t=1)^k u_2(a^((t)), a_2)$ is the average of $k$ independent random variables taking values in $[0, 1]$, each with expectation $(vx^*)^top matU_2 ve_(a_2)$. By Hoeffding's inequality with $delta = epsilon.alt \/ 2$,
+    $ Pr(|xhat^top matU_2 ve_(a_2) - (vx^*)^top matU_2 ve_(a_2)| > epsilon.alt / 2) <= 2 exp(-k epsilon.alt^2 \/ 2). $
+    A union bound over the $abs(A_2)$ actions of Player 2 shows that the probability that some action deviates by more than $epsilon.alt \/ 2$ is at most $2 abs(A_2) exp(-k epsilon.alt^2 \/ 2)$, which is strictly less than $1$ by the choice of $k$. Hence there exists a realization of $xhat$ such that $|xhat^top matU_2 ve_(a_2) - (vx^*)^top matU_2 ve_(a_2)| <= epsilon.alt \/ 2$ for all $a_2 in A_2$. For this realization, since $vy^*$ is a best response to $vx^*$, every $a_2 in A_2$ satisfies
+    $
+      xhat^top matU_2 vy^* >= (vx^*)^top matU_2 vy^* - epsilon.alt / 2 >= (vx^*)^top matU_2 ve_(a_2) - epsilon.alt / 2 >= xhat^top matU_2 ve_(a_2) - epsilon.alt,
+    $
+    where the first inequality follows by averaging these bounds with weights $vy^*$. This is Player 2's condition, completing the proof.
+  ]
+
+  @thm-lmm suggests the following algorithm. Fix a rational tolerance $0 < epsilon.alt <= 1$ and an integer $k > 2 ln(2 abs(A_2)) \/ epsilon.alt^2$. For each $k$-uniform strategy $xhat$ of Player 1, solve the linear program
+
+  $
+    upright("find") quad & vy in RR^(abs(A_2)) \
+    upright("s.t.") quad & xhat^top matU_1 vy >= ve_(a_1)^top matU_1 vy - epsilon.alt & quad forall a_1 in A_1 \
+    & xhat^top matU_2 vy >= xhat^top matU_2 ve_(a_2) - epsilon.alt & quad forall a_2 in A_2 \
+    & vone^top vy = 1, quad vy >= 0,
+  $
+
+  and output $(xhat, vy)$ for the first $xhat$ whose linear program is feasible.
+
+  Once $xhat$ is fixed, every constraint is linear in $vy$, so each of these programs is indeed a linear program. Its constraints are exactly the conditions of @def-eps-nash for the pair $(xhat, vy)$, so any feasible solution yields an $epsilon.alt$-approximate Nash equilibrium. Moreover, applying @thm-lmm to any Nash equilibrium $(vx^*, vy^*)$ of the game, which always exists, shows that for at least one $k$-uniform $xhat$ the strategy $vy = vy^*$ is feasible. Hence the algorithm always produces an output.
+
+  Player 1 has $binom(abs(A_1) + k - 1, k) <= abs(A_1)^k$ $k$-uniform strategies, one for each multiset of $k$ actions from $A_1$. Each linear program can be solved in time polynomial in the game's encoding size $s$, the encoding length of $epsilon.alt$, and $log k$. Choosing $k = O(log(2 abs(A_2)) \/ epsilon.alt^2)$, the running time is therefore $abs(A_1)^(O(log(2 abs(A_2)) \/ epsilon.alt^2))$ times this polynomial factor. For any fixed $epsilon.alt$, this is $s^(O(log s))$, which is quasi-polynomial in the size of the game.
+]
 
 #changelog[
   - 2025-10-05: Fixed typos (thanks Eric Yang Yu!).
