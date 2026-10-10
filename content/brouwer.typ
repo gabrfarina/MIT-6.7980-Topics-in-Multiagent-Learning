@@ -341,6 +341,61 @@ _Continuity_, _compactness_, and _convexity_ are each necessary in Brouwer's the
 
 #lec_bibliography("meta/refs.bib", title: none)
 
+#appendix[
+  = Finding a Sperner triangle needs exponentially many calls <sec-sperner-query-lower-bound>
+
+  @sec-sperner-computation explained that, when the coloring is given by a circuit on $m$-bit coordinates, walking the Sperner graph can take time exponential in $m$. This appendix shows that the exponential time is unavoidable. An algorithm learns colors only by calls to the circuit, and every deterministic algorithm needs exponentially many calls before it can output a trichromatic triangle. Hirsch, Papadimitriou, and Vavasis #citep(<hirsch1989exponential>) proved exponential lower bounds for finding Brouwer fixed points. The construction below draws a path of the #lecture-link("tfnp", <sec-end-of-line>)[End-of-Line problem] #citep(<papadimitriou1994parity>) into the grid. Chen and Deng #citep(<chen2009discrete>) used it in their PPAD-hardness proof.
+
+  *Setting.* The points are $(i, j)$ with $0 <= i, j <= N$, where $N = 2^m - 1$, so each coordinate is an $m$-bit number. Each unit square is cut into two triangles by its diagonal from $(i, j)$ to $(i+1, j+1)$ (@fig-sperner-query-setting). The boundary has the standard coloring of @sec-sperner-proof, and the _door_ is the red-yellow boundary edge from $(0, 0)$ to $(0, 1)$. A _call_ is one use of the Sperner circuit. The algorithm names a point and receives its color. It may choose each call based on earlier answers, and it must output a trichromatic triangle. We count calls.
+
+  #figure(
+    caption: [The setting for $m = 3$, so $N = 7$ and each coordinate is a 3-bit number. Each unit square is cut by its diagonal from $(i, j)$ to $(i+1, j+1)$. The boundary has the standard coloring, and the door is the red-yellow edge from $(0, 0)$ to $(0, 1)$. Interior points (hollow) are unknown until they are queried. Here one call sends the point $(101, 011)$ to the Sperner circuit, which answers with its color.],
+  )[
+    #image("figures/brouwer/sperner_setting.svg", width: 78%, alt: "An 8 by 8 grid of points labeled with 3-bit coordinates and triangulated by diagonals. The boundary has the standard coloring with the door highlighted at the bottom left. Interior points are hollow, except one queried point whose coordinates are sent to a box labeled Sperner circuit, which answers blue.")
+  ] <fig-sperner-query-setting>
+
+  #theorem[
+    Fix $w = 12$, the width of the bands defined below, and let $K = floor((N - 4) \/ w) approx N \/ w$. For every deterministic algorithm that always outputs a trichromatic triangle, there is a standard Sperner coloring on which the algorithm makes at least $(K - 2) \/ 4 approx N \/ (4 w)$ calls. Since $N approx 2^m$, this is about $2^m \/ 48$ calls, which is exponential in $m$.
+  ] <thm-sperner-query-lower-bound>
+
+  *Definitions.*
+  - *Bands.* Leave a margin 2 points wide around the edge. Cut the rest into $K$ horizontal _bands_ $w$ points tall and $K$ vertical _bands_ $w$ points wide. Any leftover strip at the top or right is blue margin. The margin is where the $N - 4$ comes from. The bands start at coordinate $2$ and must end by coordinate $N - 2$, which leaves a stretch of length $N - 4$.
+  - *Blocks and diagonal squares.* A _block_ $(x, y)$ is where vertical band $x$ meets horizontal band $y$. _Diagonal square_ $k$ is block $(k, k)$. There are exactly $K$ diagonal squares, one per band.
+  - *Tunnel.* A _tunnel_ has a red wall with a yellow wall right beside it, and every other point is blue. It enters from the door into square $0$, visits diagonal squares $0 -> a_1 -> dots.c -> a_k$, and stops. The last square $a_k$ is the _dead end_.
+  - *Hop.* A _hop_ is the piece of tunnel from one diagonal square $a$ to the next one, $b$. It has two legs. The sideways leg runs along horizontal band $a$ to vertical band $b$, and then the up-or-down leg runs along vertical band $b$ into square $b$.
+  - *Crossing.* A sideways leg and an up-or-down leg can meet in one block. There the walls are rewired inside the block so that the two tunnels do not touch. The incoming sideways leg connects to the outgoing up-or-down leg and the other way round, and both keep their direction. The rewiring can split off a closed loop, which we call an _island_ (@fig-sperner-bands).
+
+  Every tunnel coloring is a legal standard Sperner coloring. Its only trichromatic triangle lies in the dead end's square. Along a wall, red and yellow sit side by side, and the blue on each side of the wall touches only one of the two. So a triangle can see all three colors only where a wall stops, which is the dead end. Checking straight pieces, turns, crossings and the dead end is a finite check over local pictures.
+
+  #figure(
+    caption: [A tunnel coloring with $K = 4$. The tunnel is built as $0 -> 2 -> 1 -> 3$. The hop $1 -> 3$ crosses the hop $0 -> 2$ in block $(2, 1)$, and the rewiring there splits off an island, the loop through squares $1$ and $2$. The circled black triangle at the dead end is the only trichromatic triangle.],
+  )[
+    #image("figures/brouwer/sperner_bands.svg", width: 85%, alt: "A tunnel coloring with four diagonal squares. A red wall with a yellow wall beside it runs from the door at the bottom-left corner to a circled trichromatic triangle in square 3, and a separate loop passes through squares 1 and 2.")
+  ] <fig-sperner-bands>
+
+  *One call involves at most four squares.* Take a point in block $(x, y)$. Horizontal band $y$ carries at most one sideways leg, the one belonging to the hop leaving square $y$, because each square is left at most once. Vertical band $x$ carries at most one up-or-down leg, the one belonging to the hop entering square $x$, because each square is entered at most once. So at most two hops pass through the point, and they determine its color. Each hop is named by its two end squares. So the color depends only on $x$, $y$, the square after $y$ on the tunnel, and the square before $x$. We say the call _involves_ these squares, so a call involves at most four diagonal squares.
+
+  *The adversary.* The adversary keeps the tunnel $0 -> a_1 -> dots.c -> a_k$ built so far and a set $T$ of _touched_ squares. At the start, $T = {0}$. On a call at a point in block $(x, y)$, it does three things.
+  + If $y = a_k$ and some square is untouched, pick an untouched square $b$ and extend the tunnel by $a_k -> b$. Here $y = a_k$ means that the call lies in the dead end's horizontal band.
+  + Add every square the call involves to $T$. Any of them that is not on the tunnel is thereby declared never visited. The tunnel will never enter or leave it.
+  + Answer the point's color in the current tunnel coloring.
+
+  *Consistency.* Every answer stays true in every later coloring. A later extension $a_k -> b$ redraws the old dead end in square $a_k$ and adds one hop, so it only changes horizontal band $a_k$ and vertical band $b$. Vertical band $b$ has no calls, because every call touches its own $x$ and $y$, and $b$ was untouched. Horizontal band $a_k$ has no calls either. A call there while $a_k$ was the dead end would have triggered rule 1, and before $a_k$ became the dead end it was untouched.
+
+  #proof[of @thm-sperner-query-lower-bound][
+    At the start, one of the $K$ squares, square $0$, is touched. Each call touches at most four new squares, so after $c$ calls at most $1 + 4 c$ squares are touched. Suppose the algorithm stops after $c$ calls and names a triangle $t$ while at least two squares are still untouched. The adversary picks an untouched square $b$ whose block does not contain $t$ and extends the tunnel by $a_k -> b$. By consistency, every answer is still true. The only trichromatic triangle is now in square $b$, so $t$ is wrong. This final coloring is a fixed standard coloring. The algorithm is deterministic and gets exactly the same answers on it, so it really does fail on that coloring. So a correct algorithm cannot stop while two or more squares are still untouched. When it stops, at most one square is untouched, so $K - 1 - 4 c <= 1$ and $c >= (K - 2) \/ 4$.
+  ]
+
+  The grid has about $N^2 = 2^(2 m)$ points, but the bound is about $N$, not $N^2$. Divide and conquer finds a trichromatic triangle in about $3 N$ calls. It repeatedly keeps a half whose boundary has a nonzero count of $"red" -> "yellow"$ minus $"yellow" -> "red"$ edges. So the query complexity is $Theta(N) = Theta(2^m)$, and the bound is tight up to the constant. On a small grid the bound is weak. The game's medium grid has $77 times 77$ points, so $N = 76$, $K = 6$, and the bound is $1$. The bound only grows large because it doubles with every bit.
+
+  == Interactive game <sec-sperner-adversary-game>
+
+  The proof mode of the game below runs the adversary described above. You can query points, or whole rows and columns, until you find a trichromatic triangle, and you can reveal the coloring the adversary is currently committed to.
+
+  #interactive-demo("sperner-adversary", title: "Find the rainbow triangle", height: 720)
+
+]
+
 #changelog[
   - Sep 24, 2025: fixed two typos (thanks Eric Yang Yu!)
 ]

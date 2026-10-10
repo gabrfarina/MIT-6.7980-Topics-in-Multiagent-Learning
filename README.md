@@ -105,6 +105,7 @@ a distinctive phrase from the passage you want to change.
 | Lecture text, equations, examples, or proofs | [`content/`](content/), in the relevant `.typ` file |
 | A figure | [`content/figures/`](content/figures/), grouped by topic; see the [figure guide](content/figures/README.md) |
 | A citation | [`content/meta/refs.bib`](content/meta/refs.bib) and the citing lecture |
+| An interactive demo embedded in a note | [`content/interactive/`](content/interactive/); see the [build guide](docs/building.md#interactive-demos) |
 | Shared mathematical notation | [`content/meta/notation.typ`](content/meta/notation.typ) |
 | Website rendering or build tools | [Build guide](docs/building.md) |
 
