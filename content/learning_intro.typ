@@ -170,6 +170,102 @@ $
 $
 (You should try to prove this!)
 
+In the same stochastic setting, even a very simple strategy can guarantee sublinear _swap_ regret, as the following example shows.
+
+#example[A threshold strategy against a biased coin][
+  Consider matching pennies: the learner and the opponent both choose an action from $A = {upright(H), upright(T)}$ (Heads and Tails), and the learner's utility is
+  $
+    u(a, y) := cases(+1 & "if" a = y\,, -1 & "otherwise.")
+  $
+  The upright letters $upright(H)$ and $upright(T)$ denote actions, while the italic $T$ remains the number of rounds. The opponent plays stochastically, as above: the actions $y^((1)), y^((2)), ...$ are independent, with $PP[y^((t)) = upright(H)] = p$ for a fixed $p in [0, 1]$ that the learner does not know. Let $delta := 2p - 1$. As in the canonical learning setup, after round $t$ the learner observes the linear utility function
+  $
+    u^((t))(vx) := x_upright(H) u(upright(H), y^((t))) + x_upright(T) u(upright(T), y^((t))) quad "for" vx = (x_upright(H), x_upright(T)) in Delta(A).
+  $
+
+  Let $D^((t-1))$ be the number of Heads minus the number of Tails among $y^((1)), ..., y^((t-1))$. On round $t$, the learner plays the _threshold strategy_
+  $
+    vx^((t)) := cases(
+      (1, 0) & "if" D^((t-1)) >= t^(2\/3) & quad ("play" upright(H))\,,
+      (0, 1) & "if" D^((t-1)) <= -t^(2\/3) & quad ("play" upright(T))\,,
+      (1\/2, 1\/2) & "otherwise.",
+    )
+  $
+  The strategy $vx^((t))$ depends only on $y^((1)), ..., y^((t-1))$. We show that for every $p in [0, 1]$, its expected swap regret is $O(T^(2\/3))$:
+  $
+    EE[Phi^"swap""-Reg"^((T))] <= 8 T^(2\/3) + 4 sqrt(T(1 + ln T)) + 4 sqrt(T).
+  $
+] <ex-threshold-swap-regret>
+#proof[
+  _Step 1: swap regret with two actions._ For distinct actions $a, b in A$, write $Z_(a -> b)^((t)) := u(b, y^((t))) - u(a, y^((t)))$, and let $G_(a -> b)$ be the gain of the internal-regret transformation $phi.alt_(a -> b)$ defined in @sec-regret-transformations:
+  $
+    G_(a -> b) := sum_(t=1)^T u^((t))(phi.alt_(a -> b)(vx^((t)))) - u^((t))(vx^((t))) = sum_(t=1)^T x_a^((t)) Z_(a -> b)^((t)).
+  $
+  For a column-stochastic matrix $Q$, linearity of $u^((t))$ gives
+  $
+    sum_(t=1)^T u^((t))(Q vx^((t))) - u^((t))(vx^((t))) = sum_(a in A) sum_(b != a) Q_(b a) G_(a -> b).
+  $
+  Column $a$ of $Q$ affects only the terms for action $a$, so the maximum over $Q$ is attained by choosing each column separately. With two actions, column $a$ splits its mass between keeping $a$, which contributes $0$, and moving to the other action $b$, which contributes $G_(a -> b)$. The best choice is all or nothing, so
+  $
+    Phi^"swap""-Reg"^((T)) = max{0, G_(upright(H) -> upright(T))} + max{0, G_(upright(T) -> upright(H))}.
+  $
+
+  _Step 2: per-round expected gains._ We have $EE[u(upright(H), y^((t)))] = p - (1 - p) = delta$ and $EE[u(upright(T), y^((t)))] = -delta$. Hence $mu_(a -> b) := EE[Z_(a -> b)^((t))]$ does not depend on $t$, and
+  $
+    mu_(upright(H) -> upright(T)) = -2 delta, quad mu_(upright(T) -> upright(H)) = 2 delta.
+  $
+  Since $Z_(a -> b)^((t))$ takes values in ${-2, +2}$, its variance is $op("Var")(Z_(a -> b)^((t))) = 4 - 4 delta^2 <= 4$.
+
+  _Step 3: expectation plus fluctuation._ Split each gain into a drift and a fluctuation:
+  $
+    G_(a -> b) = mu_(a -> b) sum_(t=1)^T x_a^((t)) + N_(a -> b), quad "where" quad N_(a -> b) := sum_(t=1)^T xi^((t)),
+  $
+  with $xi^((t)) := x_a^((t)) (Z_(a -> b)^((t)) - mu_(a -> b))$.
+  - _Each term has mean zero and small second moment._ The strategy $vx^((t))$ depends only on earlier rounds, and $y^((t))$ is independent of them. Hence $EE[xi^((t))] = 0$ and $EE[(xi^((t)))^2] <= op("Var")(Z_(a -> b)^((t))) <= 4$.
+  - _Cross terms vanish._ For $s < t$, both $xi^((s))$ and $x_a^((t))$ depend only on $y^((1)), ..., y^((t-1))$, which are independent of $y^((t))$. Hence $EE[xi^((s)) xi^((t))] = EE[xi^((s)) x_a^((t))] dot EE[Z_(a -> b)^((t)) - mu_(a -> b)] = 0$.
+
+  Therefore $EE[N_(a -> b)^2] = sum_(t=1)^T EE[(xi^((t)))^2] <= 4T$, and by Cauchy--Schwarz, $EE[abs(N_(a -> b))] <= sqrt(EE[N_(a -> b)^2]) <= 2 sqrt(T)$. Using $max{0, alpha + beta} <= max{0, alpha} + abs(beta)$ on both terms from Step 1, together with $x_a^((t)) >= 0$,
+  $
+    EE[Phi^"swap""-Reg"^((T))] <= max{0, mu_(upright(H) -> upright(T))} sum_(t=1)^T EE[x_upright(H)^((t))] + max{0, mu_(upright(T) -> upright(H))} sum_(t=1)^T EE[x_upright(T)^((t))] + 4 sqrt(T).
+  $
+
+  _Step 4: the case $p = 1\/2$._ Here $delta = 0$, so both drifts vanish and $EE[Phi^"swap""-Reg"^((T))] <= 4 sqrt(T)$. Steps 1--3 used only that $vx^((t))$ depends on earlier rounds, so against a fair coin, _every_ strategy has expected swap regret at most $4 sqrt(T)$.
+
+  _Step 5: the case $p > 1\/2$._ The case $p < 1\/2$ is symmetric, with $upright(H)$ and $upright(T)$ swapped. Now $delta > 0$, so $mu_(upright(H) -> upright(T)) = -2 delta < 0$ contributes nothing, and
+  $
+    EE[Phi^"swap""-Reg"^((T))] <= 2 delta sum_(t=1)^T EE[x_upright(T)^((t))] + 4 sqrt(T).
+  $
+  It remains to bound the expected total weight on the wrong action $upright(T)$.
+
+  _Step 6: weight on the wrong action._ By definition of the strategy, $x_upright(T)^((t)) in {0, 1\/2, 1}$, and $x_upright(T)^((t)) > 0$ only when $D^((t-1)) < t^(2\/3)$. Hence
+  $
+    EE[x_upright(T)^((t))] <= PP[D^((t-1)) < t^(2\/3)].
+  $
+  The quantity $D^((t-1))$ is a sum of $t - 1$ independent $plus.minus 1$ variables, so it has mean $delta(t - 1)$ and variance $(t - 1)(1 - delta^2) <= t - 1$. Split the rounds at $t_0 := 64\/delta^3$.
+  - _Early rounds ($t < t_0$)._ Bound $EE[x_upright(T)^((t))] <= 1$. There are fewer than $t_0$ such rounds, so they contribute at most $64\/delta^3$.
+  - _Late rounds ($t >= t_0$)._ Since $t >= t_0 >= 64$, we have $t - 1 >= t\/2$, so $delta(t - 1) >= delta t\/2 >= 2 t^(2\/3)$. The mean of $D^((t-1))$ is thus at least twice the threshold, and falling below the threshold requires falling at least $delta(t - 1)\/2$ below the mean. By Chebyshev's inequality,
+    $
+      PP[D^((t-1)) < t^(2\/3)] & <= PP[abs(D^((t-1)) - delta(t - 1)) >= (delta(t - 1)) / 2] \
+      & <= (t - 1) / (delta(t - 1)\/2)^2 = 4 / (delta^2 (t - 1)).
+    $
+    Since $sum_(n=1)^T 1\/n <= 1 + ln T$, the late rounds contribute at most $4(1 + ln T)\/delta^2$.
+
+  Multiplying the total by $2 delta$,
+  $
+    2 delta sum_(t=1)^T EE[x_upright(T)^((t))] <= 128 / delta^2 + (8(1 + ln T)) / delta.
+  $
+
+  _Step 7: a bound uniform in $p$._ The bound of Step 6 blows up as $delta -> 0$. However, trivially $sum_(t=1)^T EE[x_upright(T)^((t))] <= T$, which gives the bound $2 delta T$ instead. Using $min{alpha + beta, gamma} <= min{alpha, gamma} + min{beta, gamma}$ for nonnegative $alpha, beta, gamma$,
+  $
+    2 delta sum_(t=1)^T EE[x_upright(T)^((t))] <= min{128 / delta^2, 2 delta T} + min{(8(1 + ln T)) / delta, 2 delta T}.
+  $
+  Each minimum is largest where its two sides are equal. The first sides are equal at $delta = 4 T^(-1\/3)$, giving $8 T^(2\/3)$. The second sides are equal at $delta^2 = 4(1 + ln T)\/T$, giving $4 sqrt(T(1 + ln T))$. Combining with Step 5, for every $p$,
+  $
+    EE[Phi^"swap""-Reg"^((T))] <= 8 T^(2\/3) + 4 sqrt(T(1 + ln T)) + 4 sqrt(T) = O(T^(2\/3)).
+  $
+]
+
+The hardest opponent has a bias of about $delta approx T^(-1\/3)$. That bias is just barely detectable by the $t^(2\/3)$ threshold within $T$ rounds, and it is also where the $T^(2\/3)$ rate comes from.
+
 == Learning a Nash equilibrium in two-player zero-sum games <sec-learning-zero-sum>
 
 It turns out that regret minimization can be used to converge to bilinear saddle points, that is solutions to problems of the form
