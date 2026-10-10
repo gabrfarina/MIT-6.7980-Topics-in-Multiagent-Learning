@@ -44,13 +44,34 @@ We have thus arrived at the following formalization.
   The goal for a $Phi$-regret minimizer is to guarantee that its $Phi$-regret grows asymptotically sublinearly as time $T$ increases, no matter the sequence of utility functions $u^((t))$.
 ]<defphirm>
 
-Calls to `NextStrategy` and `ObserveUtility` keep alternating to each other: first, the regret minimizer will output a point $vx^((1))$, then it will received feedback $u^((1))$ from the environment, then it will output a new point $vx^((2))$, and so on.
+Calls to `NextStrategy` and `ObserveUtility` keep alternating to each other: first, the regret minimizer will output a point $vx^((1))$, then it will receive feedback $u^((1))$ from the environment, then it will output a new point $vx^((2))$, and so on.
 The decision making encoded by the regret minimizer is _online_, in the sense that at each time $t$, the output of the regret minimizer can depend on the prior outputs $vx^((1)), ...,vx^((t-1))$ and corresponding observed utility functions $u^((1)),...,u^((t-1))$, but no information about future utilities is available.
+
+== Interaction and feedback models
+
+At each round $t$, the learner chooses a strategy using information from earlier rounds. Then, the learner receives feedback and uses it to choose a strategy for round $t+1$. There are two separate choices: how the learner acts, and what feedback they receive.
+
+For a finite action set $A$, a _deterministic action_ means directly choosing and playing one action $a in A$. A _randomized strategy_ is a distribution $vx in Delta(A)$ where the learner samples and plays an action $a$ from the distribution. For example, in a coin game, $(0.7, 0.3)$ is the strategy of playing Heads with probability $0.7$ and Tails with probability $0.3$.
+
+In the _full-information_ feedback setting the learner observes the entire utility function $u^((t)): X -> RR$ after choosing $vx^((t)) in X$. In a normal-form game, this means learning the utility of every action including the ones not played. The learner then evaluates how any strategy would have performed before choosing for round $t+1$. This model is directly tied to online convex optimization because we observe the entire utility function and can directly optimize based on it.
+
+In the _bandit_ feedback setting, the learner only observes the realized utility of the action actually played. For a randomized strategy, that's the utility of the sampled action, not the expected utility $u^((t))(vx^((t)))$ of the distribution itself. The utilities of unplayed actions, the counterfactuals, stay hidden. Bandit algorithms have to work around this by building a gradient estimator that extracts information about the unseen utilities from the strategy played and the one piece of feedback observed.
+
+Strategy and feedback are two independent choices. The strategy axis is about what the learner plays, either one action or a sample from a full distribution. The feedback axis is about what comes back afterward, either the whole utility function $u^((t))$ including counterfactuals or a single real number. These choices can be combined freely. For example, playing a deterministic action does not imply bandit feedback: the learner can play one action and still observe the entire utility function $u^((t))$.
+
 
 == Notable choices of transformations $Phi$ <sec-regret-transformations>
 The size of the set of transformations $Phi$ considered by the player defines
 a natural notion of how "rational" the agent is. There are several choices of interest for $Phi$ for a normal-form strategy space $cX = Delta(A)$.
 - $Phi =$ set of _all_ stochastic matrices, mapping $Delta(A) -> Delta(A)$. This notion of $Phi$-regret is known under the name _swap regret_. This notion is related to convergence to the set of #lecture-link("correlated", <def-ce>)[correlated equilibria].
+  For example, in rock-paper-scissors, swap regret can compare the actions actually played against replacing every action at once, such as rock with paper, scissors with rock, and paper with scissors.
+  In matrix form, $Phi^"swap" = {vx |-> Q vx : Q >= 0, thin vone^top Q = vone^top}$, that is, $Q$ is column-stochastic: column $a$ of $Q$ gives the replacement distribution for action $a$.
+
+  #align(center, image(
+    "figures/learning_intro/swap_regret.svg",
+    width: 12.6cm,
+    alt: "Rock-paper-scissors timeline: every action actually played at times 1 through 7 is replaced, rock by paper, scissors by rock, and paper by scissors.",
+  ))
 - $Phi =$ set of all "probability mass transport" on $cX$, defined as
   $Phi = {phi.alt_(a-> b)}_(a, b in A)$, where
   $
@@ -63,6 +84,13 @@ a natural notion of how "rational" the agent is. There are several choices of in
     )
   $
   This is known as _internal regret_.
+  For example, in rock-paper-scissors, the transformation $phi.alt_("scissors" -> "rock")$ compares the actions actually played against playing rock whenever scissors was played, leaving every other action unchanged.
+
+  #align(center, image(
+    "figures/learning_intro/internal_regret.svg",
+    width: 12.6cm,
+    alt: "Rock-paper-scissors timeline: the comparator copies the actions actually played at times 1 through 7, except that each scissors is switched to rock.",
+  ))
   #theorem[Informal; formal version in @thmce-formal][
     When all agents in a multiplayer general-sum normal-form game play so that their internal or swap regret grows sublinearly, their average correlated distribution of play converges to the set of _correlated equilibria_ of the game.
   ] <thmce-informal>
@@ -95,6 +123,19 @@ The special case where $Phi$ is chosen to be the set of constant transformations
   $
 ] <def-external-regret>
 Again, the goal for a regret minimizer is to ensure its cumulative regret $"Reg"^((T))$ grows sublinearly in $T$.
+
+For example, in rock-paper-scissors, external regret compares the actions actually played against always playing the same fixed strategy, such as always playing rock.
+
+#align(center, image(
+  "figures/learning_intro/external_regret.svg",
+  width: 12.6cm,
+  alt: "Rock-paper-scissors timeline: the actions actually played at times 1 through 7 are each replaced by the constant comparator rock.",
+))
+#strong[Terminological remark.] The name _regret minimizer_ is a bit of a misnomer. The goal is not to make regret as small as possible, but to guarantee that it grows sublinearly in $T$. A regret minimizer is an online algorithm that chooses its strategy for each round using the strategies played and the utility functions observed so far. It is not required to choose the strategy that would have been best in hindsight, and it is not required to minimize the regret accumulated up to round $t$. What matters is the regret's long run growth rate. If regret grows sublinearly, then regret divided by $T$ goes to zero as $T$ grows, meaning that on average per round, the algorithm does just as well as the best fixed strategy in hindsight. Poorer performance in early rounds is acceptable. The important thing is that the algorithm doesn't keep falling behind the best fixed strategy by a significant amount as more rounds are played.
+
+An important result asserts the existence of algorithms that guarantee sublinear regret for any convex and compact domain $cX$, typically of the order $"Reg"^((T)) = O(sqrt(T))$ asymptotically.
+
+As we will show below, external regret minimization alone is enough to guarantee convergence to Nash equilibrium in two-player zero-sum games, to coarse correlated equilibrium in multiplayer general-sum games, to best responses to static stochastic opponents in multiplayer general-sum games, and much more.
 
 #paragraph-marker() *Teaser: From regret minimization to $Phi$-regret minimization.*~~
 As discussed, regret minimization is _one_ instantiation of $Phi$-regret minimization---and perhaps the smallest sensible instantiation. Then, clearly, coming up with a regret minimizer for a set $cX$ cannot be harder than the problem of coming up with a $Phi$-regret minimizer for $cX$ for richer sets of transformation functions $Phi$. It might then seem surprising that there exists a construction that reduces $Phi$-regret minimization to regret minimization. #lecture-link("phi_regret", none)[] develops this reduction.
@@ -191,7 +232,7 @@ We can summarize the process pictorially as follows.
   alt: "Self-play flow: two regret minimizers exchange strategies and utility feedback.",
 ))
 
-A well known folk theorem establish that the pair of average strategies produced by the regret minimizers up to any time $T$ converges to a saddle point of (@bspp), where convergence is measured via the _saddle point gap_
+A well known folk theorem establishes that the pair of average strategies produced by the regret minimizers up to any time $T$ converges to a saddle point of (@bspp), where convergence is measured via the _saddle point gap_
 $
   0 <= gamma(vx, vy) := (max_(xhat in cX) {xhat^top U vy} - vx^top U vy) + (
     vx^top U vy - min_(yhat in cY) {vx^top U yhat}
@@ -278,7 +319,7 @@ The very _existence_ of regret minimizers is a powerful enough fact to imply the
 The previous result is in fact a direct corollary of the more general connection between $Phi$-regret minimization and the set of coarse-correlated equilibria in multiplayer general-sum games. We present a general form of this connection in the next theorem.
 
 #theorem[Formal version of #ref(<thmce-informal>, supplement: "Theorems") and #ref(<thmcce-informal>, supplement: "")][
-  Let $vx^((t))_1, ..., vx^((t))_n$ the strategies played by the players at any time $t$, and let $Phi"-Reg"_i^((t))$ denote the $Phi$-regret incurred by Player $i$ up to time $t$. Consider now the average correlated distribution of play up to any time $T$, that is, the distribution $vmu^((T))$ that selects a time $overline(t)$ uniformly at random from the set ${1,...,T }$, and selects actions $(a_1,..., a_n)$ independendently according to the $vx_i^((overline(t)))$, that is,
+  Let $vx^((t))_1, ..., vx^((t))_n$ be the strategies played by the players at any time $t$, and let $Phi"-Reg"_i^((t))$ denote the $Phi$-regret incurred by Player $i$ up to time $t$. Consider now the average correlated distribution of play up to any time $T$, that is, the distribution $vmu^((T))$ that selects a time $overline(t)$ uniformly at random from the set ${1,...,T }$, and selects actions $(a_1,..., a_n)$ independently according to the $vx_i^((overline(t)))$, that is,
   $
     vmu^((T)) := 1 / T sum_(t=1)^T vx_1^((t))⊗...⊗ vx_n^((t)).
   $
