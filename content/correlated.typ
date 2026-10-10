@@ -181,13 +181,41 @@ In the general two-player case, often referred to as _two-player general-sum gam
   $upright("find") quad vx \, vw in bb(R)^d #h(2em) upright("s.t.") #h(2em) vw = matM vx + vq \, #h(2em) vx \, vw >= 0 \, #h(2em) vx^top vw = 0 .$.body,
 ) <eq:lcp-general>
 
-The Lemke-Howson algorithm is a well-known algorithm to solve LCPs, and it can be used to find Nash equilibria in two-player general-sum games. However, the algorithm is not polynomial-time in the worst case, and it can be hard to find Nash equilibria in practice. An important corollary of the connection between two-player general-sum games and LCPs is the following:
+The Lemke-Howson algorithm is a well-known algorithm to solve LCPs, and it can be used to find Nash equilibria in two-player general-sum games. However, the algorithm is not polynomial-time in the worst case, and it can be hard to find Nash equilibria in practice.
 
-#corollary[
-  Any two-player general-sum games with rational payoffs admits a Nash equilibrium with rational coordinates.
+*Rationality and bit complexity*  Unlike the case of more than two players (@sec-irrational-equilibria), two-player games always admit a Nash equilibrium that can be written down exactly, using rational numbers of moderate size. Throughout, let $m := |A_1|$, $n := |A_2|$, and $k := max{m, n}$.
+
+#theorem[Rational Nash equilibria of polynomial bit complexity][
+  Consider a two-player general-sum game in which every entry of $matU_1$ and $matU_2$ is a rational number $p \/ q$ with integers $|p|, |q| < 2^L$. Then the game admits a Nash equilibrium $(vx, vy)$ in which every probability $x_(a_1)$ and $y_(a_2)$ is a ratio of two integers of absolute value less than $2^(N)$, where
+  $ N := (m + n + 2) dot ((k + 1) L + log_2 (m + n + 2)) = O((m + n)^2 L + (m + n) log(m + n)) . $
+  In particular, the bit complexity of the equilibrium is polynomial in $m$, $n$, and $L$.
+] <thm-rational-nash-2p>
+
+#proof[
+  By Nash's theorem, the game has some Nash equilibrium $(vx^*, vy^*)$. Let $S_1 subset.eq A_1$ and $S_2 subset.eq A_2$ be the supports of $vx^*$ and $vy^*$, and let $v_1^* := vx^(* top) matU_1 vy^*$ and $v_2^* := vx^(* top) matU_2 vy^*$ be the equilibrium payoffs. The idea is to describe "Nash equilibria with supports inside $S_1, S_2$" by _linear_ constraints, and then pick a vertex of the resulting polytope.
+
+  *The support polytope.*  Let $P subset.eq bb(R)^(m + n + 2)$ be the set of points $(vx, vy, v_1, v_2)$ satisfying
+  $
+    & ve_(a_1)^top matU_1 vy <= v_1 quad forall a_1 in A_1, & quad & ve_(a_1)^top matU_1 vy = v_1 quad forall a_1 in S_1, \
+    & vx^top matU_2 ve_(a_2) <= v_2 quad forall a_2 in A_2, & quad & vx^top matU_2 ve_(a_2) = v_2 quad forall a_2 in S_2, \
+    & vx >= 0, quad vone^top vx = 1, quad x_(a_1) = 0 quad forall a_1 in.not S_1, & quad & vy >= 0, quad vone^top vy = 1, quad y_(a_2) = 0 quad forall a_2 in.not S_2 .
+  $
+  Every constraint is linear in $(vx, vy, v_1, v_2)$: the bilinear term $vx^top matU_1 vy$ never appears. We make three observations.
+
+  - _$P$ is nonempty:_ $(vx^*, vy^*, v_1^*, v_2^*) in P$, because at a Nash equilibrium every action in the support of a player's strategy is a best response, and attains the equilibrium payoff.
+  - _$P$ is bounded:_ $vx$ and $vy$ lie in probability simplexes, and $S_1 != emptyset$ (since $vone^top vx^* = 1$), so $v_1 = ve_(a_1)^top matU_1 vy$ for any $a_1 in S_1$ is bounded by the largest absolute payoff; the same holds for $v_2$.
+  - _Every point of $P$ is a Nash equilibrium:_ let $(vx, vy, v_1, v_2) in P$. Since $vx$ is supported on $S_1$, $vx^top matU_1 vy = sum_(a_1 in S_1) x_(a_1) ve_(a_1)^top matU_1 vy = v_1 >= max_(a_1 in A_1) ve_(a_1)^top matU_1 vy$, so Player 1 has no profitable deviation to a pure action, and hence none to a mixed one. The same argument applies to Player 2.
+
+  *Picking a vertex.*  A nonempty bounded polyhedron has at least one vertex, and a vertex of a polyhedron in $bb(R)^d$ is the unique solution of $d$ linearly independent constraints that are tight at it. Let $d := m + n + 2$ and fix a vertex $vz = (vx, vy, v_1, v_2)$ of $P$, which is a Nash equilibrium by the third observation. Then $vz$ is the unique solution of a square system $matM vz = vb$ with $matM in bb(Q)^(d times d)$ nonsingular, whose rows are taken from the constraints above.
+
+  *Clearing denominators.*  Multiply each row involving $matU_1$ by the product of the (at most $n$) denominators of the payoffs in that row, which is less than $2^(n L)$; do the same with the rows involving $matU_2$, whose product of denominators is less than $2^(m L)$. This does not change the solution set. The coefficients in these rows become integers of absolute value less than $2^L dot 2^(k L) = 2^((k + 1) L)$, and the remaining rows have coefficients in ${0, plus.minus 1}$. All entries of $vb$ are $0$ or $1$. So the system is now $matM' vz = vb$ with all entries of $matM'$ and $vb$ being integers of absolute value less than $B := 2^((k + 1) L)$.
+
+  *Cramer's rule and Hadamard's inequality.*  By Cramer's rule, each coordinate of $vz$ equals $det(matM'_j) \/ det(matM')$, where $matM'_j$ is $matM'$ with its $j$-th column replaced by $vb$. Both determinants are integers, and $det(matM') != 0$. By Hadamard's inequality, the absolute value of the determinant of a $d times d$ matrix is at most the product of the Euclidean norms of its rows, and each row of $matM'$ or $matM'_j$ has norm less than $sqrt(d) dot B$. Hence
+  $ |det(matM')|, |det(matM'_j)| < (sqrt(d) dot B)^d <= 2^(d ((k + 1) L + log_2 d)) = 2^N . $
+  Thus every probability $x_(a_1), y_(a_2)$ in the equilibrium $vz$ is a ratio of two integers of absolute value less than $2^N$.
 ]
 
-This follows directly from the way Lemke-Howson works, which is similar to the simplex algorithm. The algorithm moves along edges of a rational polytope until it finds a Nash equilibrium. Since the algorithm only moves along the edges of the polytope, it will only generate rational solutions.
+The proof also suggests an algorithm: guess the supports $(S_1, S_2)$, and solve the linear feasibility problem defining $P$. Trying all $2^(m + n)$ pairs of supports gives an exponential-time algorithm that computes an exact rational Nash equilibrium; this _support enumeration_ algorithm is developed in the #lecture-link("nash_algorithms", <sec-support-enumeration>)[supplementary notes on Nash equilibrium computation]. The Lemke-Howson algorithm gives a different route to the same conclusion: it pivots between vertices of a polytope described by the payoff matrices, so the equilibrium it outputs is also obtained from a vertex with rational coordinates; the same Cramer-and-Hadamard argument shows that they have polynomial bit complexity.
 
 #exercise[Nash equilibrium as a linear complementarity problem][
   Consider a generic two-player general-sum game, with utility matrices $U_1$ and $U_2$ as defined above. Show that finding a Nash equilibrium of the game can be reduced to the LCP of #ref(<eq:lcp-general>, supplement: none), with a number of variables $d$ that is linear in $| A_1 | + | A_2 |$.

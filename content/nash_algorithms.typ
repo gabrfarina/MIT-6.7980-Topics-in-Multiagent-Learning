@@ -38,7 +38,7 @@ Similarly, correlated and coarse correlated equilibria in general-sum games can 
 
 In this lecture, we revisit Nash equilibrium computation in general games. We will discuss several algorithms for computing Nash equilibria. Roughly speaking those algorithms  fall into two buckets. One bucket contains algorithms that directly target the equilibrium constraints, using linear programming, and more generally algorithms for solving systems of polynomial equations and inequalities. The other bucket contains algorithms that make tighter use of the fixed point nature of Nash equilibrium, and the directed parity argument underlying its existence proofs. In all cases, our algorithms will have super-polynomial complexity, unless the game has special structure. #lecture-link("tfnp", none)[] and #lecture-link("ppad_completeness", none)[] explain the complexity-theoretic obstacles to polynomial-time algorithms.
 
-= Support Enumeration Algorithms
+= Support Enumeration Algorithms <sec-support-enumeration>
 
 To develop support enumeration algorithms, we will study whether knowing the _support_ of a Nash equilibrium, i.e.~the actions that are assigned non-zero probability, can reduce the computational complexity of solving for a Nash equilibrium. We will start with two-player games and proceed to general-sum games.
 
@@ -66,14 +66,16 @@ $
 
 If we don't  know the supports of some Nash equilibrium, we can enumerate over all possible pairs of supports $\( S_R \, S_C \) subset.eq \[ m \] times \[ n \]$, and try to find a feasible solution of the corresponding linear program. As a Nash equilibrium always exists, at least one of these linear programs will be feasible. So the overall running time will be $2^(m + n) dot.op op("poly") \( \| R \| \, \| C \| \)$, where the $2^(m + n)$ factor is due to trying all possible pairs of supports, and the polynomial factor in the descriptions of the matrices $R$ and $C$ is determined by the complexity of solving a linear program.
 
-As a corollary of the correctness of the above algorithm, we also get a proof of the existence of Nash equilibria that use rational numbers of polynomial bit complexity in the size of the game.
+As a corollary of the correctness of the above algorithm, we also get a proof of the existence of Nash equilibria that use rational numbers of polynomial bit complexity in the size of the game. We restate the #lecture-link("correlated", <thm-rational-nash-2p>)[rational-equilibrium theorem] in the present notation.
 
 #corollary[
-  In any two-player game, there exists a Nash equilibrium whose mixed strategies use only rational numbers in their probability distributions. Moreover, these numbers have polynomial bit complexity in the bit complexity required to represent the payoff matrices of the game.
+  Consider a two-player game $(R, C)$ in which every payoff entry is a rational number $p \/ q$ with integers $|p|, |q| < 2^L$, and let $k := max{m, n}$. Then the game admits a Nash equilibrium $(vx, vy)$ in which every probability $x_i$ and $y_j$ is a ratio of two integers of absolute value less than $2^N$, where
+  $ N := (m + n + 2) dot ((k + 1) L + log_2 (m + n + 2)) = O((m + n)^2 L + (m + n) log(m + n)) . $
+  In particular, the bit complexity of the equilibrium is polynomial in $m$, $n$, and $L$.
 ]
 
 #proof[
-  This follows from the correctness of the support enumeration algorithm. If there is a Nash equilibrium with supports $S_R$ and $S_C$, then the polytope of the corresponding LP is non-empty and any feasible solution is a Nash equilibrium. In particular, any vertex is a Nash equilibrium, and any vertex is a vector of rational numbers whose bit complexity is polynomial in the description of the LP, and hence the description of the game.
+  Let $S_R, S_C$ be the supports of some Nash equilibrium. Introduce auxiliary variables $v_R, v_C$ for the two players' best-response payoffs, and rewrite the constraints of the linear program above as $ve_k^T R vy <= v_R$ for all $k in [m]$, with equality for $k in S_R$, and $vx^T C ve_k <= v_C$ for all $k in [n]$, with equality for $k in S_C$, together with the simplex and support constraints. The resulting feasible region is nonempty (it contains the equilibrium), bounded (strategies lie in simplexes, and $v_R, v_C$ equal some expected payoff), and every feasible point is a Nash equilibrium, by the argument above. Hence it has a vertex, which is a Nash equilibrium and the unique solution of $m + n + 2$ linearly independent tight constraints. After clearing denominators row by row, Cramer's rule writes each coordinate of the vertex as a ratio of two integer determinants, and Hadamard's inequality bounds both by $2^N$. The #lecture-link("correlated", <thm-rational-nash-2p>)[full proof] carries out this computation.
 ]
 
 As illustrated by the #lecture-link("correlated", <sec-irrational-equilibria>)[irrational-equilibrium example], however, the corollary is not true for $k$-player games where $k > 2$. Indeed, Nash's 1951 paper~#citep(<Nash51:NonCooperative>) already gave an example of a 3-player game that only has irrational equilibria.
@@ -381,7 +383,7 @@ We are now ready to show that the algorithm is guaranteed to terminate at a non-
 We make some final remarks about the Lemke-Howson algorithm.
 
 - The algorithm provides an alternative proof that a Nash equilibrium exists in 2-player games. In particular, the existence of a Nash equilibrium is implied by the correctness of the algorithm.
-- Moreover, it shows that there always exists a rational equilibrium in 2-player games.
+- Moreover, it shows that there always exists a rational equilibrium in 2-player games, since the output is a vertex of a polytope described by the payoff matrices. As in the corollary above, its coordinates have polynomial bit complexity.
 - The proof works by virtue of a parity argument, reminiscent of the proof of Sperner’s lemma. It identifies a directed path on the vertices of the polytope whose sink is a solution.
 - Its worst-case running time is exponential in the number of actions. This lower bound was established by Savani and von Stengel~#citep(<SavaniVS06>).
 - There are generalizations of the Lemke-Howson algorithm for multi-player games working with manifolds instead of polytopes. See Rosenmüller~#citep(<Rosenmuller71>) and Wilson~#citep(<Wilson71>).
