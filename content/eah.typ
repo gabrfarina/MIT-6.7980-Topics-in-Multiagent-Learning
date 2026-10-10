@@ -34,145 +34,81 @@ $
   bb(E)_(a ~ vmu) [u_i (a'_i \, a_(- i)) - u_i (a_i \, a_(- i))] <= 0 #h(2em) forall i in \[ n \] \, a'_i in A_i .
 $
 
-Since the above inequality must hold for every deviation, it is equivalent to requiring that even the largest deviation gain be nonpositive:
+Since the above inequality must hold for every deviation, it is equivalent to requiring that even the largest expected deviation gain be nonpositive:
 
 $
   max_(i in \[ n \]\
   a'_i in A_i) bb(E)_(a ~ vmu) [u_i (a'_i \, a_(- i)) - u_i (a_i \, a_(- i))] <= 0 .
 $
 
-The distribution $vmu$ ranges over
-
-$
-  Delta (A_1 times ... times A_n) \,
-$
-
-the set of all joint distributions over action profiles. Since the action sets are finite, this set is a finite-dimensional probability simplex, and is therefore compact and convex.
-
-Thus, proving that a CCE exists amounts to showing that there is some feasible $vmu$ for which the largest deviation gain is at most $0$. Equivalently, we can minimize this largest deviation gain over all feasible joint distributions and ask whether the resulting value is nonpositive:
+While the inequality above characterizes whether a given joint distribution $vmu$ is a CCE, establishing the existence of a CCE requires showing that at least one such distribution satisfies this condition. We therefore consider the following optimization problem, which minimizes the maximum expected deviation gain over all joint distributions:
 
 $
   min_(vmu in Delta (A_1 times ... times A_n)) max_(i in \[ n \]\
-  a'_i in A_i) bb(E)_(a ~ vmu) [u_i (a'_i \, a_(- i)) - u_i (a_i \, a_(- i))] <= 0 .
-$
-
-Indeed, if some $vmu$ makes the largest deviation gain nonpositive, then the minimum above is also nonpositive. Conversely, because the feasible set is compact and the objective is continuous, the minimum is attained; if the minimum is nonpositive, a minimizing distribution is a CCE.
-
-How can we prove the above inequality without resorting to the existence of Nash equilibria?
-
-_The rescue comes from the minimax theorem._
-
-Before we can use the minimax theorem, however, we have to “convexify” the inner problem. The outer minimization already ranges over a compact convex simplex, but the inner maximization currently ranges over the discrete set of deviations
-
-$
-  (i \, a'_i) \, #h(2em) i in \[ n \] \, a'_i in A_i .
-$
-
-This set is finite, but it is not itself convex. To place both optimization problems in the convex setting required by the minimax theorem, we convexify the inner problem.
-
-To convexify the problem, we simply allow the possibility for the inner maximization problem to propose a _distribution_ $vnu$ over deviations $(i \, a'_i)$. In other words, $vnu in Delta ({(i \, a'_i) : i in \[ n \] \, a'_i in A_i})$.
-
-Since there are finitely many deviations, the set of all such distributions is again a finite-dimensional probability simplex, and is therefore compact and convex.
-
-Importantly, allowing the inner maximization to randomize over deviations does not change its optimal value. To see this, fix any $vmu$. Under a distribution $vnu$, the expected deviation gain is a weighted average of the gains of the individual deviations:
-
-$
-  bb(E)_(\( i \, a'_i \) ~ vnu) bb(E)_(a ~ vmu) [u_i (a'_i \, a_(- i)) - u_i (a_i \, a_(- i))] .
-$
-
-A weighted average cannot exceed the largest value being averaged. Therefore,
-
-$
-  & bb(E)_(\( i \, a'_i \) ~ vnu) bb(E)_(a ~ vmu) [u_i (a'_i \, a_(- i)) - u_i (a_i \, a_(- i))]\
-  & quad quad <= max_(i in \[ n \]\
-  a'_i in A_i) bb(E)_(a ~ vmu) [u_i (a'_i \, a_(- i)) - u_i (a_i \, a_(- i))]
-$
-
-for every $vnu$.
-
-Conversely, if $(i^* \, a'_(i^*))$ is a deviation attaining the maximum on the right-hand side, we may choose $vnu$ to place probability one on that single deviation. The expected gain under $vnu$ then equals the largest individual deviation gain. Hence,
-
-$
-  & max_(vnu in Delta ({(i \, a'_i) : i in \[ n \] \, a'_i in A_i})) bb(E)_(\( i \, a'_i \) ~ vnu) bb(E)_(a ~ vmu) [u_i (a'_i \, a_(- i)) - u_i (a_i \, a_(- i))]\
-  & quad quad = max_(i in \[ n \]\
   a'_i in A_i) bb(E)_(a ~ vmu) [u_i (a'_i \, a_(- i)) - u_i (a_i \, a_(- i))] .
 $
 
-Thus, convexifying the inner problem changes its feasible set but not its optimal value.
+We first examine the domain of the outer minimization. Since the action sets are finite, the set of all joint distributions $Delta (A_1 times ... times A_n)$ is a finite-dimensional probability simplex. Each distribution assigns nonnegative probabilities to joint actions, with the probabilities summing to one. These constraints define a closed and bounded set that is also closed under convex combinations. Hence, the simplex is compact and convex.
 
-We can therefore rewrite the CCE existence problem as
+The maximum expected deviation gain is continuous in $vmu$, as it is the maximum of finitely many linear functions. Together with compactness of the domain, this guarantees that the minimum is attained, so a CCE exists if and only if the optimal value of the minimax problem above is nonpositive.
+
+How can we show that this optimal value is nonpositive without resorting to the existence of Nash equilibria? _The rescue comes from the minimax theorem._
+
+Before applying the minimax theorem, we must convexify the inner maximization. While the outer minimization is over a compact and convex set, the inner maximization ranges over the finite set of deviations $D := {(i \, a'_i) : i in \[ n \] \, a'_i in A_i}$, which is not a convex optimization domain.
+
+To do so, we allow randomized deviations. Specifically, let $vnu in Delta (D)$ denote a probability distribution over deviations. Since $D$ is finite, $Delta (D)$ is also a finite-dimensional probability simplex, and is therefore compact and convex.
+
+This reformulation does not change the value of the inner maximization. Indeed, for any fixed $vmu$, the expected gain under a randomized deviation is a convex combination of the gains from individual deviations. This weighted average cannot exceed the largest individual gain, and equality is achieved by assigning probability one to a maximizing deviation.
+
+Consequently, the original optimization problem can equivalently be written as
 
 $
-  min_vmu max_vnu bb(E)_(a ~ vmu) bb(E)_(\( i \, a'_i \) ~ vnu) [u_i (a'_i \, a_(- i)) - u_i (a_i \, a_(- i))] <= 0 \,
+  min_(vmu in Delta (A_1 times ... times A_n)) max_(vnu in Delta (D)) bb(E)_(\( i \, a'_i \) ~ vnu) bb(E)_(a ~ vmu) [u_i (a'_i \, a_(- i)) - u_i (a_i \, a_(- i))] .
 $
 
-where, from now on, $vmu in Delta (A_1 times ... times A_n)$ and $vnu in Delta ({(i \, a'_i) : i in \[ n \] \, a'_i in A_i})$.
-
-Both optimization domains are compact convex simplexes, and the objective is linear in each of $vmu$ and $vnu$. We are therefore in the setting of the minimax theorem. Swapping the order of optimization and the expectations, the min-max value above is equal to
+Both optimization domains are compact and convex, and the objective is linear in each argument separately. In particular, the objective can be written in the bilinear form $vmu^top matU vnu$, where $matU$ is the deviation-gain matrix with entries $U_(a \, \( i \, a'_i \)) = u_i (a'_i \, a_(- i)) - u_i (a_i \, a_(- i))$. Thus, we can apply the minimax theorem as used in #lecture-link("correlated", <sec-zero-sum>)[]. We can therefore exchange the order of minimization and maximization. The minimax value above is equal to
 
 $
-  max_vnu min_vmu bb(E)_(\( i \, a'_i \) ~ vnu) bb(E)_(a ~ vmu) [u_i (a'_i \, a_(- i)) - u_i (a_i \, a_(- i))] .
+  max_(vnu in Delta (D)) min_(vmu in Delta (A_1 times ... times A_n)) bb(E)_(\( i \, a'_i \) ~ vnu) bb(E)_(a ~ vmu) [u_i (a'_i \, a_(- i)) - u_i (a_i \, a_(- i))] .
 $
 
-Can we show that this value is $<= 0$? The answer is yes, and the proof is constructive. Once $vnu$ is fixed, it is enough to exhibit one feasible $vmu$ for which the expected deviation gain is nonpositive. The following theorem provides exactly such a response---in fact, it provides a _product_ distribution.
+Can we show that this value is $<= 0$? The answer is yes, and constructive: given any $vnu$, we can find a $vmu$ in closed form---in fact, a _product distribution_---such that the expected deviation gain is nonpositive. The following theorem provides exactly such a distribution.
 
 #theorem[#citet(<Hart89>)][
-  Given any distribution $vnu$ over pairs
-
-  $
-    (i \, a'_i) \, #h(2em) i in \[ n \] \, a'_i in A_i \,
-  $
-
-  we can explicitly and efficiently construct a product distribution $vmu in Delta \( A_1 \) ⊗ ... ⊗ Delta \( A_n \)$ such that
+  Given any distribution $vnu$ over pairs $(i \, a'_i) : i in \[ n \] \, a'_i in A_i$, we can explicitly and efficiently construct a product distribution $vmu in Delta \( A_1 \) ⊗ ... ⊗ Delta \( A_n \)$ such that
 
   $ bb(E)_(\( i \, a'_i \) ~ vnu) bb(E)_(a ~ vmu) [u_i (a'_i \, a_(- i)) - u_i (a_i \, a_(- i))] <= 0 . $
 ]#label("thm:hart schmeidler")
 
 A proof of #ref(label("thm:hart schmeidler")) is given in #ref(<sec-hart-schmeidler-proof>, supplement: [Appendix]).
 
-It is important to distinguish the product distribution supplied by #ref(label("thm:hart schmeidler")) from the domain of the minimization problem. The latter is still the full simplex
+It is important to distinguish the product distribution supplied by #ref(label("thm:hart schmeidler")) from the domain of the minimization problem. The minimization domain remains the full simplex of joint distributions, $Delta (A_1 times ... times A_n)$. Since every product distribution is also a joint distribution, we have
 
 $
-  Delta (A_1 times ... times A_n)
+  Delta \( A_1 \) ⊗ ... ⊗ Delta \( A_n \) subset.eq Delta (A_1 times ... times A_n) \,
 $
 
-of all joint distributions. Every product distribution $vmu = vmu_1 ⊗ ... ⊗ vmu_n$ induces a joint distribution over $A_1 times ... times A_n$. Thus,
+where the left-hand side denotes the set of product distributions. The set of product distributions is not convex in general, which is why the minimax theorem is applied over the full simplex of joint distributions.
+
+Therefore, for any fixed $vnu$, #ref(label("thm:hart schmeidler")) provides a feasible $vmu$ whose expected gain averaged over deviations according to $vnu$ is nonpositive. Since the minimum over all joint distributions cannot exceed the value attained by any feasible distribution, we obtain
 
 $
-  Delta \( A_1 \) ⊗ ... ⊗ Delta \( A_n \) subset.eq Delta (A_1 times ... times A_n)
+  min_(vmu in Delta (A_1 times ... times A_n)) bb(E)_(\( i \, a'_i \) ~ vnu) bb(E)_(a ~ vmu) [u_i (a'_i \, a_(- i)) - u_i (a_i \, a_(- i))] <= 0 .
 $
 
-when the left-hand side is understood as the class of product distributions. #ref(label("thm:hart schmeidler")) therefore does not restrict the minimization domain; it simply shows that, for every fixed $vnu$, a particularly simple feasible point---a product distribution---already achieves a nonpositive value.
-
-In particular, for every fixed $vnu$, let $vmu^vnu$ denote the product distribution supplied by #ref(label("thm:hart schmeidler")). Since $vmu^vnu$ is feasible for the minimization problem,
+Since this holds for every $vnu in Delta (D)$, taking the maximum over $vnu$ yields
 
 $
-  & min_vmu bb(E)_(\( i \, a'_i \) ~ vnu) bb(E)_(a ~ vmu) [u_i (a'_i \, a_(- i)) - u_i (a_i \, a_(- i))]\
-  & quad quad <= bb(E)_(\( i \, a'_i \) ~ vnu) bb(E)_(a ~ vmu^vnu) [u_i (a'_i \, a_(- i)) - u_i (a_i \, a_(- i))]\
-  & quad quad <= 0 .
+  max_(vnu in Delta (D)) min_(vmu in Delta (A_1 times ... times A_n)) bb(E)_(\( i \, a'_i \) ~ vnu) bb(E)_(a ~ vmu) [u_i (a'_i \, a_(- i)) - u_i (a_i \, a_(- i))] <= 0 .
 $
 
-Thus,
+By the minimax theorem, we obtain
 
 $
-  min_vmu bb(E)_(\( i \, a'_i \) ~ vnu) bb(E)_(a ~ vmu) [u_i (a'_i \, a_(- i)) - u_i (a_i \, a_(- i))] <= 0
+  min_(vmu in Delta (A_1 times ... times A_n)) max_(vnu in Delta (D)) bb(E)_(\( i \, a'_i \) ~ vnu) bb(E)_(a ~ vmu) [u_i (a'_i \, a_(- i)) - u_i (a_i \, a_(- i))] <= 0 .
 $
 
-for every $vnu$. Taking the maximum over $vnu$ therefore gives
-
-$
-  max_vnu min_vmu bb(E)_(\( i \, a'_i \) ~ vnu) bb(E)_(a ~ vmu) [u_i (a'_i \, a_(- i)) - u_i (a_i \, a_(- i))] <= 0 .
-$
-
-Finally, the minimax theorem gives
-
-$
-  & min_vmu max_vnu bb(E)_(a ~ vmu) bb(E)_(\( i \, a'_i \) ~ vnu) [u_i (a'_i \, a_(- i)) - u_i (a_i \, a_(- i))]\
-  & quad quad = max_vnu min_vmu bb(E)_(\( i \, a'_i \) ~ vnu) bb(E)_(a ~ vmu) [u_i (a'_i \, a_(- i)) - u_i (a_i \, a_(- i))]\
-  & quad quad <= 0 .
-$
-
-By the equivalence established above between maximizing over distributions on deviations and maximizing over a single deviation, this means that there exists a joint distribution $vmu$ under which every unilateral fixed deviation has nonpositive expected gain. Hence, a coarse correlated equilibrium exists.
+Since maximizing over randomized deviations is equivalent to maximizing over individual deviations, and the minimum is attained, there exists a joint distribution $vmu$ under which every unilateral fixed deviation has nonpositive expected gain. Hence, we conclude that a coarse correlated equilibrium exists.
 
 = Turning the minimax theorem into an efficient algorithm <sec-minimax-algorithm>
 
@@ -197,7 +133,7 @@ Combining the two steps above, we will have constructed a $vmu^(*)$ that is an $
 
 == Sketch of the Ellipsoid-Against-Hope algorithm
 
-Let $D := {(i \, a'_i) : i in \[ n \] \, a'_i in A_i}$ denote the set of deviations. In more detail, what #ref(label("thm:hart schmeidler")) implies is that the following open polytope must be empty:
+Recall that $D$ denotes the set of deviations. In more detail, what #ref(label("thm:hart schmeidler")) implies is that the following open polytope must be empty:
 
 $
   lr({vnu in Delta(D) : vec(delim: #none, align: #left,
