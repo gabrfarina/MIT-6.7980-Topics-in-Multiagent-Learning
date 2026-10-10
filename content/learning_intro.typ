@@ -129,7 +129,7 @@ $
 $
 #proof[
   Let $overline(u)(vx_n) := u_n (overline(vx)_1, ..., overline(vx)_(n-1), vx_n)$ be Player $n$'s
-  utility against the mean opponent profile (linear in $vx_n$), and let
+  utility against the mean opponent profile and let
   $vx_n^star in argmax_(vx_n in cX_n) overline(u)(vx_n)$ be a best response to it. Let $F_(t-1)$ be
   the history up to time $t-1$, including Player $n$'s internal randomness and choice of
   $vx_n^((t))$.
@@ -138,10 +138,10 @@ $
   $
     1/T sum_(t=1)^T [u^((t))(vx_n^star) - u^((t))(vx_n^((t)))] <= "Reg"_n^((T)) / T -> 0.
   $
-  The strategy $vx_n^((t))$ is determined by $F_(t-1)$ and the opponents' time $t$ samples are
+  The strategy $vx_n^((t))$ is determined by $F_(t-1)$. The opponents' time $t$ samples are
   independent of $F_(t-1)$ with means $overline(vx)_1, ..., overline(vx)_(n-1)$. Since $u_n$ is
   multilinear, $EE[u^((t))(vx_n^star) - u^((t))(vx_n^((t))) | F_(t-1)] = overline(u)(vx_n^star) - overline(u)(vx_n^((t)))$.
-  Hence the difference between realized and expected utility
+  Hence the difference between realized and expected utility is
   $
     xi_t := [u^((t))(vx_n^star) - u^((t))(vx_n^((t)))] - [overline(u)(vx_n^star) - overline(u)(vx_n^((t)))]
   $
@@ -157,10 +157,7 @@ $
     overline(u)(1/T sum_(t=1)^T vx_n^((t))) -> overline(u)(vx_n^star)
     quad "almost surely."
   $
-  As $cX_n$ is compact and $overline(u)$ is continuous, every limit point of the average
-  strategy attains the maximum of $overline(u)$, i.e., is a best response to
-  $(overline(vx)_1, ..., overline(vx)_(n-1))$. Hence the average strategy converges almost surely
-  to the set of best responses and to the best response itself if it is unique.
+  Since $cX_n$ is compact and $overline(u)$ is continuous, every limit point of the average strategy is a maximizer of $overline(u)$, that is, a best response. Hence the average strategy converges almost surely to the set of best responses, and to the best response itself if it is unique.
 ]
 
 
