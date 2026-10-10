@@ -198,7 +198,7 @@ In the same stochastic setting, even a very simple strategy can guarantee sublin
 #proof[
   _Step 1: swap regret with two actions._ For distinct $a, b in A$, let $Z_(a -> b)^((t)) := u(b, y^((t))) - u(a, y^((t)))$, and let $G_(a -> b)$ be the gain of the internal-regret transformation $phi.alt_(a -> b)$ from @sec-regret-transformations:
   $
-    G_(a -> b) := sum_(t=1)^T u^((t))(phi.alt_(a -> b)(vx^((t)))) - u^((t))(vx^((t))) = sum_(t=1)^T x_a^((t)) Z_(a -> b)^((t)).
+    G_(a -> b) := sum_(t=1)^T (u^((t))(phi.alt_(a -> b)(vx^((t)))) - u^((t))(vx^((t)))) = sum_(t=1)^T x_a^((t)) Z_(a -> b)^((t)).
   $
   By linearity, a column-stochastic $Q$ gains $sum_(a in A) sum_(b != a) Q_(b a) G_(a -> b)$. Each column can be optimized separately, and with two actions the best column either keeps $a$ or moves all of its mass to $b$, so
   $
