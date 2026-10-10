@@ -174,6 +174,34 @@ $
 
 By the equivalence established above between maximizing over distributions on deviations and maximizing over a single deviation, this means that there exists a joint distribution $vmu$ under which every unilateral fixed deviation has nonpositive expected gain. Hence, a coarse correlated equilibrium exists.
 
+#example[Matching pennies][
+  #wrapped-figure(side: right, text-width: 65%)[
+    In the two-player matching pennies game, each player simultaneously chooses heads ($H$) or tails ($T$). Player 1 receives $+1$ if the actions match and $-1$ otherwise, while Player 2 receives the opposite payoff. The corresponding payoff matrix is shown on the right.
+  ][
+    #image("figures/eah/matching_pennies.svg", width: 66.49pt)
+  ]
+
+  Here the set of deviations is $D = {(1 \, H) \, (1 \, T) \, (2 \, H) \, (2 \, T)}$. Let $vnu$ assign probability $1/2$ to each of $(1 \, H)$ and $(2 \, H)$, that is, $nu_(1,H) = nu_(2,H) = 1/2$ and $nu_(1,T) = nu_(2,T) = 0$.
+
+  Following #ref(<sec-hart-schmeidler-proof>, supplement: [Appendix]), the total deviation weights are $s_1 = nu_(1,H) + nu_(1,T) = 1/2$ and $s_2 = 1/2$. Normalizing gives $mu_1 (H) = nu_(1,H) \/ s_1 = 1$ and $mu_2 (H) = nu_(2,H) \/ s_2 = 1$. Thus, the product distribution $vmu = vmu_1 ⊗ vmu_2$ places probability one on $(H \, H)$.
+
+  We now verify the guarantee of #ref(label("thm:hart schmeidler")). Since $vnu$ assigns positive weight only to $(1 \, H)$ and $(2 \, H)$, and both players already play $H$ under $vmu$, the $vnu$-weighted deviation gain is
+
+  $
+    & bb(E)_(\( i \, a'_i \) ~ vnu) bb(E)_(a ~ vmu) [u_i (a'_i \, a_(- i)) - u_i (a_i \, a_(- i))]\
+    & quad quad = 1/2 [u_1 (H \, H) - u_1 (H \, H)] + 1/2 [u_2 (H \, H) - u_2 (H \, H)] = 0 .
+  $
+
+  However, the CCE condition requires every individual deviation to have nonpositive expected gain, rather than only the $vnu$-weighted average. This condition fails for Player 2's deviation to $T$:
+
+  $
+    bb(E)_(a ~ vmu) [u_2 (a_1 \, T) - u_2 (a_1 \, a_2)] = u_2 (H \, T) - u_2 (H \, H) = 1 - (-1) = 2 > 0 \,
+  $
+  so $vmu$ is not a CCE.
+
+  The deviation $(2 \, T)$ has zero weight under $vnu$, so it does not contribute to the weighted gain above. #ref(label("thm:hart schmeidler")) shows that for every $vnu$ there exists a product distribution with nonpositive weighted deviation gain, whereas a CCE requires a single joint distribution that works for every $vnu$. The minimax argument above is what allows us to exchange these two quantifiers.
+] <ex:matching-pennies>
+
 = Turning the minimax theorem into an efficient algorithm <sec-minimax-algorithm>
 
 As in the #lecture-link("brouwer", <sec-sperner-proof>)[analysis of the existence proof underlying Nash equilibrium], it is worth inspecting where the “magic” happens in the above proof. If we squint our eyes a bit, the argument of the proof looked like this:
@@ -265,11 +293,39 @@ If you are curious to read more, the following papers contains extensions and re
 #appendix[
   = Appendix: Proof of Theorem~#ref(label("thm:hart schmeidler"), supplement: none) <sec-hart-schmeidler-proof>
 
-  Let $s_i=sum_(a_i in A_i) nu_(i,a_i)$ be the total mass assigned to player $i$'s deviations. If $s_i>0$, set $mu_(i)(a_i)=nu_(i,a_i)/s_i$; if $s_i=0$, choose any distribution $vmu_i$ on $A_i$. Let $vmu=vmu_1 times ... times vmu_n$ be their product distribution.
+  Let $s_i=sum_(a_i in A_i) nu_(i,a_i)$ be the total mass assigned to player $i$'s deviations. If $s_i>0$, set $mu_(i)(a_i)=nu_(i,a_i)/s_i$; if $s_i=0$, choose any distribution $vmu_i$ on $A_i$. Let $vmu=vmu_1 ⊗ ... ⊗ vmu_n$ be their product distribution.
 
   For $s_i>0$, averaging the deviating action according to $vnu_(i,dot)/s_i$ is exactly the same as drawing it from $vmu_i$, independently of the opponents. Therefore
   $
-    sum_(a'_i) nu_(i,a'_i) EE_(a ~ vmu)[u_(i)(a'_i,a_(-i))-u_(i)(a_i,a_(-i))] = s_(i)(EE_(a ~ vmu)[u_(i)(a)]-EE_(a ~ vmu)[u_(i)(a)])=0.
+    sum_(a'_i) nu_(i,a'_i) bb(E)_(a ~ vmu)[u_(i)(a'_i,a_(-i))-u_(i)(a_i,a_(-i))] = s_(i)(bb(E)_(a ~ vmu)[u_(i)(a)]-bb(E)_(a ~ vmu)[u_(i)(a)])=0.
   $
   If $s_i=0$, the same expression is zero because all its coefficients vanish. Sum over players to obtain the theorem, with equality. This normalization also handles zero-mass players, for whom an unnormalized product of the $vnu$ entries would not define a probability distribution.
+
+  #exercise[Independence in the proof of #ref(label("thm:hart schmeidler"))][
+    Identify where independence is used in #ref(<sec-hart-schmeidler-proof>, supplement: [Appendix]). Give an example in matching pennies to show that the weighted deviation inequality in #ref(label("thm:hart schmeidler")) can fail if the product distribution is replaced by a joint distribution with the same marginals.
+  ]
+
+  #solution[
+    Independence is used in the step where the expected payoff from independently sampling a player's action according to $vmu_i$ and the opponents' actions according to $vmu_(-i)$ is identified with the expected payoff under the joint distribution. To see why, recall that $mu_(i)(a'_i) = nu_(i,a'_i) \/ s_i$, so player $i$'s weighted deviation gain equals
+
+    $
+      sum_(a'_i) nu_(i,a'_i) bb(E)_(a ~ vmu)[u_(i)(a'_i,a_(-i)) - u_(i)(a)] = s_i (bb(E)_(a'_i ~ vmu_i \, a_(-i) ~ vmu_(-i))[u_(i)(a'_i,a_(-i))] - bb(E)_(a ~ vmu)[u_(i)(a)]) .
+    $
+
+    The first expectation is the payoff from a deviation drawn from $vmu_i$ independently of the opponents, and the second is the actual payoff under $vmu$. If $vmu$ is a product distribution, the two are equal, so the gain is zero. If $vmu$ is replaced by a joint distribution with the same marginals, the first expectation stays the same, but the second can change, because the players' actions may now be correlated.
+
+    One possible counterexample uses the matching pennies game from #ref(<ex:matching-pennies>), but with a different choice of deviation weights. Let $nu_(1,H) = nu_(1,T) = 1/2$, with all other deviation weights equal to zero. Then $s_1 = 1$ and $s_2 = 0$. The construction in #ref(<sec-hart-schmeidler-proof>, supplement: [Appendix]) gives $mu_1 (H) = mu_1 (T) = 1/2$. Since $s_2 = 0$, we are free to choose $vmu_2$. Let $mu_2 (H) = mu_2 (T) = 1/2$.
+
+    Now consider the correlated joint distribution $vmu'$ defined by $mu' (H \, T) = mu' (T \, H) = 1/2$, with zero probability on the other action profiles. This distribution has the same marginals as $vmu$, but $bb(E)_(a ~ vmu')[u_(1)(a)] = -1$, while deviating to either $H$ or $T$ yields expected payoff $0$.
+
+    Consequently, the weighted deviation gain is
+
+    $
+      & bb(E)_(\( i \, a'_i \) ~ vnu) bb(E)_(a ~ vmu')[u_(i)(a'_i,a_(-i)) - u_(i)(a)]\
+      & quad = sum_(a'_1 in {H \, T}) 1/2 (bb(E)_(a ~ vmu')[u_(1)(a'_1,a_2)] - bb(E)_(a ~ vmu')[u_(1)(a)])\
+      & quad = 1/2 (0 - (-1)) + 1/2 (0 - (-1)) = 1 > 0 .
+    $
+
+    Thus, replacing the product distribution with a correlated joint distribution having the same marginals can violate the weighted deviation inequality of #ref(label("thm:hart schmeidler")).
+  ]
 ]
