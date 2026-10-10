@@ -80,6 +80,37 @@ $ tilde(vg)^((t)) := (w^((t)) / p^((t))_(a^((t)))) ve_(a^((t))) in RR^A. $
   #v(-6mm)
 ]
 
+
+#paragraph-marker() *Behavior of the importance sampling estimator.*~~
+
+Although the importance sampling estimator is unbiased, its magnitude can be very large. In particular, when an action $a^((t))$ with positive gain is sampled with very small probability $y^((t))_(a^((t)))$, the estimate $w^((t)) / y^((t))_(a^((t)))$ can be arbitrarily large, even when the true gain lies in $[0,1]$.
+
+For example, if an action has sampling probability $0.001$ and gain $1$, the corresponding estimated gain is $1000$.
+
+
+An alternative is the following shifted importance sampling estimator, which we denote by $overline(vg)^((t))$ to distinguish it from the standard estimator:
+
+$
+  overline(vg)^((t)) :=
+    vone + frac(w^((t)) - 1, y^((t))_(a^((t)))) ve_(a^((t))).
+$
+
+This estimator is also unbiased. Indeed, conditioning on the history and the current gain vector,
+
+$
+  EE_t [overline(vg)^((t))]
+  = vone + sum_(a in A) y^((t))_a
+    frac(g^((t))_a - 1, y^((t))_a) ve_a
+  = vone + sum_(a in A) (g^((t))_a - 1) ve_a
+  = vg^((t)).
+$
+
+
+Since $w^((t)) in [0,1]$, the correction term is always nonpositive. Consequently, every coordinate of the shifted estimator is bounded above by $1$. However, unlike the original estimator, it can take arbitrarily large negative values when an action with gain strictly below $1$ is sampled with very small probability.
+
+Thus, while both estimators are unbiased, they have different one-sided boundedness properties. The shifted estimator is particularly useful for multiplicative-weights updates formulated in terms of gains.
+
+
 == The Exp3 algorithm
 
 Exp3 (short for "exponential weights for exploration and exploitation") adapts #lecture-link("learning1", <sec-mwu>)[multiplicative weights] to bandit feedback and was introduced by #citet(<auer2002nonstochastic>). We use a variant that needs no explicit exploration mixture. Convert rewards $g^((t))_a in [0,1]$ into losses $ell^((t))_a=1-g^((t))_a$. This changes neither realized regret nor pseudoregret.
@@ -105,7 +136,48 @@ Equivalently, the full-information utility learner receives $-hat(vell)^((t))$.
 
 == Tsallis entropy
 
-It can be shown that, information theoretically, no bandit learning algorithm for a finite set of actions $|A|$ can achieve better than $Omega(sqrt(T |A|))$ expected regret in general. The regret guaranteed by the Exp3 algorithm is therefore optimal only up to a logarithmic factor. It remained open for a long time whether this logarithmic factor could be removed. A positive answer was given by #citet(<audibert2010regret>), who proposed the idea of replacing #lecture-link("learning1", <sec-mwu>)[MWU] with #lecture-link("learning1", <ftrl-omd-general-case>)[FTRL] instantiated with the negative $(1\/2)$-Tsallis entropy regularizer
+
+It can be shown that no bandit learning algorithm can guarantee pseudoregret better than $Omega(sqrt(T |A|))$ in general. More precisely, Theorem 5.1 of #citet(<auer2002nonstochastic>) establishes that for every $|A| >= 2$ and horizon $T$, there exists a distribution over gain sequences for which any bandit algorithm has expected weak regret at least
+$
+  frac(1, 20) min{sqrt(T |A|), T}.
+$
+In particular, when $2 <= |A| <= T$, this gives an $Omega(sqrt(T |A|))$ lower bound.
+
+#paragraph-marker() *Lower bound construction (sketch).*~~
+To understand the source of this lower bound, consider an adversary that chooses a distinguished action $a^("*")$ uniformly at random from $A$, before the interaction begins. At every round, the adversary independently draws the gains of all actions, with
+$
+  EE[g_a^((t))] = cases(
+    1/2 + epsilon & "if " a = a^("*"),
+    1/2 & "otherwise".
+  )
+$
+Each gain is a Bernoulli random variable, and the learner observes only the gain of the sampled action.
+
+The distinguished action is better than every other action by an expected gain of $epsilon$ per round. However, the learner does not know which action is distinguished. Identifying it requires distinguishing a Bernoulli distribution with mean $1/2 + epsilon$ from one with mean $1/2$, which takes on the order of $1 / epsilon^2$ observations.
+
+
+Because the learner must distribute its observations among $|A|$ possible distinguished actions, consider choosing
+
+$
+  epsilon = c sqrt(frac(|A|, T))
+$
+
+for a sufficiently small universal constant $c > 0$. An information-theoretic change-of-measure argument shows that the learner cannot identify the distinguished action with sufficiently high probability to avoid playing nondistinguished actions on a constant fraction of rounds in expectation. Intuitively, distinguishing an arm with mean $1/2 + epsilon$ from one with mean $1/2$ requires on the order of $1 / epsilon^2$ observations, and the learner does not have enough rounds to gather this much information about all $|A|$ arms.
+
+
+Each such round incurs an expected gain shortfall of $epsilon$. Therefore,
+$
+  "PseudoReg"^((T))
+  = Omega(epsilon T)
+  = Omega(sqrt(T |A|)).
+$
+
+Although this construction uses randomly generated gains, it also establishes a worst-case lower bound against oblivious adversaries: averaging over the constructed environments implies that at least one fixed gain sequence produces the stated expected regret over the learner's randomization.
+
+The lower bound applies directly to pseudoregret, since the distinguished action is a fixed comparator with expected cumulative gain $T(1/2 + epsilon)$. Consequently, no algorithm can guarantee pseudoregret $o(sqrt(T |A|))$ uniformly over all bandit instances in the range $2 <= |A| <= T$.
+
+The regret guaranteed by Exp3 is therefore optimal only up to a logarithmic factor. It remained open for a long time whether this logarithmic factor could be removed. A positive answer was given by #citet(<audibert2010regret>), who proposed replacing #lecture-link("learning1", <sec-mwu>)[MWU] with #lecture-link("learning1", <ftrl-omd-general-case>)[FTRL] instantiated with the negative $(1\/2)$-Tsallis entropy regularizer
+
 $
   psi(vx) = 2 - 2 sum_(a in A) sqrt(x_a).
 $
