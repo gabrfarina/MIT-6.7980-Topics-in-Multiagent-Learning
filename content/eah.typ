@@ -54,9 +54,9 @@ The maximum expected deviation gain is continuous in $vmu$, as it is the maximum
 
 How can we show that this optimal value is nonpositive without resorting to the existence of Nash equilibria? _The rescue comes from the minimax theorem._
 
-Before applying the minimax theorem, we must convexify the inner maximization. While the outer minimization is over a compact and convex set, the inner maximization ranges over the finite set of player-deviation pairs $D := {(i \, a'_i) : i in \[ n \] \, a'_i in A_i}$, which is not a convex optimization domain.
+Before applying the minimax theorem, we must convexify the inner maximization. While the outer minimization is over a compact and convex set, the inner maximization ranges over the finite set of deviations $D := {(i \, a'_i) : i in \[ n \] \, a'_i in A_i}$, which is not a convex optimization domain.
 
-To do so, we allow randomized deviations. Specifically, let $vnu in Delta (D)$ denote a probability distribution over player-deviation pairs. Since $D$ is finite, $Delta (D)$ is also a finite-dimensional probability simplex, and is therefore compact and convex.
+To do so, we allow randomized deviations. Specifically, let $vnu in Delta (D)$ denote a probability distribution over deviations. Since $D$ is finite, $Delta (D)$ is also a finite-dimensional probability simplex, and is therefore compact and convex.
 
 This reformulation does not change the value of the inner maximization. Indeed, for any fixed $vmu$, the expected gain under a randomized deviation is a convex combination of the gains from individual deviations. This weighted average cannot exceed the largest individual gain, and equality is achieved by assigning probability one to a maximizing deviation.
 
@@ -133,7 +133,7 @@ Combining the two steps above, we will have constructed a $vmu^(*)$ that is an $
 
 == Sketch of the Ellipsoid-Against-Hope algorithm
 
-Let $D := {(i \, a'_i) : i in \[ n \] \, a'_i in A_i}$ denote the set of deviations. In more detail, what #ref(label("thm:hart schmeidler")) implies is that the following open polytope must be empty:
+Recall that $D$ denotes the set of deviations. In more detail, what #ref(label("thm:hart schmeidler")) implies is that the following open polytope must be empty:
 
 $
   lr({vnu in Delta(D) : vec(delim: #none, align: #left,
