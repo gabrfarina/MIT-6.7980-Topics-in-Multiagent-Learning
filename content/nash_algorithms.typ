@@ -38,7 +38,7 @@ Similarly, correlated and coarse correlated equilibria in general-sum games can 
 
 In this lecture, we revisit Nash equilibrium computation in general games. We will discuss several algorithms for computing Nash equilibria. Roughly speaking those algorithms  fall into two buckets. One bucket contains algorithms that directly target the equilibrium constraints, using linear programming, and more generally algorithms for solving systems of polynomial equations and inequalities. The other bucket contains algorithms that make tighter use of the fixed point nature of Nash equilibrium, and the directed parity argument underlying its existence proofs. In all cases, our algorithms will have super-polynomial complexity, unless the game has special structure. #lecture-link("tfnp", none)[] and #lecture-link("ppad_completeness", none)[] explain the complexity-theoretic obstacles to polynomial-time algorithms.
 
-= Support Enumeration Algorithms <sec-support-enumeration>
+= Support Enumeration Algorithms
 
 To develop support enumeration algorithms, we will study whether knowing the _support_ of a Nash equilibrium, i.e.~the actions that are assigned non-zero probability, can reduce the computational complexity of solving for a Nash equilibrium. We will start with two-player games and proceed to general-sum games.
 
@@ -64,7 +64,7 @@ $
   & forall j : med med y_j > 0 med med => j in S_C med => j med upright("is a best response to ") vx .
 $
 
-If we don't  know the supports of some Nash equilibrium, we can enumerate over all possible pairs of supports $\( S_R \, S_C \) subset.eq \[ m \] times \[ n \]$, and try to find a feasible solution of the corresponding linear program. As a Nash equilibrium always exists, at least one of these linear programs will be feasible. So the overall running time will be $2^(m + n) dot.op op("poly") \( \| R \| \, \| C \| \)$, where the $2^(m + n)$ factor is due to trying all possible pairs of supports, and the polynomial factor in the descriptions of the matrices $R$ and $C$ is determined by the complexity of solving a linear program.
+If we don't  know the supports of some Nash equilibrium, we can enumerate over all possible pairs of supports $\( S_R \, S_C \) subset.eq \[ m \] times \[ n \]$, and try to find a feasible solution of the corresponding linear program. As a Nash equilibrium always exists, at least one of these linear programs will be feasible. So the overall running time will be $2^(m + n) dot.op op("poly") \( \| R \| \, \| C \| \)$, where the $2^(m + n)$ factor is due to trying all possible pairs of supports, and the polynomial factor in the descriptions of the matrices $R$ and $C$ is determined by the complexity of solving a linear program. The exponential factor is not merely an artifact of enumerating in an unlucky order: Savani and von Stengel~#citep(<SavaniVS06>) construct $d times 2 d$ games in which about $0.7 times 1.66^d$ supports must be inspected before an equilibrium is found, on average over a random permutation of one player's actions.
 
 As a corollary of the correctness of the above algorithm, we also get a proof of the existence of Nash equilibria that use rational numbers of polynomial bit complexity in the size of the game.
 
@@ -377,24 +377,8 @@ We make some final remarks about the Lemke-Howson algorithm.
 - Moreover, it shows that there always exists a rational equilibrium in 2-player games.
 - The proof works by virtue of a parity argument, reminiscent of the proof of Sperner’s lemma. It identifies a directed path on the vertices of the polytope whose sink is a solution.
 - A single pivoting step is cheap: un-tightening one inequality and following the resulting edge amounts to solving a linear system of size $n$, so each step costs time polynomial in the description of the game. The running time is therefore governed by the _number_ of steps, that is, by the length of the main path. Since the walk never revisits a vertex, it stops after at most as many steps as the polytope has vertices, and the upper bound theorem for polytopes caps that count at fewer than $2.6^n$~#citep(<vonStengel07:Equilibrium>).
-- The number of steps really can be exponential. Savani and von Stengel~#citep(<SavaniVS06>) construct $d times d$ games in which the length of _every_ main path is at least proportional to $phi^(3 d \/ 4) approx 1.43^d$, where $phi approx 1.618$ is the golden ratio. The only freedom the algorithm has is the choice of the special action, since the pivoting rule itself is forced once that choice is made; the lower bound holds no matter which action is chosen. Getting below exponential time thus requires abandoning the pivoting paradigm altogether, rather than merely pivoting more cleverly.
+- The number of steps really can be exponential. Savani and von Stengel~#citep(<SavaniVS06>) construct $d times d$ games in which the length of _every_ main path is at least proportional to $phi^(3 d \/ 4) approx 1.43^d$, where $phi approx 1.618$ is the golden ratio. The only freedom the algorithm has is the choice of the special action, since the pivoting rule itself is forced once that choice is made; the lower bound holds no matter which action is chosen.
 - There are generalizations of the Lemke-Howson algorithm for multi-player games working with manifolds instead of polytopes. See Rosenmüller~#citep(<Rosenmuller71>) and Wilson~#citep(<Wilson71>).
-
-= How fast can we compute an exact equilibrium? <sec-exact-time-bounds>
-
-Lemke and Howson published their algorithm in 1964. More than sixty years later, no polynomial-time algorithm for computing an exact Nash equilibrium of a two-player game is known, and we now have a good explanation for why: the problem is PPAD-complete~#citep(<chen2009settling>), as #lecture-link("ppad_completeness", none)[] shows. Short of $"PPAD" subset.eq "P"$, there is no polynomial-time algorithm to be found.
-
-PPAD-completeness, however, is a statement about polynomial time only. It leaves open how fast an exponential algorithm can be, and that is the question this section surveys.
-
-Every exact algorithm we know of runs in exponential time. Support enumeration (@sec-support-enumeration) tests up to $2^(m + n)$ pairs of supports. Pivoting along the polytope, as in Lemke-Howson, instead costs one linear solve per vertex visited. Enumerating the vertices of the polytopes outright beats enumerating supports by an exponential factor, since an $n times n$ game has roughly $4^n$ candidate support pairs but, as noted above, fewer than $2.6^n$ vertices. No algorithm running in time $2^(o \( n \))$ is known for any of these routes.
-
-Nor is it enough to switch between the known approaches, since a single family of games defeats two of them at once. The $d times 2 d$ games of #citet(<SavaniVS06>) force every Lemke-Howson path to have length at least proportional to $1.43^d$, and simultaneously force support enumeration to inspect about $0.7 times 1.66^d$ supports before it finds an equilibrium, on average over a random permutation of one player's actions.
-
-One might hope that such instances are pathological and that typical games are easy. Smoothed analysis rules out the easy version of that hope: #citet(<chen2009settling>) show that the smoothed complexity of the Lemke-Howson algorithm, and in fact of _any_ algorithm for computing an exact two-player equilibrium, is not polynomial unless every problem in PPAD admits a randomized polynomial-time algorithm.
-
-The picture changes as soon as we give up exactness. #citet(<LMM03>) show that every two-player game has an $epsilon.alt$-approximate equilibrium supported on $O \( log n \/ epsilon.alt^2 \)$ actions and uniform on a multiset of that size, so searching over all such strategy pairs finds one in quasi-polynomial time $n^(O \( log n \/ epsilon.alt^2 \))$. This is essentially optimal: #citet(<Rubinstein16:Settling>) prove that for some constant $epsilon.alt > 0$, computing an $epsilon.alt$-approximate equilibrium requires time $n^(log^(1 - o \( 1 \)) n)$ under the exponential time hypothesis for PPAD. In particular there is no polynomial-time approximation scheme, and quasi-polynomial time is the best the relaxation buys.
-
-Finally, exactness and polynomial time are compatible when the game has structure. #lecture-link("correlated", <sec-zero-sum>)[Zero-sum games] reduce to linear programming, and an exact equilibrium can be computed in polynomial time when the payoff matrices have constant rank~#citep(<LMM03>).
 
 = Bibliography for this lecture
 
