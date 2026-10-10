@@ -297,7 +297,7 @@ If you are curious to read more, the following papers contains extensions and re
 
   For $s_i>0$, averaging the deviating action according to $vnu_(i,dot)/s_i$ is exactly the same as drawing it from $vmu_i$, independently of the opponents. Therefore
   $
-    sum_(a'_i) nu_(i,a'_i) EE_(a ~ vmu)[u_(i)(a'_i,a_(-i))-u_(i)(a_i,a_(-i))] = s_(i)(EE_(a ~ vmu)[u_(i)(a)]-EE_(a ~ vmu)[u_(i)(a)])=0.
+    sum_(a'_i) nu_(i,a'_i) bb(E)_(a ~ vmu)[u_(i)(a'_i,a_(-i))-u_(i)(a_i,a_(-i))] = s_(i)(bb(E)_(a ~ vmu)[u_(i)(a)]-bb(E)_(a ~ vmu)[u_(i)(a)])=0.
   $
   If $s_i=0$, the same expression is zero because all its coefficients vanish. Sum over players to obtain the theorem, with equality. This normalization also handles zero-mass players, for whom an unnormalized product of the $vnu$ entries would not define a probability distribution.
 
@@ -309,20 +309,20 @@ If you are curious to read more, the following papers contains extensions and re
     Independence is used in the step where the expected payoff from independently sampling a player's action according to $vmu_i$ and the opponents' actions according to $vmu_(-i)$ is identified with the expected payoff under the joint distribution. To see why, recall that $mu_(i)(a'_i) = nu_(i,a'_i) \/ s_i$, so player $i$'s weighted deviation gain equals
 
     $
-      sum_(a'_i) nu_(i,a'_i) EE_(a ~ vmu)[u_(i)(a'_i,a_(-i)) - u_(i)(a)] = s_i (EE_(a'_i ~ vmu_i \, a_(-i) ~ vmu_(-i))[u_(i)(a'_i,a_(-i))] - EE_(a ~ vmu)[u_(i)(a)]) .
+      sum_(a'_i) nu_(i,a'_i) bb(E)_(a ~ vmu)[u_(i)(a'_i,a_(-i)) - u_(i)(a)] = s_i (bb(E)_(a'_i ~ vmu_i \, a_(-i) ~ vmu_(-i))[u_(i)(a'_i,a_(-i))] - bb(E)_(a ~ vmu)[u_(i)(a)]) .
     $
 
     The first expectation is the payoff from a deviation drawn from $vmu_i$ independently of the opponents, and the second is the actual payoff under $vmu$. If $vmu$ is a product distribution, the two are equal, so the gain is zero. If $vmu$ is replaced by a joint distribution with the same marginals, the first expectation stays the same, but the second can change, because the players' actions may now be correlated.
 
     One possible counterexample uses the matching pennies game from #ref(<ex:matching-pennies>), but with a different choice of deviation weights. Let $nu_(1,H) = nu_(1,T) = 1/2$, with all other deviation weights equal to zero. Then $s_1 = 1$ and $s_2 = 0$. The construction in #ref(<sec-hart-schmeidler-proof>, supplement: [Appendix]) gives $mu_1 (H) = mu_1 (T) = 1/2$. Since $s_2 = 0$, we are free to choose $vmu_2$. Let $mu_2 (H) = mu_2 (T) = 1/2$.
 
-    Now consider the correlated joint distribution $vmu'$ defined by $mu' (H \, T) = mu' (T \, H) = 1/2$, with zero probability on the other action profiles. This distribution has the same marginals as $vmu$, but $EE_(a ~ vmu')[u_(1)(a)] = -1$, while deviating to either $H$ or $T$ yields expected payoff $0$.
+    Now consider the correlated joint distribution $vmu'$ defined by $mu' (H \, T) = mu' (T \, H) = 1/2$, with zero probability on the other action profiles. This distribution has the same marginals as $vmu$, but $bb(E)_(a ~ vmu')[u_(1)(a)] = -1$, while deviating to either $H$ or $T$ yields expected payoff $0$.
 
     Consequently, the weighted deviation gain is
 
     $
-      & EE_(\( i \, a'_i \) ~ vnu) EE_(a ~ vmu')[u_(i)(a'_i,a_(-i)) - u_(i)(a)]\
-      & quad = sum_(a'_1 in {H \, T}) 1/2 (EE_(a ~ vmu')[u_(1)(a'_1,a_2)] - EE_(a ~ vmu')[u_(1)(a)])\
+      & bb(E)_(\( i \, a'_i \) ~ vnu) bb(E)_(a ~ vmu')[u_(i)(a'_i,a_(-i)) - u_(i)(a)]\
+      & quad = sum_(a'_1 in {H \, T}) 1/2 (bb(E)_(a ~ vmu')[u_(1)(a'_1,a_2)] - bb(E)_(a ~ vmu')[u_(1)(a)])\
       & quad = 1/2 (0 - (-1)) + 1/2 (0 - (-1)) = 1 > 0 .
     $
 
