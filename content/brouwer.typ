@@ -341,6 +341,104 @@ _Continuity_, _compactness_, and _convexity_ are each necessary in Brouwer's the
 
 #lec_bibliography("meta/refs.bib", title: none)
 
+#appendix[
+  = Finding a Sperner triangle needs exponentially many calls <sec-sperner-query-lower-bound>
+
+  @sec-sperner-computation explained that, when the coloring is given by a circuit on $m$-bit coordinates, walking the Sperner graph can take time exponential in $m$. This appendix shows that the exponential time is unavoidable. An algorithm learns colors only by calls to the circuit, and every deterministic algorithm needs exponentially many calls before it can output a trichromatic triangle. Hirsch, Papadimitriou, and Vavasis #citep(<hirsch1989exponential>) proved exponential lower bounds for finding Brouwer fixed points. The construction below draws a path of the #lecture-link("tfnp", <sec-end-of-line>)[End-of-Line problem] #citep(<papadimitriou1994parity>) into the grid. Chen and Deng #citep(<chen2009discrete>) used it in their PPAD-hardness proof.
+
+  *Setting.* The points are $(i, j)$ with $0 <= i, j <= N$, where $N = 2^m - 1$, so each coordinate is an $m$-bit number. Each unit square is cut into two triangles by its diagonal from $(i, j)$ to $(i+1, j+1)$ (@fig-sperner-query-setting). The boundary has the standard coloring of @sec-sperner-proof, and the _door_ is the red-yellow boundary edge from $(0, 0)$ to $(0, 1)$. A _call_ is one use of the Sperner circuit. The algorithm names a point and receives its color. It may choose each call based on earlier answers, and it must output a trichromatic triangle. We count calls.
+
+  #figure(
+    caption: [The setting for $m = 3$, so $N = 7$ and each coordinate is a 3-bit number. Each unit square is cut by its diagonal from $(i, j)$ to $(i+1, j+1)$. The boundary has the standard coloring, and the door is the red-yellow edge from $(0, 0)$ to $(0, 1)$. Interior points (hollow) are unknown until they are queried. Here one call sends the point $(101, 011)$ to the Sperner circuit, which answers with its color.],
+  )[
+    #image("figures/brouwer/sperner_setting.svg", width: 78%, alt: "An 8 by 8 grid of points labeled with 3-bit coordinates and triangulated by diagonals. The boundary has the standard coloring with the door highlighted at the bottom left. Interior points are hollow, except one queried point whose coordinates are sent to a box labeled Sperner circuit, which answers blue.")
+  ] <fig-sperner-query-setting>
+
+  #theorem[
+    Fix $w = 12$, the width of the bands defined below, and let $K = floor((N - 4) \/ w) approx N \/ w$. For every deterministic algorithm that always outputs a trichromatic triangle, there is a standard Sperner coloring on which the algorithm makes at least $(K - 2) \/ 4 approx N \/ (4 w)$ calls. Since $N approx 2^m$, this is about $2^m \/ 48$ calls, which is exponential in $m$.
+  ] <thm-sperner-query-lower-bound>
+
+  *Definitions.*
+  - *Bands.* Leave a margin 2 points wide around the edge. Cut the rest into $K$ horizontal _bands_ $w$ points tall and $K$ vertical _bands_ $w$ points wide. Any leftover strip at the top or right is blue margin. The margin is where the $N - 4$ comes from. The bands start at coordinate $2$ and must end by coordinate $N - 2$, which leaves a stretch of length $N - 4$.
+  - *Blocks and diagonal squares.* A _block_ $(x, y)$ is where vertical band $x$ meets horizontal band $y$. _Diagonal square_ $k$ is block $(k, k)$. There are exactly $K$ diagonal squares, one per band.
+  - *Tunnel.* A _tunnel_ has a red wall with a yellow wall right beside it, and every other point is blue. It enters from the door into square $0$, visits diagonal squares $0 -> a_1 -> dots.c -> a_k$, and stops. The last square $a_k$ is the _dead end_.
+  - *Hop.* A _hop_ is the piece of tunnel from one diagonal square $a$ to the next one, $b$. It has two legs. The sideways leg runs along horizontal band $a$ to vertical band $b$, and then the up-or-down leg runs along vertical band $b$ into square $b$.
+  - *Crossing.* A sideways leg and an up-or-down leg can meet in one block. There the walls are rewired inside the block so that the two tunnels do not touch. The incoming sideways leg connects to the outgoing up-or-down leg and the other way round, and both keep their direction. The rewiring can split off a closed loop, which we call an _island_ (@fig-sperner-bands).
+
+  Every tunnel coloring is a legal standard Sperner coloring. Its only trichromatic triangle lies in the dead end's square. Along a wall, red and yellow sit side by side, and the blue on each side of the wall touches only one of the two. So a triangle can see all three colors only where a wall stops, which is the dead end. Checking straight pieces, turns, crossings and the dead end is a finite check over local pictures.
+
+  #figure(
+    caption: [A tunnel coloring with $K = 4$. The tunnel is built as $0 -> 2 -> 1 -> 3$. The hop $1 -> 3$ crosses the hop $0 -> 2$ in block $(2, 1)$, and the rewiring there splits off an island, the loop through squares $1$ and $2$. The circled black triangle at the dead end is the only trichromatic triangle.],
+  )[
+    #image("figures/brouwer/sperner_bands.svg", width: 85%, alt: "A tunnel coloring with four diagonal squares. A red wall with a yellow wall beside it runs from the door at the bottom-left corner to a circled trichromatic triangle in square 3, and a separate loop passes through squares 1 and 2.")
+  ] <fig-sperner-bands>
+
+  *One call involves at most four squares.* Take a point in block $(x, y)$. Horizontal band $y$ carries at most one sideways leg, the one belonging to the hop leaving square $y$, because each square is left at most once. Vertical band $x$ carries at most one up-or-down leg, the one belonging to the hop entering square $x$, because each square is entered at most once. So at most two hops pass through the point, and they determine its color. Each hop is named by its two end squares. So the color depends only on $x$, $y$, the square after $y$ on the tunnel, and the square before $x$. We say the call _involves_ these squares, so a call involves at most four diagonal squares.
+
+  *The adversary.* The adversary keeps the tunnel $0 -> a_1 -> dots.c -> a_k$ built so far and a set $T$ of _touched_ squares. At the start, $T = {0}$. On a call at a point in block $(x, y)$, it does three things.
+  + If $y = a_k$ and some square is untouched, pick an untouched square $b$ and extend the tunnel by $a_k -> b$. Here $y = a_k$ means that the call lies in the dead end's horizontal band.
+  + Add every square the call involves to $T$. Any of them that is not on the tunnel is thereby declared never visited. The tunnel will never enter or leave it.
+  + Answer the point's color in the current tunnel coloring.
+
+  *Consistency.* Every answer stays true in every later coloring. A later extension $a_k -> b$ redraws the old dead end in square $a_k$ and adds one hop, so it only changes horizontal band $a_k$ and vertical band $b$. Vertical band $b$ has no calls, because every call touches its own $x$ and $y$, and $b$ was untouched. Horizontal band $a_k$ has no calls either. A call there while $a_k$ was the dead end would have triggered rule 1, and before $a_k$ became the dead end it was untouched.
+
+  #proof[of @thm-sperner-query-lower-bound][
+    At the start, one of the $K$ squares, square $0$, is touched. Each call touches at most four new squares, so after $c$ calls at most $1 + 4 c$ squares are touched. Suppose the algorithm stops after $c$ calls and names a triangle $t$ while at least two squares are still untouched. The adversary picks an untouched square $b$ whose block does not contain $t$ and extends the tunnel by $a_k -> b$. By consistency, every answer is still true. The only trichromatic triangle is now in square $b$, so $t$ is wrong. This final coloring is a fixed standard coloring. The algorithm is deterministic and gets exactly the same answers on it, so it really does fail on that coloring. So a correct algorithm cannot stop while two or more squares are still untouched. When it stops, at most one square is untouched, so $K - 1 - 4 c <= 1$ and $c >= (K - 2) \/ 4$.
+  ]
+
+  The grid has about $N^2 = 2^(2 m)$ points, but the bound is about $N$, not $N^2$. Divide and conquer finds a trichromatic triangle in about $3 N$ calls. It repeatedly keeps a half whose boundary has a nonzero count of $"red" -> "yellow"$ minus $"yellow" -> "red"$ edges. So the query complexity is $Theta(N) = Theta(2^m)$, and the bound is tight up to the constant. On a small grid the bound is weak. The game's medium grid has $77 times 77$ points, so $N = 76$, $K = 6$, and the bound is $1$. The bound only grows large because it doubles with every bit.
+
+  == Interactive game <sec-sperner-adversary-game>
+
+  The proof mode of the game below runs the adversary described above. You can query points, or whole rows and columns, until you find a trichromatic triangle, and you can reveal the coloring the adversary is currently committed to.
+
+  #interactive-demo("sperner-adversary", title: "Find the rainbow triangle", height: 720)
+
+
+  = Lipschitz continuity of the Nash improvement function <sec-nash-lipschitz>
+
+  @sec-brouwer-approximation reduced approximate fixed points to Sperner through a modulus of uniform continuity $delta(epsilon.alt)$. For the #lecture-link("nfgs_nash", <def-nash-improvement>)[Nash improvement function] we can compute the Lipschitz constant and the grid size directly. Consider a two-player game in which each player has two actions and every payoff lies in $[0, 1]$. The same method applies to general $m times n$ games. There the Lipschitz constant grows with $m$ and $n$, and the $d$-dimensional Sperner lemma of @sec-brouwer-general replaces the planar one.
+
+  #theorem[
+    Let $f : [0, 1]^2 -> [0, 1]^2$ be the Nash improvement function of a two-player game with two actions per player and payoffs in $[0, 1]$, where player 1 plays action 1 with probability $p$, player 2 plays action 1 with probability $q$, and $vz = (p, q)$. Then $f$ is $3$-Lipschitz in $ell_oo$, which means that
+    $ norm(f(vz) - f(tilde(vz)))_oo <= 3 norm(vz - tilde(vz))_oo quad "for all" vz, tilde(vz) in [0, 1]^2. $
+    On a Sperner grid with $N = ceil(4 \/ epsilon.alt)$ cells per side, the yellow corner $vz_Y$ of any trichromatic triangle satisfies $norm(f(vz_Y) - vz_Y)_oo <= epsilon.alt$, so $vz_Y$ is an $epsilon.alt$-approximate fixed point.
+  ] <thm-nash-lipschitz>
+
+  *Regrets.* $A_(a b)$ is player 1’s payoff and $B_(a b)$ is player 2’s payoff when player 1 plays action $a$ and player 2 plays action $b$. Player 2 plays action 1 with probability $q$, so player 1 gets $u_1(a, q) = q A_(a 1) + (1 - q) A_(a 2)$ from action $a$. A regret is the payoff from switching fully to an action, minus the current payoff. For player 1 this gives
+  $ r_(1, 1) = (1 - p) D(q), qquad r_(1, 2) = -p D(q), qquad "where" D(q) := u_1(1, q) - u_1(2, q). $
+  Here $D(q)$ is how much better action 1 is than action 2 for player 1, given player 2’s mix $q$. The same computation for player 2 gives $r_(2, 1) = (1 - q) E(p)$ and $r_(2, 2) = -q E(p)$, where $E(p) := u_2(p, 1) - u_2(p, 2)$ and $u_2(p, b) = p B_(1 b) + (1 - p) B_(2 b)$. Collecting the terms that contain $q$ gives $D(q) = (A_(12) - A_(22)) + q [(A_(11) - A_(21)) - (A_(12) - A_(22))]$. This is linear in $q$. Each of $A_(11) - A_(21)$ and $A_(12) - A_(22)$ lies in $[-1, 1]$, so the slope lies in $[-2, 2]$. Therefore
+  $ abs(D(q) - D(tilde(q))) <= 2 abs(q - tilde(q)). $
+  Also $abs(D) <= 1$. By the same argument, both bounds hold for $E$. The coordination game $A_(11) = A_(22) = 1$, $A_(12) = A_(21) = 0$ has slope $2$, so this bound is tight.
+
+  *The improvement function.* By #lecture-link("nfgs_nash", <def-nash-improvement>)[], player 1’s new probabilities of actions 1 and 2 are
+  $
+    phi_(1, 1) &= frac(p + [r_(1, 1)]^+, 1 + [r_(1, 1)]^+ + [r_(1, 2)]^+), \
+    phi_(1, 2) &= frac((1 - p) + [r_(1, 2)]^+, 1 + [r_(1, 1)]^+ + [r_(1, 2)]^+).
+  $
+  The two numerators add up to the denominator, so $phi_(1, 1) + phi_(1, 2) = 1$ and player 1’s new strategy is determined by $phi_(1, 1)$ alone. The same holds for player 2, so $f(p, q) = (phi_(1, 1), phi_(2, 1))$. Since $p >= 0$ and $1 - p >= 0$, at most one of $[r_(1, 1)]^+$ and $[r_(1, 2)]^+$ is nonzero. Both cases have the shape $h(X, c) := X \/ (1 + X c)$ with $X in [0, 1]$ and $c >= 0$. If $D >= 0$ then $[r_(1, 2)]^+ = 0$ and $1 - phi_(1, 1) = h(1 - p, D)$. If $D < 0$ then $[r_(1, 1)]^+ = 0$ and $phi_(1, 1) = h(p, abs(D))$. By the quotient rule,
+  $ frac(partial h, partial X) = frac(1, (1 + X c)^2) in [0, 1], qquad abs(frac(partial h, partial c)) = frac(X^2, (1 + X c)^2) <= 1. $
+  Both bounds hold because the denominator is at least $1$ and $X <= 1$. Changing $p$ changes $X$ by the same amount, changing $D$ changes $c$ by the same amount on either side of $D = 0$, and changing $1 - phi_(1, 1)$ changes $phi_(1, 1)$ by the same amount with the opposite sign. So in both cases $phi_(1, 1)$ has slope at most $1$ in $p$ and at most $1$ in $D$. Both formulas give $phi_(1, 1) = p$ at $D = 0$, so $phi_(1, 1)$ is continuous. By the mean value theorem, a slope of at most $1$ means the output moves by at most as much as the input. Write $D = D(q)$ and $tilde(D) = D(tilde(q))$, and regard $phi_(1, 1)$ as a function of $(p, D)$, so that $phi_(1, 1)(vz) = phi_(1, 1)(p, D)$. Go from $(p, D)$ to $(tilde(p), tilde(D))$ in two legs, first changing only $p$ and then changing only $D$. We only know the slope in $p$ and the slope in $D$ separately, so we move one variable at a time. Adding and subtracting the value at the corner $(tilde(p), D)$ splits the total change into the change over each leg.
+  $
+    phi_(1, 1)(p, D) - phi_(1, 1)(tilde(p), tilde(D)) &= [phi_(1, 1)(p, D) - phi_(1, 1)(tilde(p), D)] \
+    &+ [phi_(1, 1)(tilde(p), D) - phi_(1, 1)(tilde(p), tilde(D))].
+  $
+  By the triangle inequality, the absolute value of the left side is at most the sum of the absolute values of the two brackets. On the first leg only $p$ moves, and the slope in $p$ is at most $1$, so the first bracket has absolute value at most $abs(p - tilde(p))$. On the second leg only $D$ moves, and the slope in $D$ is at most $1$, so the second bracket has absolute value at most $abs(D - tilde(D))$. The formula for $phi_(1, 1)$ changes at $D = 0$, so if the second leg crosses $D = 0$ the mean value theorem only applies on each side. In that case, split the leg at the crossing and bound each piece separately. Both formulas give the same value at $D = 0$, and the two pieces have lengths $abs(D)$ and $abs(tilde(D))$, which add up to $abs(D - tilde(D))$, so the bound for the second leg does not change. Add the two leg bounds, then use that $D$ changes at most twice as fast as $q$. This gives
+  $ abs(phi_(1, 1)(vz) - phi_(1, 1)(tilde(vz))) <= abs(p - tilde(p)) + abs(D - tilde(D)) <= abs(p - tilde(p)) + 2 abs(q - tilde(q)) <= 3 norm(vz - tilde(vz))_oo. $
+  The last step uses that each of $abs(p - tilde(p))$ and $abs(q - tilde(q))$ is at most $norm(vz - tilde(vz))_oo$.
+  The same argument, using $E$ in place of $D$, bounds $phi_(2, 1)$. Hence $norm(f(vz) - f(tilde(vz)))_oo <= 3 norm(vz - tilde(vz))_oo$, and $L = 3$.
+
+  *Explicit approximation.* Color each grid point by the direction of $f(vz) - vz$ with the rule of @sec-brouwer-sperner. Since $f$ maps the square to itself, this is a valid Sperner coloring, so a trichromatic triangle with corners $vz_Y$, $vz_B$, $vz_R$ exists. The corners of a single grid triangle are within $delta$ of each other in $ell_oo$. Let $a := (f(vz_Y) - vz_Y)_x$ and $b := (f(vz_B) - vz_B)_x$. The coloring rule guarantees that $a$ and $b$ have opposite signs, or that one of them is $0$, so $abs(a) <= abs(a - b)$. Regroup the terms, outputs together and inputs together, then apply the triangle inequality and the Lipschitz bound. This gives
+  $
+    abs(a) <= abs(a - b) &= abs((f(vz_Y) - f(vz_B))_x - (vz_Y - vz_B)_x) \
+    &<= norm(f(vz_Y) - f(vz_B))_oo + norm(vz_Y - vz_B)_oo <= (L + 1) delta.
+  $
+  The bound $norm(f(vz_Y) - f(vz_B))_oo <= L delta$ is where the Lipschitz constant enters. It replaces the $epsilon.alt$ of @thm-sperner-approximation, which comes from uniform continuity, with the explicit quantity $L delta$. The same argument with $vz_R$ in place of $vz_B$ gives the same bound for the $y$-coordinate. Taking the larger coordinate gives $norm(f(vz_Y) - vz_Y)_oo <= (L + 1) delta = 4 delta$. With $N$ cells per side, each cell has side $delta = 1 \/ N$. Requiring $4 delta <= epsilon.alt$ gives $N = ceil(4 \/ epsilon.alt)$.
+
+  *The Sperner circuit.* The input is a grid point $(i, j)$. The circuit converts it to strategies $(p, q) = (i \/ N, j \/ N)$. It computes $D(q)$ and $E(p)$, then the regrets, then $f(p, q)$. This takes a constant number of arithmetic operations, using only $+$, $-$, $times$, $÷$ and $max$. The circuit outputs the color given by the direction of $f(vz) - vz$, with the tie-breaking rule of @sec-brouwer-sperner on the boundary of $[0, 1]^2$. To get the standard boundary of @sec-sperner-proof, add one ring of points around the square. This creates no new trichromatic triangle. Each coordinate is a number from $0$ to $N$, so it takes about $log_2 N = O(log(1 \/ epsilon.alt))$ bits. Take $epsilon.alt = 0.001$, for example. The grid has $N = 4000$ cells per side, about $1.6 times 10^7$ points in total, yet each coordinate fits in $12$ bits, since $2^(12) = 4096$. The circuit works only with these coordinates and the payoff entries, so its size is polynomial in the game and in $log(1 \/ epsilon.alt)$. The grid itself is exponentially large in the number of bits, which is the setting of @sec-sperner-query-lower-bound.
+
+]
+
 #changelog[
   - Sep 24, 2025: fixed two typos (thanks Eric Yang Yu!)
 ]

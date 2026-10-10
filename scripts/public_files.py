@@ -44,45 +44,61 @@ def interactive_slide_output(source: str) -> str:
     return 'slides/' + Path(source).name
 
 
+def interactive_demo_output(source: str) -> str:
+    """Notes embed a demo from interactive/<name>.html (content/meta/interactive.typ)."""
+    name = Path(source).name if isinstance(source, str) else ''
+    if not re.fullmatch(r'[a-z0-9]+(?:-[a-z0-9]+)*\.html', name):
+        raise ValueError(f'Configured interactive demos must be standalone HTML: {source!r}')
+    return 'interactive/' + name
+
+
+def interactive_demos(config: dict) -> list:
+    demos = config.get('interactive_demos', [])
+    if not isinstance(demos, list):
+        raise ValueError('interactive_demos must list standalone HTML sources.')
+    for source in demos:
+        interactive_demo_output(source)
+    return demos
+
+
 class StandaloneSlides(HTMLParser):
     """Check standalone assets and keep private speaker notes out of published slides."""
-    def __init__(self):
+    def __init__(self, kind: str = 'Interactive slides'):
         super().__init__()
+        self.kind = kind
         self.document = False
         self.in_style = False
         self.in_slide_data = False
         self.slide_data = []
 
-    @staticmethod
-    def asset(value: str) -> None:
+    def asset(self, value: str) -> None:
         if value and not value.strip().lower().startswith(('data:', '#')):
-            raise ValueError('Interactive slides must embed their assets; found: ' + value[:120])
+            raise ValueError(f'{self.kind} must embed their assets; found: ' + value[:120])
 
-    @classmethod
-    def css(cls, value: str) -> None:
+    def css(self, value: str) -> None:
         if re.search(r'@import\b', value, re.I):
-            raise ValueError('Interactive slides must inline imported stylesheets.')
+            raise ValueError(f'{self.kind} must inline imported stylesheets.')
         for match in re.finditer(r'url\(\s*([\'"]?)(.*?)\1\s*\)', value, re.I | re.S):
-            cls.asset(match[2])
+            self.asset(match[2])
 
     def handle_starttag(self, tag, attrs):
         self.document |= tag == 'html'
         self.in_style |= tag == 'style'
         attributes = dict(attrs)
         if tag == 'aside' and 'notes' in (attributes.get('class') or '').split():
-            raise ValueError('Interactive slides must not contain speaker notes.')
+            raise ValueError(f'{self.kind} must not contain speaker notes.')
         if 'data-notes' in attributes:
-            raise ValueError('Interactive slides must not contain speaker notes.')
+            raise ValueError(f'{self.kind} must not contain speaker notes.')
         if tag == 'script' and attributes.get('id') == 'slide-data':
             self.in_slide_data = True
             self.slide_data = []
         if tag == 'base':
-            raise ValueError('Interactive slides must not set a base URL.')
+            raise ValueError(f'{self.kind} must not set a base URL.')
         for key, value in attrs:
             if value is None:
                 continue
             if key == 'srcset':
-                raise ValueError('Interactive slides must embed images with src, not srcset.')
+                raise ValueError(f'{self.kind} must embed images with src, not srcset.')
             if (key in {'src', 'poster'} or (tag == 'object' and key == 'data')
                     or (tag in {'link', 'image', 'use'} and key in {'href', 'xlink:href'})):
                 self.asset(value)
@@ -96,11 +112,11 @@ class StandaloneSlides(HTMLParser):
             try:
                 slides = json.loads(''.join(self.slide_data))
             except json.JSONDecodeError as error:
-                raise ValueError('Interactive slides have invalid slide metadata.') from error
+                raise ValueError(f'{self.kind} have invalid slide metadata.') from error
             if isinstance(slides, list) and any(
                     isinstance(slide, dict) and ({'notes', 'source'} & slide.keys())
                     for slide in slides):
-                raise ValueError('Interactive slides must not contain speaker notes.')
+                raise ValueError(f'{self.kind} must not contain speaker notes.')
             self.in_slide_data = False
 
     def handle_data(self, data):
@@ -110,12 +126,19 @@ class StandaloneSlides(HTMLParser):
             self.slide_data.append(data)
 
 
-def validate_standalone_slide(path: Path) -> None:
-    page = StandaloneSlides()
+def validate_standalone_html(path: Path, kind: str = 'Interactive slides') -> None:
+    page = StandaloneSlides(kind)
     page.feed(path.read_text(encoding='utf-8'))
     page.close()
     if not page.document:
-        raise ValueError(f'Interactive slides must be a complete HTML document: {path}')
+        raise ValueError(f'{kind} must be a complete HTML document: {path}')
+
+
+validate_standalone_slide = validate_standalone_html
+
+
+def validate_standalone_demo(path: Path) -> None:
+    validate_standalone_html(path, 'Interactive demos')
 
 
 def copied_files(config: dict) -> dict[str, str]:
@@ -133,6 +156,13 @@ def copied_files(config: dict) -> dict[str, str]:
                 raise ValueError(f'Colliding slide output: {output} ({owners[key]}, {source})')
             owners[key] = source
             files[output] = source
+    for source in interactive_demos(config):
+        output = interactive_demo_output(source)
+        key = output.casefold()
+        if key in owners and owners[key] != source:
+            raise ValueError(f'Colliding interactive demo output: {output} ({owners[key]}, {source})')
+        owners[key] = source
+        files[output] = source
     return files
 
 
@@ -186,12 +216,16 @@ def validate_inputs(config: dict, modules: list[dict], root: Path) -> None:
             raise ValueError(f'Invalid slide PDF: {source}\n{result.stderr.strip()}')
     for source in set(config.get('interactive_slides', {}).values()):
         validate_standalone_slide(root / source)
+    for source in set(interactive_demos(config)):
+        validate_standalone_demo(root / source)
 
 
 def copy_public_files(config: dict, root: Path, destination: Path) -> None:
     # Recheck at the copy boundary even if a caller skipped validate_inputs.
     for source in set(config.get('interactive_slides', {}).values()):
         validate_standalone_slide(root / source)
+    for source in set(interactive_demos(config)):
+        validate_standalone_demo(root / source)
     for output, source in copied_files(config).items():
         target = destination / output
         target.parent.mkdir(parents=True, exist_ok=True)

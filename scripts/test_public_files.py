@@ -1,10 +1,12 @@
 """Exercise attachment validation and the build/deployment file contract."""
 from pathlib import Path
+import json
 import tempfile
 import unittest
 
-from public_files import (COURSE_FIGURES, copy_font_assets, copy_public_files, note_outputs,
-                          required_files, validate_inputs, validate_public_path)
+from public_files import (COURSE_FIGURES, copy_font_assets, copy_public_files, interactive_demo_output,
+                          note_outputs, required_files, validate_inputs, validate_public_path,
+                          validate_standalone_demo)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -145,6 +147,65 @@ class PublicFilesTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'speaker notes'):
             copy_public_files(self.config, self.root, destination)
         self.assertFalse(destination.exists())
+
+    def demo(self, markup='<!doctype html><html><head><style>body { color: black }</style></head>'
+                          '<body><canvas></canvas><script>const game = 1;</script></body></html>',
+             source='demos/game.html'):
+        self.config['interactive_demos'] = [source]
+        path = self.root / source
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(markup)
+        return path
+
+    def test_interactive_demos_publish_under_interactive(self):
+        source = self.demo('<html><body><a href="../topic.html#sec-game">Notes</a>'
+                           '<img src="data:image/png;base64,AA"></body></html>')
+        self.validate()
+        destination = self.root / 'output'
+        copy_public_files(self.config, self.root, destination)
+        required = required_files(self.config)
+        self.assertIn('interactive/game.html', required)
+        self.assertEqual((destination / 'interactive/game.html').read_bytes(), source.read_bytes())
+        validate_public_path('interactive/game.html', required)
+        with self.assertRaisesRegex(ValueError, 'Unexpected public build artifact'):
+            validate_public_path('interactive/other.html', required)
+
+    def test_interactive_demo_schema_paths_and_collisions_fail_before_copying(self):
+        self.demo()
+        cases = [
+            ({'lecture': 'demos/game.html'}, 'must list'),
+            (['demos/game.js'], 'standalone HTML'),
+            (['demos/Game.html'], 'standalone HTML'),
+            ([{'source': 'demos/game.html'}], 'standalone HTML'),
+            (['../game.html'], 'inside the course directory'),
+            (['demos/missing.html'], 'Missing course source'),
+            (['demos/game.html', 'other/game.html'], 'Colliding interactive demo output'),
+        ]
+        for demos, message in cases:
+            with self.subTest(demos=demos), self.assertRaisesRegex(ValueError, message):
+                self.config['interactive_demos'] = demos
+                self.validate()
+
+    def test_interactive_demo_assets_must_be_embedded(self):
+        for resource in ('<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter">',
+                         '<script src="game.js"></script>',
+                         '<style>@font-face { src: url(fonts/game.woff) }</style>'):
+            with self.subTest(resource=resource), self.assertRaisesRegex(ValueError, 'Interactive demos must embed'):
+                self.demo('<html><head>' + resource + '</head><body></body></html>')
+                self.validate()
+        self.demo('<canvas></canvas>')
+        with self.assertRaisesRegex(ValueError, 'Interactive demos must be a complete HTML document'):
+            self.validate()
+        with self.assertRaisesRegex(ValueError, 'Interactive demos must be a complete HTML document'):
+            copy_public_files(self.config, self.root, self.root / 'output')
+
+    def test_configured_interactive_demos_are_valid_standalone_pages(self):
+        config = json.loads((ROOT / 'html-export.json').read_text())
+        for source in config.get('interactive_demos', []):
+            with self.subTest(source=source):
+                output = interactive_demo_output(source)
+                self.assertTrue(output.startswith('interactive/'))
+                validate_standalone_demo(ROOT / source)
 
     def test_note_filename_collision_fails_before_compilation(self):
         self.config['notes'].append({'source': 'other/TOPIC.typ'})
