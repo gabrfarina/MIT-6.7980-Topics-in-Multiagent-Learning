@@ -293,7 +293,7 @@ If you are curious to read more, the following papers contains extensions and re
 #appendix[
   = Appendix: Proof of Theorem~#ref(label("thm:hart schmeidler"), supplement: none) <sec-hart-schmeidler-proof>
 
-  Let $s_i=sum_(a_i in A_i) nu_(i,a_i)$ be the total mass assigned to player $i$'s deviations. If $s_i>0$, set $mu_(i)(a_i)=nu_(i,a_i)/s_i$; if $s_i=0$, choose any distribution $vmu_i$ on $A_i$. Let $vmu=vmu_1 times ... times vmu_n$ be their product distribution.
+  Let $s_i=sum_(a_i in A_i) nu_(i,a_i)$ be the total mass assigned to player $i$'s deviations. If $s_i>0$, set $mu_(i)(a_i)=nu_(i,a_i)/s_i$; if $s_i=0$, choose any distribution $vmu_i$ on $A_i$. Let $vmu=vmu_1 ⊗ ... ⊗ vmu_n$ be their product distribution.
 
   For $s_i>0$, averaging the deviating action according to $vnu_(i,dot)/s_i$ is exactly the same as drawing it from $vmu_i$, independently of the opponents. Therefore
   $
