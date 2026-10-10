@@ -308,33 +308,40 @@ Notice that $\( 0 \, 0 \, ... \, 0 \)$ is a democracy according to our definitio
   Notice that these are exactly the equilibrium conditions for $\( frac(vz, norm(vz)_1) \, frac(vz, norm(vz)_1) \)$ to be a symmetric Nash equilibrium of the game.
 ]
 
-The goal of the Lemke-Howson algorithm is to find a democracy in the given polytope. The algorithm operates as follows. Let's call $n$ the “special action,” albeit this choice is arbitrary.
+The goal of the Lemke-Howson algorithm is to find a democracy in the given polytope. Let's call $n$ the “special action,” albeit this choice is arbitrary. The procedure is given in @algo-lemke-howson.
 
-- *Step $0$:* Start at  vertex $vv_0 := \( 0 \, 0 \, ... \, 0 \)$.
-- _Comment:_ By non-degeneracy, there are exactly $n$ edges of the polytope adjacent to $vv_0$. Each of these edges corresponds to un-tightening one of the $z_i >= 0$ inequalities which are tight at $vv_0$.
-- Keeping all other inequalities tight, un-tighten the inequality $z_n >= 0$ (which corresponds to our special action $n$). This defines an edge of the polytope adjacent to $vv_0$.
-- *Step 1:* Go to the other endpoint of this edge. If the obtained vertex $vv_1$ is a democracy, then a Nash equilibrium has been found because $vv_1 != 0$.
-- Otherwise, one of the actions $1 \, ... \, n - 1$, say action $j_1$, is represented twice, by both $z_(j_1) = 0$ (which was already tight) and $ve_(j_1)^T R vz = 1$ (which just became tight).
-- _Comment:_ For the next step, we will un-tighten one of the two inequalities that are tight for $j_1$. If we un-tighten $ve_(j_1)^T R vz <= 1$, this would define the same edge $\( vv_0 vv_1 \)$ that brought us to $vv_1$. To make progress we will un-tighten instead the other inequality representing action $j_1$.
-- Un-tightening $z_(j_1) >= 0$ while keeping tight all other inequalities that were tight defines an edge $\( vv_1 vv_2 \) != \( vv_0 vv_1 \)$ of the polytope.
-- *Step 2:* Go to vertex $vv_2$. If $vv_2$ is a democracy, then stop.
+#pseudocode-list(
+  max-width: true,
+  numbered-title: [Lemke-Howson],
+)[
+  - *Data:* the polytope $P := { vz : R vz <= vone \, vz >= 0 }$ and the special action $n$.
+  - *Result:* a non-zero democracy of $P$.
+  + $t <- 0 \, quad vv_0 <- \( 0 \, 0 \, ... \, 0 \)$
+  + $u <- \( z_n >= 0 \)$ 
+  + *loop*
+    + $E <-$ the edge of $P$ obtained by un-tightening $u$ at $vv_t$, keeping tight every other inequality that is tight at $vv_t$ 
+    + $vv_(t + 1) <-$ the endpoint of $E$ other than $vv_t$
+    + $t <- t + 1$
+    + *if* $vv_t$ is a democracy
+      + *return* $vv_t$
+    + $j <-$ the action represented twice at $vv_t$ 
+    + $u <-$ the inequality representing action $j$ that was already tight at $vv_(t-1)$ (and not the one that became tight upon reaching $vv_t$). 
+] <algo-lemke-howson>
 
-  _Comment:_ It will be shown (in the correctness analysis below) that it must be that $vv_2 != 0$, and hence if $vv_2$ is a democracy then $vv_2 \/ norm(vv_2)_1$ is a symmetric Nash equilibrium.
-- Otherwise, again some action $j_2 != n$ is doubly represented at $vv_2$, all other actions in ${ 1 \, ... \, n - 1 }$ are represented once, and the special action $n$ is not represented at all.
+Each pivot is well defined. By non-degeneracy exactly $n$ inequalities are tight at every vertex, so the un-tightening in the edge-update step in @algo-lemke-howson always traverses an edge of the polytope. At $vv_0$ the tight inequalities are exactly $z_1 >= 0 \, ... \, z_n >= 0$, so there are exactly $n$ edges adjacent to $vv_0$, one per action, and the initialization step in @algo-lemke-howson selects the one belonging to the special action $n$.
 
-  _Proof:_ This is because, for all actions who were singly represented at $vv_1$, i.e.~before the step was taken, their corresponding inequalities were maintained tight during the step. So they are still represented. Action $j_1$ was doubly represented at vertex $vv_1$ and we only un-tightened one of its tight inequalities. So it is still represented at vertex $vv_2$ via the inequality that we did not un-tighten. Finally, action $n$ was not represented before the step and since $vv_2$ is not a democracy it is still not represented.
-- …
-- *Step $t$:* At the generic step $t$ of the algorithm, the algorithm arrives at vertex $vv_t$ and performs the following case analysis:
+The choice made in the pivot step in @algo-lemke-howson never retraces the step just taken. Both $z_j >= 0$ and $ve_j^T R vz <= 1$ are tight at $vv_t$, and un-tightening the one that just became tight would define the same edge $\( vv_(t - 1) vv_t \)$ that brought us to $vv_t$. Un-tightening the other inequality representing action $j$ makes progress instead.
 
-  - if $vv_t$ is a democracy, stop. _Comment:_ It will be shown that it must be that $vv_t != 0$.
-  - if vertex $vv_t$ is not a democracy then one action $j_t$ is represented twice, all other actions in ${ 1 \, ... \, n - 1 }$ are represented once, and action $n$ is not represented at all; the proof of this property can be done by induction on $t$ assuming that this property holds for $vv_1 \, ... \, vv_(t - 1)$ and that the generic steps of the algorithm follow the description below.
-  - between $ve_(j_t)^T R vz <= 1$ and $z_(j_t) >= 0$, un-tighten the one that defines an edge $\( vv_t vv_(t + 1) \) != \( vv_(t - 1) vv_t \)$.
-  - for Step $t + 1$, jump to $vv_(t + 1)$.
+Finally, the selection of the doubly represented action in @algo-lemke-howson is justified by the following property of the walk: whenever the algorithm reaches it, all actions in ${ 1 \, ... \, n - 1 }$ are represented at $vv_t$, exactly one of them is represented twice, and the special action $n$ is not represented at all.
 
-We are now ready to show that the algorithm is guaranteed to terminate at a non-zero democracy, thereby recovering a Nash equilibrium of the game.
+At $vv_1$ the property holds whenever $vv_1$ is not a democracy. If $vv_1$ is a democracy, the algorithm has already returned. The inequalities kept tight on the way from $vv_0$ are $z_1 >= 0 \, ... \, z_(n - 1) >= 0$, so actions $1$ through $n - 1$ stay represented, while $z_n >= 0$ is no longer tight. Exactly one new inequality becomes tight. If it is $ve_n^T R vz <= 1$, then action $n$ is represented and $vv_1$ is a democracy. Otherwise it is $ve_j^T R vz <= 1$ for some $j != n$, so action $j$ is represented twice and action $n$ is not represented at all.
+
+For every later vertex the same property is the inductive step. Assume it holds at $vv_(t - 1)$. The pivot un-tightens one inequality of the action that was represented twice there, so that action stays represented through the inequality that was kept, and every action that was represented once keeps its tight inequality. Action $n$ was not represented. The single newly tight inequality either represents $n$, making $vv_t$ a democracy, or represents some action in ${ 1 \, ... \, n - 1 }$ a second time, so $vv_t$ again satisfies the property. This is property $Pi$ in the proof below.
+
+We are now ready to show that the algorithm is guaranteed to terminate at a non-zero democracy, thereby recovering a Nash equilibrium of the game. The theorem below shows that the returned vertex is non-zero, so the lemma above turns it into the symmetric Nash equilibrium $vv_t \/ norm(vv_t)_1$.
 
 #theorem[
-  The Lemke-Howson algorithm will terminate and it will terminate at a non-zero democracy.
+  The Lemke-Howson algorithm (@algo-lemke-howson) will terminate and it will terminate at a non-zero democracy.
 ]#label("thm:Lemke-Howson's correctness")
 
 #proof[

@@ -116,4 +116,102 @@ Graphically, we can summarize the process as in the following block diagram.
   where the right-hand side is exactly the cumulative $Phi$-regret $Phi"-Reg"^((T))$ incurred by $cR_Phi$.
 ]
 
+= The TreeSwap algorithm <sec-treeswap>
+
+Blum-Mansour's algorithm keeps one external regret minimizer per action, so the number of rounds it needs grows with the number of actions $n$. With suitably tuned external regret minimizers, it reaches an average swap regret $"SwapReg"^((T)) \/ T <= epsilon$ after roughly $n log n \/ epsilon^2$ rounds #citep(<blum2007external>). #citet(<dagan2024external>) give an alternative construction, called _TreeSwap_, whose number of rounds depends only logarithmically on $n$, at the price of a much worse dependence on the target regret $epsilon$.
+
+Throughout this section, the utilities are linear functions $u^((t))(vx) = ip(vg^((t)), vx)$ with $vg^((t)) in [0, 1]^n$. An average of such functions is again a function of this form. We assume that the external regret minimizer, run for $M$ iterations on such utilities, guarantees $"Reg"^((M)) <= epsilon M$, whatever the utilities are.
+
+== The algorithm <sec-treeswap-algorithm>
+
+Fix a branching factor $M >= 2$ and a depth $d >= 1$, and let the time horizon be $T = M^d$. For each level $h in {0, ..., d}$, split the rounds ${1, ..., T}$ into $M^h$ consecutive _blocks_ of $M^(d-h)$ rounds each, and let $cal(B)_h$ be the set of these blocks. Level $0$ has a single block containing all the rounds, and level $d$ has $T$ blocks of a single round each. For $h < d$, each block $B in cal(B)_h$ is the union of $M$ consecutive blocks $B_1, ..., B_M in cal(B)_(h+1)$, which we call its _children_. The blocks therefore form a tree of depth $d$ in which every internal node has $M$ children and the leaves are the rounds.
+
+TreeSwap attaches a separate copy $cR_B$ of an external regret minimizer for $Delta^n$ to every block $B in cal(B)_h$ with $h in {0, ..., d-1}$, that is, to every internal node of the tree. The copy $cR_B$ is only used during the rounds in $B$, and it runs for exactly $M$ iterations, one per child of $B$, as follows.
+- At the first round of the $k$-th child $B_k$, the copy is asked for $cR_B$.`NextStrategy()`, which returns a strategy $vy_B^((k)) in Delta^n$. The copy holds this strategy for all the rounds in $B_k$.
+- At the last round of $B_k$, the copy receives $cR_B$.`ObserveUtility`($overline(u)_B^((k))$), where
+  $ overline(u)_B^((k)) := 1 / abs(B_k) sum_(t in B_k) u^((t)) $
+  is the average of the utilities over the rounds in $B_k$.
+
+Each round $t$ belongs to exactly one block at each level, and these blocks are the nodes on the path from the root of the tree to the leaf $t$. For $h in {0, ..., d-1}$, let $vy_h^((t))$ denote the strategy held at round $t$ by the copy attached to the level-$h$ block containing $t$. TreeSwap's two operations then work as follows.
+- TreeSwap's `NextStrategy()` at round $t$ outputs the uniform average of the strategies on the path,
+  $ vx^((t)) := 1 / d sum_(h=0)^(d-1) vy_h^((t)). $
+- TreeSwap's `ObserveUtility`($u^((t))$) records $u^((t))$ and, for every block that ends at round $t$, passes the average utility over that block to the copy attached to the block's parent, as described above.
+
+== What it proves <sec-treeswap-analysis>
+
+#theorem[TreeSwap #citep(<dagan2024external>)][
+  Let $M >= 2$, $d >= 1$ and $T = M^d$, and suppose that every copy $cR_B$ guarantees $"Reg"^((M)) <= epsilon M$. Then the swap regret of TreeSwap satisfies
+  $
+    "SwapReg"^((T)) <= (epsilon + 1 / d) T.
+  $
+] <thm-treeswap>
+
+#proof[
+  For $h in {0, ..., d}$, let
+  $
+    S_h := sum_(B in cal(B)_h) max_(a in A) sum_(t in B) g_a^((t))
+  $
+  be the total utility of playing the best fixed action separately within each level-$h$ block. For $h in {0, ..., d-1}$, let
+  $
+    R_h := sum_(t=1)^T u^((t))(vy_h^((t)))
+  $
+  be the total utility of the strategies held at level $h$.
+
+  _Step 1 (each level nearly matches its own benchmark)._ Fix $h in {0, ..., d-1}$ and a block $B in cal(B)_h$ with children $B_1, ..., B_M$, each made of $M^(d-h-1)$ rounds. By the regret guarantee of $cR_B$, for every $hat(vx) in Delta^n$,
+  $
+    sum_(k=1)^M (overline(u)_B^((k))(hat(vx)) - overline(u)_B^((k))(vy_B^((k)))) <= epsilon M.
+  $
+  Multiplying by $abs(B_k) = M^(d-h-1)$ and expanding the averages, this reads
+  $
+    sum_(t in B) u^((t))(hat(vx)) - sum_(t in B) u^((t))(vy_h^((t))) <= epsilon abs(B).
+  $
+  Choosing for $hat(vx)$ the best fixed action in $B$, and summing over the $M^h$ blocks $B in cal(B)_h$, gives
+  $
+    S_h - R_h <= epsilon T.
+  $
+
+  _Step 2 (what a swap can gain against one level)._ Fix any $hat(P) = (hat(vp)_1 | dots.c | hat(vp)_n) in Phi$, any level $h in {0, ..., d-1}$, and any block $B' in cal(B)_(h+1)$. During the rounds in $B'$, the level-$h$ strategy is a fixed $vy in Delta^n$. Since each column $hat(vp)_i$ is a probability distribution and $sum_(i=1)^n y_i = 1$,
+  $
+    sum_(t in B') u^((t))(hat(P) vy)
+    = sum_(i=1)^n y_i ip(sum_(t in B') vg^((t)), hat(vp)_i)
+    <= sum_(i=1)^n y_i max_(a in A) sum_(t in B') g_a^((t))
+    = max_(a in A) sum_(t in B') g_a^((t)).
+  $
+  Summing over the blocks $B' in cal(B)_(h+1)$ gives
+  $
+    sum_(t=1)^T u^((t))(hat(P) vy_h^((t))) <= S_(h+1).
+  $
+
+  _Step 3 (combining the levels)._ Since $u^((t))$ and $hat(P)$ are linear and $vx^((t))$ is the average of the $vy_h^((t))$,
+  $
+    u^((t))(hat(P) vx^((t))) - u^((t))(vx^((t))) = 1 / d sum_(h=0)^(d-1) (u^((t))(hat(P) vy_h^((t))) - u^((t))(vy_h^((t)))).
+  $
+  Summing over $t$ and using Step 2, then rearranging the sum,
+  $
+    sum_(t=1)^T (u^((t))(hat(P) vx^((t))) - u^((t))(vx^((t))))
+    &<= 1 / d sum_(h=0)^(d-1) (S_(h+1) - R_h) \
+    &= 1 / d sum_(h=0)^(d-1) (S_h - R_h) + (S_d - S_0) / d \
+    &<= epsilon T + T / d,
+  $
+  where the last step uses Step 1, $S_d = sum_(t=1)^T max_(a in A) g_a^((t)) <= T$, and $S_0 >= 0$. Taking the maximum over $hat(P) in Phi$ concludes the proof.
+] <proof-treeswap>
+
+With multiplicative weights as the external regret minimizer, TreeSwap achieves the logarithmic dependence on $n$.
+
+#corollary[
+  Let $n >= 2$ and $epsilon in (0, 1)$. Run TreeSwap with copies of multiplicative weights, each tuned for $M$ iterations, with $M = ceil(16 log n \/ epsilon^2)$ and $d = ceil(2 \/ epsilon)$. Then after $T = M^d$ rounds,
+  $
+    "SwapReg"^((T)) <= epsilon T.
+  $
+  Up to constants, the number of rounds is $T = (log n \/ epsilon^2)^(O(1\/epsilon))$.
+] <cor-treeswap-mwu>
+
+#proof[
+  Since $vg^((t)) in [0, 1]^n$, the utilities satisfy $norm(vg^((t)))_oo <= 1$. By #lecture-link("learning1", <mwu-regret-bound>)[], each copy then guarantees
+  $
+    "Reg"^((M)) <= 2 sqrt(M log n) = 2 sqrt((log n) / M) dot M <= epsilon / 2 dot M.
+  $
+  Applying @thm-treeswap with $epsilon\/2$ in place of $epsilon$, and using $1\/d <= epsilon\/2$, gives $"SwapReg"^((T)) <= (epsilon\/2 + epsilon\/2) T$.
+]
+
 #lec_bibliography("meta/refs.bib")
