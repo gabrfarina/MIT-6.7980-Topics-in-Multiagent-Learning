@@ -490,6 +490,22 @@ Say an action $a_i in A_i$ is _dominated_ by another action $a_i^(*) in A_i$ if,
 
 We can think of the correlation between the strategies of the players in a correlated or coarse correlated equilibrium as arising from some _correlation device_ in the game. This is a trusted mediator that can recommend but not enforce behavior. The distribution $vmu$ from which the correlation device samples recommendations is public knowledge, but the players only get to observe the recommended action that was sampled for them. A correlated / coarse correlated equilibrium is then a distribution $vmu$ such that no player can unilaterally deviate from the recommended action to improve their payoff.
 
+#example[Correlation can benefit both players][
+  This adapts a classic example of #citet(<Aumann1974Mar>). Two warehouse robots approach a narrow aisle from opposite ends. Each robot can either _wait_ or _go_. If both go, they block each other; if exactly one goes, it passes quickly while the other is delayed; if both wait, they then pass slowly in turn. The utilities are as follows.
+
+  #align(center)[
+    #image("figures/correlated/aisle_game.svg")
+  ]
+
+  *Nash equilibria.*  The game has two pure Nash equilibria, $("Wait", "Go")$ and $("Go", "Wait")$, with utilities $(2, 5)$ and $(5, 2)$. It also has a mixed Nash equilibrium in which each robot waits with probability $2 \/ 3$, the probability that makes the other robot indifferent, since $4 dot.op 2 \/ 3 + 2 dot.op 1 \/ 3 = 5 dot.op 2 \/ 3 = 10 \/ 3$. In it, each robot obtains $10 \/ 3$. The total utility is $7$ in either pure equilibrium and $20 \/ 3$ in the mixed one.
+
+  *A better correlated equilibrium.*  Consider a central controller that draws one of $("Wait", "Wait")$, $("Wait", "Go")$, $("Go", "Wait")$ uniformly at random and privately tells each robot only its own action. Call this distribution $vmu$. A robot told to go knows that the other was told to wait, so going yields $5$ while waiting would yield $4$. A robot told to wait considers the other equally likely to have been told to wait or to go, so waiting yields $(4 + 2) \/ 2 = 3$ while going would yield $(5 + 0) \/ 2 = 5 \/ 2$. By symmetry the same holds for the other robot, so neither robot gains by deviating from its recommendation, and $vmu$ is a correlated equilibrium.
+
+  Under $vmu$, each robot obtains $(4 + 2 + 5) \/ 3 = 11 \/ 3$. This is strictly more than the $10 \/ 3$ of the mixed equilibrium for _both_ robots, and the total utility $22 \/ 3$ exceeds that of every Nash equilibrium. The correlated equilibrium does not beat the robot favored by a pure equilibrium, which obtains $5$; rather, it achieves an outcome that is better in aggregate and fair to both robots.
+
+  *Why privacy matters.*  A public signal that tells both robots to play $("Wait", "Go")$ or $("Go", "Wait")$ with probability $1 \/ 2$ each is also a correlated equilibrium, but it merely averages the two pure Nash equilibria, giving $7 \/ 2$ to each robot. The controller above does better because its recommendations are private. If the robots knew that $("Wait", "Wait")$ had been drawn, each would prefer to go; a robot told to wait does not know whether the other was told to wait or to go, and this uncertainty is what makes recommending $("Wait", "Wait")$ sustainable.
+]
+
 The distinction between correlated and coarse correlated equilibrium is in when the players decide when to commit to the recommended action. In a coarse correlated equilibrium, the players commit to the recommended action _before_ the recommendation is made. In a correlated equilibrium, the players commit to the recommended action _after_ the recommendation is made.
 
 = Bibliography for this lecture
