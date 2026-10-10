@@ -268,14 +268,16 @@ class CourseIndexTests(unittest.TestCase):
         self.assertNotIn('slides/L00_course_intro.pdf', row)
         self.assertNotIn('Not yet posted', row)
 
-    def test_only_l04_links_the_new_interactive_deck(self):
+    def test_l04_and_l05_link_their_interactive_decks(self):
         page = render_index(self.config, self.modules)
         l04 = re.search(r'<tr class="schedule-row" id="lecture-learning-foundations">.*?</tr>', page, re.S).group()
         l05 = re.search(r'<tr class="schedule-row" id="lecture-learning-algorithms">.*?</tr>', page, re.S).group()
         self.assertIn('class="pdf-link slides-link" href="slides/L04_learning_in_games.html?overview=1"', l04)
         self.assertIn('>Slides</a>', l04)
         self.assertNotIn('slides/L04_learning_in_games.pdf', l04)
-        self.assertNotIn('slides-link', l05)
+        self.assertIn('class="pdf-link slides-link" href="slides/L05_learning_in_games.html?overview=1"', l05)
+        self.assertIn('>Slides</a>', l05)
+        self.assertNotIn('slides/L05_learning_in_games.pdf', l05)
 
     def test_new_unsupported_prose_does_not_silently_disappear(self):
         with self.assertRaisesRegex(ValueError, 'Unsupported course prose element'):

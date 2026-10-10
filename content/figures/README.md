@@ -2,7 +2,8 @@
 
 Every SVG in this directory has an editable Typst source. Usually it has the
 same basename beside the SVG. The six `ppad_completeness/gate_*.svg` files share
-`ppad_completeness/gate.typ` and select their gate with a compiler input.
+`ppad_completeness/gate.typ` and select their gate with a compiler input. The
+third-party icons in `libs/icons/` are inputs, not generated outputs.
 
 `make`, `make html`, and `make bundle` rebuild stale figure SVGs before
 compiling the notes. Run `make figures` to update just the figures. The builder

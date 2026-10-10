@@ -784,7 +784,20 @@
 #let remark = thm-factory("remark")
 #let proof = proof-factory("proof")
 #let proofsketch = proof-factory("Proof Sketch")
-#let solution = proof-factory("solution")
+
+// Published solutions stay collapsed until a reader opts in, so an exercise
+// still reads as a question on first pass. See solutions.js for the toggle.
+#let solution = {
+  let render-solution = proof-factory("solution")
+  (..args, body) => html.elem("div", attrs: (class: "solution-wrapper"))[
+    #html.elem("button", attrs: (
+      type: "button",
+      class: "solution-toggle",
+      "aria-expanded": "false",
+    ))[Show solution]
+    #render-solution(..args, body)
+  ]
+}
 
 #let dt(s) = {
   (
