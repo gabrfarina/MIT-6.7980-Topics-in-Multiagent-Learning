@@ -66,7 +66,7 @@ $
   min_(vmu in Delta (A_1 times ... times A_n)) max_(vnu in Delta (D)) bb(E)_(\( i \, a'_i \) ~ vnu) bb(E)_(a ~ vmu) [u_i (a'_i \, a_(- i)) - u_i (a_i \, a_(- i))] .
 $
 
-Both optimization domains are compact and convex, and the objective is linear in each argument separately. In particular, the objective can be written in the bilinear form $vmu^top matM vnu$, where $matM$ is the deviation-gain matrix with entries $M_(a \, \( i \, a'_i \)) = u_i (a'_i \, a_(- i)) - u_i (a_i \, a_(- i))$. Thus, we can apply the minimax theorem as used in #lecture-link("correlated", <sec-zero-sum>)[]. We can therefore exchange the order of minimization and maximization. The minimax value above is equal to
+Both optimization domains are compact and convex, and the objective is linear in each argument separately. In particular, the objective can be written in the bilinear form $vmu^top matU vnu$, where $matU$ is the deviation-gain matrix with entries $U_(a \, \( i \, a'_i \)) = u_i (a'_i \, a_(- i)) - u_i (a_i \, a_(- i))$. Thus, we can apply the minimax theorem as used in #lecture-link("correlated", <sec-zero-sum>)[]. We can therefore exchange the order of minimization and maximization. The minimax value above is equal to
 
 $
   max_(vnu in Delta (D)) min_(vmu in Delta (A_1 times ... times A_n)) bb(E)_(\( i \, a'_i \) ~ vnu) bb(E)_(a ~ vmu) [u_i (a'_i \, a_(- i)) - u_i (a_i \, a_(- i))] .
