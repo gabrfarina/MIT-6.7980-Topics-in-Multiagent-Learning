@@ -116,6 +116,33 @@ Graphically, we can summarize the process as in the following block diagram.
   where the right-hand side is exactly the cumulative $Phi$-regret $Phi"-Reg"^((T))$ incurred by $cR_Phi$.
 ]
 
+== Why fixed-point computation is necessary
+
+Hazan and Kale showed that no-$Phi$-regret learning and approximate fixed-point computation are computationally equivalent for finite $Phi$ #citep(<hazan2007computational>). The preceding reduction uses fixed points to obtain no regret. For the converse, fix $psi in "conv"(Phi)$ and a tolerance $epsilon > 0$ independent of $T$. If every played strategy satisfies $norm(psi(vx^((t))) - vx^((t)))_2 >= epsilon$, choose each linear utility to reward this displacement. Then $psi$ gains at least $epsilon T$ in total. Since $psi$ is a convex combination of maps in $Phi$, one allowed map gains at least as much, contradicting $o(T)$ regret for sufficiently large $T$. The proof below gives the quantitative bound $min_(1 <= t <= T) norm(psi(vx^((t))) - vx^((t)))_2 <= B(T)/T$.
+
+#block(breakable: false)[
+#theorem[
+  Suppose a $Phi$-regret algorithm on $cX subset.eq RR^d$ guarantees $Phi"-Reg"^((T)) <= B(T) = o(T)$ for every sequence of linear utilities chosen after its strategies whose gradients have Euclidean norm at most $1$. Given any $psi in "conv"(Phi)$, running this algorithm for $T$ rounds produces some strategy $vx^((t))$ satisfying
+  $
+    norm(psi(vx^((t))) - vx^((t)))_2 <= B(T) / T.
+  $
+  Thus the algorithm can find an $epsilon$-approximate fixed point whenever $B(T) / T <= epsilon$.
+]
+]
+#proof[
+  Fix $psi in "conv"(Phi)$. After the learner outputs $vx^((t))$, set $bold(d)^((t)) = psi(vx^((t))) - vx^((t))$. If $bold(d)^((t)) = 0$, we already have a fixed point. Otherwise, give the learner the linear utility
+  $
+    u^((t))(vy) = ip(bold(d)^((t)) / norm(bold(d)^((t)))_2, vy).
+  $
+  This utility has unit Euclidean gradient norm, and $u^((t))(psi(vx^((t)))) - u^((t))(vx^((t))) = norm(bold(d)^((t)))_2$. Write $psi$ as a convex combination of transformations in $Phi$. Since $u^((t))$ is linear, the payoff from comparing with $psi$ is the same convex combination of the payoffs from comparing with those transformations. Hence
+  $
+    B(T) &>= max_(phi.alt in Phi) sum_(t=1)^T (u^((t))(phi.alt(vx^((t)))) - u^((t))(vx^((t)))) \
+         &>= sum_(t=1)^T norm(psi(vx^((t))) - vx^((t)))_2 \
+         &>= T min_(1 <= t <= T) norm(psi(vx^((t))) - vx^((t)))_2.
+  $
+  Choosing the iterate with the smallest residual proves the claim.
+]
+
 = The TreeSwap algorithm <sec-treeswap>
 
 Blum-Mansour's algorithm keeps one external regret minimizer per action, so the number of rounds it needs grows with the number of actions $n$. With suitably tuned external regret minimizers, it reaches an average swap regret $"SwapReg"^((T)) \/ T <= epsilon$ after roughly $n log n \/ epsilon^2$ rounds #citep(<blum2007external>). #citet(<dagan2024external>) give an alternative construction, called _TreeSwap_, whose number of rounds depends only logarithmically on $n$, at the price of a much worse dependence on the target regret $epsilon$.
@@ -212,6 +239,34 @@ With multiplicative weights as the external regret minimizer, TreeSwap achieves 
     "Reg"^((M)) <= 2 sqrt(M log n) = 2 sqrt((log n) / M) dot M <= epsilon / 2 dot M.
   $
   Applying @thm-treeswap with $epsilon\/2$ in place of $epsilon$, and using $1\/d <= epsilon\/2$, gives $"SwapReg"^((T)) <= (epsilon\/2 + epsilon\/2) T$.
+]
+
+= Problems
+
+#exercise[
+  Stoltz and Lugosi give another reduction from external regret to *internal* regret on $Delta^n$ #citep(<stoltz2005internal>). For each ordered pair $i != j$, write $S_(i j) = phi.alt_(i->j)$ for the mass-transport map from #lecture-link("learning_intro", <sec-regret-transformations>)[Lecture 4]: it moves all probability mass on action $i$ to action $j$ and leaves the other coordinates unchanged. Consider an external-regret minimizer whose actions are the $n(n-1)$ maps $S_(i j)$.
+
+  + Describe how to turn its distribution $q^((t))$ over these maps into the learner's strategy $vx^((t))$, and specify the feedback it receives after a linear utility $u^((t))$ is revealed.
+  + Prove a bound on internal regret in terms of the external regret of this auxiliary minimizer.
+  + Compare this construction with Blum-Mansour's algorithm. Explain why Stoltz-Lugosi is a special case of the Gordon-Greenwald-Marks reduction.
+]
+
+#solution[
+  Let $S_(i j)(vx) = vx + x_i (ve_j - ve_i)$, where $ve_i$ is the $i$th unit vector. Given $q^((t)) in Delta^(n(n-1))$, form $Q^((t)) = sum_(i != j) q_(i j)^((t)) S_(i j)$ and play any stationary distribution $vx^((t)) in Delta^n$ satisfying $Q^((t)) vx^((t)) = vx^((t))$. Such a distribution exists because $Q^((t))$ maps the simplex into itself. After observing $u^((t))$, give the auxiliary minimizer the payoff for expert $(i,j)$
+  $
+    V^((t))(i,j) = u^((t))(S_(i j)(vx^((t)))) - u^((t))(vx^((t)))
+      = x_i^((t)) (u^((t))(ve_j) - u^((t))(ve_i)).
+  $
+  Subtracting the common baseline $u^((t))(vx^((t)))$ does not change external regret. By the fixed-point equation and linearity, $sum_(i != j) q_(i j)^((t)) V^((t))(i,j) = u^((t))(Q^((t)) vx^((t))) - u^((t))(vx^((t))) = 0$. Consequently the auxiliary algorithm's external regret is exactly
+  $
+    max_(i != j) sum_(t=1)^T (V^((t))(i,j) - sum_(k != l) q_(k l)^((t)) V^((t))(k,l))
+      = max_(i != j) sum_(t=1)^T x_i^((t)) (u^((t))(ve_j) - u^((t))(ve_i)),
+  $
+  which is the learner's internal regret. In particular, sublinear external regret gives sublinear internal regret.
+
+  The Stoltz-Lugosi construction uses a single external-regret minimizer over ordered pairs of actions. This controls internal regret, which compares the learner with one action replacement at a time. The Blum-Mansour construction uses a separate external-regret minimizer for each action. Together, these minimizers control swap regret, which compares against maps that may replace every action simultaneously. Both constructions obtain the played strategy as a stationary distribution of a stochastic map.
+
+  Finally, take $Phi = "conv"{S_(i j): i != j}$ in the Gordon-Greenwald-Marks construction. Its auxiliary action $Q^((t)) in Phi$ is precisely the mixture above, its fixed-point oracle returns $vx^((t))$, and its utility on $S_(i j)$ is $u^((t))(S_(i j)(vx^((t))))$. Because utility is linear in the transformation, an external-regret minimizer over the $n(n-1)$ extreme maps also minimizes external regret over their convex hull. The displayed feedback differs only by a common baseline. Thus this is exactly the Stoltz-Lugosi construction.
 ]
 
 #lec_bibliography("meta/refs.bib")
