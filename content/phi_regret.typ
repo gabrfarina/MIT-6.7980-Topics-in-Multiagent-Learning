@@ -296,9 +296,7 @@ In @sec-bm, the `NextStrategy()` step of Blum-Mansour's algorithm outputs a fixe
 
 A stochastic matrix may have several fixed points. For instance, every $vx in Delta^n$ is a fixed point of $P = I$. If all entries of $P$ are strictly positive, however, the fixed point is unique by the Perron-Frobenius theorem. Multiplicative weights outputs strategies with strictly positive entries, so with it $P^((t))$ always has a unique fixed point. Regret minimizers, however, may put zero probability mass on some actions, such as regret matching, and they can produce matrices with several fixed points.
 
-Whether this happens depends on the external regret minimizers $cR_i$. Multiplicative weights outputs strategies with strictly positive entries, so $P^((t))$ has a single closed class and its fixed point is unique. Regret minimizers that may put zero mass on some actions, such as regret matching, can produce matrices with several closed classes.
-
-== The choice, however, does not affect the guarantee
+== The choice does not affect the guarantee
 
 #corollary[
   Suppose that at each round $t$, Blum-Mansour's algorithm outputs any fixed point $vx^((t))$ of $P^((t))$, chosen by some rule (this choice may be adversarially chosen and differently at each round). Then
