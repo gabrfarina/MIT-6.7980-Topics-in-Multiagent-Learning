@@ -74,13 +74,10 @@ We illustrate the previous theorem in the colored grid of @fig:sperner-coloring.
     #image("figures/brouwer/sperner_triangulation.svg")
   ]
 ]
+#remark[*Necessity of hypothesis in Sperner.* Sperner's lemma has three boundary conditions. Let us say that we have an all blue colored $n$x$n$ grid. This all-blue grid vioaltes exactly one of the three boundary conditions. This violates the first condition. The left-most column contains blue. The second and third conditions are satisfied. Since this grid is monochromatic, there are 0 trichromatic triangles. This violates the claims of at least one trichromatic triangle and an odd number of trichromatic triangles in Sperner's lemma.
 
-== Necessity of hypothesis in Sperner
-<sec-sperner-necessity>
+Similarly, an all-red and and an all-yellow $n$x$n$ grid violate exactly one condition. Each of these examples have 0 trichromatic triangles and causes Sperner's lemma to fail.]<necessity-sperner-hypothesis>
 
-Sperner's lemma has three boundary conditions. Let us say that we have an all blue colored $n$x$n$ grid. This violates the first condition and the left-most column contains blue. The second condition, where the bottom row cannot contain red, is satisfied. Finally the third condition, where the right-most and top rows cannot contain yellow, is satisfied. Since this grid is monochromatic, there are 0 trichromatic triangles. This violates the claims of at least one trichromatic triangle and an odd number of trichromatic triangles in Sperner's lemma.
-
-Similarly, having an all red colored $n$x$n$ grid violates only the second condition and an all yellow colored grid violates only the third condition. Each of these examples have 0 trichromatic triangles and causes Sperner's lemma to fail.
 
 
 == The connection between Brouwer and Sperner <sec-brouwer-sperner>
@@ -344,18 +341,18 @@ _Continuity_, _compactness_, and _convexity_ are each necessary in Brouwer's the
     Iterate over all valid rent splits $(p_R,p_Y,p_B)$. At each valid rent split, we consider the triangle above and below it. For each triangle, for each vertex we identify the owner as the $i$th entry of ${C, N, G}$ with $i = (p_R + 2 * p_Y) mod 3 $. We then use the desire function ($d_C,d_N,d_G$) of the owner of that vertex to determine its coloring. If we find a trichromatic triangle, we return the prices corresponding to one of  the vertices of that triangle, and the room assignment given by the owners of each vertex and their desired rooms at those vertices. This algorithm runs in polynomial time with respect to the price of the apartment, $n=3000$, as there are $O(n^2)$ valid rent splits.
   ]
 ]
-#exercise[KKM Lema][Prove the following result: consider a triangle T with vertices A, B, C, and three closed sets $S_A$, $S_B$, $S_C$ contained within T such that
-- $A in S_A, B in S_B, C in S_C.$
+#exercise[KKM Lemma][Prove the following result: consider a triangle $T$ with vertices $A$, $B$, $C$, and three closed sets $S_A$, $S_B$, $S_C$ contained within $T$ such that
+- $A in S_A, B in S_B, C in S_C$.
 - The entire edge $overline(A)overline(B)$ is contained in $S_A union A_B union S_C$
-- The entire triangle T is contained in $S_A union A_B union S_C$.
+- The entire triangle $T$ is contained in $S_A union A_B union S_C$.
 Then $S_A inter A_B inter S_C !=  nothing$; there is a point in all three sets.
 #solution[For every $n > 1$, we can divide the sides of $T$ into $n$ equal segments. We can then draw lines parallel to the untouched edge through these division points. This splits triangle $T$ into $n^2$ congruent triangles.  Let us call the diameter of triangle $T$ as $D$. Each of the smaller $n^2$ triangles has a diameter of $D/n$.
 
-Now we can color the smaller triangles. We want to color each vertex of this triangulation a label A, B, or C such that the vertex lies in $S_A, S_B, S_C$ respectively. We can label each of the vertices of $T$ A, B, and C with the labels A, B, and C. This is valid by the first KKM condition. Next, every vertex on the edge $overline(A)overline(B)$, not including the corners A and B, a label of whichever set contains it, A or B. We can apply this reasoning for the other two edges. This is valid by the second KKM condition. Finally, a vertex not on one of the edges of $T$ gets a label of whichever set contains it, A, B, or C. This is valid by the third hypothesis.
+Now we can color the smaller triangles. We want to color each vertex of this triangulation a label $A$, $B$, or $C$ such that the vertex lies in $S_A$ $S_B$, $S_C$ respectively. We can label each of the vertices of $T$ as $A$, $B$, and $C$ with the labels $A$, $B$, and $C$. This is valid by the first KKM condition. Next, every vertex on the edge $overline(A)overline(B)$, not including the corners $A$ and $B$, a label of whichever set contains it, $A$ or $B$. We can apply this reasoning for the other two edges. This is valid by the second KKM condition. Finally, a vertex not on one of the edges of $T$ gets a label of whichever set contains it, $A$, $B$, or $C$. This is valid by the third hypothesis.
 
-Now we can see that each vertex of $T$ has a distinct color. The three edges of $T$ have only the colors of its endpoints. This is the definition of a Sperner coloring. Therefore, there must be at least one trichromatic triangle with vertices $a_n, b_n, c_n$ in which $a_n in A, b_n in B, c_n in C$. From our small triangle construction earlier, the pairwise distances in this trichromatic triangle are at most $D/n$.
+Now we can see that each vertex of $T$ has a distinct color. The three edges of $T$ have only the colors of its endpoints. This is the definition of a Sperner coloring. Therefore, there must be at least one trichromatic triangle with vertices $a_n$, $b_n$, $c_n$ in which $a_n in A, b_n in B, c_n in C$. From our small triangle construction earlier, the pairwise distances in this trichromatic triangle are at most $D/n$.
 
-We know that T is closed and bounded in $RR^2$. Therefore, T is compact. By Bolzano-Weierstrass, the $a_n$ sequence has a convering subsequence $a_n_k arrow x^* in T$. Since we know that $abs(a_n_k - b_n_k) <= D/n_k arrow 0$ by the triangle inequality, we can also say that $b_n_k arrow x^*$ and $c_n_k arrow x^*$.
+We know that $T$ is closed and bounded in $RR^2$. Therefore, $T$ is compact. By Bolzano-Weierstrass, the $a_n$ sequence has a convering subsequence $a_n_k arrow x^* in T$. Since we know that $abs(a_n_k - b_n_k) <= D/n_k arrow 0$ by the triangle inequality, we can also say that $b_n_k arrow x^*$ and $c_n_k arrow x^*$.
 
 We know that $S_A$ is a closed set and it contains every $a_n_k$. Therefore $S_A$ must contain $x^*$. Similarly, $x^* in S_B$ and $x^* in S_C$. Therefore, we can conclude that $x^* in S_A inter A_B inter S_C$.]]
 
