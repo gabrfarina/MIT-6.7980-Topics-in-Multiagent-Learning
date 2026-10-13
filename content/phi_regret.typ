@@ -116,198 +116,31 @@ Graphically, we can summarize the process as in the following block diagram.
   where the right-hand side is exactly the cumulative $Phi$-regret $Phi"-Reg"^((T))$ incurred by $cR_Phi$.
 ]
 
-= Blum-Mansour's algorithm as a special case <sec-bm-ggm>
+== Blum-Mansour's algorithm as a special case <sec-bm-ggm>
 
-We now show that Blum-Mansour's algorithm is a special case of the Gordon-Greenwald-Marks's reduction. Set $cX = Delta^n$, and let $Phi$ be the set of stochastic matrices $P = (vp_1 | dots.c | vp_n)$ from @sec-bm, acting on strategies by the linear map $vx |-> P vx = sum_(i=1)^n x_i vp_i$, which sends $Delta^n$ to itself. For this $Phi$, $Phi"-Reg"^((T)) = "SwapReg"^((T))$. We construct the two components of the reduction and check that plugging them into the algorithm of  @fig-ggm yields the algorithm of @fig-bm.
+We now show that Blum-Mansour's algorithm is a special case of the Gordon-Greenwald-Marks's reduction. Set $cX = Delta^n$, and let $Phi$ be the set of stochastic matrices $P = (vp_1 | dots.c | vp_n)$ from @sec-bm, acting on strategies by the linear map
+$ vx |-> P vx = sum_(i=1)^n x_i vp_i, $
+which sends $Delta^n$ to itself. For this $Phi$, $Phi"-Reg"^((T)) = "SwapReg"^((T))$.
 
-== The fixed point oracle for $Phi$
-
-A fixed point $P vx = vx$ is a _stationary distribution_ of the Markov chain on $A$ with transition matrix $P$. One always exists by #lecture-link("brouwer", <sec-brouwer-general>)[Brouwer's fixed-point theorem], since $vx |-> P vx$ is a continuous self-map of the nonempty, compact, convex set $Delta^n$. It can be computed by solving the linear feasibility problem
+For the fixed point oracle, a fixed point $P vx = vx$ is a _stationary distribution_ of the Markov chain on $A$ with transition matrix $P$. One always exists by #lecture-link("brouwer", <sec-brouwer-general>)[Brouwer's fixed-point theorem], since $vx |-> P vx$ is a continuous self-map of the nonempty, compact, convex set $Delta^n$. It can be computed by solving the linear feasibility problem
 $ P vx = vx, quad sum_(i=1)^n x_i = 1, quad vx >= 0. $
 This is equivalent to the step $vx^((t)) = P^((t)) vx^((t))$ of Blum-Mansour's algorithm.
 
-== The external regret minimizer for $Phi$
-
-Each constraint defining $Phi$ involves a single column, so $Phi = Delta^n times dots.c times Delta^n$, with one simplex per column. Moreover, by linearity of $u^((t))$, the utility (@ggm-utility) is separable across columns:
-#set math.equation(numbering: "(1)")
+For the external regret minimizer, each constraint defining $Phi$ involves a single column, so $Phi = Delta^n times dots.c times Delta^n$, with one simplex per column. Moreover, by linearity of $u^((t))$, the utility (@ggm-utility) is separable across columns:
 $
   U^((t))(P) = u^((t))(sum_(i=1)^n x_i^((t)) vp_i) = sum_(i=1)^n v_i^((t))(vp_i), quad "where" v_i^((t)) := x_i^((t)) u^((t)).
-$ <eq-bm-separable>
-#set math.equation(numbering: none)
-We can therefore build $cR$ from $n$ external regret minimizers $cR_1, ..., cR_n$ for $Delta^n$, one per column. $cR$ stacks their outputs into $P^((t)) = (vp_1^((t)) | dots.c | vp_n^((t)))$, and passes $v_i^((t))$ to $cR_i$.
-
-#lemma[
-  Let $"Reg"_i^((T))$ be the regret of $cR_i$, as in (#ref(<eq-def-Rv>)). Then $"Reg"_Phi^((T)) = sum_(i=1)^n "Reg"_i^((T))$. In particular, $cR$ is an external regret minimizer for $Phi$ whenever every $cR_i$ is one for $Delta^n$.
-] <lem-bm-product>
-#proof[
-  Let $F_i (vp) := sum_(t=1)^T (v_i^((t))(vp) - v_i^((t))\(vp_i^((t))\))$, so that $"Reg"_i^((T)) = max_(vp in Delta^n) F_i (vp)$. By (@eq-bm-separable),
-  $
-    "Reg"_Phi^((T)) = max_(hat(P) in Phi) sum_(i=1)^n F_i (hat(vp)_i) = sum_(i=1)^n max_(hat(vp)_i in Delta^n) F_i (hat(vp)_i) = sum_(i=1)^n "Reg"_i^((T)),
-  $
-  where the maximum distributes over the sum because the $i$-th term depends only on $hat(vp)_i$, and the columns of $hat(P)$ range over $Delta^n$ independently.
-]
-
-== Matching the two algorithms
-
-@tab-bm-ggm compares the reduction of @fig-ggm instantiated with these two components against Blum-Mansour's algorithm (@fig-bm).
-
-#figure(
-  kind: table,
-  supplement: [Table],
-  caption: [The instantiated reduction versus Blum-Mansour's algorithm.],
-)[
-  #set par(justify: false)
-  #table(
-    columns: (1fr, 1fr),
-    align: left + top,
-    inset: .7em,
-    stroke: (x, y) => (
-      left: if x == 1 { .2mm + luma(70%) },
-      top: if y > 0 { .2mm + luma(70%) },
-    ),
-    table.header([*Gordon-Greenwald-Marks with $cR$*], [*Blum-Mansour*]),
-    table.cell(colspan: 2, fill: luma(96%))[`NextStrategy()`],
-    [$cR$ stacks the outputs of the $cR_i$ into $P^((t))$.],
-    [Stack the outputs of the $cR_i$ into $P^((t))$.],
-
-    [The fixed point oracle returns a stationary distribution $vx^((t)) = P^((t)) vx^((t))$.],
-    [Output a fixed point $vx^((t)) = P^((t)) vx^((t))$.],
-
-    table.cell(colspan: 2, fill: luma(96%))[`ObserveUtility`$(u^((t)))$],
-    [Pass $U^((t))(P) = u^((t))(P vx^((t)))$ to $cR$, which splits it via (@eq-bm-separable) into the $v_i^((t))$.],
-    [Pass $v_i^((t)) = x_i^((t)) u^((t))$ to each $cR_i$.],
-  )
-] <tab-bm-ggm>
-
-We can observe that the two algorithms perform the same steps and effectively differ only in organization. The reduction forms $U^((t))$ on all of $Phi$ before splitting it, while Blum-Mansour passes the pieces $v_i^((t))$ directly. By @thm-ggm and @lem-bm-product,
+$
+We can therefore build $cR$ from $n$ external regret minimizers $cR_1, ..., cR_n$ for $Delta^n$, one per column. $cR$ stacks their outputs into $P^((t)) = (vp_1^((t)) | dots.c | vp_n^((t)))$, and passes $v_i^((t))$ to $cR_i$, which are exactly the steps of @fig-bm: the reduction forms $U^((t))$ on all of $Phi$ before splitting it, while Blum-Mansour passes the pieces $v_i^((t))$ directly. Because the $i$-th term depends only on $vp_i$ and the columns range over $Delta^n$ independently, the maximum in $"Reg"_Phi^((T))$ distributes over the sum, so by @thm-ggm
 $ "SwapReg"^((T)) = "Reg"_Phi^((T)) = sum_(i=1)^n "Reg"_i^((T)), $
-which recovers @thm-bm. 
-// = Blum-Mansour's algorithm as a special case <sec-bm-ggm>
+which recovers @thm-bm.
 
-// We now show that Blum-Mansour's algorithm is a special case of Gordon-Greenwald-Marks's reduction. The reduction needs two components: a fixed point oracle for $Phi$, and an external regret minimizer for $Phi$. We show this by constructing both for the set of transformations that defines swap regret, and then checking that plugging them into @fig-ggm yields exactly the algorithm of @fig-bm.
+#remark[Choosing among multiple fixed points][
+  A stochastic matrix may have several fixed points. For instance, every $vx in Delta^n$ is a fixed point of $P = I$. If all entries of $P$ are strictly positive, however, the fixed point is unique by the Perron-Frobenius theorem, so with multiplicative weights $P^((t))$ always has a unique fixed point. Regret minimizers that may put zero probability mass on some actions, such as regret matching, can produce matrices with several fixed points. Different choices of fixed point lead to different strategies being played, but not to different swap regret guarantees.
 
-// == The fixed point oracle
-
-// Set $cX = Delta^n$, and let $Phi$ be the set of column-stochastic matrices $P = (vp_1 | dots.c | vp_n)$ introduced in @sec-bm, where each $P$ acts on strategies as the map $vx |-> P vx$. This map is linear, and it maps $cX$ to itself: for any $vx in Delta^n$,
-// $ P vx = sum_(i=1)^n x_i vp_i $
-// is a convex combination of the columns $vp_1, ..., vp_n in Delta^n$, and therefore belongs to $Delta^n$. As we saw when discussing #lecture-link("learning_intro", <sec-regret-transformations>)[notable choices of transformations], the $Phi$-regret for this set $Phi$ is exactly the swap regret, where, $Phi"-Reg"^((T)) = "SwapReg"^((T))$.
-
-// A fixed point $P vx = vx$ with $vx in Delta^n$ is a _stationary distribution_ of the Markov chain on $A$ whose transition matrix is $P$. Indeed, column $vp_i$ is the distribution of the next state when the current state is $i$, so $P vx$ is the distribution of the chain after one step from $vx$. A fixed point always exists, since $vx |-> P vx$ is a continuous map of the nonempty, compact, and convex set $Delta^n$ to itself, and so #lecture-link("brouwer", <sec-brouwer-general>)[Brouwer's fixed-point theorem] applies. Moreover, a fixed point can be computed by solving the linear feasibility problem
-// $ P vx = vx, quad sum_(i=1)^n x_i = 1, quad vx >= 0, $
-// for instance with linear programming. The chain may be reducible, in which case it has several stationary distributions; any of them works. This gives the fixed point oracle required by the reduction, and it is literally the step $vx^((t)) = P^((t)) vx^((t))$ of Blum-Mansour's algorithm.
-
-// == The external regret minimizer for $Phi$
-
-// The key structural property of $Phi$ is that the columns of a stochastic matrix can be chosen independently of each other: each constraint that defines $Phi$ (nonnegativity of an entry, or a column summing to one) involves a single column. Identifying each matrix $P = (vp_1 | dots.c | vp_n)$ with the tuple $(vp_1, ..., vp_n)$ of its columns, we can therefore write $Phi$ as a Cartesian product of simplices,
-// $ Phi = underbrace(Delta^n times dots.c times Delta^n, n "times"). $
-// In particular, $Phi$ is convex and compact.
-
-// Next, we expand the utility function that the external regret minimizer observes at time $t$ in the reduction, which by (@ggm-utility) is $U^((t))(P) = u^((t))(P vx^((t)))$. Using $P vx^((t)) = sum_(i=1)^n x_i^((t)) vp_i$ and the linearity of $u^((t))$, we obtain
-// #set math.equation(numbering: "(1)")
-// $
-//   U^((t))(P) = sum_(i=1)^n x_i^((t)) u^((t))(vp_i) = sum_(i=1)^n v_i^((t))(vp_i), quad "where" v_i^((t)) := x_i^((t)) u^((t)).
-// $ <eq-bm-separable>
-// #set math.equation(numbering: none)
-// Here, we can see that the functions $v_i^((t))$ are exactly the rescaled utilities that Blum-Mansour's algorithm passes to its external regret minimizers. Second, $U^((t))$ is linear in $P$, and it is _separable_ across columns: the $i$-th term depends only on the column $vp_i$.
-
-// Separability suggests building an external regret minimizer $cR$ for $Phi$ out of $n$ external regret minimizers $cR_1, ..., cR_n$ for $Delta^n$, one per column.
-// - $cR$.`NextStrategy()` calls $cR_i$.`NextStrategy()` for each $i in A$ to obtain $vp_i^((t)) in Delta^n$, and outputs the matrix $P^((t)) = (vp_1^((t)) | dots.c | vp_n^((t)))$, which belongs to $Phi$ by the product structure.
-// - $cR$.`ObserveUtility`$(U^((t)))$ writes $U^((t))$ as a sum of linear functions $v_i^((t))$ of the individual columns, as in (@eq-bm-separable), and calls $cR_i$.`ObserveUtility`$(v_i^((t)))$ for each $i in A$.
-
-// The decomposition in the second step is possible for any linear utility function over $Phi$, not only for those produced by the reduction: a linear function of $P$ is a linear function of its $n^2$ entries, and hence a sum of linear functions of the individual columns.
-
-// #lemma[
-//   Let $"Reg"_i^((T))$ denote the regret cumulated up to time $T$ by $cR_i$, as in (#ref(<eq-def-Rv>)). Then the regret cumulated by $cR$ satisfies
-//   $
-//     "Reg"_Phi^((T)) = sum_(i=1)^n "Reg"_i^((T)).
-//   $
-//   In particular, $cR$ is an external regret minimizer for $Phi$ whenever every $cR_i$ is an external regret minimizer for $Delta^n$.
-// ] <lem-bm-product>
-// #proof[
-//   For each $i in A$ and $vp in Delta^n$, let
-//   $
-//     F_i (vp) := sum_(t=1)^T (v_i^((t))(vp) - v_i^((t))\(vp_i^((t))\))
-//   $
-//   be how much better $cR_i$ would have done by always playing $vp$, so that $"Reg"_i^((T)) = max_(vp in Delta^n) F_i (vp)$. Then, by definition of external regret,
-//   $
-//     "Reg"_Phi^((T))
-//     &= max_(hat(P) in Phi) sum_(t=1)^T (U^((t))(hat(P)) - U^((t))\(P^((t))\)) \
-//     &= max_(hat(P) in Phi) sum_(t=1)^T sum_(i=1)^n (v_i^((t))(hat(vp)_i) - v_i^((t))\(vp_i^((t))\)) &quad ("from" (#ref(<eq-bm-separable>)))\
-//     &= max_(hat(P) in Phi) sum_(i=1)^n F_i (hat(vp)_i) &quad ("switching summation order")\
-//     &= sum_(i=1)^n max_(hat(vp)_i in Delta^n) F_i (hat(vp)_i) &quad (Phi "is a product of simplices")\
-//     &= sum_(i=1)^n "Reg"_i^((T)).
-//   $
-//   The only step that requires care is the fourth one, in which the maximum is distributed over the sum. It is valid because the $i$-th term depends only on the column $hat(vp)_i$, and the columns of $hat(P)$ range over $Delta^n$ independently of each other. In more detail, for any $hat(P) in Phi$, each column $hat(vp)_i$ belongs to $Delta^n$, so $F_i (hat(vp)_i) <= max_(vp in Delta^n) F_i (vp)$ for every $i$, and summing over $i$ shows that the left-hand side is at most the right-hand side. Conversely, choose each column $hat(vp)_i$ to be a maximizer of $F_i$ over $Delta^n$, which exists since $F_i$ is linear and $Delta^n$ is compact. Since the columns can be chosen independently, the resulting matrix $hat(P)$ belongs to $Phi$, and it attains the right-hand side.
-
-//   Finally, if each $"Reg"_i^((T))$ grows sublinearly in $T$, then so does their sum, which has a fixed number $n$ of terms.
-// ]
-
-// == Matching the two algorithms
-
-// We now plug the stationary distribution oracle and the external regret minimizer $cR$ of @lem-bm-product into the reduction of @fig-ggm, and compare the resulting algorithm with Blum-Mansour's algorithm (@fig-bm) call by call.
-
-// #figure(
-//   kind: table,
-//   supplement: [Table],
-//   caption: [Gordon-Greenwald-Marks's reduction, instantiated with $cR$ and the stationary distribution oracle, performs the same steps as Blum-Mansour's algorithm.],
-// )[
-//   #set par(justify: false)
-//   #table(
-//     columns: (1fr, 1fr),
-//     align: left + top,
-//     inset: .7em,
-//     stroke: (x, y) => (
-//       left: if x == 1 { .2mm + luma(70%) },
-//       top: if y > 0 { .2mm + luma(70%) },
-//     ),
-//     table.header([*Gordon-Greenwald-Marks with $cR$*], [*Blum-Mansour*]),
-//     table.cell(colspan: 2, fill: luma(96%))[`NextStrategy()`],
-//     [$cR$ calls each $cR_i$.`NextStrategy()` and outputs $P^((t)) = (vp_1^((t)) | dots.c | vp_n^((t)))$.],
-//     [Call each $cR_i$.`NextStrategy()` and assemble the outputs $vp_i^((t))$ into $P^((t))$.],
-
-//     [The fixed point oracle outputs a stationary distribution $vx^((t)) = P^((t)) vx^((t))$.],
-//     [Output a fixed point $vx^((t)) = P^((t)) vx^((t))$.],
-
-//     table.cell(colspan: 2, fill: luma(96%))[`ObserveUtility`$(u^((t)))$],
-//     [Pass $U^((t))(P) = u^((t))(P vx^((t)))$ to $cR$, which splits it as in (@eq-bm-separable) and passes each $v_i^((t))$ to $cR_i$.],
-//     [Pass each $v_i^((t)) = x_i^((t)) u^((t))$ to $cR_i$.],
-//   )
-// ] <tab-bm-ggm>
-
-// Both constructions compute the same objects at every step: the matrix $P^((t))$ assembled from the outputs of the $cR_i$, its stationary distribution $vx^((t))$, and the rescaled utilities $v_i^((t)) = x_i^((t)) u^((t))$ passed to the $cR_i$. The only difference is bookkeeping, since Gordon-Greenwald-Marks's reduction first forms $U^((t))$ over all of $Phi$ and then splits it by column, whereas Blum-Mansour passes the pieces $v_i^((t))$ directly. Blum-Mansour's algorithm is therefore an instance of Gordon-Greenwald-Marks's reduction, and its guarantee follows from the general one.
-
-// #corollary[
-//   The swap regret cumulated by Blum-Mansour's algorithm satisfies
-//   $
-//     "SwapReg"^((T)) = "Reg"_Phi^((T)) = sum_(i=1)^n "Reg"_i^((T)).
-//   $
-// ]
-// #proof[
-//   The first equality is @thm-ggm, since $Phi"-Reg"^((T)) = "SwapReg"^((T))$ for this choice of $Phi$. The second equality is @lem-bm-product.
-// ]
-
-// This recovers @thm-bm, whose direct proof in @sec-bm is just these two steps inlined. The substitution $vx^((t)) = P^((t)) vx^((t))$ is the fixed point argument of @thm-ggm, and the remaining steps (linearity, swapping sums, and maximizing over each column of $hat(P)$ independently) are the proof of @lem-bm-product.
-
-= Choosing among multiple fixed points <sec-bm-fixed-points>
-
-In @sec-bm, the `NextStrategy()` step of Blum-Mansour's algorithm outputs a fixed point $vx^((t)) = P^((t)) vx^((t))$ of a stochastic matrix. We show what happens when a stochasic matrix has more than one fixed point and different fixed points are chosen. 
-
-== When the fixed point is not unique
-
-A stochastic matrix may have several fixed points. For instance, every $vx in Delta^n$ is a fixed point of $P = I$. If all entries of $P$ are strictly positive, however, the fixed point is unique by the Perron-Frobenius theorem. Multiplicative weights outputs strategies with strictly positive entries, so with it $P^((t))$ always has a unique fixed point. Regret minimizers, however, may put zero probability mass on some actions, such as regret matching, and they can produce matrices with several fixed points.
-
-== The choice does not affect the guarantee
-
-#corollary[
-  Suppose that at each round $t$, Blum-Mansour's algorithm outputs any fixed point $vx^((t))$ of $P^((t))$, chosen by some rule (this choice may be adversarially chosen and differently at each round). Then
-  $ "SwapReg"^((T)) = sum_(i=1)^n "Reg"_i^((T)). $
-] <cor-bm-any-fixed-point>
-#proof[
-  The proofs of @thm-ggm and @lem-bm-product use $vx^((t))$ only through $P^((t)) vx^((t)) = vx^((t))$ and the definition of $v_i^((t))$, and both hold for any choice of fixed point.
+  The argument above uses $vx^((t))$ only through $P^((t)) vx^((t)) = vx^((t))$ and the definition of $v_i^((t))$, so
+  $ "SwapReg"^((T)) = sum_(i=1)^n "Reg"_i^((T)) $
+  holds for any choice of fixed point, even one chosen adversarially and differently at each round. The choice does, however, affect the algorithm's future behavior, since $vx^((t))$ determines the utilities $v_i^((t))$ passed to the $cR_i$, and therefore every later matrix $P^((s))$. The bound still applies as long as each $cR_i$ guarantees low regret against utilities that depend on its own past outputs, as multiplicative weights does, and since $0 <= x_i^((t)) <= 1$, each $v_i^((t))$ stays in the same range as $u^((t))$. In short, any fixed point can be used: the choice changes the strategies the algorithm plays, but not its swap regret guarantee.
 ]
-
-
-The choice does, however, affect the algorithm's future behavior. The fixed point $vx^((t))$ determines the utilities $v_i^((t)) = x_i^((t)) u^((t))$ passed to the $cR_i$, and therefore every later matrix $P^((s))$ with $s > t$. As a result, different choices lead to different strategies and different realized swap regret. They all satisfy the same bound, as long as each $cR_i$ guarantees low regret against utilities that depend on its own past outputs, as multiplicative weights does. Since $0 <= x_i^((t)) <= 1$, each $v_i^((t))$ stays in the same range as $u^((t))$, so the bounds on $"Reg"_i^((T))$ apply unchanged. In short, any fixed point can be used: the choice changes the strategies the algorithm plays, but not its swap regret guarantee.
 
 = The TreeSwap algorithm <sec-treeswap>
 
@@ -315,118 +148,6 @@ Blum-Mansour's algorithm keeps one external regret minimizer per action, so the 
 
 Throughout this section, the utilities are linear functions $u^((t))(vx) = ip(vg^((t)), vx)$ with $vg^((t)) in [0, 1]^n$. An average of such functions is again a function of this form. We assume that the external regret minimizer, run for $M$ iterations on such utilities, guarantees $"Reg"^((M)) <= epsilon M$, whatever the utilities are.
 
-
-// = Blum-Mansour's algorithm as a special case <sec-bm-ggm>
-
-// We now show that Blum-Mansour's algorithm is a special case of Gordon-Greenwald-Marks's reduction. The reduction needs two components: a fixed point oracle for $Phi$, and an external regret minimizer for $Phi$. We show this by constructing both for the set of transformations that defines swap regret, and then checking that plugging them into @fig-ggm yields exactly the algorithm of @fig-bm.
-
-// == The fixed point oracle
-
-// Set $cX = Delta^n$, and let $Phi$ be the set of column-stochastic matrices $P = (vp_1 | dots.c | vp_n)$ introduced in @sec-bm, where each $P$ acts on strategies as the map $vx |-> P vx$. This map is linear, and it maps $cX$ to itself: for any $vx in Delta^n$,
-// $ P vx = sum_(i=1)^n x_i vp_i $
-// is a convex combination of the columns $vp_1, ..., vp_n in Delta^n$, and therefore belongs to $Delta^n$. As we saw when discussing #lecture-link("learning_intro", <sec-regret-transformations>)[notable choices of transformations], the $Phi$-regret for this set $Phi$ is exactly the swap regret, where, $Phi"-Reg"^((T)) = "SwapReg"^((T))$.
-
-// A fixed point $P vx = vx$ with $vx in Delta^n$ is a _stationary distribution_ of the Markov chain on $A$ whose transition matrix is $P$. Indeed, column $vp_i$ is the distribution of the next state when the current state is $i$, so $P vx$ is the distribution of the chain after one step from $vx$. A fixed point always exists, since $vx |-> P vx$ is a continuous map of the nonempty, compact, and convex set $Delta^n$ to itself, and so #lecture-link("brouwer", <sec-brouwer-general>)[Brouwer's fixed-point theorem] applies. Moreover, a fixed point can be computed by solving the linear feasibility problem
-// $ P vx = vx, quad sum_(i=1)^n x_i = 1, quad vx >= 0, $
-// for instance with linear programming. The chain may be reducible, in which case it has several stationary distributions; any of them works. This gives the fixed point oracle required by the reduction, and it is literally the step $vx^((t)) = P^((t)) vx^((t))$ of Blum-Mansour's algorithm.
-
-// == The external regret minimizer for $Phi$
-
-// The key structural property of $Phi$ is that the columns of a stochastic matrix can be chosen independently of each other: each constraint that defines $Phi$ (nonnegativity of an entry, or a column summing to one) involves a single column. Identifying each matrix $P = (vp_1 | dots.c | vp_n)$ with the tuple $(vp_1, ..., vp_n)$ of its columns, we can therefore write $Phi$ as a Cartesian product of simplices,
-// $ Phi = underbrace(Delta^n times dots.c times Delta^n, n "times"). $
-// In particular, $Phi$ is convex and compact.
-
-// Next, we expand the utility function that the external regret minimizer observes at time $t$ in the reduction, which by (@ggm-utility) is $U^((t))(P) = u^((t))(P vx^((t)))$. Using $P vx^((t)) = sum_(i=1)^n x_i^((t)) vp_i$ and the linearity of $u^((t))$, we obtain
-// #set math.equation(numbering: "(1)")
-// $
-//   U^((t))(P) = sum_(i=1)^n x_i^((t)) u^((t))(vp_i) = sum_(i=1)^n v_i^((t))(vp_i), quad "where" v_i^((t)) := x_i^((t)) u^((t)).
-// $ <eq-bm-separable>
-// #set math.equation(numbering: none)
-// Here, we can see that the functions $v_i^((t))$ are exactly the rescaled utilities that Blum-Mansour's algorithm passes to its external regret minimizers. Second, $U^((t))$ is linear in $P$, and it is _separable_ across columns: the $i$-th term depends only on the column $vp_i$.
-
-// Separability suggests building an external regret minimizer $cR$ for $Phi$ out of $n$ external regret minimizers $cR_1, ..., cR_n$ for $Delta^n$, one per column.
-// - $cR$.`NextStrategy()` calls $cR_i$.`NextStrategy()` for each $i in A$ to obtain $vp_i^((t)) in Delta^n$, and outputs the matrix $P^((t)) = (vp_1^((t)) | dots.c | vp_n^((t)))$, which belongs to $Phi$ by the product structure.
-// - $cR$.`ObserveUtility`$(U^((t)))$ writes $U^((t))$ as a sum of linear functions $v_i^((t))$ of the individual columns, as in (@eq-bm-separable), and calls $cR_i$.`ObserveUtility`$(v_i^((t)))$ for each $i in A$.
-
-// The decomposition in the second step is possible for any linear utility function over $Phi$, not only for those produced by the reduction: a linear function of $P$ is a linear function of its $n^2$ entries, and hence a sum of linear functions of the individual columns.
-
-// #lemma[
-//   Let $"Reg"_i^((T))$ denote the regret cumulated up to time $T$ by $cR_i$, as in (#ref(<eq-def-Rv>)). Then the regret cumulated by $cR$ satisfies
-//   $
-//     "Reg"_Phi^((T)) = sum_(i=1)^n "Reg"_i^((T)).
-//   $
-//   In particular, $cR$ is an external regret minimizer for $Phi$ whenever every $cR_i$ is an external regret minimizer for $Delta^n$.
-// ] <lem-bm-product>
-// #proof[
-//   For each $i in A$ and $vp in Delta^n$, let
-//   $
-//     F_i (vp) := sum_(t=1)^T (v_i^((t))(vp) - v_i^((t))\(vp_i^((t))\))
-//   $
-//   be how much better $cR_i$ would have done by always playing $vp$, so that $"Reg"_i^((T)) = max_(vp in Delta^n) F_i (vp)$. Then, by definition of external regret,
-//   $
-//     "Reg"_Phi^((T))
-//     &= max_(hat(P) in Phi) sum_(t=1)^T (U^((t))(hat(P)) - U^((t))\(P^((t))\)) \
-//     &= max_(hat(P) in Phi) sum_(t=1)^T sum_(i=1)^n (v_i^((t))(hat(vp)_i) - v_i^((t))\(vp_i^((t))\)) &quad ("from" (#ref(<eq-bm-separable>)))\
-//     &= max_(hat(P) in Phi) sum_(i=1)^n F_i (hat(vp)_i) &quad ("switching summation order")\
-//     &= sum_(i=1)^n max_(hat(vp)_i in Delta^n) F_i (hat(vp)_i) &quad (Phi "is a product of simplices")\
-//     &= sum_(i=1)^n "Reg"_i^((T)).
-//   $
-//   The only step that requires care is the fourth one, in which the maximum is distributed over the sum. It is valid because the $i$-th term depends only on the column $hat(vp)_i$, and the columns of $hat(P)$ range over $Delta^n$ independently of each other. In more detail, for any $hat(P) in Phi$, each column $hat(vp)_i$ belongs to $Delta^n$, so $F_i (hat(vp)_i) <= max_(vp in Delta^n) F_i (vp)$ for every $i$, and summing over $i$ shows that the left-hand side is at most the right-hand side. Conversely, choose each column $hat(vp)_i$ to be a maximizer of $F_i$ over $Delta^n$, which exists since $F_i$ is linear and $Delta^n$ is compact. Since the columns can be chosen independently, the resulting matrix $hat(P)$ belongs to $Phi$, and it attains the right-hand side.
-
-//   Finally, if each $"Reg"_i^((T))$ grows sublinearly in $T$, then so does their sum, which has a fixed number $n$ of terms.
-// ]
-
-// == Matching the two algorithms
-
-// We now plug the stationary distribution oracle and the external regret minimizer $cR$ of @lem-bm-product into the reduction of @fig-ggm, and compare the resulting algorithm with Blum-Mansour's algorithm (@fig-bm) call by call.
-
-// #figure(
-//   kind: table,
-//   supplement: [Table],
-//   caption: [Gordon-Greenwald-Marks's reduction, instantiated with $cR$ and the stationary distribution oracle, performs the same steps as Blum-Mansour's algorithm.],
-// )[
-//   #set par(justify: false)
-//   #table(
-//     columns: (1fr, 1fr),
-//     align: left + top,
-//     inset: .7em,
-//     stroke: (x, y) => (
-//       left: if x == 1 { .2mm + luma(70%) },
-//       top: if y > 0 { .2mm + luma(70%) },
-//     ),
-//     table.header([*Gordon-Greenwald-Marks with $cR$*], [*Blum-Mansour*]),
-//     table.cell(colspan: 2, fill: luma(96%))[`NextStrategy()`],
-//     [$cR$ calls each $cR_i$.`NextStrategy()` and outputs $P^((t)) = (vp_1^((t)) | dots.c | vp_n^((t)))$.],
-//     [Call each $cR_i$.`NextStrategy()` and assemble the outputs $vp_i^((t))$ into $P^((t))$.],
-
-//     [The fixed point oracle outputs a stationary distribution $vx^((t)) = P^((t)) vx^((t))$.],
-//     [Output a fixed point $vx^((t)) = P^((t)) vx^((t))$.],
-
-//     table.cell(colspan: 2, fill: luma(96%))[`ObserveUtility`$(u^((t)))$],
-//     [Pass $U^((t))(P) = u^((t))(P vx^((t)))$ to $cR$, which splits it as in (@eq-bm-separable) and passes each $v_i^((t))$ to $cR_i$.],
-//     [Pass each $v_i^((t)) = x_i^((t)) u^((t))$ to $cR_i$.],
-//   )
-// ] <tab-bm-ggm>
-
-// Both constructions compute the same objects at every step: the matrix $P^((t))$ assembled from the outputs of the $cR_i$, its stationary distribution $vx^((t))$, and the rescaled utilities $v_i^((t)) = x_i^((t)) u^((t))$ passed to the $cR_i$. The only difference is bookkeeping, since Gordon-Greenwald-Marks's reduction first forms $U^((t))$ over all of $Phi$ and then splits it by column, whereas Blum-Mansour passes the pieces $v_i^((t))$ directly. Blum-Mansour's algorithm is therefore an instance of Gordon-Greenwald-Marks's reduction, and its guarantee follows from the general one.
-
-// #corollary[
-//   The swap regret cumulated by Blum-Mansour's algorithm satisfies
-//   $
-//     "SwapReg"^((T)) = "Reg"_Phi^((T)) = sum_(i=1)^n "Reg"_i^((T)).
-//   $
-// ]
-// #proof[
-//   The first equality is @thm-ggm, since $Phi"-Reg"^((T)) = "SwapReg"^((T))$ for this choice of $Phi$. The second equality is @lem-bm-product.
-// ]
-
-// This recovers @thm-bm, whose direct proof in @sec-bm is just these two steps inlined. The substitution $vx^((t)) = P^((t)) vx^((t))$ is the fixed point argument of @thm-ggm, and the remaining steps (linearity, swapping sums, and maximizing over each column of $hat(P)$ independently) are the proof of @lem-bm-product.
-
-// = The TreeSwap algorithm <sec-treeswap>
-
-// Blum-Mansour's algorithm keeps one external regret minimizer per action, so the number of rounds it needs grows with the number of actions $n$. With suitably tuned external regret minimizers, it reaches an average swap regret $"SwapReg"^((T)) \/ T <= epsilon$ after roughly $n log n \/ epsilon^2$ rounds #citep(<blum2007external>). #citet(<dagan2024external>) give an alternative construction, called _TreeSwap_, whose number of rounds depends only logarithmically on $n$, at the price of a much worse dependence on the target regret $epsilon$.
-
-// Throughout this section, the utilities are linear functions $u^((t))(vx) = ip(vg^((t)), vx)$ with $vg^((t)) in [0, 1]^n$. An average of such functions is again a function of this form. We assume that the external regret minimizer, run for $M$ iterations on such utilities, guarantees $"Reg"^((M)) <= epsilon M$, whatever the utilities are.
 
 == The algorithm <sec-treeswap-algorithm>
 
