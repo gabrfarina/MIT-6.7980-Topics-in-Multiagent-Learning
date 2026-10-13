@@ -308,6 +308,9 @@ A stochastic matrix may have several fixed points. For instance, every $vx in De
 
 
 The choice does, however, affect the algorithm's future behavior. The fixed point $vx^((t))$ determines the utilities $v_i^((t)) = x_i^((t)) u^((t))$ passed to the $cR_i$, and therefore every later matrix $P^((s))$ with $s > t$. As a result, different choices lead to different strategies and different realized swap regret. They all satisfy the same bound, as long as each $cR_i$ guarantees low regret against utilities that depend on its own past outputs, as multiplicative weights does. Since $0 <= x_i^((t)) <= 1$, each $v_i^((t))$ stays in the same range as $u^((t))$, so the bounds on $"Reg"_i^((T))$ apply unchanged. In short, any fixed point can be used: the choice changes the strategies the algorithm plays, but not its swap regret guarantee.
+== Example: internal regret <sec-internal-regret>
+
+Internal regret uses the $n^2$ probability mass transports $phi.alt_(a -> b)$, which move all the probability of action $a$ onto action $b$ (#lecture-link("learning_intro", <sec-regret-transformations>)[]). To apply the reduction above, we take $Phi$ to be the convex hull of these maps. This does not change the regret, because each utility $U^((t))$ is linear, so its maximum over the convex hull is attained at a single $phi.alt_(a -> b)$. The resulting algorithm runs one external regret minimizer over the convex hull, and its fixed point step computes a stationary distribution of a Markov chain on the actions, as in Blum-Mansour's algorithm. Blum-Mansour's algorithm instead runs $n$ external regret minimizers and bounds the stronger swap regret. Internal regret is still enough for correlated equilibria, because swap regret is at most $n$ times the internal regret (#lecture-link("learning_intro", <thmce-formal>)[]).
 
 = The TreeSwap algorithm <sec-treeswap>
 
