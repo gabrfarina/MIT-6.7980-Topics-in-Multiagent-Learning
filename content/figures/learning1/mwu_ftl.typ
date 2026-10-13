@@ -1,4 +1,4 @@
-#set page(width: auto, height: auto, fill: none, margin: .5mm)
+#set page(width: auto, height: auto, fill: none, margin: (left: 1.5mm, rest: .5mm))
 #import "../libs/typography.typ": figure-font, figure-style
 #set text(font: figure-font, size: 9pt)
 #show: figure-style
