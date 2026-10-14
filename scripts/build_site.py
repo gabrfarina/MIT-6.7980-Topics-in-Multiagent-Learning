@@ -6,6 +6,7 @@ import argparse
 from concurrent.futures import ThreadPoolExecutor
 from hashlib import sha256
 import json
+import os
 from pathlib import Path
 import re
 import shutil
@@ -17,7 +18,8 @@ from build_figures import HTML_FIGURES, build_figures
 from build_cache import current, fingerprint, save, tool_signature, write_if_changed
 from course_index import load_course, render_index
 from lecture_links import validate_lecture_links
-from public_files import copy_font_assets, copy_public_files, note_outputs, required_files, validate_public_path
+from public_files import (copy_font_assets, copy_public_files, note_outputs, required_files,
+                          validate_public_path, validate_standalone_slide)
 
 ROOT = Path(__file__).resolve().parents[1]
 STAGE = ROOT / '.build' / 'site'
@@ -27,6 +29,39 @@ RESOLVED_CONFIG = ROOT / '.build' / 'html-export.json'
 
 def run(*args: str) -> None:
     subprocess.run(args, cwd=ROOT, check=True)
+
+
+def build_interactive_slide_pdfs(config: dict, *, force: bool = False) -> None:
+    """Export configured interactive HTML decks before public files are copied."""
+    exporter = ROOT / 'scripts/render_interactive_pdf.mjs'
+    interactive = config.get('interactive_slides', {})
+    if not isinstance(interactive, dict):
+        raise ValueError('interactive_slides must map lecture IDs to HTML sources.')
+    for lecture_id, html_name in interactive.items():
+        if not isinstance(lecture_id, str) or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]*', lecture_id):
+            raise ValueError(f'Invalid interactive slide lecture ID: {lecture_id!r}')
+        pdf_name = config.get('slides', {}).get(lecture_id)
+        if not isinstance(html_name, str) or not isinstance(pdf_name, str):
+            raise ValueError(f'Interactive deck {lecture_id!r} needs an HTML and PDF source.')
+        html_rel, pdf_rel = Path(html_name), Path(pdf_name)
+        if (html_rel.suffix != '.html' or pdf_rel.suffix != '.pdf'
+                or html_rel.stem != pdf_rel.stem
+                or html_rel.parent != Path('slides') or pdf_rel.parent != Path('slides')):
+            raise ValueError(f'Interactive deck {lecture_id!r} needs matching slides/*.html and slides/*.pdf.')
+        html_source, pdf_output = ROOT / html_rel, ROOT / pdf_rel
+        if (not html_source.resolve().is_relative_to(ROOT.resolve())
+                or not pdf_output.resolve().is_relative_to(ROOT.resolve())):
+            raise ValueError(f'Interactive deck {lecture_id!r} must stay inside the course directory.')
+        if not html_source.is_file():
+            raise ValueError(f'Missing interactive slide HTML: {html_name}')
+        cache = ROOT / '.build/lecture-cache' / f'interactive-{lecture_id}.json'
+        signature = {'exporter': fingerprint(exporter), 'browser': os.environ.get('CHROME_BIN')}
+        if not force and current(cache, signature):
+            print(f'Interactive slides {lecture_id}: up to date.', flush=True)
+            continue
+        validate_standalone_slide(html_source)
+        run('node', str(exporter), str(html_source), str(pdf_output))
+        save(cache, signature, [html_source, exporter], [pdf_output])
 
 
 def chapter_source_text(source: Path, chapter: dict | None = None) -> str:
@@ -209,6 +244,9 @@ def main() -> None:
     parser.add_argument('--skip-build', action='store_true', help='reuse the existing Rust binary')
     parser.add_argument('--force', action='store_true', help='rebuild figures, lectures, and syllabus regardless of caches')
     args = parser.parse_args()
+    # A deleted or stale interactive PDF must be repaired before load_course()
+    # validates the public attachments and before make_index() copies them.
+    build_interactive_slide_pdfs(json.loads(CONFIG.read_text()), force=args.force)
     config, schedule = load_course(CONFIG)
     print(f"Validated {validate_lecture_links(ROOT, config)} inter-lecture links.", flush=True)
     RESOLVED_CONFIG.parent.mkdir(exist_ok=True)
@@ -244,8 +282,14 @@ def main() -> None:
         for message in pool.map(lambda chapter: build_chapter(chapter, force=args.force), config['notes']):
             print(message, flush=True)
     make_index(config, schedule, force=args.force, tools=tools)
-    entries = [{'output': str(p.relative_to(STAGE)), 'source': str(p.relative_to(ROOT))}
-               for p in sorted(STAGE.rglob('*')) if p.is_file()]
+    entries = [
+        {
+            'output': p.relative_to(STAGE).as_posix(),
+            'source': p.relative_to(ROOT).as_posix(),
+        }
+        for p in sorted(STAGE.rglob('*'))
+        if p.is_file()
+    ]
     required = required_files(config)
     for entry in entries:
         validate_public_path(entry['output'], required)

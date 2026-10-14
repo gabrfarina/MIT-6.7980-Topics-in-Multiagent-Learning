@@ -14,18 +14,39 @@
   room: "E25-111",
   meetings: "We are happy to meet with students by appointment.",
   instructors: (
-    (name: "Constantinos Daskalakis", citation_name: "Daskalakis, Constantinos",
-     email: "costis@csail.mit.edu", office: "32-G694", building: "the Stata building",
-     url: "https://people.csail.mit.edu/costis"),
-    (name: "Gabriele Farina", citation_name: "Farina, Gabriele",
-     email: "gfarina@mit.edu", office: "45-501F", building: "the College of Computing building",
-     url: "https://www.mit.edu/~gfarina"),
+    (
+      name: "Constantinos Daskalakis",
+      citation_name: "Daskalakis, Constantinos",
+      email: "6.7980-staff@mit.edu",
+      office: "32-G694",
+      building: "the Stata building",
+      url: "https://people.csail.mit.edu/costis",
+    ),
+    (
+      name: "Gabriele Farina",
+      citation_name: "Farina, Gabriele",
+      email: "6.7980-staff@mit.edu",
+      office: "45-501F",
+      building: "the College of Computing building",
+      url: "https://www.mit.edu/~gfarina",
+    ),
+  ),
+  other_staff: (
+    (name: "Brian Hu Zhang", email: "6.7980-staff@mit.edu", office: "32-G540"),
   ),
   tas: (
-    (name: "Kat Fedorova", email: "fedorova@mit.edu", office_hours: "Wednesdays, 2-3 pm, room 32-G5 (lounge of 5th floor, Gates tower)"),
-    (name: "Mingyang Liu", email: "liumy19@mit.edu", office_hours: "Fridays, 5:30-6:30 pm, room 45-500A"),
-    (name: "Daniel Xia", email: "dxia03@mit.edu", office_hours: "Mondays, 10-11 am, room 45-509"),
-    (name: "Rui Yao", email: "rayyao@mit.edu", office_hours: "Tuesdays, 3:30-4:30 pm, room 32-G5 (lounge of 5th floor, Gates tower)"),
+    (
+      name: "Kat Fedorova",
+      email: "6.7980-staff@mit.edu",
+      office_hours: "Wednesdays, 4:30-5:30 pm, room 32-G5 (lounge of 5th floor, Gates tower)",
+    ),
+    (name: "Mingyang Liu", email: "6.7980-staff@mit.edu", office_hours: "Fridays, 5:30-6:30 pm, room 45-501N"),
+    (name: "Daniel Xia", email: "6.7980-staff@mit.edu", office_hours: "Mondays, 10-11 am, room 45-509"),
+    (
+      name: "Rui Yao",
+      email: "6.7980-staff@mit.edu",
+      office_hours: "Tuesdays, 3:30-4:30 pm, room 32-G5 (lounge of 5th floor, Gates tower)",
+    ),
   ),
   grading: (attendance: 20, material: 30, project: 50),
   // Website metadata only; these readings are not displayed in the syllabus PDF.
@@ -45,8 +66,9 @@
 #let course-text(key, body) = [#metadata((key: key, body: body))<course-text>#body]
 #let item(key, body) = [#metadata((key: key, body: body))<course-text>#schedule-item(key, body)]
 
-#set document(title: course.event + " " + course.title + " - " + course.term,
-  author: course.instructors.map(person => person.name))
+#set document(title: course.event + " " + course.title + " - " + course.term, author: course.instructors.map(person => {
+  person.name
+}))
 #set page(
   margin: (top: 1.05in, bottom: 1.05in, left: 1.1in, right: 1.1in),
   numbering: "1",
@@ -66,6 +88,7 @@
 ]
 #v(0mm)
 
+#set par(spacing: 1em)
 #item("Lecture")[#course.days, #course.time, in room #raw(course.room).]
 
 #item("Instructors")[
@@ -75,6 +98,10 @@
   ]
   #course.meetings
 ]
+
+#item("Other Staff")[#(
+  course.other_staff.map(person => [#person.name (#email(person.email)), office #raw(person.office).]).join(" ")
+)]
 
 #item("Teaching assistants")[
   #for person in course.tas [
@@ -118,18 +145,19 @@
 ]
 
 #pagebreak()
+#set par(spacing: 1.15em)
 = Description
 
 #course-text("description")[
-This course studies multiagent systems through game theory, optimization, and learning theory. We cover foundational topics such as Nash equilibria, regret minimization, learning dynamics, and extensive-form games.
+  This course studies multiagent systems through game theory, optimization, and learning theory. We cover foundational topics such as Nash equilibria, regret minimization, learning dynamics, and extensive-form games.
 
-We also explore modern topics: multiagent deep reinforcement learning; information and mechanism design; team games and hidden-role games; alignment; high-dimensional and kernelized learning; nonconvex games; calibration; and the complexity of finding equilibria. Applications and open research questions connect the theory to multiagent AI.
+  We also explore modern topics: multiagent deep reinforcement learning; information and mechanism design; team games and hidden-role games; alignment; high-dimensional and kernelized learning; nonconvex games; calibration; and the complexity of finding equilibria. Applications and open research questions connect the theory to multiagent AI.
 ]
 
 = Improving Material
 
 #course-text("improving-intro")[
-We would like to make the lecture notes available to as many people as possible. You can now read them in a browser, follow numbered links between lectures in HTML and PDF, and use “View source” to open each note's Typst file in the #link(course.github)[class GitHub repository]. We would like everyone's help to make this a useful resource for learners around the world.
+  We would like to make the lecture notes available to as many people as possible. You can now read them in a browser, follow numbered links between lectures in HTML and PDF, and use “View source” to open each note's Typst file in the #link(course.github)[class GitHub repository]. We would like everyone's help to make this a useful resource for learners around the world.
 ]
 
 #v(2mm)
@@ -140,21 +168,21 @@ We would like to make the lecture notes available to as many people as possible.
 #v(2mm)
 
 #course-text("improving-body")[
-We will divide the class into groups, each focusing on a different part of the material. Using the #link(course.github)[class GitHub repository], each group can open issues to identify improvements and submit pull requests to implement them. We will improve the material together, reviewing and building on one another's contributions.
+  We will divide the class into groups, each focusing on a different part of the material. Using the #link(course.github)[class GitHub repository], each group can open issues to identify improvements and submit pull requests to implement them. We will improve the material together, reviewing and building on one another's contributions.
 
-Contributions can include clarifying explanations and proofs, fixing errors, adding examples and homework-style exercises for future readers, and polishing figures, organization, and presentation. If anyone is brave enough, we would also love interactive components that let readers experiment with the ideas.
+  Contributions can include clarifying explanations and proofs, fixing errors, adding examples and homework-style exercises for future readers, and polishing figures, organization, and presentation. If anyone is brave enough, we would also love interactive components that let readers experiment with the ideas.
 
-_On the bright side, there is no homework! :-)_ Improving the shared material accounts for #course.grading.material% of the course grade.
+  _On the bright side, there is no homework! :-)_ Improving the shared material accounts for #course.grading.material% of the course grade.
 ]
 
 = Project
 
 #course-text("project-intro")[
-Projects may be completed individually or in groups of 2-5 students and will include a presentation. We will offer three project directions:
+  Projects may be completed individually or in groups of 2-5 students and will include a presentation. We will offer three project directions:
 ]
 
 #course-text("project-fow")[
-#link(course.challenge)[*Fog of War Chess Challenge.*] Build and evaluate an agent that plays with partial information. Explore how it uses observations, reasons about uncertainty, and chooses strategic actions. Each bot sandbox is allocated two CPU cores and 4 GiB of memory. A dedicated document will describe the challenge, including the rules, starter code, and how to access the arena.
+  #link(course.challenge)[*Fog of War Chess Challenge.*] Build and evaluate an agent that plays with partial information. Explore how it uses observations, reasons about uncertainty, and chooses strategic actions. Each bot sandbox is allocated two CPU cores and 4 GiB of memory. A dedicated document will describe the challenge, including the rules, starter code, and how to access the arena.
 ]
 
 #figure(
@@ -165,15 +193,15 @@ Projects may be completed individually or in groups of 2-5 students and will inc
 )
 
 #course-text("project-modeling")[
-*Modeling questions.* Formulate a multiagent problem by specifying the players, objectives, information, and available actions. Study how modeling choices affect the resulting strategic behavior. We will provide a separate document with possible modeling questions and leads to explore.
+  *Modeling questions.* Formulate a multiagent problem by specifying the players, objectives, information, and available actions. Study how modeling choices affect the resulting strategic behavior. We will provide a separate document with possible modeling questions and leads to explore.
 ]
 
 #course-text("project-theory")[
-*Theory questions.* Investigate a mathematical question about equilibria, learning dynamics, or computational complexity. Develop rigorous proofs, bounds, or counterexamples that clarify the behavior of multiagent systems. We will provide a separate document with possible theory questions and leads to explore.
+  *Theory questions.* Investigate a mathematical question about equilibria, learning dynamics, or computational complexity. Develop rigorous proofs, bounds, or counterexamples that clarify the behavior of multiagent systems. We will provide a separate document with possible theory questions and leads to explore.
 ]
 
 #course-text("project-grading")[
-The project is the central component of the course and accounts for #course.grading.project% of the final grade. We will therefore be "robust" in our grading: we will look carefully at the depth of your understanding, the quality and substance of your work, and how clearly you explain your results.
+  The project is the central component of the course and accounts for #course.grading.project% of the final grade. We will therefore be "robust" in our grading: we will look carefully at the depth of your understanding, the quality and substance of your work, and how clearly you explain your results.
 ]
 
 = Tentative Schedule

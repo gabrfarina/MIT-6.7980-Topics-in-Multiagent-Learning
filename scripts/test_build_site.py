@@ -45,6 +45,52 @@ Lecture prose.
         self.assertIn('Lecture prose.', generated)
         self.assertEqual(self.source.read_text(), self.original)
 
+    def test_interactive_slide_pdf_rebuilds_from_html_and_repairs_missing_output(self):
+        slides = self.root / 'slides'
+        slides.mkdir()
+        html = slides / 'lecture.html'
+        pdf = slides / 'lecture.pdf'
+        html.write_text('<!doctype html><html><body>First deck</body></html>')
+        exporter = self.root / 'scripts/render_interactive_pdf.mjs'
+        exporter.parent.mkdir()
+        exporter.write_text('// browser exporter')
+        config = {'interactive_slides': {'lecture': 'slides/lecture.html'},
+                  'slides': {'lecture': 'slides/lecture.pdf'}}
+        calls = []
+
+        def render(*args):
+            calls.append(args)
+            pdf.write_bytes(b'%PDF-1.7\n' + html.read_bytes())
+
+        with patch.object(build_site, 'run', side_effect=render):
+            build_site.build_interactive_slide_pdfs(config)
+            build_site.build_interactive_slide_pdfs(config)
+            self.assertEqual(len(calls), 1)
+            html.write_text('<!doctype html><html><body>Changed deck</body></html>')
+            build_site.build_interactive_slide_pdfs(config)
+            self.assertEqual(len(calls), 2)
+            pdf.unlink()
+            build_site.build_interactive_slide_pdfs(config)
+            self.assertEqual(len(calls), 3)
+            build_site.build_interactive_slide_pdfs(config, force=True)
+            self.assertEqual(len(calls), 4)
+        self.assertEqual(calls[0][0], 'node')
+        self.assertEqual(Path(calls[0][2]), html)
+        self.assertEqual(Path(calls[0][3]), pdf)
+
+    def test_interactive_slide_pdf_rejects_unpaired_or_unsafe_sources(self):
+        for config in (
+            {'interactive_slides': {'lecture': 'slides/lecture.html'}, 'slides': {}},
+            {'interactive_slides': {'lecture': 'slides/lecture.html'},
+             'slides': {'lecture': 'slides/other.pdf'}},
+            {'interactive_slides': {'lecture': '../lecture.html'},
+             'slides': {'lecture': '../lecture.pdf'}},
+            {'interactive_slides': {'lecture/../../escape': 'slides/lecture.html'},
+             'slides': {'lecture/../../escape': 'slides/lecture.pdf'}},
+        ):
+            with self.subTest(config=config), self.assertRaises(ValueError):
+                build_site.build_interactive_slide_pdfs(config)
+
     def test_obsolete_source_layouts_are_rejected(self):
         for obsolete in ('../meta/gabri_notes.typ', 'meta/gabri_notes_bk.typ',
                          'meta/gabri_notes_pdf.typ', 'figures/L12/game.svg'):

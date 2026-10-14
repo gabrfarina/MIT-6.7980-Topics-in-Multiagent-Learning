@@ -1,0 +1,30 @@
+name: Backfill course HTML reviews
+on:
+  workflow_dispatch:
+    inputs:
+      pr_numbers:
+        description: Comma-separated open PR numbers; leave empty for all open PRs
+        required: false
+        type: string
+permissions:
+  contents: read
+  pull-requests: read
+  actions: write
+concurrency:
+  group: course-html-backfill
+  cancel-in-progress: false
+jobs:
+  dispatch:
+    if: github.ref_name == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - name: Build and publish a separate HTML review for each open PR
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBERS: ${{ inputs.pr_numbers }}
+        run: python3 scripts/pr_checks/backfill_html.py --dispatch
