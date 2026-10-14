@@ -6,6 +6,32 @@
   instructor: [Prof. Constantinos Daskalakis (`costis@mit.edu`)],
 )
 
+// Define a reusable disclosure/toggle function
+#let toggle(title, body) = {
+  context if sys.inputs.at("target", default: none) == "html" or target() == "html" {
+    // Interactive element for the web
+    html.elem("details")[
+      #html.elem("summary")[*#title*]
+      #body
+    ]
+  } else {
+    // Static layout representation for PDFs (styled box)
+    block(
+      width: 100%,
+      stroke: 0.5pt + luma(150),
+      inset: 10pt,
+      radius: 4pt,
+      fill: luma(245),
+      [
+        #text(weight: "bold", title)
+        #v(4pt)
+        #line(length: 100%, stroke: 0.5pt + luma(200))
+        #body
+      ]
+    )
+  }
+}
+
 In previous lectures, we saw the basic game theory formalism, and some of the most fundamental equilibrium concepts, and their existence proofs. The #lecture-link("nfgs_nash", <sec-nash-existence>)[proof of Nash equilibrium existence] makes use of Brouwer's fixed point theorem, which does not immediately suggest an algorithm for computing Nash equilibria. On the other hand, we saw that the existence of Nash equilibrium in two-player zero-sum games can also be established using #lecture-link("correlated", <sec-zero-sum>)[strong linear programming duality], which suggests a polynomial-time algorithm for computing Nash equilibria in these games.
 
 Similarly, correlated and coarse correlated equilibria in general-sum games can also be computed in time polynomial in the game description using linear programming, as the equilibrium constraints can be written as a system of linear inequalities in the joint distribution over actions. Moreover, linear programming methods can be leveraged to obtain polynomial-time algorithms for certain families of what are called “succinct games,” wherein the payoffs are sparse or have other structure that makes an explicit representation of a joint distribution over actions super-polynomial in  size compared to the game's natural description. Still a correlated or coarse correlated equilibrium can be computed efficiently in many cases, using linear programming approaches such as #lecture-link("eah", <sec-minimax-algorithm>)[Ellipsoid Against Hope]~#citep(<papadimitriou2008computing>).
@@ -38,7 +64,7 @@ $
   & forall j : med med y_j > 0 med med => j in S_C med => j med upright("is a best response to ") vx .
 $
 
-If we don't  know the supports of some Nash equilibrium, we can enumerate over all possible pairs of supports $\( S_R \, S_C \) subset.eq \[ m \] times \[ n \]$, and try to find a feasible solution of the corresponding linear program. As a Nash equilibrium always exists, at least one of these linear programs will be feasible. So the overall running time will be $2^(m + n) dot.op op("poly") \( \| R \| \, \| C \| \)$, where the $2^(m + n)$ factor is due to trying all possible pairs of supports, and the polynomial factor in the descriptions of the matrices $R$ and $C$ is determined by the complexity of solving a linear program.
+If we don't  know the supports of some Nash equilibrium, we can enumerate over all possible pairs of supports $\( S_R \, S_C \) subset.eq \[ m \] times \[ n \]$, and try to find a feasible solution of the corresponding linear program. As a Nash equilibrium always exists, at least one of these linear programs will be feasible. So the overall running time will be $2^(m + n) dot.op op("poly") \( \| R \| \, \| C \| \)$, where the $2^(m + n)$ factor is due to trying all possible pairs of supports, and the polynomial factor in the descriptions of the matrices $R$ and $C$ is determined by the complexity of solving a linear program. The exponential factor is not merely an artifact of enumerating in an unlucky order: Savani and von Stengel~#citep(<SavaniVS06>) construct $d times 2 d$ games in which about $0.7 times 1.66^d$ supports must be inspected before an equilibrium is found, on average over a random permutation of one player's actions.
 
 As a corollary of the correctness of the above algorithm, we also get a proof of the existence of Nash equilibria that use rational numbers of polynomial bit complexity in the size of the game.
 
@@ -51,61 +77,6 @@ As a corollary of the correctness of the above algorithm, we also get a proof of
 ]
 
 As illustrated by the #lecture-link("correlated", <sec-irrational-equilibria>)[irrational-equilibrium example], however, the corollary is not true for $k$-player games where $k > 2$. Indeed, Nash's 1951 paper~#citep(<Nash51:NonCooperative>) already gave an example of a 3-player game that only has irrational equilibria.
-
-== Approximate equilibria with small supports <sec-lmm>
-
-The support enumeration algorithm above may need to examine exponentially many pairs of supports. If we are content with an _approximate_ Nash equilibrium, a much smaller search space suffices. #citet(<LMM03>) showed that every two-player game admits an approximate equilibrium in which each player's strategy is uniform over a multiset of only logarithmically many actions, for any fixed approximation level. We present a one-sided version of their sampling argument, in which only Row's strategy is made sparse. Throughout this section, we assume that all payoff entries of $R$ and $C$ lie in $[0, 1]$, which fixes the scale against which approximation is measured.
-
-#definition[$eps$-approximate Nash equilibrium][
-  Let $eps >= 0$. A pair of mixed strategies $(vx, vy)$ is an _$eps$-approximate Nash equilibrium_ if no player can improve their expected payoff by more than $eps$ through a unilateral deviation, that is,
-  $
-    vx^T R vy >= ve_i^T R vy - eps quad forall i in [m], qquad vx^T C vy >= vx^T C ve_j - eps quad forall j in [n].
-  $
-] <def-eps-nash>
-
-#definition[$k$-uniform strategy][
-  Let $k$ be a positive integer. A mixed strategy is _$k$-uniform_ if it is the uniform distribution over a multiset of $k$ actions. Equivalently, every probability it assigns is an integer multiple of $1 \/ k$.
-]
-
-The argument relies on the following concentration inequality.
-
-#lemma[Hoeffding's inequality #citep(<Hoeffding1963Mar>)][
-  Let $Z_1, ..., Z_k$ be independent random variables taking values in $[0, 1]$, and let $overline(Z) := 1 / k sum_(t=1)^k Z_t$. Then, for every $delta > 0$,
-  $ Pr(|overline(Z) - EE[overline(Z)]| > delta) <= 2 exp(-2 k delta^2). $
-]
-
-#theorem[
-  Let $(vx^*, vy^*)$ be a Nash equilibrium of a game $(R, C)$ with payoffs in $[0, 1]$, let $eps > 0$, and let $k > 2 ln(2 n) \/ eps^2$ be an integer. Then there exists a $k$-uniform strategy $xhat$ for Row such that $(xhat, vy^*)$ is an $eps$-approximate Nash equilibrium.
-] <thm-lmm>
-
-#proof[
-  Draw $k$ actions $a_1, ..., a_k$ independently from $vx^*$, and let $xhat$ be their empirical distribution. By construction, $xhat$ is $k$-uniform, and every action it plays lies in the support of $vx^*$.
-
-  _Row's condition._ Since $(vx^*, vy^*)$ is a Nash equilibrium, every action in the support of $vx^*$ is a best response to $vy^*$. As $xhat$ only plays such actions, $xhat^T R vy^* = max_(i in [m]) ve_i^T R vy^*$, so Row's condition holds exactly.
-
-  _Column's condition._ Fix a column $j in [n]$. The quantity $xhat^T C ve_j = 1 / k sum_(t=1)^k C_(a_t j)$ is the average of $k$ independent random variables taking values in $[0, 1]$, each with expectation $(vx^*)^T C ve_j$. By Hoeffding's inequality with $delta = eps \/ 2$,
-  $ Pr(|xhat^T C ve_j - (vx^*)^T C ve_j| > eps / 2) <= 2 exp(-k eps^2 \/ 2). $
-  A union bound over the $n$ columns shows that the probability that some column deviates by more than $eps \/ 2$ is at most $2 n exp(-k eps^2 \/ 2)$, which is strictly less than $1$ by the choice of $k$. Hence there exists a realization of $xhat$ such that $|xhat^T C ve_j - (vx^*)^T C ve_j| <= eps \/ 2$ for all $j in [n]$. For this realization, since $vy^*$ is a best response to $vx^*$, every $j in [n]$ satisfies
-  $
-    xhat^T C vy^* >= (vx^*)^T C vy^* - eps / 2 >= (vx^*)^T C ve_j - eps / 2 >= xhat^T C ve_j - eps,
-  $
-  where the first inequality follows by averaging the column bounds with weights $vy^*$. This is Column's condition, completing the proof.
-]
-
-@thm-lmm suggests the following algorithm. Fix a rational tolerance $0 < eps <= 1$ and an integer $k > 2 ln(2 n) \/ eps^2$. For each $k$-uniform strategy $xhat$ of Row, solve the linear program
-
-$
-  upright("find") quad & vy in RR^n \
-  upright("s.t.") quad & xhat^T R vy >= ve_i^T R vy - eps & quad forall i in [m] \
-  & xhat^T C vy >= xhat^T C ve_j - eps & quad forall j in [n] \
-  & vone^T vy = 1, quad vy >= 0,
-$
-
-and output $(xhat, vy)$ for the first $xhat$ whose linear program is feasible.
-
-Once $xhat$ is fixed, every constraint is linear in $vy$, so each of these programs is indeed a linear program. Its constraints are exactly the conditions of @def-eps-nash for the pair $(xhat, vy)$, so any feasible solution yields an $eps$-approximate Nash equilibrium. Moreover, applying @thm-lmm to any Nash equilibrium $(vx^*, vy^*)$ of the game, which always exists, shows that for at least one $k$-uniform $xhat$ the strategy $vy = vy^*$ is feasible. Hence the algorithm always produces an output.
-
-Row has $binom(m + k - 1, k) <= m^k$ $k$-uniform strategies, one for each multiset of $k$ actions from $[m]$. Each linear program can be solved in time polynomial in the game's encoding size $s$, the encoding length of $eps$, and $log k$. Choosing $k = O(log(2 n) \/ eps^2)$, the running time is therefore $m^(O(log(2 n) \/ eps^2))$ times this polynomial factor. For any fixed $eps$, this is $s^(O(log s))$, which is quasi-polynomial in the size of the game. This improves on enumerating all $2^(m + n)$ pairs of supports when the two players' action counts grow comparably, at the price of finding only an approximate equilibrium.
 
 == $n$-player games
 #label("sec:support enumeration for n players")
@@ -136,6 +107,10 @@ where $L$ is the number of bits needed to represent a single payoff entry in the
 $ B dot.op L dot.op \( n k \)^(O \( n k \)) . $
 
 Recall that the bits required to represent a $n$-player game with $k$ actions per player is $L dot.op n dot.op k^n$. So the running time of our algorithm could be exponential in the description of the game, e.g.~when $n$ stays constant and $k$ goes to infinity. On the other hand, the running time is quasi-polynomial if the growth of $k$ is bounded by a polynomial in $n$.#footnote[A _quasi-polynomial-time algorithm_ for some computational task is an algorithm that solves an instance $Pi$ of the task in time $2^(op("poly") \( log d \( Pi \) \))$, where $d \( Pi \)$ is the description complexity of instance $Pi$. If the polynomial in the exponent of the running time is of degree $1$ the algorithm is called _polynomial-time_.]
+
+#exercise[
+  For a two-player game, given the supports $S_C$ and $S_R$, if there are finitely many Nash equilibria with that support, must there be only one? What about an n-player game?
+] <S01-ImprovementP3.3>
 
 = Algorithms for Symmetric Games
 #label("sec:symmetric games")
@@ -201,11 +176,11 @@ In the previous section, we saw that, when the number of actions $k = O \( n \)$
 
 We will show that this is impossible for two-player symmetric games, unless there is a polynomial-time algorithms for arbitrary two-player games. In particular, we will show a polynomial-time reduction from the problem of computing a Nash equilibrium in general two-player games to the problem of computing a Nash equilibrium in two-player symmetric games. The reduction we present is due to Gale, Kuhn and Tucker~#citep(<GaleKuhnTucker52>).
 
-Suppose that we are given an arbitrary two-player game $cal(G)_1 := \( R \, C \)$ and we want to compute a Nash equilibrium of this game. Given the following simple exercise, we will assume, without loss of generality, that $R$ and $C$  have strictly positive entries, i.e.~that $R \, C in bb(R)_(+)^(m times n) \,$ where $m$ and $n$ are, respectively, the number of actions of the row and column players.
+Suppose that we are given an arbitrary two-player game $cal(G)_1 := \( R \, C \)$ and we want to compute a Nash equilibrium of this game. Given the following simple exercise, we will assume, without loss of generality, that $R$ and $C$  have strictly positive entries, i.e.~that $R \, C in bb(R)_(>0)^(m times n) \,$ where $m$ and $n$ are, respectively, the number of actions of the row and column players.
 
 #exercise[
   Show that computing a Nash equilibrium of an arbitrary game $cal(G)$ can be polynomial-time reduced to the problem of computing a Nash equilibrium of a game $cal(G)'$ whose payoff entries are all strictly positive.
-]
+] <S01-ImprovementP3.1>
 
 Next, we will construct a $\( m + n \) times \( m + n \)$ symmetric game $cal(G)_2$, with the following payoff matrices in block form:
 
@@ -333,33 +308,40 @@ Notice that $\( 0 \, 0 \, ... \, 0 \)$ is a democracy according to our definitio
   Notice that these are exactly the equilibrium conditions for $\( frac(vz, norm(vz)_1) \, frac(vz, norm(vz)_1) \)$ to be a symmetric Nash equilibrium of the game.
 ]
 
-The goal of the Lemke-Howson algorithm is to find a democracy in the given polytope. The algorithm operates as follows. Let's call $n$ the “special action,” albeit this choice is arbitrary.
+The goal of the Lemke-Howson algorithm is to find a democracy in the given polytope. Let's call $n$ the “special action,” albeit this choice is arbitrary. The procedure is given in @algo-lemke-howson.
 
-- *Step $0$:* Start at  vertex $vv_0 := \( 0 \, 0 \, ... \, 0 \)$.
-- _Comment:_ By non-degeneracy, there are exactly $n$ edges of the polytope adjacent to $vv_0$. Each of these edges corresponds to un-tightening one of the $z_i >= 0$ inequalities which are tight at $vv_0$.
-- Keeping all other inequalities tight, un-tighten the inequality $z_n >= 0$ (which corresponds to our special action $n$). This defines an edge of the polytope adjacent to $vv_0$.
-- *Step 1:* Go to the other endpoint of this edge. If the obtained vertex $vv_1$ is a democracy, then a Nash equilibrium has been found because $vv_1 != 0$.
-- Otherwise, one of the actions $1 \, ... \, n - 1$, say action $j_1$, is represented twice, by both $z_(j_1) = 0$ (which was already tight) and $ve_(j_1)^T R vz = 1$ (which just became tight).
-- _Comment:_ For the next step, we will un-tighten one of the two inequalities that are tight for $j_1$. If we un-tighten $ve_(j_1)^T R vz <= 1$, this would define the same edge $\( vv_0 vv_1 \)$ that brought us to $vv_1$. To make progress we will un-tighten instead the other inequality representing action $j_1$.
-- Un-tightening $z_(j_1) >= 0$ while keeping tight all other inequalities that were tight defines an edge $\( vv_1 vv_2 \) != \( vv_0 vv_1 \)$ of the polytope.
-- *Step 2:* Go to vertex $vv_2$. If $vv_2$ is a democracy, then stop.
+#pseudocode-list(
+  max-width: true,
+  numbered-title: [Lemke-Howson],
+)[
+  - *Data:* the polytope $P := { vz : R vz <= vone \, vz >= 0 }$ and the special action $n$.
+  - *Result:* a non-zero democracy of $P$.
+  + $t <- 0 \, quad vv_0 <- \( 0 \, 0 \, ... \, 0 \)$
+  + $u <- \( z_n >= 0 \)$ 
+  + *loop*
+    + $E <-$ the edge of $P$ obtained by un-tightening $u$ at $vv_t$, keeping tight every other inequality that is tight at $vv_t$ 
+    + $vv_(t + 1) <-$ the endpoint of $E$ other than $vv_t$
+    + $t <- t + 1$
+    + *if* $vv_t$ is a democracy
+      + *return* $vv_t$
+    + $j <-$ the action represented twice at $vv_t$ 
+    + $u <-$ the inequality representing action $j$ that was already tight at $vv_(t-1)$ (and not the one that became tight upon reaching $vv_t$). 
+] <algo-lemke-howson>
 
-  _Comment:_ It will be shown (in the correctness analysis below) that it must be that $vv_2 != 0$, and hence if $vv_2$ is a democracy then $vv_2 \/ norm(vv_2)_1$ is a symmetric Nash equilibrium.
-- Otherwise, again some action $j_2 != n$ is doubly represented at $vv_2$, all other actions in ${ 1 \, ... \, n - 1 }$ are represented once, and the special action $n$ is not represented at all.
+Each pivot is well defined. By non-degeneracy exactly $n$ inequalities are tight at every vertex, so the un-tightening in the edge-update step in @algo-lemke-howson always traverses an edge of the polytope. At $vv_0$ the tight inequalities are exactly $z_1 >= 0 \, ... \, z_n >= 0$, so there are exactly $n$ edges adjacent to $vv_0$, one per action, and the initialization step in @algo-lemke-howson selects the one belonging to the special action $n$.
 
-  _Proof:_ This is because, for all actions who were singly represented at $vv_1$, i.e.~before the step was taken, their corresponding inequalities were maintained tight during the step. So they are still represented. Action $j_1$ was doubly represented at vertex $vv_1$ and we only un-tightened one of its tight inequalities. So it is still represented at vertex $vv_2$ via the inequality that we did not un-tighten. Finally, action $n$ was not represented before the step and since $vv_2$ is not a democracy it is still not represented.
-- …
-- *Step $t$:* At the generic step $t$ of the algorithm, the algorithm arrives at vertex $vv_t$ and performs the following case analysis:
+The choice made in the pivot step in @algo-lemke-howson never retraces the step just taken. Both $z_j >= 0$ and $ve_j^T R vz <= 1$ are tight at $vv_t$, and un-tightening the one that just became tight would define the same edge $\( vv_(t - 1) vv_t \)$ that brought us to $vv_t$. Un-tightening the other inequality representing action $j$ makes progress instead.
 
-  - if $vv_t$ is a democracy, stop. _Comment:_ It will be shown that it must be that $vv_t != 0$.
-  - if vertex $vv_t$ is not a democracy then one action $j_t$ is represented twice, all other actions in ${ 1 \, ... \, n - 1 }$ are represented once, and action $n$ is not represented at all; the proof of this property can be done by induction on $t$ assuming that this property holds for $vv_1 \, ... \, vv_(t - 1)$ and that the generic steps of the algorithm follow the description below.
-  - between $ve_(j_t)^T R vz <= 1$ and $z_(j_t) >= 0$, un-tighten the one that defines an edge $\( vv_t vv_(t + 1) \) != \( vv_(t - 1) vv_t \)$.
-  - for Step $t + 1$, jump to $vv_(t + 1)$.
+Finally, the selection of the doubly represented action in @algo-lemke-howson is justified by the following property of the walk: whenever the algorithm reaches it, all actions in ${ 1 \, ... \, n - 1 }$ are represented at $vv_t$, exactly one of them is represented twice, and the special action $n$ is not represented at all.
 
-We are now ready to show that the algorithm is guaranteed to terminate at a non-zero democracy, thereby recovering a Nash equilibrium of the game.
+At $vv_1$ the property holds whenever $vv_1$ is not a democracy. If $vv_1$ is a democracy, the algorithm has already returned. The inequalities kept tight on the way from $vv_0$ are $z_1 >= 0 \, ... \, z_(n - 1) >= 0$, so actions $1$ through $n - 1$ stay represented, while $z_n >= 0$ is no longer tight. Exactly one new inequality becomes tight. If it is $ve_n^T R vz <= 1$, then action $n$ is represented and $vv_1$ is a democracy. Otherwise it is $ve_j^T R vz <= 1$ for some $j != n$, so action $j$ is represented twice and action $n$ is not represented at all.
+
+For every later vertex the same property is the inductive step. Assume it holds at $vv_(t - 1)$. The pivot un-tightens one inequality of the action that was represented twice there, so that action stays represented through the inequality that was kept, and every action that was represented once keeps its tight inequality. Action $n$ was not represented. The single newly tight inequality either represents $n$, making $vv_t$ a democracy, or represents some action in ${ 1 \, ... \, n - 1 }$ a second time, so $vv_t$ again satisfies the property. This is property $Pi$ in the proof below.
+
+We are now ready to show that the algorithm is guaranteed to terminate at a non-zero democracy, thereby recovering a Nash equilibrium of the game. The theorem below shows that the returned vertex is non-zero, so the lemma above turns it into the symmetric Nash equilibrium $vv_t \/ norm(vv_t)_1$.
 
 #theorem[
-  The Lemke-Howson algorithm will terminate and it will terminate at a non-zero democracy.
+  The Lemke-Howson algorithm (@algo-lemke-howson) will terminate and it will terminate at a non-zero democracy.
 ]#label("thm:Lemke-Howson's correctness")
 
 #proof[
@@ -401,9 +383,179 @@ We make some final remarks about the Lemke-Howson algorithm.
 - The algorithm provides an alternative proof that a Nash equilibrium exists in 2-player games. In particular, the existence of a Nash equilibrium is implied by the correctness of the algorithm.
 - Moreover, it shows that there always exists a rational equilibrium in 2-player games.
 - The proof works by virtue of a parity argument, reminiscent of the proof of Sperner’s lemma. It identifies a directed path on the vertices of the polytope whose sink is a solution.
-- Its worst-case running time is exponential in the number of actions. This lower bound was established by Savani and von Stengel~#citep(<SavaniVS06>).
+- A single pivoting step is cheap: un-tightening one inequality and following the resulting edge amounts to solving a linear system of size $n$, so each step costs time polynomial in the description of the game. The running time is therefore governed by the _number_ of steps, that is, by the length of the main path. Since the walk never revisits a vertex, it stops after at most as many steps as the polytope has vertices, and the upper bound theorem for polytopes caps that count at fewer than $2.6^n$~#citep(<vonStengel07:Equilibrium>).
+- The number of steps really can be exponential. Savani and von Stengel~#citep(<SavaniVS06>) construct $d times d$ games in which the length of _every_ main path is at least proportional to $phi^(3 d \/ 4) approx 1.43^d$, where $phi approx 1.618$ is the golden ratio. The only freedom the algorithm has is the choice of the special action, since the pivoting rule itself is forced once that choice is made; the lower bound holds no matter which action is chosen.
 - There are generalizations of the Lemke-Howson algorithm for multi-player games working with manifolds instead of polytopes. See Rosenmüller~#citep(<Rosenmuller71>) and Wilson~#citep(<Wilson71>).
 
 = Bibliography for this lecture
 
 #lec_bibliography("meta/refs.bib", title: none)
+
+= Appendix A: Solutions to Selected Exercises
+
+== Solution to #ref(<S01-ImprovementP3.3>)
+
+#toggle[Reveal Solution to #ref(<S01-ImprovementP3.3>)][
+  #proof[
+  Consider an two-player game $cal(G):= (R,C)$. Suppose we are given the supports $S_R$ and $S_C$ and know that there are finitely many Nash equilibria with these supports. We will prove that there must be only one such Nash equilibrium.
+
+  Assume for sake of contradiction that there are at least two Nash equilibria $(vx_1, vy_1)$ and $(vx_2, vy_2)$ with supports $S_R$ and $S_C$.
+
+  For any $t in [0,1]$, define
+  $
+    bold(x)_t := t bold(x)_1 + (1-t) bold(x)_2 quad upright("and") quad
+    bold(y)_t := t bold(y)_1 + (1-t) bold(y)_2.
+  $
+
+  Since both Nash equilibria have the same supports, for every $t in (0,1)$ $vx_t$ and $vy_t$ also have the same supports, since the coordinates corresponding to the common support will be strictly positive for linear combinations.
+
+  We now show that $(bold(x)_t, bold(y)_t)$ is also a Nash equilibrium.
+
+  Since $(bold(x)_1, bold(y)_1)$ and $(bold(x)_2, bold(y)_2)$ are Nash equilibria, every row in $S_R$ is a best response to both $bold(y)_1$ and $bold(y)_2$. Thus, there exist $u_1,u_2 in bb(R)$ such that
+  $
+  R_(S_R,S_C) bold(y)_1 = u_1 bold(1)
+  quad
+  upright("and")
+  quad
+  R_(S_R,S_C) bold(y)_2 = u_2 bold(1).
+  $
+
+  where $R_(S_R,S_C)$ is the payoff matrix restricted to the rows and columns of the supports.
+
+  By linearity in the opponent's mixed strategy,
+  $
+  R_(S_R,S_C) bold(y)_t
+  = t R_(S_R,S_C) bold(y)_1
+  + (1-t) R_(S_R,S_C) bold(y)_2
+  = (t u_1 + (1-t)u_2) bold(1).
+  $
+
+  Hence every row in $S_R$ is a best response to $bold(y)_t$.
+
+  Similarly, because every column in $S_C$ is a best response to both $bold(x)_1$ and $bold(x)_2$, we find that every column in $S_C$ is a best response to the linear combination $bold(x)_t$.
+
+  Finally, since $bold(x)_t$ and $bold(y)_t$ assign probability zero to actions outside $S_R$ and $S_C$, respectively, and every action in their supports is a best response to the opponent's strategy, $(bold(x)_t, bold(y)_t)$ is a Nash equilibrium.
+
+  Thus, for every $t in (0,1)$, there is a Nash equilibrium with supports $S_R$ and $S_C$. Since the two original equilibria are distinct, these equilibria are distinct for infinitely many values of $t$.
+
+  This contradicts the assumption that there are only finitely many Nash equilibria with supports $S_R$ and $S_C$. Therefore, there can be only one Nash equilibrium with the given supports in a two-player game.
+
+  \
+
+  In contrast, for $n$-player games with $n >= 3$, the analogous statement is *false*.
+  That is, it is possible to have finitely many Nash equilibria with the same supports, but more than one such equilibrium.
+
+  The key difference from the two-player case is that, in an $n$-player
+  game, a player's expected payoff is generally *multilinear* in the
+  other players' mixed strategies. Thus, the indifference conditions are
+  not linear in all players' strategies simultaneously, and they may have
+  multiple isolated solutions.
+
+  We present a counterexample in the case of $n=3$. Consider the following symmetric three-player game with two actions,
+  $0$ and $1$. For a player, let the difference between the payoff from
+  action $1$ and the payoff from action $0$ depend on the number $k$ of
+  the other two players who choose action $1$. Define
+
+  $ d(0) = 3, quad d(1) = -5, quad d(2) = 3. $
+
+  Suppose that player $i$ independently chooses action $1$ with
+  probability $p_i$. The expected payoff difference between choosing action
+  $1$ and choosing action $0$ for player 1 is then
+
+  $ 3(1-p_2)(1-p_3) - 5p_2(1-p_3) - 5(1-p_2)p_3 + 3p_2p_3. $
+
+  Player 1 satisfies the conditions for Nash equilibrium when they are indifferent to the action they take, in other words, when
+
+  $ 3 - 8p_2 - 8p_3 + 16p_2p_3 = 0. $
+
+  Similarly, the other two players require
+
+  $ 3-8p_1-8p_3+16p_1p_3&=0 \
+    3-8p_1-8p_2+16p_1p_2&=0. $
+
+  Subtracting pairs of equations yields the equations
+
+  $ (p_1-p_2)(1-2p_3)=0 \
+    (p_2-p_3)(1-2p_1)=0 \
+    (p_3-p_1)(1-2p_2)=0. $
+
+  Suppose some player chooses to use a mixed strategy with probability $1/2$. Without loss of generality suppose $p_1 = 1/2$. Then the original expected payoff condition for player 2 reduces to
+
+  $ 3-8p_1-8p_3+16p_1p_3& = -1 $
+
+  which contradicts the indifference condition. Thus, there are no Nash equilibria when $p_i = 1/2$, so for Nash equilibrium to hold, we must have $p_1 = p_2 = p_3 = p$, In this case, the indifference conditions reduce to 
+
+  $ 3 - 16p + 16 p^2 = 0, $
+
+  which yields solutions $p = 1/4$ or $p = 3/4. $
+
+  This gives two distinct completely mixed Nash equilibria:
+
+  $ (1/4, 1/4, 1/4)
+    quad "and" quad
+    (3/4, 3/4, 3/4). $
+
+  Both equilibria have the same support, as every player assigns positive probability to both actions. Furthermore, we have proven that there are no further Nash equilibria for this game. Hence, unlike the two-player case, finiteness of the number of Nash equilibria with a given support does *not* imply uniqueness when there are three or more players.
+  ]
+]
+== Solution to #ref(<S01-ImprovementP3.1>)
+
+#toggle[Reveal Solution to #ref(<S01-ImprovementP3.1>)][
+  #proof[
+  Consider an arbitrary game $cal(G)$ with $n$ players. We will prove that the problem of computing a Nash equilibrium of $cal(G)$ polynomial-time reduces to the problem of computing a Nash equilibrium of a game $cal(G)'$ whose payoff entries are all strictly positive.
+  
+  Let the $i$th player in $cal(G)$ choose actions from the set $A_i$ and let $u_1,u_2,...,u_n$ be the payoff functions, where
+  
+  $
+  u_i : A_1 times dots.h.c times A_n -> bb(R).
+  $
+  
+ We also reuse the letter $u_i$ to denote the expected utility when players play according to strategies $bold(x)_1,...,bold(x)_n$.
+  
+Then for any Nash equilibrium $(bold(x)_1,...,bold(x)_n)$, by definition,
+
+  $
+    forall i in \[ n \] \, vx'_i in Delta (A_i) \, #h(2em) #h(2em) u_i (vx'_i \, vx_(- i)) <= u_i (vx_1 \, ... \, vx_n) .
+  $
+
+  The key observation is that the Nash equilibrium condition is equivalent up to a scalar translation of the utility function. For each payoff function $u_i$, let $p_i = min(u_i)$ over all payoffs in $u_i$. We will define a new normal-form game $cal(G)'$ with the same players, same actions, and new payoff functions
+  
+  $
+  forall i in \[ n \] \, #h(2em) #h(2em)u_i ' = u_i - p_i + 1.
+  $
+
+  We note that $cal(G)'$ can be defined in polynomial-time given $cal(G)$, and all payoff entries of $cal(G)'$ are strictly positive because
+
+  $
+  min(u_i ') = min(u_i) - p_i+1 = 1.
+  $
+
+  Furthermore,
+
+  $
+  forall i in \[ n \] \, vx'_i in Delta (A_i) \, #h(2em) #h(2em) u_i (vx'_i \, vx_(- i)) &<= u_i (vx_1 \, ... \, vx_n) \
+  <==> u_i (vx'_i \, vx_(- i)) - p_i+1 &<= u_i (vx_1 \, ... \, vx_n) - p_i+1 \
+  <==> u_i ' (vx'_i \, vx_(- i)) &<= u_i ' (vx_1 \, ... \, vx_n),
+  $
+  
+  so every Nash equilibrium of $cal(G)$ is a Nash equilibrium of $cal(G)'$ and vice versa. Thus, computing a Nash equilibrium of an arbitrary game $cal(G)$ can be polynomial-time reduced to the problem of computing a Nash equilibrium of a game $cal(G')$ whose payoff entries are all strictly positive.
+  ]
+
+  Potential point of confusion: One might ask if we can adjust all of our utility functions by a constant so that all entries are positive, then can we not use the same trick make all utilities average to zero, and thus reduce all normal-form games to zero-sum games?
+
+  Obviously, the answer is no, we cannot use this trick to reduce all normal form games to zero-sum games. This is because zero-sum games are not defined by the average utility of a single player being zero, but rather by the payoffs summed over all players being zero.
+
+  As an example, suppose we take a very simple two player game $cal(G):=(R,C)$, where the first player has one action and the second player has two actions, with the payoff matrices
+  $
+    R := mat(delim: "(", 1 \, -1 ) #h(2em) C := mat(delim: "(", 0 \, 1 ).
+  $
+
+  Now obviously this is not much of a game, as the outcome is completely controlled by the column player, but we can also see using this example that there is no way to convert this game to a zero-sum game simply by adding a constant to the payoff. By adding any arbitrary constants $r$ and $c$ to the payoff matrices, we can get a game $cal(G)':= (R',C')$ with
+  $
+    R' := mat(delim: "(", 1+r \, -1+r ) #h(2em) C' := mat(delim: "(", c \, 1+c ),
+  $
+  which has the same Nash equilibria as $cal(G)$. However, in order for $cal(G)'$ to be a zero-sum game, we would require $R' + C' =0$, which we find is not possible for any constants $r, c$.
+
+  Our constants shift every payoff of a given player by the same amount, and therefore preserve that player's preferences over strategies. In this example, choosing \(c=-1/2\) makes the column player's average of the payoff entries zero (the row player's average of payoff entries is already zero). Nevertheless, the resulting game is not zero-sum, which requires $sum_i u_i=0$, that is, the SUM of all payoffs of all players to be zero for any selection of pure strategies.
+
+]

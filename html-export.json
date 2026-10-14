@@ -18,7 +18,8 @@
     "nash-properties": "slides/L03_nash_properties.pdf",
     "learning-foundations": "slides/L04_learning_in_games.pdf",
     "learning-algorithms": "slides/L05_learning_in_games.pdf",
-    "bandit": "slides/L06_bandit.pdf"
+    "bandit": "slides/L06_bandit.pdf",
+    "efg-modeling": "slides/L07_efgs.pdf"
   },
   "interactive_slides": {
     "learning-foundations": "slides/L04_learning_in_games.html",
