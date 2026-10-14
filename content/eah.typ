@@ -174,6 +174,34 @@ $
 
 By the equivalence established above between maximizing over distributions on deviations and maximizing over a single deviation, this means that there exists a joint distribution $vmu$ under which every unilateral fixed deviation has nonpositive expected gain. Hence, a coarse correlated equilibrium exists.
 
+#example[Matching pennies][
+  #wrapped-figure(side: right, text-width: 65%)[
+    In the two-player matching pennies game, each player simultaneously chooses heads ($H$) or tails ($T$). Player 1 receives $+1$ if the actions match and $-1$ otherwise, while Player 2 receives the opposite payoff. The corresponding payoff matrix is shown on the right.
+  ][
+    #image("figures/eah/matching_pennies.svg", width: 66.49pt)
+  ]
+
+  Here the set of deviations is $D = {(1 \, H) \, (1 \, T) \, (2 \, H) \, (2 \, T)}$. Let $vnu$ assign probability $1/2$ to each of $(1 \, H)$ and $(2 \, H)$, that is, $nu_(1,H) = nu_(2,H) = 1/2$ and $nu_(1,T) = nu_(2,T) = 0$.
+
+  Following #ref(<sec-hart-schmeidler-proof>, supplement: [Appendix]), the total deviation weights are $s_1 = nu_(1,H) + nu_(1,T) = 1/2$ and $s_2 = 1/2$. Normalizing gives $mu_1 (H) = nu_(1,H) \/ s_1 = 1$ and $mu_2 (H) = nu_(2,H) \/ s_2 = 1$. Thus, the product distribution $vmu = vmu_1 ⊗ vmu_2$ places probability one on $(H \, H)$.
+
+  We now verify the guarantee of #ref(label("thm:hart schmeidler")). Since $vnu$ assigns positive weight only to $(1 \, H)$ and $(2 \, H)$, and both players already play $H$ under $vmu$, the $vnu$-weighted deviation gain is
+
+  $
+    & bb(E)_(\( i \, a'_i \) ~ vnu) bb(E)_(a ~ vmu) [u_i (a'_i \, a_(- i)) - u_i (a_i \, a_(- i))]\
+    & quad quad = 1/2 [u_1 (H \, H) - u_1 (H \, H)] + 1/2 [u_2 (H \, H) - u_2 (H \, H)] = 0 .
+  $
+
+  However, the CCE condition requires every individual deviation to have nonpositive expected gain, rather than only the $vnu$-weighted average. This condition fails for Player 2's deviation to $T$:
+
+  $
+    bb(E)_(a ~ vmu) [u_2 (a_1 \, T) - u_2 (a_1 \, a_2)] = u_2 (H \, T) - u_2 (H \, H) = 1 - (-1) = 2 > 0 \,
+  $
+  so $vmu$ is not a CCE.
+
+  The deviation $(2 \, T)$ has zero weight under $vnu$, so it does not contribute to the weighted gain above. #ref(label("thm:hart schmeidler")) shows that for every $vnu$ there exists a product distribution with nonpositive weighted deviation gain, whereas a CCE requires a single joint distribution that works for every $vnu$. The minimax argument above is what allows us to exchange these two quantifiers.
+] <ex:matching-pennies>
+
 = Turning the minimax theorem into an efficient algorithm <sec-minimax-algorithm>
 
 As in the #lecture-link("brouwer", <sec-sperner-proof>)[analysis of the existence proof underlying Nash equilibrium], it is worth inspecting where the “magic” happens in the above proof. If we squint our eyes a bit, the argument of the proof looked like this:
