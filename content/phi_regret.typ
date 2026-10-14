@@ -163,54 +163,6 @@ Graphically, we can summarize the process as in the following block diagram.
 
 In the Blum-Mansour construction, the transformations are stochastic matrices, the external regret minimizer over these matrices consists of the copies $cR_i$, and the fixed-point oracle returns a stationary distribution.
 
-== A sharper bound for Blum-Mansour <sec-bm-rate>
-
-The regret identity in the Blum-Mansour construction gives
-$
-  "SwapReg"^((T)) = sum_(i=1)^n "Reg"_i^((T)) <= n max_i "Reg"_i^((T)),
-$
-where $n = |A|$. Applying an $O(sqrt(T log n))$ external regret bound separately to every copy therefore gives $O(n sqrt(T log n))$. We can improve this to $O(sqrt(n T log n))$ by accounting for the scaled feedback $v_i^((t)) = x_i^((t)) u^((t))$ #citep(<blum2007external>, [Section 3, Corollary 7]).
-
-Assume $n >= 2$ and that all action utilities lie in $[0, 1]$. To use a loss-adaptive external regret guarantee, we express the feedback to each $cR_i$ as losses. The loss of a fixed strategy $tilde(vp)_i in Delta^n$ at round $t$ is
-$
-  x_i^((t)) - v_i^((t))(tilde(vp)_i)
-    = x_i^((t)) (1-u^((t))(tilde(vp)_i)) in [0, x_i^((t))].
-$
-This conversion leaves regret unchanged: the loss of the strategy $vp_i^((t))$ output by $cR_i$, minus the loss of $tilde(vp)_i$, is
-$
-  &(x_i^((t)) - v_i^((t))(vp_i^((t)))) - (x_i^((t)) - v_i^((t))(tilde(vp)_i)) \
-  &quad = v_i^((t))(tilde(vp)_i) - v_i^((t))(vp_i^((t))).
-$
-The $x_i^((t))$ terms cancel. Summing over rounds and maximizing over the fixed strategy $tilde(vp)_i$ therefore gives exactly $"Reg"_i^((T))$ as defined in (@eq-def-Rv).
-
-Let $L_i^((T))$ be the best fixed strategy's cumulative loss on the scaled losses received by the external regret minimizer $cR_i$. Since every strategy's loss at round $t$ is at most $x_i^((t))$,
-$
-  L_i^((T)) := min_(tilde(vp)_i in Delta^n) sum_(t=1)^T (x_i^((t)) - v_i^((t))(tilde(vp)_i))
-    <= sum_(t=1)^T x_i^((t)).
-$
-Use a loss-adaptive external regret algorithm for each $cR_i$ that does not need $L_i^((T))$ in advance #citep(<blum2007external>, [Section 3, footnote 3]). Its guarantee and the bound above give
-$
-  "Reg"_i^((T))
-    &<= O(sqrt(L_i^((T)) log n) + log n) \
-    &<= O(sqrt(log n sum_(t=1)^T x_i^((t))) + log n).
-$
-Summing these bounds and applying Cauchy-Schwarz gives
-$
-  "SwapReg"^((T))
-    &<= O(sqrt(log n) sum_(i=1)^n sqrt(sum_(t=1)^T x_i^((t))) + n log n) \
-    &<= O(sqrt(n log n sum_(t=1)^T sum_(i=1)^n x_i^((t))) + n log n) \
-    &= O(sqrt(n T log n) + n log n),
-$
-since $sum_(i=1)^n x_i^((t)) = 1$ at every round. For $T >= n log n$, the additive term is at most $sqrt(n T log n)$. For $T < n log n$, a swap can improve utility by at most $1$ per round, so $"SwapReg"^((T)) <= T <= sqrt(n T log n)$. Thus, in both cases,
-$
-  "SwapReg"^((T)) <= O(sqrt(n T log n)).
-$
-The improvement comes from summing the regret bounds on the scaled feedback, whose total weight across all copies and rounds is $T$. Consequently, for a fixed number of actions $n$, the _average_ swap regret converges to zero:
-$
-  0 <= "SwapReg"^((T)) / T <= O(sqrt((n log n) / T)) -> 0
-  quad "as" T -> oo.
-$
-
 == Why fixed-point computation is necessary
 
 Hazan and Kale showed that no-$Phi$-regret learning and approximate fixed-point computation are computationally equivalent for finite $Phi$ #citep(<hazan2007computational>). The preceding reduction uses fixed points to obtain no regret. For the converse, fix $psi in "conv"(Phi)$ and a tolerance $epsilon > 0$ independent of $T$. If every played strategy satisfies $norm(psi(vx^((t))) - vx^((t)))_2 >= epsilon$, choose each linear utility to reward this displacement. Then $psi$ gains at least $epsilon T$ in total. Since $psi$ is a convex combination of maps in $Phi$, one allowed map gains at least as much, contradicting $o(T)$ regret for sufficiently large $T$. The proof below gives the quantitative bound $min_(1 <= t <= T) norm(psi(vx^((t))) - vx^((t)))_2 <= B(T)/T$.
@@ -382,6 +334,57 @@ With multiplicative weights as the external regret minimizer, TreeSwap achieves 
   $ <eq-approx-regret>
   #set math.equation(numbering: none)
   with @thm-ggm the case $eps_t = 0$. The construction therefore remains a $Phi$-regret minimizer as soon as $sum_(t=1)^T eps_t = o(T)$; in particular $eps_t = o(1)$ suffices, and no rate on $eps_t$ is required. #citet(<gordon2008no>) take $eps_t = 1\/sqrt(t)$, for which $sum_(t=1)^T eps_t = O(sqrt(T))$.
+]
+
+#exercise[
+  In the Blum-Mansour construction, the identity $"SwapReg"^((T)) = sum_(i=1)^n "Reg"_i^((T))$ together with an $O(sqrt(T log n))$ external regret bound for each copy $cR_i$ only gives $"SwapReg"^((T)) <= O(n sqrt(T log n))$. This exercise improves the bound to $O(sqrt(n T log n))$ by exploiting the scaled feedback $v_i^((t)) = x_i^((t)) u^((t))$ #citep(<blum2007external>, [Section 3, Corollary 7]). Assume $n >= 2$ and that all action utilities lie in $[0, 1]$.
+
+  + Rewrite the feedback received by each $cR_i$ as losses in $[0, x_i^((t))]$, and check that this does not change the regret $"Reg"_i^((T))$ defined in (@eq-def-Rv).
+  + Suppose each $cR_i$ runs a loss-adaptive external regret algorithm that does not need to know in advance the cumulative loss $L_i^((T))$ of the best fixed strategy, and guarantees $"Reg"_i^((T)) <= O(sqrt(L_i^((T)) log n) + log n)$. Show that $"SwapReg"^((T)) <= O(sqrt(n T log n))$, and conclude that the average swap regret converges to zero.
+
+  _Hint:_ bound $L_i^((T))$ by $sum_(t=1)^T x_i^((t))$, then apply Cauchy-Schwarz to the sum over $i$.
+] <ex-bm-rate>
+
+#solution[
+  The loss of a fixed strategy $tilde(vp)_i in Delta^n$ at round $t$ is
+  $
+    x_i^((t)) - v_i^((t))(tilde(vp)_i)
+      = x_i^((t)) (1-u^((t))(tilde(vp)_i)) in [0, x_i^((t))].
+  $
+  This conversion leaves regret unchanged: the loss of the strategy $vp_i^((t))$ output by $cR_i$, minus the loss of $tilde(vp)_i$, is
+  $
+    &(x_i^((t)) - v_i^((t))(vp_i^((t)))) - (x_i^((t)) - v_i^((t))(tilde(vp)_i)) \
+    &quad = v_i^((t))(tilde(vp)_i) - v_i^((t))(vp_i^((t))).
+  $
+  The $x_i^((t))$ terms cancel. Summing over rounds and maximizing over the fixed strategy $tilde(vp)_i$ therefore gives exactly $"Reg"_i^((T))$ as defined in (@eq-def-Rv).
+
+  Since every strategy's loss at round $t$ is at most $x_i^((t))$,
+  $
+    L_i^((T)) := min_(tilde(vp)_i in Delta^n) sum_(t=1)^T (x_i^((t)) - v_i^((t))(tilde(vp)_i))
+      <= sum_(t=1)^T x_i^((t)).
+  $
+  Such loss-adaptive algorithms exist #citep(<blum2007external>, [Section 3, footnote 3]). Their guarantee and the bound above give
+  $
+    "Reg"_i^((T))
+      &<= O(sqrt(L_i^((T)) log n) + log n) \
+      &<= O(sqrt(log n sum_(t=1)^T x_i^((t))) + log n).
+  $
+  Summing these bounds and applying Cauchy-Schwarz gives
+  $
+    "SwapReg"^((T))
+      &<= O(sqrt(log n) sum_(i=1)^n sqrt(sum_(t=1)^T x_i^((t))) + n log n) \
+      &<= O(sqrt(n log n sum_(t=1)^T sum_(i=1)^n x_i^((t))) + n log n) \
+      &= O(sqrt(n T log n) + n log n),
+  $
+  since $sum_(i=1)^n x_i^((t)) = 1$ at every round. For $T >= n log n$, the additive term is at most $sqrt(n T log n)$. For $T < n log n$, a swap can improve utility by at most $1$ per round, so $"SwapReg"^((T)) <= T <= sqrt(n T log n)$. Thus, in both cases,
+  $
+    "SwapReg"^((T)) <= O(sqrt(n T log n)).
+  $
+  The improvement comes from summing the regret bounds on the scaled feedback, whose total weight across all copies and rounds is $T$. Consequently, for a fixed number of actions $n$, the _average_ swap regret converges to zero:
+  $
+    0 <= "SwapReg"^((T)) / T <= O(sqrt((n log n) / T)) -> 0
+    quad "as" T -> oo.
+  $
 ]
 
 #lec_bibliography("meta/refs.bib")
