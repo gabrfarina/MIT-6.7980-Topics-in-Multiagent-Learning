@@ -38,7 +38,7 @@ Similarly, correlated and coarse correlated equilibria in general-sum games can 
 
 In this lecture, we revisit Nash equilibrium computation in general games. We will discuss several algorithms for computing Nash equilibria. Roughly speaking those algorithms  fall into two buckets. One bucket contains algorithms that directly target the equilibrium constraints, using linear programming, and more generally algorithms for solving systems of polynomial equations and inequalities. The other bucket contains algorithms that make tighter use of the fixed point nature of Nash equilibrium, and the directed parity argument underlying its existence proofs. In all cases, our algorithms will have super-polynomial complexity, unless the game has special structure. #lecture-link("tfnp", none)[] and #lecture-link("ppad_completeness", none)[] explain the complexity-theoretic obstacles to polynomial-time algorithms.
 
-= Support Enumeration Algorithms
+= Support Enumeration Algorithms <sec-support-enumeration>
 
 To develop support enumeration algorithms, we will study whether knowing the _support_ of a Nash equilibrium, i.e.~the actions that are assigned non-zero probability, can reduce the computational complexity of solving for a Nash equilibrium. We will start with two-player games and proceed to general-sum games.
 
@@ -66,14 +66,14 @@ $
 
 If we don't  know the supports of some Nash equilibrium, we can enumerate over all possible pairs of supports $\( S_R \, S_C \) subset.eq \[ m \] times \[ n \]$, and try to find a feasible solution of the corresponding linear program. As a Nash equilibrium always exists, at least one of these linear programs will be feasible. So the overall running time will be $2^(m + n) dot.op op("poly") \( \| R \| \, \| C \| \)$, where the $2^(m + n)$ factor is due to trying all possible pairs of supports, and the polynomial factor in the descriptions of the matrices $R$ and $C$ is determined by the complexity of solving a linear program. The exponential factor is not merely an artifact of enumerating in an unlucky order: Savani and von Stengel~#citep(<SavaniVS06>) construct $d times 2 d$ games in which about $0.7 times 1.66^d$ supports must be inspected before an equilibrium is found, on average over a random permutation of one player's actions.
 
-As a corollary of the correctness of the above algorithm, we also get a proof of the existence of Nash equilibria that use rational numbers of polynomial bit complexity in the size of the game.
+The correctness of the above algorithm also yields the #lecture-link("correlated", <thm-rational-nash-2p>)[rational-equilibrium theorem], which we restate in the present notation.
 
 #corollary[
-  In any two-player game, there exists a Nash equilibrium whose mixed strategies use only rational numbers in their probability distributions. Moreover, these numbers have polynomial bit complexity in the bit complexity required to represent the payoff matrices of the game.
+  Suppose every payoff entry of $(R, C)$ is a rational number $p \/ q$, where $p, q$ are integers with $q != 0$ and $|p|, |q| < 2^L$ for an integer $L >= 1$. Then the game has a Nash equilibrium whose probabilities are rational numbers with numerators and denominators of $O((m + n)^2 L)$ bits.
 ]
 
 #proof[
-  This follows from the correctness of the support enumeration algorithm. If there is a Nash equilibrium with supports $S_R$ and $S_C$, then the polytope of the corresponding LP is non-empty and any feasible solution is a Nash equilibrium. In particular, any vertex is a Nash equilibrium, and any vertex is a vector of rational numbers whose bit complexity is polynomial in the description of the LP, and hence the description of the game.
+  Let $S_R, S_C$ be the supports of some Nash equilibrium. Introduce variables $v_R, v_C$ for the players' equilibrium payoffs, and replace the pairwise constraints of the linear program above by the equivalent constraints $ve_k^T R vy <= v_R$ for all $k in [m]$, with equality for $k in S_R$, and $vx^T C ve_k <= v_C$ for all $k in [n]$, with equality for $k in S_C$, together with the simplex and support constraints. The feasible region is nonempty, since it contains the equilibrium, and bounded, since the strategies lie in simplexes and $v_R, v_C$ equal expected payoffs. Every feasible point is a Nash equilibrium by the argument above, so any vertex is a Nash equilibrium. A vertex is the unique solution of $m + n + 2$ linearly independent tight constraints. After clearing denominators row by row, Cramer's rule writes its coordinates as ratios of integer determinants, which are bounded by expanding them as sums over permutations; the #lecture-link("correlated", <thm-rational-nash-2p>)[full proof] carries out the computation.
 ]
 
 As illustrated by the #lecture-link("correlated", <sec-irrational-equilibria>)[irrational-equilibrium example], however, the corollary is not true for $k$-player games where $k > 2$. Indeed, Nash's 1951 paper~#citep(<Nash51:NonCooperative>) already gave an example of a 3-player game that only has irrational equilibria.
@@ -381,7 +381,7 @@ We are now ready to show that the algorithm is guaranteed to terminate at a non-
 We make some final remarks about the Lemke-Howson algorithm.
 
 - The algorithm provides an alternative proof that a Nash equilibrium exists in 2-player games. In particular, the existence of a Nash equilibrium is implied by the correctness of the algorithm.
-- Moreover, it shows that there always exists a rational equilibrium in 2-player games.
+- Moreover, it shows that there always exists a rational equilibrium in 2-player games: on a nondegenerate instance (or after the perturbation of the exercise above), its output is $vz \/ norm(vz)_1$ for a vertex $vz$ of the Lemke-Howson polytope. Applying Cramer's rule to that vertex and bounding the determinants as in the corollary above shows that its coordinates have polynomial bit complexity.
 - The proof works by virtue of a parity argument, reminiscent of the proof of Sperner’s lemma. It identifies a directed path on the vertices of the polytope whose sink is a solution.
 - A single pivoting step is cheap: un-tightening one inequality and following the resulting edge amounts to solving a linear system of size $n$, so each step costs time polynomial in the description of the game. The running time is therefore governed by the _number_ of steps, that is, by the length of the main path. Since the walk never revisits a vertex, it stops after at most as many steps as the polytope has vertices, and the upper bound theorem for polytopes caps that count at fewer than $2.6^n$~#citep(<vonStengel07:Equilibrium>).
 - The number of steps really can be exponential. Savani and von Stengel~#citep(<SavaniVS06>) construct $d times d$ games in which the length of _every_ main path is at least proportional to $phi^(3 d \/ 4) approx 1.43^d$, where $phi approx 1.618$ is the golden ratio. The only freedom the algorithm has is the choice of the special action, since the pivoting rule itself is forced once that choice is made; the lower bound holds no matter which action is chosen.
