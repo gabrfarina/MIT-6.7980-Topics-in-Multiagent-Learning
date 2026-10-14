@@ -147,7 +147,7 @@ Since Cartesian products of nonempty, convex, and compact sets are themselves no
 
 #corollary[
   The set of Nash equilibria in a two-player zero-sum game is nonempty, convex, and compact.
-]
+] <cor-nash-convex>
 
 It is worth remarking again that what does the heavy lifting here is really #ref(label("thm:nash is mm")); the rest follows as a direct corollary.
 
@@ -171,7 +171,7 @@ In the general two-player case, often referred to as _two-player general-sum gam
   ][
     #image("figures/correlated/kohlberg_mertens.svg", width: 175.392pt)
   ]
-]
+] <rem-kohlberg-mertens>
 
 *Computation*  In two-player general-sum games, computation of Nash equilibria is not a linear program. However, it is a _linear complementarity problem_ (LCP), a more general class of problems than linear feasibility programs, and which are written in the form
 
@@ -185,7 +185,7 @@ The Lemke-Howson algorithm is a well-known algorithm to solve LCPs, and it can b
 
 #corollary[
   Any two-player general-sum games with rational payoffs admits a Nash equilibrium with rational coordinates.
-]
+] <cor-two-player-rational>
 
 This follows directly from the way Lemke-Howson works, which is similar to the simplex algorithm. The algorithm moves along edges of a rational polytope until it finds a Nash equilibrium. Since the algorithm only moves along the edges of the polytope, it will only generate rational solutions.
 
@@ -237,7 +237,7 @@ In games with more than two players, the behavior of Nash equilibria can be even
   $
 
   From a computational point of view, this property raises the question of how a Nash equilibrium solver could even _represent_ such an output.
-]
+] <ex-irrational-nash>
 
 #exercise[The irrational Nash equilibrium in the preceding example][
   Prove that the three-player game above has exactly the stated Nash equilibrium. In particular, rule out equilibria in which only some players mix before imposing indifference for all three players.
@@ -272,11 +272,41 @@ In games with more than two players, the behavior of Nash equilibria can be even
   The issues with irrational numbers do not stop at square roots. In fact, _any polynomial root_ might be required to represent a Nash equilibrium. This was shown by #citet(<bubelis1979equilibria>), who showed how to construct games with arbitrary polynomial roots.
 
   Beyond the representation, the topology of Nash equilibria is also in general arbitrarily complex in three-player games. In particular, #citet(<datta2003universality>) showed that for any real algebraic variety, one can come up with some three-player game whose set of fully mixed Nash equilibria is isomorphic to that variety.
-]
+] <rem-nash-universality>
 
 *Computation*  On the computational side, the situation is even more dire. As a first consideration, because Nash equilibria might require irrational numbers, even the question of how to _represent_ the output equilibrium needs attention. In general, we cannot hope for an _exact_ value. However, even asking for a _constant_ approximation turns out to be hard. We will talk about this in more detail at the end of the course, where we relate the computation of (approximate) Nash equilibria to a complexity class called PPAD.
 
 If one is willing to stomach a worst-case superpolynomial runtime, some methods exist. While the Lemke-Howson algorithm cannot be used beyond two-player games, other methods (such as #citep(<Porter2008Jul>)) still apply.
+
+@tab-nash-summary summarizes how the properties of Nash equilibria change across the three classes of games studied in this section.
+
+#figure(
+  kind: table,
+  supplement: [Table],
+  caption: [Properties of Nash equilibria across the classes of games studied in this section.],
+)[
+  #set par(justify: false)
+  #set text(hyphenate: false)
+  #table(
+    stroke: none,
+    columns: (auto, 1fr, 1fr, 1fr),
+    align: left + top,
+    inset: .6em,
+    table.header([], [*Computational*], [*Algebraic*], [*Topological*]),
+    [*Two-player \ zero-sum*],
+    [Polynomial time via linear programming (#ref(label("thm:nash is mm"), supplement: [Thm.]))],
+    [A rational equilibrium exists for rational payoffs (@cor-two-player-rational[Cor.])],
+    [Convex and compact, a product of maxmin sets (#ref(label("cor:nash product"), supplement: [Cor.]), @cor-nash-convex[Cor.])],
+    [*Two-player \ general-sum*],
+    [A linear complementarity problem; Lemke-Howson is not polynomial-time in the worst case],
+    [A rational equilibrium exists for rational payoffs (@cor-two-player-rational[Cor.])],
+    [Can be non-convex, and even non-contractible (@rem-kohlberg-mertens[Rem.])],
+    [*More than \ two players*],
+    [Hard even to approximate],
+    [May require irrational numbers (@ex-irrational-nash[Ex.]), and even arbitrary algebraic numbers (@rem-nash-universality[Rem.])],
+    [Fully mixed equilibria can be isomorphic to any real algebraic variety (@rem-nash-universality[Rem.])],
+  )
+] <tab-nash-summary>
 
 = Correlated and coarse correlated equilibrium
 
