@@ -168,6 +168,8 @@ In the general two-player case, often referred to as _two-player general-sum gam
     ]
 
     The figure on the right, similar to the one in #citep(<Milionis2023Oct>), shows the projection of the set of all $0.27$-approximate Nash equilibria of this game, _i.e._, all strategy profiles such that no player has a unilateral deviation that increases their utility by more than $0.27$.
+
+    Here, $vx = (x_A, x_B, x_C)$ and $vy = (y_A, y_B, y_C)$ denote the mixed strategies of Players 1 and 2, respectively, where each coordinate represents the probability that the associated player chooses that specific action. Note that the probabilities in each strategy profile sum to one, so each strategy is determined by two coordinates. The figure shows a three-dimensional projection $(x_A, x_B, y_A)$ of the full four-dimensional space of mixed-strategy profiles, omitting $y_B$.
   ][
     #image("figures/correlated/kohlberg_mertens.svg", width: 175.392pt)
   ]
@@ -181,13 +183,30 @@ In the general two-player case, often referred to as _two-player general-sum gam
   $upright("find") quad vx \, vw in bb(R)^d #h(2em) upright("s.t.") #h(2em) vw = matM vx + vq \, #h(2em) vx \, vw >= 0 \, #h(2em) vx^top vw = 0 .$.body,
 ) <eq:lcp-general>
 
-The Lemke-Howson algorithm is a well-known algorithm to solve LCPs, and it can be used to find Nash equilibria in two-player general-sum games. However, the algorithm is not polynomial-time in the worst case, and it can be hard to find Nash equilibria in practice. An important corollary of the connection between two-player general-sum games and LCPs is the following:
+To understand why Nash equilibrium computation can be formulated as an LCP, recall that at any Nash equilibrium, each player's strategy must assign positive probability only to actions that maximize their expected payoff. First consider Player 1, for instance. Denote by $v_1$ the maximum expected payoff against Player 2's strategy $vy$. Then, we require
+
+#math.equation(
+  block: true,
+  $x_i >= 0 #h(2em) #h(2em) v_1 - ve_i^top U_1 vy >= 0 #h(2em) #h(2em) x_i (v_1-ve_i^top U_1 vy) = 0 $.body
+) <eq:player-one-conditions>
+
+for every action $i$. Analogous conditions hold for Player 2 as well. These conditions are precisely _complementarity conditions_, where we enforce the idea that every action is either assigned zero probability or it achieves the maximum expected payoff (or both).
+
+The Lemke-Howson algorithm is a well-known algorithm to solve LCPs, and it can be used to find Nash equilibria in two-player general-sum games. As explained in Section S1.3, the algorithm proceeds through a sequence of _pivoting steps_ along the edges of a polytope. Each action is represented by a tight constraint corresponding to either zero probability or a best-response condition. Starting from an artificial solution in which all actions are assigned probability zero, the algorithm removes one such constraint and follows a path of vertices, resolving duplicated labels until it reaches a nontrivial solution where every action is represented. After normalization, this final destination represents a Nash equilibrium. However, the algorithm is not polynomial-time in the worst case, and it can be hard to find Nash equilibria in practice.
+
+*Computational Complexity* The problem of computing a Nash equilibrium in a general two-player game is _PPAD-complete_, meaning that it belongs to the complexity class PPAD (Polynomial Parity Arguments on Directed graphs) and that it is PPAD-hard, meaning that every problem in PPAD can be reduced to it in polynomial time. Informally, PPAD is a class of total search problems that lie between P and NP. Unless P = PPAD, which we believe is unlikely, there is no polynomial time algorithm for computing Nash equilibria in general games.
+
+*Connection to Sperner and Brouwer* Recall that Nash's theorem, Brouwer's fixed point theorem, and Sperner's lemma are all closely related. In particular, we constructed polynomial-time reductions between these three computational problems: $ upright("NASH") scripts(<=)_p upright("BROUWER") scripts(<=)_p upright("SPERNER"). $ It turns out that the associated reverse reductions also exist, meaning that all three problems are computationally equivalent and *PPAD-complete*. Here, SPERNER refers to finding a trichromatic triangle in a succinctly represented, legally colored grid, and BROUWER refers to computing a fixed point under a transformation. Thus, although we are guaranteed that solutions exist for these three problems, the constructive path-following algorithms in these proofs may require exponentially many steps. We will explore these reductions and the PPAD complexity class in more detail in Lecture 19.
+
+Despite these computational difficulties, two-player general-sum games have some useful algebraic properties. In particular, an important corollary of the connection between two-player general-sum games and LCPs is the following:
 
 #corollary[
   Any two-player general-sum games with rational payoffs admits a Nash equilibrium with rational coordinates.
 ]
 
 This follows directly from the way Lemke-Howson works, which is similar to the simplex algorithm. The algorithm moves along edges of a rational polytope until it finds a Nash equilibrium. Since the algorithm only moves along the edges of the polytope, it will only generate rational solutions.
+
+#remark[The correctness of Lemke-Howson follows from a parity argument reminiscent of Sperner's Lemma. For Lemke-Howson, the algorithm follows a path of "almost completely labeled" vertices. The path cannot cycle back to any previously visited vertex, and since the graph is finite, the path must eventually reach another endpoint. This endpoint is a nontrivial fully labeled solution corresponding to a Nash equilibrium. Thus, Lemke-Howson provides a constructive proof for Nash equilibrium existence, even though the path may be exponentially long.]
 
 #exercise[Nash equilibrium as a linear complementarity problem][
   Consider a generic two-player general-sum game, with utility matrices $U_1$ and $U_2$ as defined above. Show that finding a Nash equilibrium of the game can be reduced to the LCP of #ref(<eq:lcp-general>, supplement: none), with a number of variables $d$ that is linear in $| A_1 | + | A_2 |$.
@@ -274,7 +293,7 @@ In games with more than two players, the behavior of Nash equilibria can be even
   Beyond the representation, the topology of Nash equilibria is also in general arbitrarily complex in three-player games. In particular, #citet(<datta2003universality>) showed that for any real algebraic variety, one can come up with some three-player game whose set of fully mixed Nash equilibria is isomorphic to that variety.
 ]
 
-*Computation*  On the computational side, the situation is even more dire. As a first consideration, because Nash equilibria might require irrational numbers, even the question of how to _represent_ the output equilibrium needs attention. In general, we cannot hope for an _exact_ value. However, even asking for a _constant_ approximation turns out to be hard. We will talk about this in more detail at the end of the course, where we relate the computation of (approximate) Nash equilibria to a complexity class called PPAD.
+*Computation*  On the computational side, the situation is even more dire. As a first consideration, because Nash equilibria might require irrational numbers, even the question of how to _represent_ the output equilibrium needs attention. In general, we cannot hope for an _exact_ value. However, even asking for a _constant_ approximation turns out to be hard. As discussed in Section L3.1.2, even computing Nash equilibria in two-player general-sum games is PPAD-complete. The computational difficulty extends to games with three or more players as well. We will revisit these computational challenges and their connections to PPAD in Lecture 19.
 
 If one is willing to stomach a worst-case superpolynomial runtime, some methods exist. While the Lemke-Howson algorithm cannot be used beyond two-player games, other methods (such as #citep(<Porter2008Jul>)) still apply.
 
@@ -301,6 +320,28 @@ The concept of _coarse correlated equilibrium_ is a relaxation of this definitio
     $bb(E)_((a_1 \, ... \, a_n) ~ vmu) [u_i (a'_i \, a_(- i))] <= bb(E)_((a_1 \, ... \, a_n) ~ vmu) [u_i (a_1 \, ... \, a_n)] #h(2em) forall i in \[ n \] \, a'_i in A_i .$.body,
   ) <eq:cce>
 ] <def-cce>
+
+#example[Consider a two-player game with the following payoffs:
+
+#align(center)[
+  #image("figures/correlated/coarse_correlated.svg")
+]
+
+Here, Player 1 can choose between top and bottom, while Player 2 can choose between left and right. Now, consider the coarse correlated strategy $vmu$ defined by 
+#math.equation(
+    block: true,
+    $mu(T, L) = mu(B, R) = 1/2, qquad mu(T, R) = mu(B, L) = 0.$.body,
+  ) <eq:cce-strat>
+
+Under $vmu$, both players have expected payoff of
+#math.equation(
+    block: true,
+    $bb(E)_(a ~ vmu)[u_i (va)] = 1/2(3) + 1/2(2) = 5/2.$.body,
+  ) <eq:cce-calculation>
+
+Now suppose Player 1 wants to deviate to a fixed action. Always playing $T$ would yield a payoff of $3/2$ while always playing $B$ would yield a payoff of $1$. Similar results can be computed for Player 2. Clearly, neither player benefits from deviating to any fixed actions. Thus, $vmu$ is a coarse correlated equilibrium.
+
+]
 
 #remark[
   The definition of a CCE is a relaxation of the definition of a Nash equilibrium. In a Nash equilibrium, the players randomize independently; in a CCE, they can randomize in a correlated way. _A Nash equilibrium is a CCE $vmu$ that happens to be a product distribution_, that is, $vmu = vx_1 ⊗ dots.h.c ⊗ vx_n .$
