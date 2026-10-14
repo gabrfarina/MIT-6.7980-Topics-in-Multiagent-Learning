@@ -18,7 +18,7 @@ Towards an answer, we will provide a proof of Brouwer's theorem via another exis
 
 #align(center)[
 
-  _Brouwer's fixed point theorem is a corollary of the fact that any directed graph has an even number of odd-degree vertices.
+  _Brouwer's fixed point theorem is a corollary of the fact that any directed graph has an even number of odd-degree vertices._
 
 ]
 

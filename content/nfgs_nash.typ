@@ -89,7 +89,7 @@ The idea of dominance can also be useful even when a player does not have a domi
 We will focus here on dominance by pure actions. An action $a_i in A_i$ is _strictly dominated_ by another action $b_i in A_i$ if
 
 $
-  u_i(b_i \, a_(-i)) > u_i(a_i \, a_(-i))
+  u_(i)(b_i \, a_(-i)) > u_(i)(a_i \, a_(-i))
 $
 
 for every action profile $a_(-i)$ of the other players.
@@ -97,7 +97,7 @@ for every action profile $a_(-i)$ of the other players.
 Similarly, $a_i$ is _weakly dominated_ by $b_i$ if
 
 $
-  u_i(b_i \, a_(-i)) >= u_i(a_i \, a_(-i))
+  u_(i)(b_i \, a_(-i)) >= u_(i)(a_i \, a_(-i))
 $
 
 for every $a_(-i)$, with strict inequality for at least one $a_(-i)$.
@@ -155,7 +155,7 @@ Now consider the following two-player game:
 Suppose that $a_i$ is strictly dominated by $b_i$. Then, for every currently available action profile $a_(-i)$ of the other players,
 
 $
-  u_i(b_i \, a_(-i)) > u_i(a_i \, a_(-i)).
+  u_(i)(b_i \, a_(-i)) > u_(i)(a_i \, a_(-i)).
 $
 
 If some action other than $b_i$ is removed, the set of opponent action profiles only becomes smaller. The same strict inequality therefore continues to hold for every remaining $a_(-i)$, so $a_i$ remains strictly dominated by $b_i$.
@@ -163,11 +163,11 @@ If some action other than $b_i$ is removed, the set of opponent action profiles 
 The only interesting case is when $b_i$ itself is removed. Since an action can only be removed at this stage if it is strictly dominated, suppose that $b_i$ is strictly dominated by $c_i$. Then, for every remaining $a_(-i)$,
 
 $
-  u_i(c_i \, a_(-i))
+  u_(i)(c_i \, a_(-i))
   >
-  u_i(b_i \, a_(-i))
+  u_(i)(b_i \, a_(-i))
   >
-  u_i(a_i \, a_(-i)).
+  u_(i)(a_i \, a_(-i)).
 $
 
 Hence $c_i$ strictly dominates $a_i$ in the reduced game.
