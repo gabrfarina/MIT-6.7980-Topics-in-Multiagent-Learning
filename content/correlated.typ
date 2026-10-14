@@ -105,6 +105,36 @@ $
 
 For a fixed $vx$, the largest feasible $v$ is exactly $min_(a_2 in A_2) vx^top matU_1 ve_(a_2)$, so the optimal value of this linear program is the maxmin value, and the $vx$-part of any optimal solution is a maxmin strategy. The program has one constraint per action of Player 2, besides the simplex constraints. We can use any linear programming solver to find such a solution. The #lecture-link("learning_intro", <sec-learning-zero-sum>)[self-play construction] gives more scalable methods to compute maxmin strategies from repeated play.
 
+#example[A $2 times 5$ zero-sum game, solved two ways][
+  Let Player 1 have two actions and Player 2 five, with $A_1 = {1, 2}$ and $A_2 = {1, ..., 5}$, and let
+  $ matU_1 = mat(5, 0, 3, 4, 2; 0, 4, 1, 3, 2), quad matU_2 = -matU_1 . $
+  Rows are Player 1’s actions and columns are Player 2’s actions.
+
+  *Graphical solution.*  Since Player 1 has only two actions, a strategy is described by one number: $vx = (t, 1 - t)$ with $t in [0, 1]$. Against each pure action $a_2$ of Player 2, Player 1 earns $vx^top matU_1 ve_(a_2)$, which is a linear function of $t$:
+  $ ell_1 (t) = 5 t, quad ell_2 (t) = 4 - 4 t, quad ell_3 (t) = 1 + 2 t, quad ell_4 (t) = 3 + t, quad ell_5 (t) = 2 . $
+  As shown above, Player 2 has a pure best reply to any $vx$, so the payoff that $vx$ guarantees is the _lower envelope_ $min_(a_2) ell_(a_2) (t)$, drawn in bold below. A maxmin strategy is a highest point of this envelope.
+
+  #align(center)[
+    #image("figures/correlated/zero_sum_2xn.svg")
+  ]
+
+  The envelope follows $ell_1$ for $t in [0, 1/3]$, then $ell_3$ for $t in [1/3, 1/2]$, then $ell_2$ for $t in [1/2, 1]$. It increases until $ell_3$ and $ell_2$ cross, where $1 + 2 t = 4 - 4 t$, that is, $t = 1/2$, and decreases afterwards. So $vx^* = (1/2, 1/2)$ is the unique maxmin strategy of Player 1, and it guarantees $v^* = 2$. Two of the lines do not affect the shape of the envelope. The line $ell_4$ (dashed) lies above $ell_3$ everywhere, because column $4$ is entrywise larger than column $3$; that is, action $4$ is dominated by action $3$ for Player 2. The constant line $ell_5$ (dotted) touches the envelope only at its peak.
+
+  Against $vx^*$, the five actions of Player 2 give Player 1 the payoffs $5/2, 2, 2, 7/2, 2$, so Player 2’s best replies are actions $2$, $3$, and $5$. Let us first look for an optimal strategy that uses actions $2$ and $3$, the two lines through the peak: $vy = (0, y_2, y_3, 0, 0)$. Player 1’s two actions earn $3 y_3$ and $4 y_2 + y_3$ against it. An optimal strategy of Player 2 must hold each of Player 1’s actions to at most the value $v^* = 2$, and together with #box[$y_2 + y_3 = 1$] this forces $vy^* = (0, 1/3, 2/3, 0, 0)$. Against $vy^*$ both of Player 1’s actions earn $2$, so $vx^*$ is a best response; and $vy^*$ plays only best replies to $vx^*$. Hence $(vx^*, vy^*)$ is a Nash equilibrium, and by #ref(label("thm:nash is mm")), $vy^*$ is a maxmin strategy of Player 2. The same check shows that playing action $5$ alone, $vy' = (0, 0, 0, 0, 1)$, is also optimal, and so is every mixture of $vy^*$ and $vy'$, since both of Player 1’s actions still earn exactly $2$ against it by linearity. So Player 2’s optimal strategies are not unique: they include the whole segment between $vy^*$ and $vy'$, illustrating the convexity in #ref(label("cor:nash product")) below.
+
+  *Linear programming solution.*  For this game, the linear program above and the corresponding program for Player 2, which minimizes the largest payoff Player 1 can obtain, are
+  $
+    cases(max_(vx, v) v, upright("s.t.") v <= 5 x_1 \, quad v <= 4 x_2 \, quad v <= 3 x_1 + x_2, v <= 4 x_1 + 3 x_2 \, quad v <= 2 x_1 + 2 x_2, x_1 + x_2 = 1 \, quad vx >= 0 .)
+    #h(3em)
+    cases(min_(vy, w) w, upright("s.t.") w >= 5 y_1 + 3 y_3 + 4 y_4 + 2 y_5, w >= 4 y_2 + y_3 + 3 y_4 + 2 y_5, y_1 + dots.c + y_5 = 1 \, quad vy >= 0 .)
+  $
+  The point $(vx^*, v) = ((1/2, 1/2), 2)$ is feasible for the program on the left, whose five constraints read $2 <= 5/2, 2, 2, 7/2, 2$, and $(vy^*, w) = (vy^*, 2)$ is feasible for the program on the right, whose two constraints read $2 >= 2$. The key observation is that for _any_ feasible points of the two programs,
+  $ v <= vx^top matU_1 vy <= w, $
+  because $v$ is at most each payoff $vx^top matU_1 ve_(a_2)$ and hence at most their average under $vy$, while $w$ is at least each payoff $ve_(a_1)^top matU_1 vy$ and hence at least their average under $vx$. So no feasible point on the left has value above $2$, and no feasible point on the right has value below $2$: both points are optimal, and the value of the game is $2$. This argument is known as _weak duality_. (The two programs are linear programming duals of each other; the general form of this pair appears below.)
+
+  At optimal points both inequalities hold with equality, so $sum_(a_2) y_(a_2) (vx^top matU_1 ve_(a_2) - v) = 0$, a sum of nonnegative terms. Each term is therefore $0$: if Player 2 plays an action with positive probability, the constraint for that action in Player 1’s program holds with equality. This is _complementary slackness_. Here, $vy^*$ plays only actions $2$ and $3$, whose constraints are tight, whereas actions $1$ and $4$ have slack and get probability zero. The converse fails: the constraint for action $5$ is tight, yet $vy^*$ never plays it.
+]
+
 *Connection with linear programming*  It is worth pausing for a moment to appreciate some historical context. We started the proof by assuming von Neumann's minimax theorem, which we justified as a consequence of linear programming duality. However, historically, von Neumann did not have the luxury of linear programming to prove his theorem.
 
 - The proof of von Neumann's minimax theorem essentially hides an optimization duality argument. Indeed, we have the following, where, by the same argument as above, each program needs only one constraint per pure action of the opponent:
