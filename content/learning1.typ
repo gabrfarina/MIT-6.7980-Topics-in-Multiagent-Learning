@@ -289,13 +289,80 @@ We mention the following regret bound for the general case. The supplementary re
 #theorem[Regret bound for FTRL and OMD][
   The regret cumulated by the FTRL and OMD algorithms is upper bounded by
   $
-    "Reg"^((
-      T
-    )) <= B / eta + eta sum_(t=1)^T norm(vg^((t)))_*^2 - 1 / (8 eta) sum_(t=2)^T norm(vx^((t)) - vx^((t-1)))^2,
+    "Reg"^((T)) <= B / eta + eta sum_(t=1)^T norm(vg^((t)))_*^2 - 1 / (4 eta) sum_(t=1)^T norm(vx^((t)) - vx^((t+1)))^2,
   $
   where $B=max_(vx in cX) psi(vx)-min_(vx in cX) psi(vx)$ for FTRL, and $B=max_(vx in cX) div(vx, vx^((1)), dgf: psi)$ for OMD. The latter reduces to the former when the initial minimizer lies in the relative interior. We assume these quantities are finite. As above, $norm(dot.c)_*$ is the dual norm.
   In particular, if the norm of the gradient vectors is bounded, then by picking learning rate $eta = 1/sqrt(T)$, we obtain that $"Reg"^((T))$ is bounded as roughly $sqrt(T)$ (a sublinear function!) at all times $T$.
 ] <ftrl-omd-regret-bound>
+
+#proof[
+  We first prove the bound for FTRL.
+  Recall that the regret is defined as
+  $
+    "Reg"^((T)) := max_(xhat in cX) sum_(t=1)^T ip(vg^((t)), xhat -vx^((t))) .
+  $
+  Define $F_t (vx):= eta  sum_(tau=1)^t ip( vg^((tau)), vx) - psi(vx)$, so that FTRL plays $vx^((t)) = arg max_(vx in cX) F_(t-1) (vx)$.
+  Note that $F_t (vx)$ is $1$-strongly concave, so because $vx^((t))$ maximizes $F_(t-1)$, we have
+  $
+  F_(t-1) (vx^((t)))-F_(t-1) (vx^((t+1))) >= 1/2 norm(vx^((t)) - vx^((t+1)))^2.
+  $
+  Thus, write
+  $
+    F_(t-1) (vx^((t))) - F_(t) (vx^((t+1))) &= F_(t-1) (vx^((t))) - F_(t-1) (vx^((t+1))) - eta ip(vg^((t)), vx^((t+1)))\ &>= 1/2 norm(vx^((t)) - vx^((t+1)))^2 -  eta ip(vg^((t)), vx^((t+1))).
+  $
+  Summing over $t=1,...,T$, we have
+  $
+    F_0 (vx^((1))) - F_T (vx^((T+1))) >= 1/2 sum_(t=1)^T norm(vx^((t)) - vx^((t+1)))^2 - eta sum_(t=1)^T ip(vg^((t)), vx^((t+1))).
+  $
+  Let $xhat$ be any point in $cX$. Then, we have $F_T (vx^((T+1)))>= F_T (xhat) = eta sum_(t=1)^T ip(vg^((t)), xhat) - psi(xhat)$ while $F_0 (vx^((1))) = -min_(vx in cX) psi(vx)$.
+  Substituting, we have
+  $
+    sum_(t=1)^T ip(vg^((t)), xhat - vx^((t+1))) <= B/eta -1/(2eta) sum_(t=1)^T norm(vx^((t))-vx^((t+1)))^2.
+  $
+  This is close to the desired expression, but we have a $vx^((t+1))$ instead of $vx^((t))$. We can fix this by using the inequality
+  $
+    ip(vg^((t)), vx^((t+1)) - vx^((t))) <= norm(vg^((t)))_* norm(vx^((t+1)) - vx^((t))) <= eta norm(vg^((t)))_*^2 + 1/(4eta) norm(vx^((t)) - vx^((t+1)))^2.
+  $
+  Now, we have
+  $
+    & sum_(t=1)^T ip(vg^((t)), xhat - vx^((t))) \
+    & qquad = sum_(t=1)^T ip(vg^((t)), xhat - vx^((t+1))) + sum_(t=1)^T ip(vg^((t)), vx^((t+1)) - vx^((t))) \
+    & qquad <= (B/eta - 1/(2eta) sum_(t=1)^T norm(vx^((t)) - vx^((t+1)))^2) \
+    & qquad quad + (eta sum_(t=1)^T norm(vg^((t)))_*^2 + 1/(4eta) sum_(t=1)^T norm(vx^((t)) - vx^((t+1)))^2) \
+    & qquad = B/eta + eta sum_(t=1)^T norm(vg^((t)))_*^2 - 1/(4eta) sum_(t=1)^T norm(vx^((t)) - vx^((t+1)))^2.
+  $
+  Because this is true for all $xhat in cX$, the same bound holds for $"Reg"^((T))$, as desired.
+
+  For OMD, the proof is similar but slightly more involved.
+  Let
+  $
+    Phi^((t))(vx) & := - eta ip(vg^((t)), vx) + div(vx, vx^((t)), dgf: psi) \
+    & = psi(vx) - psi(vx^((t))) - eta ip(vg^((t)), vx) - ip(nabla psi(vx^((t))), vx - vx^((t))).
+  $
+  Then, $Phi^((t))(vx)$ has the same curvature as $psi(vx)$ since $Phi^((t))-psi$ is affine, so $div(vx, vy, dgf: Phi^((t))) = div(vx, vy, dgf: psi)$ for all $t$.
+  Note that $vx^((t+1))$ minimizes $Phi^((t))(vx)$ over $cX$ by definition, so we can write
+  $
+    & Phi^((t))(xhat) - Phi^((t))(vx^((t+1))) \
+    & qquad = ip(nabla Phi^((t))(vx^((t+1))), xhat - vx^((t+1))) + div(xhat, vx^((t+1)), dgf: Phi^((t))) \
+    & qquad >= div(xhat, vx^((t+1)), dgf: psi),
+  $
+  since $ip(nabla Phi^((t))(vx^((t+1))), xhat - vx^((t+1))) >= 0$ by the first-order optimality condition for $vx^((t+1))$.
+  Expanding the definition of $Phi^((t))$ and rearranging, we have
+  $
+    eta ip(vg^((t)), xhat - vx^((t+1))) <= div(xhat, vx^((t)), dgf: psi) - div(xhat, vx^((t+1)), dgf: psi) - div(vx^((t+1)), vx^((t)), dgf: psi).
+  $
+  We can sum over $t=1,...,T$ and telescope to obtain
+  $
+     sum_(t=1)^T ip(vg^((t)), xhat - vx^((t+1))) &<= 1/eta [div(xhat, vx^((1)), dgf: psi) - div(xhat, vx^((T+1)), dgf: psi) - sum_(t=1)^T div(vx^((t+1)), vx^((t)), dgf: psi)] \
+    &<= B/eta - 1/eta sum_(t=1)^T div(vx^((t+1)), vx^((t)), dgf: psi).
+  $
+  By $1$-strong convexity, we have $div(vx^((t+1)), vx^((t)), dgf: psi) >= 1/2 norm(vx^((t+1)) - vx^((t)))^2$, which gives
+  $
+    sum_(t=1)^T ip(vg^((t)), xhat - vx^((t+1))) <= B/eta - 1/(2 eta) sum_(t=1)^T norm(vx^((t+1)) - vx^((t)))^2,
+  $
+  exactly as in the FTRL case. The rest of the proof is identical to the FTRL case, so we omit it.
+
+]
 
 == Multiplicative weights update (MWU) as a special case <sec-omd-mwu>
 
