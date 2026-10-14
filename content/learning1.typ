@@ -299,6 +299,7 @@ We mention the following regret bound for the general case. The supplementary re
 
 == Multiplicative weights update (MWU) as a special case <sec-omd-mwu>
 
+#block(breakable: false)[
 #wrapped-figure(
   [
     Multiplicative weights update is the special case of _both FTRL and OMD_ in which the regularizer $psi$ is set to the _negative entropy_ function
@@ -318,6 +319,7 @@ We mention the following regret bound for the general case. The supplementary re
   side: right,
   text-width: 65%,
 )
+]
 
 The negative entropy function has the following properties:
 - it is $1$-strongly convex with respect to the $ell_1$ norm $norm(dot.c)_1$;
@@ -326,6 +328,47 @@ The negative entropy function has the following properties:
   at which $H(overline(vx)) = m dot 1/m log 1/m = -log m$.
 
 Plugging the bound above into the general analysis of FTRL and OMD algorithms (@ftrl-omd-regret-bound) yields @mwu-regret-bound.
+
+#exercise[Smooth fictitious play is FTRL][
+  Consider a player with action simplex $Delta(A)$ in a two-player normal-form game. Let $vg^((tau))$ be that player's payoff vector at round $tau$, and write $overline(vg)^((0)) := 0$ and $overline(vg)^((t-1)) := 1/(t-1) sum_(tau=1)^(t-1) vg^((tau))$ for $t >= 2$. Thus, $overline(vg)^((t-1))$ is the payoff vector against the opponent's empirical strategy before round $t$. Classical fictitious play chooses a best response to $overline(vg)^((t-1))$.
+
+  Let $psi$ be a distance-generating function and let $beta > 0$. Smooth fictitious play instead chooses a regularized best response
+  $
+    vx^((t)) in argmax_(xhat in Delta(A)) {ip(overline(vg)^((t-1)), xhat) - 1 / beta psi(xhat)}.
+  $
+  To connect this update to FTRL:
+
+  (a) Multiply the objective by $t-1$ and substitute the definition of $overline(vg)^((t-1))$.
+
+  (b) Compare the result with the FTRL update above and identify the learning rate for $t >= 2$.
+
+  (c) Specialize to negative entropy, $psi(vx) = sum_(a in A) x_a log x_a$. Use the MWU update in @sec-mwu to derive the resulting probability assigned to an action $a$.
+
+  (d) The FTRL learning rate you found decreases with $t$. Does that mean that smooth fictitious play becomes less smooth over time? Explain using the quantity that appears in the softmax exponent.
+]
+
+#solution[
+  (a) Multiplying by $t-1$ does not change the best response, so we can write the update as
+  $
+    vx^((t)) in argmax_(xhat in Delta(A)) {ip(sum_(tau=1)^(t-1) vg^((tau)), xhat) - (t-1) / beta psi(xhat)}.
+  $
+
+  (b) For $t >= 2$, this is FTRL with learning rate $eta_t := beta/(t-1)$. Let $c^((t-1)) := sum_(tau=1)^(t-1) ip(vg^((tau)), vx^((tau)))$ be the payoff the player actually collected. Cumulative action regret subtracts this same quantity from every action's cumulative payoff:
+  $
+    r_a^((t-1)) = sum_(tau=1)^(t-1) g_a^((tau)) - c^((t-1)).
+  $
+  Therefore, for any candidate strategy $xhat in Delta(A)$,
+  $
+    ip(vr^((t-1)), xhat) = ip(sum_(tau=1)^(t-1) vg^((tau)), xhat) - c^((t-1)) sum_(a in A) xhat_a = ip(sum_(tau=1)^(t-1) vg^((tau)), xhat) - c^((t-1)).
+  $
+  The final term is the same for every candidate strategy, so the maximizer is unchanged.
+
+  (c) With negative entropy, FTRL becomes MWU. Applying the softmax update from @sec-mwu to the cumulative payoff vector gives
+  $
+    x_a^((t)) = frac(exp(beta overline(vg)_a^((t-1))), sum_(b in A) exp(beta overline(vg)_b^((t-1)))) = frac(exp(eta_t sum_(tau=1)^(t-1) vg_a^((tau))), sum_(b in A) exp(eta_t sum_(tau=1)^(t-1) vg_b^((tau)))).
+  $
+  (d) Although $eta_t$ decreases with $t$, the exponent is $eta_t sum_(tau=1)^(t-1) vg_a^((tau)) = beta overline(vg)_a^((t-1))$. The smaller learning rate exactly offsets the growing cumulative-payoff vector. Thus, with fixed $beta$, the amount of smoothing stays the same: increasing $beta$ makes the response closer to a pure best response, while decreasing it makes the response more diffuse.
+]
 
 == Online Projected Gradient Ascent <sec-ogd>
 
