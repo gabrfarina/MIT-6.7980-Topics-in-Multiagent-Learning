@@ -372,6 +372,7 @@ With multiplicative weights as the external regret minimizer, TreeSwap achieves 
   Finally, take $Phi = "conv"{S_(i j): i != j}$ in the Gordon-Greenwald-Marks construction. Its auxiliary action $Q^((t)) in Phi$ is precisely the mixture above, its fixed-point oracle returns $vx^((t))$, and its utility on $S_(i j)$ is $u^((t))(S_(i j)(vx^((t))))$. Because utility is linear in the transformation, an external-regret minimizer over the $n(n-1)$ extreme maps also minimizes external regret over their convex hull. The displayed feedback differs only by a common baseline. Thus this is exactly the Stoltz-Lugosi construction.
 ]
 
+
 #exercise[
   Computing an exact fixed point is hard in general, yet @thm-ggm assumes the oracle returns one. Suppose instead it is only guaranteed to return a point satisfying $norm(phi.alt^((t))(vx^((t))) - vx^((t)))_1 <= eps_t$. How does the guarantee degrade, and what must hold of the tolerances $eps_t$ for the construction to remain a $Phi$-regret minimizer?
 ] <ex-approx-fixed-point>
