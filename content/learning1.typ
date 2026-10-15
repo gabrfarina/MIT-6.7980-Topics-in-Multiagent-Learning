@@ -239,11 +239,32 @@ Finally, we turn our attention to the third way of obtaining no-regret algorithm
   $
     vx^((t)) & := argmax_(xhat in Delta(A)) {ip(vr^((t-1)), xhat) - 1 / eta psi(xhat)}.
   $]
-The regularization term $-psi(xhat)$ _limits the amount of variation between consecutive strategies_. This makes intuitive sense: if $eta -> 0$, $vx^((t))$ is constant (and equal to $argmin_(xhat in Delta(A)) psi(xhat)$). When $eta = oo$, we recover the follow-the-leader algorithm, where strategies can jump arbitrarily. For intermediate $eta$, as you might expect, the amount of variation between strategies at consecutive times is bounded above by a quantity proportional to $eta$:
+The role of the regularizer is to *limit variation between consecutive strategies*. FTL can change its strategy abruptly when a small change in cumulative utilities changes which action is best. FTRL controls this sensitivity by subtracting $psi(vx)/eta$ from the cumulative utility of each candidate strategy $vx$. This creates a preference for strategies with smaller values of $psi(vx)$: choosing a strategy with a larger value must be justified by a sufficient improvement in cumulative utility.
+
+The learning rate $eta$ controls the strength of this preference. For fixed cumulative utilities, as $eta -> 0$, the regularizer dominates and the selected strategy approaches $argmin_(vx in Delta(A)) psi(vx)$, regardless of which action has performed best. As $eta -> oo$, the regularization becomes negligible and the strategy approaches a cumulative-utility maximizer, recovering FTL up to tie-breaking. Intermediate values balance responsiveness to utilities against the preference imposed by the regularizer.
+
+What does preferring smaller $psi(vx)$ actually encourage? This depends on the function we choose. For example, consider the *negative entropy* regularizer
+$ psi(vx) = sum_(a in A) x_a log x_a. $
+This function is minimized at the uniform distribution $vu$. More precisely,
+$
+  psi(vx) + log |A| = op("D")_("KL")(vx mid(||) vu),
+  quad op("D")_("KL")(vx mid(||) vu) = sum_(a in A) x_a log frac(x_a, u_a).
+$
+Since adding a constant to the regularizer does not change the maximizing strategy, entropy-regularized FTRL can be viewed as maximizing cumulative utility while penalizing departure from the uniform distribution. This encourages spreading probability across actions, while allowing actions with higher cumulative utility to receive more weight.
+
+Notice that this penalty is relative to a *fixed reference distribution*, not the previous strategy. How does it nevertheless limit changes between steps? Consider two actions and write the strategy as $vx = (p, 1-p)$. Let $d$ be the difference between their cumulative utilities, equivalently the difference between their cumulative regrets. FTL chooses $p=1$ whenever $d>0$, and $p=0$ whenever $d<0$. Thus, an arbitrarily small change across $d=0$ can move all the probability from one action to the other. With negative entropy, the regularized optimization instead gives
+$ p = 1 / (1 + exp(-eta d)). $
+Near a tie, the strategy is close to uniform; as the utility advantage grows, probability shifts smoothly toward the better action. Each new round changes $d$, and the regularizer makes the maximizing strategy respond gradually to that change.
+
+Different regularizers produce different responses. For example, the *squared Euclidean norm* $psi(vx)=1/2 norm(vx)_2^2$ gives
+$ p = op("clip")_([0,1]) (1/2 + (eta d)/2), $
+where clipping restricts the value to $[0,1]$. Here probability changes linearly with $d$ until it reaches a pure strategy. Negative entropy instead produces the logistic response above and remains strictly mixed for finite $d$ and $eta$. Therefore, regularization need not prevent pure strategies; it controls sensitivity to changes in utilities by adding curvature to the objective, so that small changes in cumulative utilities produce small changes in the maximizing strategy.
+
+The strong convexity of $psi$ makes this stability quantitative. In particular, consecutive FTRL strategies satisfy
 $
   norm(vx^((t+1)) - vx^((t))) <= eta norm(vg^((t)))_*,
 $
-where $norm(dot.c)_*$ is the _dual_ norm of $norm(dot.c)$.
+where $norm(dot.c)_*$ is the dual norm of the norm with respect to which $psi$ is $1$-strongly convex. This explains how the fixed regularization term controls movement even though the objective contains no explicit penalty for departing from the previous strategy.
 
 We will see the regret bound for FTRL in the general case in @ftrl-omd-general-case.
 
@@ -263,10 +284,22 @@ The last general method that we mention today is the _online mirror descent (OMD
   is called the _Bregman divergence_ associated with $psi$.
 ]
 
+OMD uses the distance-generating function to construct an explicit penalty for moving away from the previous strategy. The Bregman divergence $div(vx, vy, dgf: psi)$ measures how far $psi(vx)$ lies above the tangent-plane approximation to $psi$ at $vy$. Subtracting this approximation makes the penalty zero at $vx=vy$, and convexity makes it nonnegative elsewhere. Strong convexity further guarantees
+$ div(vx, vy, dgf: psi) >= 1/2 norm(vx-vy)^2, $
+so substantial movement incurs a substantial penalty.
+
+Choosing $psi$ therefore determines *which movements are expensive*. The squared Euclidean regularizer gives
+$ div(vx, vy, dgf: psi) = 1/2 norm(vx-vy)_2^2, $
+which penalizes absolute changes in probabilities equally wherever we start. Negative entropy gives
+$ div(vx, vy, dgf: psi) = op("D")_("KL")(vx mid(||) vy); $
+locally, the same small absolute change costs more in a coordinate whose starting probability is small. These choices lead to different update rules: Euclidean OMD takes an additive gradient step followed by projection, while entropy OMD reweights probabilities multiplicatively.
+
+Thus FTRL obtains stability by regularizing the cumulative-utility objective with a fixed function $psi$, while OMD directly balances the latest utility against a movement penalty generated by that function.
+
 Two choices of regularizer are standard for the probability simplex:
 - The _negative entropy_ function $H(vx) := sum_(a in A) x_a log x_a$. This is 1-strongly convex with respect to the $ell_1$ norm $norm(dot.c)_1$ (and therefore also with respect to $norm(dot.c)_2$). OMD instantiated with this regularizer leads to the multiplicative weights update algorithm seen in @sec-mwu; see also @sec-omd-mwu.
 
-- The _squared Euclidean norm_ $psi(vx) := 1/2 norm(vx)_2^2$, which is 1-strongly convex with respect to the $ell_2$ norm $norm(dot.c)_2$. OMD instantiated with this regularizer leads to the online projected gradient descent algorithm, which we will discuss in @sec-ogd.
+- The _squared Euclidean norm_ $psi(vx) := 1/2 norm(vx)_2^2$, which is 1-strongly convex with respect to the $ell_2$ norm $norm(dot.c)_2$. OMD instantiated with this regularizer leads to the online projected gradient ascent algorithm, which we will discuss in @sec-ogd.
 
 == The general case <ftrl-omd-general-case>
 
