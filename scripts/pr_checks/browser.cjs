@@ -56,6 +56,7 @@ async function main() {
           await page.evaluate(async () => {
             await document.fonts.ready;
             document.querySelectorAll('article details').forEach(x => {x.open=true;});
+            document.querySelectorAll('article .solution-toggle[aria-expanded="false"]').forEach(x => x.click());
             await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
           });
           await page.addStyleTag({content:'* { animation: none !important; transition: none !important; caret-color: transparent !important; }'});
@@ -68,6 +69,9 @@ async function main() {
             if(document.documentElement.scrollWidth>innerWidth+3) add('page-overflow',`Page exceeds the ${innerWidth}px viewport by ${document.documentElement.scrollWidth-innerWidth}px.`);
             for(const img of document.images) if(visible(img)&&(!img.complete||!img.naturalWidth)) add('broken-image',img.getAttribute('src')||'(image)');
             for(const svg of article.querySelectorAll('[data-image-source] svg, svg[data-image-source]')) {
+              // Audit the rendered image viewport, not nested SVG artwork. Its
+              // geometry can be empty or extend beyond a clipped plot region.
+              if(svg.parentElement.closest('svg'))continue;
               const r=svg.getBoundingClientRect();
               if(r.width<1||r.height<1) add('empty-figure','Zero-size figure: '+(svg.closest('[data-image-source]')?.getAttribute('data-image-source')||''));
             }
@@ -100,6 +104,7 @@ async function main() {
             const rail='.sidenote,.margin-note,.citation-note,.course-sidenote,.lecture-citation-sidenote,.lecture-citation-details';
             const describe=e=>e.closest('[data-image-source]')?.getAttribute('data-image-source')||e.getAttribute('src')||e.getAttribute('aria-label')||e.id||(e.innerText||e.textContent||'').replace(/\s+/g,' ').trim().slice(0,90);
             for(const e of article.querySelectorAll('img,svg,.katex-display,.equation,pre,table')) {
+              if(e.tagName.toLowerCase()==='svg'&&e.parentElement.closest('svg'))continue;
               if(!visible(e)||e.closest(rail))continue;
               const r=e.getBoundingClientRect();
               let scrollable=false;
@@ -112,6 +117,7 @@ async function main() {
               if(!scrollable&&(r.left<bounds.left-3||r.right>bounds.right+3))add('content-overflow',`${e.tagName}: ${describe(e)}`);
             }
             const candidates=[...article.querySelectorAll('h1,h2,h3,h4,h5,p,figure,figcaption,img,svg,pre,ul,ol,li,table,details,summary,blockquote,dl,dt,dd,.statement,.proof,.env-title,.env-heading,.equation,.equation-line')]
+              .filter(e=>e.tagName.toLowerCase()!=='svg'||!e.parentElement.closest('svg'))
               .filter(e=>visible(e)&&!e.closest(rail));
             const selected=new Set(candidates);
             const blocks=candidates.filter(e=>{for(let p=e.parentElement;p&&p!==article;p=p.parentElement)if(selected.has(p)&&p.getBoundingClientRect().height<1000)return false;return e.getBoundingClientRect().height<1000||!e.querySelector('p,figure,figcaption,li,summary,.env-title,.env-heading,.equation,img,svg');});
