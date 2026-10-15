@@ -328,6 +328,8 @@ The two runs illustrate four differences between RM and MWU.
 - *Hyperparameters.* RM has no parameters. MWU depends on $eta$: as $eta -> 0$ it stays at the uniform strategy, and as $eta -> oo$ it puts all its mass on the actions with the largest cumulated utility, which is follow-the-leader.
 - *Worst-case bounds are loose on a single run.* The observed regrets ($1$ and $4\/7$) are far below the guarantees ($approx 3.87$ and $approx 3.61$), because the theorems must hold for _every_ sequence of utility vectors, including far more adversarial ones.
 
+The accompanying #link("https://colab.research.google.com/github/gabrfarina/MIT-6.7980-Topics-in-Multiagent-Learning/blob/main/content/notebooks/learning1/rm_mwu_walkthrough.ipynb")[notebook] reproduces both tables in exact arithmetic, runs the algorithms for many more rounds, and lets you vary $eta$ and watch the strategies of RM and MWU move on the simplex.
+
 = More general approaches: FTRL and OMD <sec-ftrl>
 
 Finally, we turn our attention to the third way of obtaining no-regret algorithms, that is, by considering a regularized (i.e., smoothed) version of the follow-the-leader algorithm discussed above. The idea is that, instead of playing by always putting 100% of the probability mass on the action with highest cumulated regret, we look for the distribution that maximizes the expected cumulated regret, _minus_ some regularization term that prevents us from putting all the mass on a single action.
