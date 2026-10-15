@@ -268,7 +268,7 @@ We now make an additional assumption:  at every vertex of the above polytope, ex
 
 #exercise[
   Part 1. Show that the Lemke-Howson polytope can be perturbed with exponentially small noise so that at every vertex exactly $n$ of the inequalities are tight. Part 2. Show that, given  a Nash equilibrium of the perturbed game, an equilibrium of the original game can be recovered in polynomial time.
-]
+] <ex-lh-perturbation>
 
 == Main description of the algorithm
 
@@ -377,6 +377,10 @@ We are now ready to show that the algorithm is guaranteed to terminate at a non-
 
   Given the claim, the proof is concluded.
 ]
+
+#exercise[
+  Look up the definition of non-degeneracy in the original paper of Lemke and Howson~#citep(<LemkeHowson64>). What exactly does degeneracy break in the path-following argument of Theorem~#ref(label("thm:Lemke-Howson's correctness"), supplement: none)? How does perturbation fix the problem?
+] <ex-lh-degeneracy>
 
 We make some final remarks about the Lemke-Howson algorithm.
 
@@ -558,4 +562,38 @@ Then for any Nash equilibrium $(bold(x)_1,...,bold(x)_n)$, by definition,
 
   Our constants shift every payoff of a given player by the same amount, and therefore preserve that player's preferences over strategies. In this example, choosing \(c=-1/2\) makes the column player's average of the payoff entries zero (the row player's average of payoff entries is already zero). Nevertheless, the resulting game is not zero-sum, which requires $sum_i u_i=0$, that is, the SUM of all payoffs of all players to be zero for any selection of pure strategies.
 
+]
+
+== Solution to #ref(<ex-lh-perturbation>)
+
+#toggle[Reveal Solution to #ref(<ex-lh-perturbation>)][
+  #proof[
+  We use the polytope $P_epsilon$ from the solution of #ref(<ex-lh-degeneracy>), which is non-degenerate whenever $epsilon > 0$ is smaller than every positive root of the polynomials $p_T$. That argument never used that the tight point lies in the polytope, so for every $delta in (0, epsilon]$, no linearly dependent set of constraints of $P_delta$ is simultaneously tight at any point of $RR^n$.
+
+  For Part 1, it remains to bound $epsilon$. Since $R$ is rational, each dependence can be chosen with integer coefficients of polynomial bit length (e.g., by Cramer's rule), so each $p_T$ has integer coefficients of polynomial bit length. Every positive root of a non-zero polynomial with integer coefficients is at least the inverse of the sum of the absolute values of its coefficients, so we can take $epsilon = 2^(-K)$ for some $K$ polynomial in the size of the game. The polytope $P_epsilon$ belongs to the game $R_epsilon$ whose $i$-th row is the $i$-th row of $R$ divided by $1 + epsilon^i$, and each entry of $R_epsilon$ differs from the corresponding entry of $R$ by at most $epsilon R_(i j)$, which is exponentially small.
+
+  For Part 2, a symmetric equilibrium $(vx, vx)$ of $R_epsilon$, such as the one returned by the algorithm, gives the non-zero democracy $vz^(*) := vx \/ max_i (R_epsilon vx)_i$ of $P_epsilon$. Let $B$ be the set of the $n$ constraints that are tight at $vz^(*)$. They are linearly independent, so writing them as equations gives a system $A_B vz = vb_B (epsilon)$, where $A_B$ is invertible and does not depend on $epsilon$, and each entry of $vb_B (epsilon)$ is $0$ or $1 + epsilon^i$. Let $vz (delta) := A_B^(-1) vb_B (delta)$ and $vz_0 := vz (0)$, the solution of the same system with every $1 + epsilon^i$ replaced by $1$. For every constraint $k in.not B$, the slack of $k$ at $vz (delta)$ in $P_delta$ is a polynomial in $delta$. It is non-negative at $delta = epsilon$, since $vz (epsilon) = vz^(*) in P_epsilon$, and it cannot vanish on $(0, epsilon]$, as otherwise the linearly dependent set $B union {k}$ would be simultaneously tight at $vz (delta)$. By continuity, it is non-negative at $delta = 0$. Hence $vz_0 in P$, and the $n$ linearly independent constraints of $B$, which represent every action, are tight at $vz_0$, so $vz_0$ is a democracy of $P$. It is non-zero, because $B$ contains a payoff constraint (as $vz^(*) != 0$), which reads $ve_i^T R vz_0 = 1$. Therefore $vz_0 \/ norm(vz_0)_1$ is a symmetric Nash equilibrium of the original game, obtained by solving one linear system.
+  ]
+]
+
+== Solution to #ref(<ex-lh-degeneracy>)
+
+#toggle[Reveal Solution to #ref(<ex-lh-degeneracy>)][
+  #proof[
+  Lemke and Howson~#citep(<LemkeHowson64>) call a game non-degenerate if the inequalities that are tight at any point of the polytope are linearly independent. For our polytope $P := { vz : R vz <= vone, vz >= 0 }$, this means that no point of $P$ makes more than $n$ of the $2 n$ inequalities tight, so every vertex makes exactly $n$ of them tight, which is the assumption under which we described the algorithm.
+
+  Degeneracy breaks the two places where the description of @algo-lemke-howson relies on this assumption. First, at a vertex with more than $n$ tight inequalities, un-tightening one of them while keeping the others tight need not define an edge, since the remaining tight inequalities may still pin down the vertex; the pivot then has length $0$. Second, several inequalities can become tight at once at the end of an edge, so the vertex reached can have two doubly represented actions. Then property $Pi$ fails, and the pivot step, which un-tightens an inequality of _the_ action represented twice, is no longer well defined. As a result, the vertices of $G$ may not have degree $1$ (democracies) or $2$ (property $Pi$), so $G$ need not be a disjoint union of paths and cycles, and the walk from $vv_0$ can stall or cycle without reaching a non-zero democracy.
+
+  We fix the degeneracy by replacing each payoff constraint $ve_i^T R vz <= 1$ by $ve_i^T R vz <= 1 + epsilon^i$ for a small $epsilon > 0$, which amounts to shrinking row $i$ of $R$ by the factor $1 + epsilon^i$, i.e., to perturbing the game. Call the resulting polytope $P_epsilon$. The key point is that, for each linearly dependent set $T$ of constraints, the constraints in $T$ can be tight simultaneously only if $epsilon$ satisfies a certain polynomial equation. Choosing $epsilon$ so that this equation fails for every such $T$ guarantees that no linearly dependent set is ever tight simultaneously, which is exactly the non-degeneracy of $P_epsilon$.
+
+  To find the equation, let $J$ and $S$ be the indices of the non-negativity constraints and of the payoff constraints in $T$, and fix a linear dependence
+
+  $ sum_(j in J) lambda_j ve_j + sum_(i in S) mu_i R^T ve_i = 0 , $
+
+  where some $mu_i$ is non-zero because the vectors $ve_j$ are linearly independent. If all constraints in $T$ are tight at a point $vz$, i.e., $z_j = 0$ for $j in J$ and $ve_i^T R vz = 1 + epsilon^i$ for $i in S$, then the inner product of the dependence with $vz$ gives
+
+  $ p_T (epsilon) := sum_(i in S) mu_i (1 + epsilon^i) = 0 . $
+
+  This holds for every dependence of $T$, so it suffices to fix one dependence per set; the fixed dependence does not depend on $epsilon$, since the perturbation only changes the right-hand sides. As the coefficient of $epsilon^i$ in $p_T$ is $mu_i$, each $p_T$ is a non-zero polynomial. Hence the finitely many polynomials $p_T$ have finitely many roots, and any $epsilon > 0$ below all of their positive roots makes $P_epsilon$ non-degenerate. The distinct powers $epsilon^i$ are essential: the common shift $1 + epsilon$ merely rescales $P$ and preserves its degeneracies. How small $epsilon$ must be, and how to recover an equilibrium of the original game, is the subject of #ref(<ex-lh-perturbation>).
+  ]
 ]
