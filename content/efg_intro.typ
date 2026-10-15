@@ -59,6 +59,8 @@ A standard assumption in extensive-form games is that no player forgets about th
   A player $i in \[ n \]$ is said to have _perfect recall_ if, for any information set $I in cal(I)_i$, for any two histories $h \, h' in I$ the sequence of Player $i$'s actions encountered along the path from the root to $h$ and from the root to $h'$ must coincide (or otherwise Player $i$ would be able to distinguish among the histories, since the player remembers all of the actions they played in the past). The game is perfect recall if all players have perfect recall.
 ] <def:perfect-recall>
 
+When perfect recall fails, much of the machinery developed in this lecture breaks down: Kuhn's theorem~(@thm:kuhn) no longer holds, computing an optimal strategy becomes NP-hard even for a single player, and it is not even clear what “optimal” should mean once a player can reach the same information set more than once in a single play. The Sleeping Beauty problem#footnote[#link("https://en.wikipedia.org/wiki/Sleeping_Beauty_problem")] is a well-known illustration of this last difficulty. See #ref(<sec-imperfect-recall>, supplement: [Appendix]) for a longer discussion.
+
 = Player's perspective: Tree-form decision processes <sec-tfdp>
 
 The game tree representation introduced above provides a description of the global dynamics of the game, without taking the side of any player in particular. But what is the strategy space from the point of view of _one_ decision maker (player) in the game? In a normal-form game, the strategy space of a player is a set of probability distributions over the set of actions available to that player. In an extensive-form game, the strategy space of a player is a _tree-form decision process (TFDP)_.
@@ -199,7 +201,7 @@ A different conceptualization of a strategy for a player is as a choice of (inde
 
 #theorem[Kuhn's theorem][
   In a perfect recall extensive-form game, any distribution over terminal nodes that can be induced via normal-form strategies can be induced via behavioral strategies, and _vice versa_.
-]
+] <thm:kuhn>
 
 == Sequence form <sec-sequence-form>
 
@@ -235,3 +237,39 @@ Conversely, it is easy to see that any $vx$ that satisfies the above constraints
 = Bibliography for this lecture
 
 #lec_bibliography("meta/refs.bib", title: none)
+
+
+#appendix[
+  = Imperfect recall <sec-imperfect-recall>
+
+  == Definition
+
+  Imperfect recall is simply the failure of @def:perfect-recall.
+
+  #definition[Imperfect recall][
+    A player $i in \[ n \]$ has _imperfect recall_ if there exist an information set $I in cal(I)_i$ and two histories $h \, h' in I$ such that the sequence of Player $i$'s actions on the path from the root to $h$ differs from the sequence of Player $i$'s actions on the path from the root to $h'$.
+  ] <def:imperfect-recall>
+
+  Intuitively, the player has acted differently on the way to $h$ and to $h'$, yet cannot tell the two apart, so they must have forgotten something they once knew. An extreme case is _absentmindedness_, where $h$ lies on the path from the root to $h'$: the player can reach the same information set twice in a single play without knowing which visit it is.
+
+  == Why imperfect recall breaks things
+
+  *Kuhn's theorem fails.* Suppose a player picks $upsans(L)$ or $upsans(R)$, forgets the choice, and later picks $upsans(l)$ or $upsans(r)$. Mixing over the plans $(upsans(L) \, upsans(l))$ and $(upsans(R) \, upsans(r))$ makes the two choices always match, but a behavioral strategy randomizes independently at each information set and cannot reproduce this. So @thm:kuhn no longer holds.
+
+  *The sequence form breaks.* Building a TFDP (@def:tfdp) requires every history in an information set to have the same trace, which is exactly what perfect recall guarantees. Without it, the parent sequence $p_j$ is not well defined and the sequence-form polytope (@def:sf) no longer describes the player's strategies. In fact, finding an optimal strategy becomes NP-hard even for a single player.
+  // single player~#citep(<Koller92:Complexity>).
+
+  *"Optimal" becomes unclear.* With perfect recall, a player who reaches an information set knows how likely each history in it is, so it is clear what the best action there is. Under absentmindedness, the player may be at the same information set for the first or the second time, and it is no longer obvious how to weigh these possibilities. The Sleeping Beauty problem shows that reasonable people disagree on the answer.
+
+  == The Sleeping Beauty problem
+
+  In the #link("https://en.wikipedia.org/wiki/Sleeping_Beauty_problem")[Sleeping Beauty problem], Beauty is put to sleep on Sunday and a fair coin is tossed. If it lands heads, she is woken on Monday and the experiment ends. If it lands tails, she is woken on Monday, given a drug that erases her memory of that awakening, and woken again on Tuesday. Every awakening feels the same to her. Each time she wakes, she is asked: _how likely is it that the coin landed heads?_
+  // *Halfers* #citep(<Lewis01:Sleeping>)
+  - *Halfers* answer $1\/2$. Before going to sleep, Beauty knew the coin was fair, and she knew she would wake up at least once no matter what. Waking up therefore tells her nothing new, so her belief should not change.
+  // *Thirders* #citep(<Elga00:Self>
+  - *Thirders* answer $1\/3$. When she wakes, Beauty could be in one of three situations: heads and Monday, tails and Monday, or tails and Tuesday. She cannot tell them apart, and if the experiment were repeated many times, only one in three awakenings would follow heads.
+
+  *Why it is relevant.* As a game tree, the problem has a chance node choosing heads or tails, and Beauty's three possible awakenings form a single information set. Since the tails-Monday awakening lies on the path to the tails-Tuesday awakening, this information set is absentminded. The halfer counts each _play_ of the game once, while the thirder counts each _visit_ to the information set once; the game tree does not say which is correct.
+
+  This disagreement directly affects decisions. If Beauty is offered a bet on heads at every awakening and every bet counts, a tails run produces two bets, and the thirder's $1\/3$ gives the right price. If only one bet per run counts, the halfer's $1\/2$ is right. In other words, under imperfect recall, what counts as "optimal" depends on modeling choices that the game itself leaves open.
+]
