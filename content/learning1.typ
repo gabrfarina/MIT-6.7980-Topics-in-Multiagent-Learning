@@ -258,7 +258,7 @@ Near a tie, the strategy is close to uniform; as the utility advantage grows, pr
 
 Different regularizers produce different responses. For example, the *squared Euclidean norm* $psi(vx)=1/2 norm(vx)_2^2$ gives
 $ p = op("clip")_([0,1]) (1/2 + (eta d)/2), $
-where clipping restricts the value to $[0,1]$. Here probability changes linearly with $d$ until it reaches a pure strategy. Negative entropy instead produces the logistic response above and remains strictly mixed for finite $d$ and $eta$. Therefore, regularization need not prevent pure strategies; it controls sensitivity to changes in utilities by adding curvature to the objective, so that small changes in cumulative utilities produce small changes in the maximizing strategy.
+where clipping restricts the value to $[0,1]$. Here probability changes linearly with $d$ until it reaches a pure strategy. Negative entropy instead produces the logistic response above and remains strictly mixed for finite $d$ and $eta$. Therefore, regularization need not prevent pure strategies. It stabilizes the strategy because moving farther in a given direction becomes increasingly costly: a small increase in an action's utility advantage then justifies only a small additional shift of probability toward it.
 
 The strong convexity of $psi$ makes this stability quantitative. In particular, consecutive FTRL strategies satisfy
 $
