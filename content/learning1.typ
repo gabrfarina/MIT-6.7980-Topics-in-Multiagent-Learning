@@ -221,6 +221,93 @@ The general FTRL/OMD bound in @ftrl-omd-regret-bound implies @mwu-regret-bound; 
 
 For now, we remark a crucial aspect of MWU. Compared with the regret bound of RM and RM#super[+], the regret bound of MWU has only a _logarithmic_ dependence on the number of actions $|A|$. Despite in practice RM/RM#super[+] tend to outperform MWU (all while getting rid of any hyperparameter tuning), this property has profound _theoretical_ implications, especially in combinatorial games where the effective number of actions is exponential. The gist of it is that several important classes of games can be converted into _exponentially large_ normal-form games (this is the case of sequential games, for example). Since MWU only has logarithmic dependence on the number of actions of the resulting normal-form games, this shows that---at least ignoring computation---external regret minimization is possible with polynomial dependence on the game size even in these classes of complex, structured games.
 
+#exercise[Asymptotic optimality of MWU][
+  Let $n = |A| >= 2$ and suppose $norm(vg^((t)))_oo <= 1$. With learning rate $eta = sqrt((log n) / T)$, MWU guarantees
+  $ "Reg"^((T)) <= 2 sqrt(T log n). $
+
+  Show that this rate is asymptotically optimal up to constant factors: there is a universal constant $c > 0$ such that, for each fixed $n$ and all sufficiently large $T$, every online learning algorithm has some bounded utility sequence for which
+  $ EE["Reg"^((T))] >= c sqrt(T log n). $
+  The expectation is over the learner's randomness; "sufficiently large" may depend on $n$.
+
+  _Hint:_ This is via anticoncentration of Gaussians/Sudakov minorization.
+] <ex-mwu-optimality>
+
+#solution[
+  We construct random bounded utilities under which every learner has zero expected cumulative utility, while the best fixed action in hindsight has expected cumulative utility of order $sqrt(T log n)$. Averaging over the construction will then give a hard fixed utility sequence.
+
+  *1. Construct independent random-sign utilities.*
+
+  For every action $i$ and round $t$, independently choose
+  $
+    g_i^((t)) = cases(+1 &"with probability " 1/2, -1 &"with probability " 1/2).
+  $
+  Every resulting sequence satisfies $norm(vg^((t)))_oo = 1$. We are choosing a particular family of allowed sequences to establish a lower bound; we do not assume that utilities in the original problem must be random.
+
+  The learner chooses $vx^((t))$ before observing the fresh utilities. Since each coordinate has conditional mean zero,
+  $
+    EE[ip(vg^((t)), vx^((t))) | "past observations", vx^((t))] = 0.
+  $
+  Thus the learner's expected cumulative utility is zero, regardless of its algorithm. Consequently,
+  #math.equation(block: true, numbering: "(1)", $
+    EE["Reg"^((T))] = EE[max_(i <= n) sum_(t=1)^T g_i^((t))].
+  $) <eq-mwu-lower-expectation>
+  Here the expectation includes both the random utilities and any randomness used by the learner.
+
+  *2. Pass to a Gaussian limit.*
+
+  Define the normalized cumulative utilities
+  $ Y_(T,i) = 1/sqrt(T) sum_(t=1)^T g_i^((t)). $
+  The summands have mean zero and variance one. For fixed $n$, the multivariate central limit theorem gives
+  $
+    (Y_(T,1), ..., Y_(T,n)) limits(->)^d_(T -> infinity) (Z_1, ..., Z_n),
+  $
+  where $Z_1, ..., Z_n$ are independent standard Gaussians.
+
+  Because taking the maximum is continuous,
+  $ M_T := max_(i <= n) Y_(T,i) limits(->)^d M := max_(i <= n) Z_i. $
+
+  To pass from convergence in distribution to convergence of expectations, we must also control the contribution of rare, large values. Since $EE[Y_(T,i)^2] = 1$,
+  $ EE[M_T^2] <= sum_(i=1)^n EE[Y_(T,i)^2] = n. $
+  Therefore, for any $K > 0$,
+  $
+    EE[abs(M_T) bb(1)_(lr({abs(M_T) > K}))] <= EE[M_T^2]/K <= n/K.
+  $
+  For fixed $n$, this tends to zero uniformly in $T$. This property is called _uniform integrability_.
+
+  To see why it is sufficient, clip the variables to $[-K, K]$. The clipped expectations converge because clipping is bounded and continuous. The tail estimate shows that clipping changes the expectations by arbitrarily little when $K$ is large; the same estimate holds for $M$. Hence
+  $ EE[M_T] -> EE[M]. $
+  Using (@eq-mwu-lower-expectation), we obtain
+  #math.equation(block: true, numbering: "(1)", $
+    lim_(T -> infinity) EE["Reg"^((T))]/sqrt(T) = EE[max_(i <= n) Z_i].
+  $) <eq-mwu-gaussian-limit>
+
+  The actual utilities remain bounded throughout: Gaussians appear only as the limiting distribution of their normalized sums.
+
+  *3. Apply Sudakov's minoration.*
+
+  #link("https://tropp.caltech.edu/notes/Tro21-Probability-High-LN-corr.pdf#page=100")[Sudakov's minoration] lower-bounds the expected maximum of a centered Gaussian family whose members are sufficiently separated. A finite-family form states that if
+  $ sqrt(EE[(X_i - X_j)^2]) >= delta quad "for every " i != j, $
+  then
+  $ EE[max_(i <= n) X_i] >= c_"S" delta sqrt(log n), $
+  where $c_"S" > 0$ is universal. See Theorem 11.12 in the linked notes.
+
+  For independent standard Gaussians,
+  $ EE[(Z_i - Z_j)^2] = 2. $
+  Applying Sudakov with $delta = sqrt(2)$ therefore gives a universal constant $c_1 > 0$ such that
+  #math.equation(block: true, numbering: "(1)", $
+    EE[max_(i <= n) Z_i] >= c_1 sqrt(log n).
+  $) <eq-mwu-sudakov>
+
+  *4. Extract a hard fixed sequence.*
+
+  Combining (@eq-mwu-gaussian-limit) and (@eq-mwu-sudakov), for each fixed $n$ and all sufficiently large $T$,
+  $ EE["Reg"^((T))] >= c_1/2 sqrt(T log n). $
+
+  This is an average over our randomly generated utility sequences. At least one fixed sequence must therefore give expected regret at least this large, with the remaining expectation taken only over the learner's randomness.
+
+  Setting $c = c_1/2$ proves the claim. MWU guarantees at most $2 sqrt(T log n)$, while every algorithm sometimes incurs at least $c sqrt(T log n)$, for each fixed $n$ and sufficiently large $T$. Thus the rate is asymptotically optimal up to constant factors.
+]
+
 = More general approaches: FTRL and OMD <sec-ftrl>
 
 Finally, we turn our attention to the third way of obtaining no-regret algorithms, that is, by considering a regularized (i.e., smoothed) version of the follow-the-leader algorithm discussed above. The idea is that, instead of playing by always putting 100% of the probability mass on the action with highest cumulated regret, we look for the distribution that maximizes the expected cumulated regret, _minus_ some regularization term that prevents us from putting all the mass on a single action.
