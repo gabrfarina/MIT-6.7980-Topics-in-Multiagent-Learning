@@ -355,6 +355,118 @@ By invoking #lecture-link("brouwer", <sec-brouwer-general>)[Brouwer's fixed-poin
   Since $phi$ is continuous and maps the nonempty compact convex set $Delta (A_1) times dots.h.c times Delta (A_n)$ into itself, by Brouwer's fixed point theorem, it has a fixed point. By @thm-nash-fixed-points, this implies that every game has (at least) one Nash equilibrium in mixed strategies.
 ] <cor-nash-existence>
 
+
+= Suggested Examples <sec-examples>
+
+
+=== Iterated removal of dominated strategies
+
+True dominant strategies are rare in that most games do not have an action that is best against _everything_. A weaker but far more common situation is that an action is _never_ a good idea because there is always another action that does better. A rational player will never play such an action, so we can delete it from the game (i.e. remove its row or column from the payoff matrix). Deleting it can in turn make other actions removable: an action that was a sensible reply to the deleted action may become dominated in the smaller game that remains.
+
+#definition[
+  Let $a_i, a'_i$ be two actions of Player $i$. We say that $a_i$ is _strictly dominated_ by $a'_i$ if
+  $ u_i (a'_i, a_(-i)) > u_i (a_i, a_(-i)) quad "for every" a_(-i), $
+  and that $a_i$ is _weakly dominated_ by $a'_i$ if
+  $ u_i (a'_i, a_(-i)) >= u_i (a_i, a_(-i)) quad "for every" a_(-i), $
+  with strict inequality for at least one $a_(-i)$.
+]
+
+_Iterated removal of strictly dominated strategies_ repeatedly deletes strictly dominated actions of players, and considers the smaller game that remains, until no action of any player is strictly dominated. Since a rational player would never play a strictly dominated action, and we assume rationality within each player, only the surviving actions are candidates for rational play.
+
+#example[
+  Consider the following game, where Player 1 picks a row and Player 2 picks a column.
+
+  #align(center, table(
+    columns: 4,
+    [], [L], [C], [R],
+    [T], [$4, 3$], [$5, 1$], [$6, 2$],
+    [M], [$2, 1$], [$8, 4$], [$3, 6$],
+    [B], [$3, 0$], [$9, 6$], [$2, 8$],
+  ))
+
+  Neither player has a dominant strategy, and initially no row is dominated. However, column C is strictly dominated by column R for Player 2 ($2 > 1$, $6 > 4$, $8 > 6$). Once C is removed, row T strictly dominates both M ($4 > 2$, $6 > 3$) and B ($4 > 3$, $6 > 2$). With only row T left, Player 2 compares $3$ against $2$ and removes R. The unique surviving profile is (T, L), with payoffs $(4, 3)$.
+]
+
+#exercise[
+  In the example above, we removed actions in one particular order. This raises a natural question: _does the order matter?_ Let's explore this through two games, one using strict domination and one using weak domination.
+
+  + Consider iterated removal of *strictly dominated strategies* in the following game.
+
+    #align(center, table(
+      columns: 4,
+      [], [L], [C], [R],
+      [T], [$4, 4$], [$4, 3$], [$1, 1$],
+      [M], [$3, 4$], [$3, 3$], [$5, 0$],
+      [B], [$2, 1$], [$2, 5$], [$0, 0$],
+    ))
+
+    + Which actions are strictly dominated at the start? Explain why M and C are _not_ strictly dominated yet.
+    + Carry out the removal process starting by removing B, and separately starting by removing R. Write down the game that remains after each step. Do the two orders pass through the same intermediate games? Where do they end up?
+    + Suppose you remove R and then M, so that Player 1 has only T and B left. Why is C still not dominated at this point, and what finally makes it dominated?
+
+  + Now consider iterated removal of *weakly dominated strategies* in the following game.
+  #align(center, table(
+      columns: 3,
+      [], [L], [R],
+      [T], [$1, 1$], [$0, 0$],
+      [M], [$1, 1$], [$2, 1$],
+      [B], [$0, 0$], [$2, 1$],
+    ))
+
+    + Show that both T and B are weakly dominated for Player 1, and that initially neither of Player 2's actions is weakly dominated.
+    + Carry out the removal process in two orders: (i) remove T, then L and (ii) remove B, then R. What survives in each case, and what payoffs do the players get? _(Bonus: which other removal orders are possible, and where do they end?)_
+    + Find all pure-strategy Nash equilibria of the game. Which of them survive each removal order? What does this suggest about using weak domination to predict play?
+    + In part 1, once an action was strictly dominated, removing opponent actions could never "rescue" it. In this game, what happens to the comparison between M and T once R is removed? Why can't this happen with strict domination?
+]
+
+#solution[
+  + *Strict Domination Problems*
+    + For Player 1, B is strictly dominated by T, since $4 > 2$, $4 > 2$, and $1 > 0$. For Player 2, R is strictly dominated by L, since $4 > 1$, $4 > 0$, and $1 > 0$. No other action is strictly dominated at the start:
+      - M is not dominated by T, because against R it gives Player 1 $5 > 1$. It is not dominated by B either, since $3 > 2$ against L.
+      - C is not dominated by L, because against B it gives Player 2 $5 > 1$. It is not dominated by R either, since $3 > 1$ against T.
+      - T and L are each the best reply to some action of the opponent (T against L, and L against T), so they are not dominated.
+
+    + Let's walk through both orders of removal, starting with the order that removes B first. 
+    
+      #underline[First order:] remove B first. With B gone, Player 1 is left with T and M, so the remaining game is ${"T", "M"} times {"L", "C", "R"}$. Now L strictly dominates C for Player 2, since $4 > 3$ in both remaining rows. Removing C leaves ${"T", "M"} times {"L", "R"}$. L still strictly dominates R ($4 > 1$, $4 > 0$), and removing R leaves ${"T", "M"} times {"L"}$. Finally, T strictly dominates M ($4 > 3$), leaving ${"T"} times {"L"}$.
+
+      #underline[Second order:] remove R first. With R gone, the remaining game is ${"T", "M", "B"} times {"L", "C"}$. Now T strictly dominates M ($4 > 3$, $4 > 3$), and it also dominates B. Removing M leaves ${"T", "B"} times {"L", "C"}$. C is still not dominated, so we remove B next, leaving ${"T"} times {"L", "C"}$. Finally, L strictly dominates C ($4 > 3$), leaving ${"T"} times {"L"}$.
+
+      The two orders pass through different intermediate games. For example, ${"T", "B"} times {"L", "C"}$ appears only in the second. Other choices at each step are also possible, such as removing R before C in the first order. However, every order ends at the same profile, (T, L), with payoffs $(4, 4)$. This is also the unique pure-strategy Nash equilibrium of the game.
+
+    + With Player 1 restricted to T and B, Player 2 compares L and C row by row. Against T, L is better ($4 > 3$), but against B, C is better ($5 > 1$). So C is still a sensible reply as long as Player 1 might play B. Once B is removed (since T strictly dominates it since $4 > 2$ against both L and C), the only remaining row is T, where L beats C. This leaves C to become strictly dominated.
+
+  + *Weak Domination Problems*
+    + M weakly dominates T for Player 1: against L they tie ($1 >= 1$), and against R, M is strictly better ($2 > 0$). M also weakly dominates B: against L, M is strictly better ($1 > 0$), and against R they tie ($2 >= 2$).
+
+      For Player 2, L is better than R in row T ($1 > 0$), R is better than L in row B ($1 > 0$), and they tie in row M. This means neither of Player 2's actions weakly dominates the other.
+
+    + Let's start with the order of T, then L. After removing T, Player 1 has M and B. Player 2's action R now weakly dominates L mearning they tie in row M ($1 >= 1$), and R is strictly better in row B ($1 > 0$). Removing L leaves ${"M", "B"} times {"R"}$. Here M and B both give Player 1 a payoff of 2, so neither dominates the other and the process stops. The players get payoffs $(2, 1)$.
+
+      Now, let's do the order of B, then R. After removing B, Player 1 has T and M. Player 2's action L now weakly dominates R: L is strictly better in row T ($1 > 0$), and they tie in row M ($1 >= 1$). Removing R leaves ${"T", "M"} times {"L"}$. Here T and M both give Player 1 a payoff of 1, so the process stops. The players get payoffs $(1, 1)$.
+
+      So the surviving games are different, and Player 1's payoff is 2 in one order and 1 in the other.
+
+      For the bonus question, the only other possibility is to remove both T and B before any of Player 2's actions, in either order. This leaves ${"M"} times {"L", "R"}$, where Player 2 is indifferent ($1$ either way), so nothing more is removed. The players get $(1, 1)$ or $(2, 1)$, depending on Player 2's choice. In total, the process can end at three different games.
+
+    + Checking each profile,
+      - (T, L) is a Nash equilibrium: Player 1 cannot gain by deviating (M gives 1 and B gives 0), and neither can Player 2 (R gives 0).
+      - (T, R) is not: Player 1 would switch to M (payoff 2 instead of 0).
+      - (M, L) is a Nash equilibrium: Player 1's alternatives give 1 and 0, and Player 2 is indifferent between L and R.
+      - (M, R) is a Nash equilibrium: T gives Player 1 only 0 and B gives the same 2, and Player 2 is indifferent.
+      - (B, L) is not: Player 1 would switch to T or M (payoff 1 instead of 0).
+      - (B, R) is a Nash equilibrium: Player 1's alternatives give 0 and 2, and Player 2's alternative L gives 0.
+
+      So the pure-strategy Nash equilibria are (T, L), (M, L), (M, R), and (B, R). Order (i) keeps only (M, R) and (B, R), order (ii) keeps only (T, L) and (M, L), and the bonus order keeps (M, L) and (M, R).
+
+      Each order removes some Nash equilibria, and different orders remove different ones. This suggests that iterated weak domination is not a reliable way to predict play: its prediction depends on an arbitrary choice of order, and it can rule out outcomes that are perfectly stable.
+
+    + Against L alone, M and T both give Player 1 a payoff of 1. The strict inequality in "M weakly dominates T" came only from column R. Once R is removed, all that is left is a tie, so M no longer weakly dominates T, and T survives the second order (B then R).
+
+      This cannot happen with strict domination, because strict domination requires a strict inequality against _every_ opponent action. Removing some opponent actions just removes some of these inequalities, and the remaining ones are still strict. With weak domination, it's possible that the removed action may be the only place where the inequality was strict, and a tie on the rest does not count as domination.
+]
+
+
 = Bibliography for this lecture
 
 #lec_bibliography("meta/refs.bib", title: none)
