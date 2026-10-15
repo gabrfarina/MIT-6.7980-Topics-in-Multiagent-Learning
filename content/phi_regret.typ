@@ -294,6 +294,8 @@ With multiplicative weights as the external regret minimizer, TreeSwap achieves 
   The Stoltz-Lugosi construction uses a single external-regret minimizer over ordered pairs of actions. This controls internal regret, which compares the learner with one action replacement at a time. The Blum-Mansour construction uses a separate external-regret minimizer for each action. Together, these minimizers control swap regret, which compares against maps that may replace every action simultaneously. Both constructions obtain the played strategy as a stationary distribution of a stochastic map.
 
   Finally, take $Phi = "conv"{S_(i j): i != j}$ in the Gordon-Greenwald-Marks construction. Its auxiliary action $Q^((t)) in Phi$ is precisely the mixture above, its fixed-point oracle returns $vx^((t))$, and its utility on $S_(i j)$ is $u^((t))(S_(i j)(vx^((t))))$. Because utility is linear in the transformation, an external-regret minimizer over the $n(n-1)$ extreme maps also minimizes external regret over their convex hull. The displayed feedback differs only by a common baseline. Thus this is exactly the Stoltz-Lugosi construction.
+]
+
 = Problems <sec-problems>
 
 #exercise[

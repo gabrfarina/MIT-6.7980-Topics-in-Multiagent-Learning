@@ -14,8 +14,11 @@ test('browser detects wrong accents, malformed math, broken figures and overflow
       fs.cpSync(path.resolve(__dirname,'../../html-exporter/assets/katex'),path.join(root,'katex'),{recursive:true});
       const wrong=side==='after';
       const markup=String.raw`<!doctype html><meta charset="utf-8"><link rel="stylesheet" href="katex/katex.min.css">
-        <style>body{margin:16px}article{max-width:720px}p{margin:12px 0}</style>
+        <style>body{margin:16px}article{max-width:720px}p{margin:12px 0}.solution-wrapper:not(.solution-revealed) .solution-body{display:none}</style>
         <article class="lecture-content"><h1>Fixture</h1><p>Stable paragraph.</p>
+        <span data-image-source="nested-artwork.svg"><svg width="100" height="50" viewBox="0 0 100 50"><defs><clipPath id="plot-clip"><rect width="100" height="50"/></clipPath></defs><g clip-path="url(#plot-clip)"><svg width="1500" height="50"><rect width="1500" height="50" fill="blue"/></svg></g><svg width="0" height="0"/></svg></span>
+        <div class="solution-wrapper"><button class="solution-toggle" aria-expanded="false" onclick="this.parentElement.classList.add('solution-revealed');this.setAttribute('aria-expanded','true')">Show solution</button><div class="solution-body"><span data-image-source="solution.svg"><svg width="100" height="50"><rect width="100" height="50" fill="green"/></svg></span></div></div>
+        ${wrong?'<span data-image-source="empty.svg"><svg width="0" height="0"/></span>':''}
         <div class="equation" data-typst-math="sequence(overline(body: [μ]), hat(body: [x]))"><span class="math-katex-source" data-typst-math="overline(body: [μ])">\(${wrong?'\\hat{\\mu}':'\\overline{\\mu}'}\)</span><span class="math-katex-source" data-typst-math="hat(body: [x])">\(\hat{x}\)</span></div>
         ${wrong?String.raw`<p style="width:1500px">Overflowing text</p><svg data-image-source="oversize-figure.svg" width="1500" height="30"><rect width="1500" height="30" fill="red"/></svg><details><summary>Solution</summary><img width="100" height="50" src="missing.png"></details>
           <p><span class="math-katex-source" data-typst-math="[x]">\(\thisCommandDoesNotExist{x}\)</span></p>`:''}
@@ -29,7 +32,7 @@ test('browser detects wrong accents, malformed math, broken figures and overflow
     assert(report.pages.every(page=>page.blocks.some(block=>block.tag==='DIV')),'Standalone display equations must appear in the visual diff');
     assert.deepEqual(report.findings.filter(x=>x.side==='before'),[]);
     const codes=new Set(report.findings.filter(x=>x.side==='after').map(x=>x.code));
-    for(const code of ['math-accent','page-overflow','broken-image','katex-parse'])assert(codes.has(code),`Missing ${code}: ${JSON.stringify(report.findings)}`);
+    for(const code of ['math-accent','page-overflow','broken-image','katex-parse','empty-figure'])assert(codes.has(code),`Missing ${code}: ${JSON.stringify(report.findings)}`);
     assert(report.findings.some(x=>x.code==='content-overflow'&&x.message.includes('oversize-figure.svg')),'Overflow reports must identify their figure, not SVG stylesheet text');
   } finally {fs.rmSync(tmp,{recursive:true,force:true});}
 });
