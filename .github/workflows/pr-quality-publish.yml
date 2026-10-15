@@ -13,6 +13,7 @@ permissions:
   contents: write
   pull-requests: write
   actions: read
+  checks: write
 concurrency:
   group: course-check-publisher-${{ github.event.workflow_run.id || inputs.run_id }}
   cancel-in-progress: false

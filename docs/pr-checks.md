@@ -4,6 +4,23 @@ Two additional Actions complement the PDF preview. They run on opened, updated,
 and reopened PRs. Neither uses AI, a model API, or an additional repository secret.
 Both also have a **Run workflow** input for an existing open PR number.
 
+PRs opened before these workflows were installed do not trigger retroactively.
+To cover existing PRs, run **Backfill course HTML reviews** from the default branch.
+Leave `pr_numbers` empty for all open PRs, or provide a comma-separated selection.
+This queues a separate **Course HTML review** for each PR, including forks and drafts.
+The backfill waits for those exact run IDs and explicitly dispatches publication,
+then waits for the publishers. This also handles `GITHUB_TOKEN`-started builds,
+whose completion does not reliably trigger another `workflow_run`. Failed content
+checks still publish their reports; cancelled builds or failed publishers fail
+the backfill so they are visible to the maintainer.
+The publisher posts the report and a **Course HTML review** check on the PR's head
+commit, so manually dispatched results appear in its Checks tab as well as comments.
+Validated reports from failed builds receive a failing result; rerunning the publisher
+updates the existing check for that build. The manual HTML run's title binds its PR
+input to the report; older manual runs without this title need a fresh build.
+Fork PR workflows awaiting approval still require
+maintainer approval; the backfill is a separate, explicitly requested manual build.
+
 ## Source pre-screen
 
 **Course source pre-screen** checks whether the PR merges with its current target
@@ -62,6 +79,7 @@ PR builds have read-only permissions and no publishing credentials. A separate
 the originating workflow and current PR revisions, validates bounded JSON/PNG
 data, and updates a bot comment. It never executes artifacts. HTML images use
 separate `html-previews-pr-N` branches, avoiding races with the PDF image branches.
+Only the publisher has `checks: write`; the HTML build retains read-only permissions.
 Stale results are skipped if either PR head or target branch changed; rerun the
 check against the latest revisions. Compiler caches only contain build inputs and
 outputs; no secrets are stored in them.

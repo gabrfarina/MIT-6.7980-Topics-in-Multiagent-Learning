@@ -282,8 +282,14 @@ def main() -> None:
         for message in pool.map(lambda chapter: build_chapter(chapter, force=args.force), config['notes']):
             print(message, flush=True)
     make_index(config, schedule, force=args.force, tools=tools)
-    entries = [{'output': str(p.relative_to(STAGE)), 'source': str(p.relative_to(ROOT))}
-               for p in sorted(STAGE.rglob('*')) if p.is_file()]
+    entries = [
+        {
+            'output': p.relative_to(STAGE).as_posix(),
+            'source': p.relative_to(ROOT).as_posix(),
+        }
+        for p in sorted(STAGE.rglob('*'))
+        if p.is_file()
+    ]
     required = required_files(config)
     for entry in entries:
         validate_public_path(entry['output'], required)
