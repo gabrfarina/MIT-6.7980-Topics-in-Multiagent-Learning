@@ -418,6 +418,8 @@ for the fixed regret vector $vr = (1, 2\/5, 0)$ as the learning rate $eta$ grows
   caption: [The FTRL point $vx_eta$ for $vr = (1, 2\/5, 0)$ as $eta$ grows from $0$ (the uniform strategy) to $oo$, with the negative entropy (left) and the squared Euclidean norm (right). The background shows the level sets of each regularizer; darker shades are lower. The entropic path stays in the interior for every $eta$, while the Euclidean path hits the boundary at $eta = 5\/7$ and the corner $ve_1$ at $eta = 5\/3$.],
 ) <fig-entropy-vs-euclidean>
 
+The accompanying #link("https://colab.research.google.com/github/gabrfarina/MIT-6.7980-Topics-in-Multiagent-Learning/blob/main/content/notebooks/learning1/entropy_geometry.ipynb")[notebook] lets you rotate the entropy bowl of @fig-entropy, tilt it by $ip(vr, vx)$ for any $vr$ and $eta$, and watch its lowest point $"softmax"(eta vr)$ move as in @fig-entropy-vs-euclidean. It also checks every claim of this section numerically.
+
 == Online Projected Gradient Ascent <sec-ogd>
 
 In the special case in which $psi(vx) := 1/2 norm(vx)_2^2$, then the OMD algorithm reduces to _online projected gradient ascent_.
