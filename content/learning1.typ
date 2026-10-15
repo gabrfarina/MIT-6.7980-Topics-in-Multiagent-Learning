@@ -221,6 +221,93 @@ The general FTRL/OMD bound in @ftrl-omd-regret-bound implies @mwu-regret-bound; 
 
 For now, we remark a crucial aspect of MWU. Compared with the regret bound of RM and RM#super[+], the regret bound of MWU has only a _logarithmic_ dependence on the number of actions $|A|$. Despite in practice RM/RM#super[+] tend to outperform MWU (all while getting rid of any hyperparameter tuning), this property has profound _theoretical_ implications, especially in combinatorial games where the effective number of actions is exponential. The gist of it is that several important classes of games can be converted into _exponentially large_ normal-form games (this is the case of sequential games, for example). Since MWU only has logarithmic dependence on the number of actions of the resulting normal-form games, this shows that---at least ignoring computation---external regret minimization is possible with polynomial dependence on the game size even in these classes of complex, structured games.
 
+#exercise[Asymptotic optimality of MWU][
+  Let $n = |A| >= 2$ and suppose $norm(vg^((t)))_oo <= 1$. With learning rate $eta = sqrt((log n) / T)$, MWU guarantees
+  $ "Reg"^((T)) <= 2 sqrt(T log n). $
+
+  Show that this rate is asymptotically optimal up to constant factors: there is a universal constant $c > 0$ such that, for each fixed $n$ and all sufficiently large $T$, every online learning algorithm has some bounded utility sequence for which
+  $ EE["Reg"^((T))] >= c sqrt(T log n). $
+  The expectation is over the learner's randomness; "sufficiently large" may depend on $n$.
+
+  _Hint:_ This is via anticoncentration of Gaussians/Sudakov minorization.
+] <ex-mwu-optimality>
+
+#solution[
+  We construct random bounded utilities under which every learner has zero expected cumulative utility, while the best fixed action in hindsight has expected cumulative utility of order $sqrt(T log n)$. Averaging over the construction will then give a hard fixed utility sequence.
+
+  *1. Construct independent random-sign utilities.*
+
+  For every action $i$ and round $t$, independently choose
+  $
+    g_i^((t)) = cases(+1 &"with probability " 1/2, -1 &"with probability " 1/2).
+  $
+  Every resulting sequence satisfies $norm(vg^((t)))_oo = 1$. We are choosing a particular family of allowed sequences to establish a lower bound; we do not assume that utilities in the original problem must be random.
+
+  The learner chooses $vx^((t))$ before observing the fresh utilities. Since each coordinate has conditional mean zero,
+  $
+    EE[ip(vg^((t)), vx^((t))) | "past observations", vx^((t))] = 0.
+  $
+  Thus the learner's expected cumulative utility is zero, regardless of its algorithm. Consequently,
+  #math.equation(block: true, numbering: "(1)", $
+    EE["Reg"^((T))] = EE[max_(i <= n) sum_(t=1)^T g_i^((t))].
+  $) <eq-mwu-lower-expectation>
+  Here the expectation includes both the random utilities and any randomness used by the learner.
+
+  *2. Pass to a Gaussian limit.*
+
+  Define the normalized cumulative utilities
+  $ Y_(T,i) = 1/sqrt(T) sum_(t=1)^T g_i^((t)). $
+  The summands have mean zero and variance one. For fixed $n$, the multivariate central limit theorem gives
+  $
+    (Y_(T,1), ..., Y_(T,n)) limits(->)^d_(T -> infinity) (Z_1, ..., Z_n),
+  $
+  where $Z_1, ..., Z_n$ are independent standard Gaussians.
+
+  Because taking the maximum is continuous,
+  $ M_T := max_(i <= n) Y_(T,i) limits(->)^d M := max_(i <= n) Z_i. $
+
+  To pass from convergence in distribution to convergence of expectations, we must also control the contribution of rare, large values. Since $EE[Y_(T,i)^2] = 1$,
+  $ EE[M_T^2] <= sum_(i=1)^n EE[Y_(T,i)^2] = n. $
+  Therefore, for any $K > 0$,
+  $
+    EE[abs(M_T) bb(1)_(lr({abs(M_T) > K}))] <= EE[M_T^2]/K <= n/K.
+  $
+  For fixed $n$, this tends to zero uniformly in $T$. This property is called _uniform integrability_.
+
+  To see why it is sufficient, clip the variables to $[-K, K]$. The clipped expectations converge because clipping is bounded and continuous. The tail estimate shows that clipping changes the expectations by arbitrarily little when $K$ is large; the same estimate holds for $M$. Hence
+  $ EE[M_T] -> EE[M]. $
+  Using (@eq-mwu-lower-expectation), we obtain
+  #math.equation(block: true, numbering: "(1)", $
+    lim_(T -> infinity) EE["Reg"^((T))]/sqrt(T) = EE[max_(i <= n) Z_i].
+  $) <eq-mwu-gaussian-limit>
+
+  The actual utilities remain bounded throughout: Gaussians appear only as the limiting distribution of their normalized sums.
+
+  *3. Apply Sudakov's minoration.*
+
+  #link("https://tropp.caltech.edu/notes/Tro21-Probability-High-LN-corr.pdf#page=100")[Sudakov's minoration] lower-bounds the expected maximum of a centered Gaussian family whose members are sufficiently separated. A finite-family form states that if
+  $ sqrt(EE[(X_i - X_j)^2]) >= delta quad "for every " i != j, $
+  then
+  $ EE[max_(i <= n) X_i] >= c_"S" delta sqrt(log n), $
+  where $c_"S" > 0$ is universal. See Theorem 11.12 in the linked notes.
+
+  For independent standard Gaussians,
+  $ EE[(Z_i - Z_j)^2] = 2. $
+  Applying Sudakov with $delta = sqrt(2)$ therefore gives a universal constant $c_1 > 0$ such that
+  #math.equation(block: true, numbering: "(1)", $
+    EE[max_(i <= n) Z_i] >= c_1 sqrt(log n).
+  $) <eq-mwu-sudakov>
+
+  *4. Extract a hard fixed sequence.*
+
+  Combining (@eq-mwu-gaussian-limit) and (@eq-mwu-sudakov), for each fixed $n$ and all sufficiently large $T$,
+  $ EE["Reg"^((T))] >= c_1/2 sqrt(T log n). $
+
+  This is an average over our randomly generated utility sequences. At least one fixed sequence must therefore give expected regret at least this large, with the remaining expectation taken only over the learner's randomness.
+
+  Setting $c = c_1/2$ proves the claim. MWU guarantees at most $2 sqrt(T log n)$, while every algorithm sometimes incurs at least $c sqrt(T log n)$, for each fixed $n$ and sufficiently large $T$. Thus the rate is asymptotically optimal up to constant factors.
+]
+
 = More general approaches: FTRL and OMD <sec-ftrl>
 
 Finally, we turn our attention to the third way of obtaining no-regret algorithms, that is, by considering a regularized (i.e., smoothed) version of the follow-the-leader algorithm discussed above. The idea is that, instead of playing by always putting 100% of the probability mass on the action with highest cumulated regret, we look for the distribution that maximizes the expected cumulated regret, _minus_ some regularization term that prevents us from putting all the mass on a single action.
@@ -239,11 +326,32 @@ Finally, we turn our attention to the third way of obtaining no-regret algorithm
   $
     vx^((t)) & := argmax_(xhat in Delta(A)) {ip(vr^((t-1)), xhat) - 1 / eta psi(xhat)}.
   $]
-The regularization term $-psi(xhat)$ _limits the amount of variation between consecutive strategies_. This makes intuitive sense: if $eta -> 0$, $vx^((t))$ is constant (and equal to $argmin_(xhat in Delta(A)) psi(xhat)$). When $eta = oo$, we recover the follow-the-leader algorithm, where strategies can jump arbitrarily. For intermediate $eta$, as you might expect, the amount of variation between strategies at consecutive times is bounded above by a quantity proportional to $eta$:
+The role of the regularizer is to _limit variation between consecutive strategies_. FTL can change its strategy abruptly when a small change in cumulative utilities changes which action is best. FTRL controls this sensitivity by subtracting $psi(vx)/eta$ from the cumulative utility of each candidate strategy $vx$. This creates a preference for strategies with smaller values of $psi(vx)$: choosing a strategy with a larger value must be justified by a sufficient improvement in cumulative utility.
+
+The learning rate $eta$ controls the strength of this preference. For fixed cumulative utilities, as $eta -> 0$, the regularizer dominates and the selected strategy approaches $argmin_(vx in Delta(A)) psi(vx)$, regardless of which action has performed best. As $eta -> oo$, the regularization becomes negligible and the strategy approaches a cumulative-utility maximizer, recovering FTL up to tie-breaking. Intermediate values balance responsiveness to utilities against the preference imposed by the regularizer.
+
+What does preferring smaller $psi(vx)$ actually encourage? This depends on the function we choose. For example, consider the _negative entropy_ regularizer
+$ psi(vx) = sum_(a in A) x_a log x_a. $
+This function is minimized at the uniform distribution $vu$. More precisely,
+$
+  psi(vx) + log |A| = op("D")_("KL")(vx mid(||) vu),
+  quad op("D")_("KL")(vx mid(||) vu) = sum_(a in A) x_a log frac(x_a, u_a).
+$
+Since adding a constant to the regularizer does not change the maximizing strategy, entropy-regularized FTRL can be viewed as maximizing cumulative utility while penalizing departure from the uniform distribution. This encourages spreading probability across actions, while allowing actions with higher cumulative utility to receive more weight.
+
+Notice that this penalty is relative to a _fixed reference distribution_, not the previous strategy. How does it nevertheless limit changes between steps? Consider two actions and write the strategy as $vx = (p, 1-p)$. Let $d$ be the difference between their cumulative utilities, equivalently the difference between their cumulative regrets. FTL chooses $p=1$ whenever $d>0$, and $p=0$ whenever $d<0$. Thus, an arbitrarily small change across $d=0$ can move all the probability from one action to the other. With negative entropy, the regularized optimization instead gives
+$ p = 1 / (1 + exp(-eta d)). $
+Near a tie, the strategy is close to uniform; as the utility advantage grows, probability shifts smoothly toward the better action. Each new round changes $d$, and the regularizer makes the maximizing strategy respond gradually to that change.
+
+Different regularizers produce different responses. For example, the _squared Euclidean norm_ $psi(vx)=1/2 norm(vx)_2^2$ gives
+$ p = op("clip")_([0,1]) (1/2 + (eta d)/2), $
+where clipping restricts the value to $[0,1]$. Here probability changes linearly with $d$ until it reaches a pure strategy. Negative entropy instead produces the logistic response above and remains strictly mixed for finite $d$ and $eta$. Therefore, regularization need not prevent pure strategies. It stabilizes the strategy because moving farther in a given direction becomes increasingly costly: a small increase in an action's utility advantage then justifies only a small additional shift of probability toward it.
+
+The strong convexity of $psi$ makes this stability quantitative. In particular, consecutive FTRL strategies satisfy
 $
   norm(vx^((t+1)) - vx^((t))) <= eta norm(vg^((t)))_*,
 $
-where $norm(dot.c)_*$ is the _dual_ norm of $norm(dot.c)$.
+where $norm(dot.c)_*$ is the dual norm of the norm with respect to which $psi$ is $1$-strongly convex. This explains how the fixed regularization term controls movement even though the objective contains no explicit penalty for departing from the previous strategy.
 
 We will see the regret bound for FTRL in the general case in @ftrl-omd-general-case.
 
@@ -263,10 +371,22 @@ The last general method that we mention today is the _online mirror descent (OMD
   is called the _Bregman divergence_ associated with $psi$.
 ]
 
+OMD uses the distance-generating function to construct an explicit penalty for moving away from the previous strategy. The Bregman divergence $div(vx, vy, dgf: psi)$ measures how far $psi(vx)$ lies above the tangent-plane approximation to $psi$ at $vy$. Subtracting this approximation makes the penalty zero at $vx=vy$, and convexity makes it nonnegative elsewhere. Strong convexity further guarantees
+$ div(vx, vy, dgf: psi) >= 1/2 norm(vx-vy)^2, $
+so substantial movement incurs a substantial penalty.
+
+Choosing $psi$ therefore determines _which movements are expensive_. The squared Euclidean regularizer gives
+$ div(vx, vy, dgf: psi) = 1/2 norm(vx-vy)_2^2, $
+which penalizes absolute changes in probabilities equally wherever we start. Negative entropy gives
+$ div(vx, vy, dgf: psi) = op("D")_("KL")(vx mid(||) vy); $
+locally, the same small absolute change costs more in a coordinate whose starting probability is small. These choices lead to different update rules: Euclidean OMD takes an additive gradient step followed by projection, while entropy OMD reweights probabilities multiplicatively.
+
+Thus FTRL obtains stability by regularizing the cumulative-utility objective with a fixed function $psi$, while OMD directly balances the latest utility against a movement penalty generated by that function.
+
 Two choices of regularizer are standard for the probability simplex:
 - The _negative entropy_ function $H(vx) := sum_(a in A) x_a log x_a$. This is 1-strongly convex with respect to the $ell_1$ norm $norm(dot.c)_1$ (and therefore also with respect to $norm(dot.c)_2$). OMD instantiated with this regularizer leads to the multiplicative weights update algorithm seen in @sec-mwu; see also @sec-omd-mwu.
 
-- The _squared Euclidean norm_ $psi(vx) := 1/2 norm(vx)_2^2$, which is 1-strongly convex with respect to the $ell_2$ norm $norm(dot.c)_2$. OMD instantiated with this regularizer leads to the online projected gradient descent algorithm, which we will discuss in @sec-ogd.
+- The _squared Euclidean norm_ $psi(vx) := 1/2 norm(vx)_2^2$, which is 1-strongly convex with respect to the $ell_2$ norm $norm(dot.c)_2$. OMD instantiated with this regularizer leads to the online projected gradient ascent algorithm, which we will discuss in @sec-ogd.
 
 == The general case <ftrl-omd-general-case>
 
