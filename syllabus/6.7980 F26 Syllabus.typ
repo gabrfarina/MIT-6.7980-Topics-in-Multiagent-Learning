@@ -131,7 +131,7 @@
 
 #item(
   "Lecture notes",
-)[Lecture notes are available as HTML and PDF on the course website. Supplementary Reading S6 includes a two-stage exercise on stationary policies and time-indexed states. Announcements and administrative materials will be posted on Canvas.]
+)[Lecture notes are available as HTML and PDF on the course website. Announcements and administrative materials will be posted on Canvas.]
 
 #item(
   "Collaboration policy",
