@@ -70,7 +70,7 @@ For the finite-horizon version, truncate the sum at $t=H-1$ and restrict the tra
 In particular, $u_i \( pi_1 \, ... \, pi_m \)$ is the expected discounted utility of player $i$ under the random trajectory which starts at $s^(\( 0 \)) ~ vmu$ and is sampled by having each player sampling an action from their policy at each state, and having the environment transition according to its dynamics. In terms of these utilities, Nash equilibrium is defined in the natural way as follows. Notice that this  definition generalizes the concept of Nash equilibrium in normal-form games.
 
 #definition[Nash equilibrium][
-  A collection of policies $pi = \( pi_1 \, ... \, pi_m \)$ is a _Nash equilibrium_ of a stochastic game iff for all players $i$, for all policies $pi' : S times (S times A)^(*) -> Delta (A_i)$ it holds that
+  A collection of policies $pi = \( pi_1 \, ... \, pi_m \)$ is a _Nash equilibrium_ of a stochastic game iff for all players $i$, for all policies $pi'_i : S times (S times A)^(*) -> Delta (A_i)$ it holds that
 
   $ u_i \( pi_i med \; med pi_(- i) \) >= u_i \( pi'_i med \; med pi_(- i) \) . $
 
@@ -139,7 +139,7 @@ Finally, we remark that in finite-horizon games, there typically do not exist Na
   $ u_i (pi_i \, pi_(- i)) >= u_i (pi'_i \, pi_(- i)) #h(2em) forall i \, pi'_i \, $
 
   where $pi'_i$ is _any, not necessarily stationary and Markovian,_ policy for player $i$.
-]
+] <thm-takahashi-fink>
 
 #proof[
   Given a stationary Markov policy profile $pi = (pi_1 \, ... \, pi_m)$ and a player $i in \[ m \]$, we introduce the following notation:
@@ -221,6 +221,70 @@ Finally, we remark that in finite-horizon games, there typically do not exist Na
   $
 
   The previous condition is the Bellman equation for the MDP. From the theory of MDPs, we conclude that $pi_i^(*)$ is an optimal policy in the MDP, even among history-dependent policies. Therefore $pi_i^(*)$ is a best response to $pi_(- i)^(*)$, even among history-dependent policies.
+]
+
+#exercise[History-dependent deviations from stationary profiles][
+  Suppose a stationary Markov profile $pi$ satisfies $q_i^pi (s, a_i) <= v_i^pi (s) + epsilon.alt$ for every player $i$, state $s in S$, and action $a_i in A_i$. Show that
+  $ u_i (pi'_i, pi_(-i)) <= u_i (pi) + epsilon.alt / (1 - gamma) $
+  for every player $i$ and every, not necessarily stationary or Markovian, policy $pi'_i$. Use this to show directly that~(#ref(label("eq:one state deviations weak"), supplement: none)) rules out all history-dependent deviations in #ref(<thm-takahashi-fink>).
+] <ex-history-dependent-deviations>
+
+#solution[
+  Note that the assumption is equivalent to $q_i^pi (s, a_i) - v_i^pi (s) <= epsilon.alt$. The basic idea is to express the difference between the utility of the deviation, $u_i (pi'_i, pi_(-i))$, and the utility of $pi$, $u_i (pi)$, as an expected sum $EE [sum_(t >= 0) gamma^t (q_i^pi (s^((t)), a_i^((t))) - v_i^pi (s^((t))))] <= sum_(t >= 0) gamma^t epsilon.alt = epsilon.alt / (1 - gamma)$.
+
+  Let $v_i^pi \( s \)$ and $q_i^pi (s \, a_i)$ be defined as in the proof of #ref(<thm-takahashi-fink>), and let $s^((t)), a^((t))$ denote the state and action profile at step $t$ when player $i$ deviates to $pi'_i$. Let $r_t = r_i (s^((t)), a^((t)))$ denote the reward player $i$ earns at step $t$, $v_t = v_i^pi (s^((t)))$ denote the value, for player $i$, of following $pi$ from state $s^((t))$, and $h_t = (s^((0)), a^((0)), ..., s^((t)))$ denote the history up to step $t$.
+
+  Using the Markov property, we can show that $q_i^pi (s^((t)), a_i^((t)))$ is the expectation of $r_t + gamma v_(t+1)$ conditioned on the history up to step $t$ and player $i$'s action at step $t$:
+
+  $
+    EE [r_t + gamma v_(t+1) mid(|) h_t, a_i^((t))] & = sum_(a_(-i)) pi_(-i) (a_(-i) | s^((t))) r_i (s^((t)), (a_i^((t)), a_(-i))) \
+    & quad + gamma sum_(a_(-i)) pi_(-i) (a_(-i) | s^((t))) sum_(s') ℙ (s' | s^((t)), (a_i^((t)), a_(-i))) v_i^pi (s') \
+    & = q_i^pi (s^((t)), a_i^((t)))
+  $
+
+  Since $v_t$ is determined by $h_t$, $q_i^pi (s^((t)), a_i^((t))) - v_i^pi (s^((t)))$ is the expectation of $r_t + gamma v_(t+1) - v_t$ conditioned on the same history and action, and by assumption it is at most $epsilon.alt$:
+
+  $
+    EE [r_t + gamma v_(t+1) - v_t mid(|) h_t, a_i^((t))] = q_i^pi (s^((t)), a_i^((t))) - v_i^pi (s^((t))) <= epsilon.alt
+  $
+
+  By the tower property, the unconditional expectation $EE [r_t + gamma v_(t+1) - v_t]$ is also at most $epsilon.alt$.
+
+  From here the rest is algebraic machinery. We can start from the telescoping sum
+
+  $ sum_(t=0)^(T-1) gamma^t (gamma v_(t+1) - v_t) = gamma^T v_T - v_0 $
+
+  Then we can add $sum_(t=0)^(T-1) gamma^t r_t $, which is the discounted reward player $i$ collects in the first $T$ steps of the deviation:
+
+  $
+    sum_(t=0)^(T-1) gamma^t r_t - v_0 = sum_(t=0)^(T-1) gamma^t (r_t + gamma v_(t+1) - v_t) - gamma^T v_T
+  $
+
+  This relates the discounted reward to the per-step terms $r_t + gamma v_(t+1) - v_t$.
+
+  Let $R = max_(s, a) abs(r_i (s, a))$. As $T$ goes to infinity, $gamma^T v_T$ disappears:
+
+  $ abs(v_t) <= R / (1 - gamma), quad abs(gamma^T v_T) <= gamma^T R / (1 - gamma) -> 0 $
+
+  Also, each element in the sum can be bounded above by $gamma^t$ times a constant:
+
+  $ abs(gamma^t (r_t + gamma v_(t+1) - v_t)) <= gamma^t (R + (1 + gamma) R / (1 - gamma)) = gamma^t (2 R) / (1 - gamma) $
+
+  These bounds form a convergent geometric series, so the right-hand sum converges absolutely on every possible trajectory.
+
+  Letting $T -> oo$ and taking the expectation of each side, the left side becomes the discounted utility of the deviation, $EE [sum_(t >= 0) gamma^t r_t] = u_i (pi'_i, pi_(-i))$, minus $EE [v_0] = EE_(s^((0)) ~ vmu) [v_i^pi (s^((0)))] = u_i (pi)$:
+
+  $
+    u_i (pi'_i, pi_(-i)) - u_i (pi) & = EE [sum_(t >= 0) gamma^t r_t] - EE [v_0] \
+    & = EE [sum_(t >= 0) gamma^t (r_t + gamma v_(t+1) - v_t)] \
+  $
+   By the dominated convergence of the sum, we can exchange the expectation with the infinite sum:
+  $
+    & = sum_(t >= 0) gamma^t EE [r_t + gamma v_(t+1) - v_t] \
+    & <= sum_(t >= 0) gamma^t epsilon.alt = epsilon.alt / (1 - gamma)
+  $
+
+  Applying (#ref(label("eq:one state deviations weak"), supplement: none)), we know that $epsilon.alt = 0$, so $u_i (pi'_i, pi_(-i)^(*)) <= u_i (pi^(*))$ for all possible deviating players $i$ and strategies $pi'_i$.
 ]
 
 == Shapley's theorem for two-player zero-sum Markov games
