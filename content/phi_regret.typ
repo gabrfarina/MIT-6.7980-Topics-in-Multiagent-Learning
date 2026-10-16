@@ -66,8 +66,31 @@ We now claim that the algorithm described above is a swap regret minimizer for $
 = The general case: Gordon-Greenwald-Marks's reduction <sec-ggm>
 
 Blum-Mansour's swap regret minimization algorithm is a special case of a much more general construction. #citet(<gordon2008no>) show that $Phi$-regret minimization for a strategy set $cX$ can be constructed starting from the following two ingredients:
-+ an _external_ regret minimization for the set $Phi$; and
-+ a _fixed point oracle_ $Phi$, that is, an algorithm that given any $phi.alt in Phi$ outputs a fixed point $phi.alt(vx) = vx in cX$.
++ an _external_ regret minimizer for the set $Phi$; and
++ a _fixed point oracle_ for $Phi$, that is, an algorithm that given any $phi.alt in Phi$ outputs a fixed point $phi.alt(vx) = vx in cX$.
+
+Recall that a transformation set is a collection of maps of the strategy set into itself,
+$ Phi subset.eq {phi.alt : cX -> cX}, $
+and that $Phi$-regret measures the realized play against rewriting every strategy by one fixed $phi.alt in Phi$. Mathematically, $Phi$ here plays the role that the strategy set $cX$ has played so far. #lecture-link("learning_intro", <def-external-regret>)[The definition of an external regret minimizer] is stated for an arbitrary set, so we may instantiate it with $Phi$ in place of $cX$: an _external regret minimizer for the set $Phi$_ is an online algorithm $cR$ that:
+
+- on each call to `NextStrategy()`, outputs a _transformation_ $phi.alt^((t)) in Phi$; and
+- on each call to `ObserveUtility`$(U^((t)))$, observes a linear utility function $U^((t)) : Phi -> RR$ scoring the transformation it just output,
+
+and whose cumulative regret, measured against the single best transformation in hindsight,
+#set math.equation(numbering: "(1)")
+$
+  "Reg"_Phi^((T)) := max_(hat(phi.alt) in Phi) {
+    sum_(t=1)^T (U^((t))(hat(phi.alt)) - U^((t))(phi.alt^((t))))
+  },
+$ <eq-def-regphi>
+#set math.equation(numbering: none)
+grows sublinearly in $T$.
+
+#remark[
+  Nothing above is specific to $Phi$: the definition of an external regret minimizer applies to any set. The reduction of #citet(<gordon2008no>) does, however, carry two standing assumptions beyond it. In their framework $Phi$ is realized as a convex and compact subset of an appropriate vector or function space, and the utilities handed to $cR$ have uniformly bounded subgradients.
+
+  Both are easy to verify in the finite-dimensional linear setting of this lecture, where a transformation is just a matrix. For swap regret, $cX = Delta^n$ and $Phi$ is the set of $n times n$ stochastic matrices, cut out of $RR^(n times n)$ by the $O(n^2)$ linear constraints $P_(i,j) >= 0$ and $sum_(i=1)^n P_(i,j) = 1$, hence convex and compact; and $U^((t))$ is linear in $phi.alt$ by (@ggm-utility), so its subgradients are bounded whenever the observed utilities are.
+]
 
 Intuitively, the external regret minimizer for $Phi$ has the role of tracking which transformation $phi.alt$ the decision maker should focus on at each time. The linear utility function $U^((t)) : Phi -> RR$ observed by the external regret minimizer is constructed from the last-output strategy $vx^((t))$ and the utility function $u^((t))$ observed at time $t$, according to the formula
 #set math.equation(numbering: "(1)")
@@ -75,7 +98,7 @@ $
   U^((t))(phi.alt) = u^((t))(phi.alt(vx^((t)))),
 $ <ggm-utility>
 #set math.equation(numbering: none)
-where $vx^((t))$ is the last-output strategy.
+where $vx^((t))$ is the last-output strategy. Note that $U^((t))$ is indeed a _linear_ function of $phi.alt$, as required by the definition recalled above: for a fixed $vx^((t))$, the evaluation map $phi.alt |-> phi.alt(vx^((t)))$ is linear in $phi.alt$, and $u^((t))$ is linear by assumption, so their composition (@ggm-utility) is linear in $phi.alt$ too.
 The final construction is as follows:
 
 - Each call to `NextStrategy` first calls $cR$.`NextStrategy` to obtain the next transformation $phi.alt^((t))$. Then, a fixed point $vx^((t)) = phi.alt^((t))(vx^((t))) in cX$ is computed and output.
@@ -100,7 +123,7 @@ Graphically, we can summarize the process as in the following block diagram.
     Phi"-Reg"^((T)) = "Reg"_Phi^((T)) qquad forall T = 1, 2, ... .
   $
   Because the regret cumulated by $cR$ grows sublinearly by hypothesis of it being a regret minimizer, then so does the $Phi$-regret of the $Phi$-regret minimization algorithm defined above.
-]
+] <thm-ggm>
 #proof[
   The proof of correctness of the above construction is deceptively simple.
   Since $cR$ outputs transformations $phi.alt^((1)),phi.alt^((2)),... in Phi$ and receives utilities $phi.alt |-> u^((1))(phi.alt(vx^((1)))), phi.alt |-> u^((2)) (phi.alt (vx^((2))) ), ...$, its cumulative regret $R^((T))$ is by definition
@@ -114,6 +137,33 @@ Graphically, we can summarize the process as in the following block diagram.
     "Reg"_Phi^((T)) = max_(hat(phi.alt) in Phi) {sum_(t=1)^T (u^((t))(hat(phi.alt) (vx^((t)))) - u^((t))(vx^((t))))},
   $
   where the right-hand side is exactly the cumulative $Phi$-regret $Phi"-Reg"^((T))$ incurred by $cR_Phi$.
+]
+
+== Why fixed-point computation is necessary
+
+Hazan and Kale showed that no-$Phi$-regret learning and approximate fixed-point computation are computationally equivalent for finite $Phi$ #citep(<hazan2007computational>). The preceding reduction uses fixed points to obtain no regret. For the converse, fix $psi in "conv"(Phi)$ and a tolerance $epsilon > 0$ independent of $T$. If every played strategy satisfies $norm(psi(vx^((t))) - vx^((t)))_2 >= epsilon$, choose each linear utility to reward this displacement. Then $psi$ gains at least $epsilon T$ in total. Since $psi$ is a convex combination of maps in $Phi$, one allowed map gains at least as much, contradicting $o(T)$ regret for sufficiently large $T$. The proof below gives the quantitative bound $min_(1 <= t <= T) norm(psi(vx^((t))) - vx^((t)))_2 <= B(T)/T$.
+
+#block(breakable: false)[
+#theorem[
+  Suppose a $Phi$-regret algorithm on $cX subset.eq RR^d$ guarantees $Phi"-Reg"^((T)) <= B(T) = o(T)$ for every sequence of linear utilities chosen after its strategies whose gradients have Euclidean norm at most $1$. Given any $psi in "conv"(Phi)$, running this algorithm for $T$ rounds produces some strategy $vx^((t))$ satisfying
+  $
+    norm(psi(vx^((t))) - vx^((t)))_2 <= B(T) / T.
+  $
+  Thus the algorithm can find an $epsilon$-approximate fixed point whenever $B(T) / T <= epsilon$.
+]
+]
+#proof[
+  Fix $psi in "conv"(Phi)$. After the learner outputs $vx^((t))$, set $bold(d)^((t)) = psi(vx^((t))) - vx^((t))$. If $bold(d)^((t)) = 0$, we already have a fixed point. Otherwise, give the learner the linear utility
+  $
+    u^((t))(vy) = ip(bold(d)^((t)) / norm(bold(d)^((t)))_2, vy).
+  $
+  This utility has unit Euclidean gradient norm, and $u^((t))(psi(vx^((t)))) - u^((t))(vx^((t))) = norm(bold(d)^((t)))_2$. Write $psi$ as a convex combination of transformations in $Phi$. Since $u^((t))$ is linear, the payoff from comparing with $psi$ is the same convex combination of the payoffs from comparing with those transformations. Hence
+  $
+    B(T) &>= max_(phi.alt in Phi) sum_(t=1)^T (u^((t))(phi.alt(vx^((t)))) - u^((t))(vx^((t)))) \
+         &>= sum_(t=1)^T norm(psi(vx^((t))) - vx^((t)))_2 \
+         &>= T min_(1 <= t <= T) norm(psi(vx^((t))) - vx^((t)))_2.
+  $
+  Choosing the iterate with the smallest residual proves the claim.
 ]
 
 == Example: internal regret <sec-internal-regret>
@@ -216,6 +266,52 @@ With multiplicative weights as the external regret minimizer, TreeSwap achieves 
     "Reg"^((M)) <= 2 sqrt(M log n) = 2 sqrt((log n) / M) dot M <= epsilon / 2 dot M.
   $
   Applying @thm-treeswap with $epsilon\/2$ in place of $epsilon$, and using $1\/d <= epsilon\/2$, gives $"SwapReg"^((T)) <= (epsilon\/2 + epsilon\/2) T$.
+]
+
+= Problems
+
+#exercise[
+  Stoltz and Lugosi give another reduction from external regret to *internal* regret on $Delta^n$ #citep(<stoltz2005internal>). For each ordered pair $i != j$, write $S_(i j) = phi.alt_(i->j)$ for the mass-transport map from #lecture-link("learning_intro", <sec-regret-transformations>)[Lecture 4]: it moves all probability mass on action $i$ to action $j$ and leaves the other coordinates unchanged. Consider an external-regret minimizer whose actions are the $n(n-1)$ maps $S_(i j)$.
+
+  + Describe how to turn its distribution $q^((t))$ over these maps into the learner's strategy $vx^((t))$, and specify the feedback it receives after a linear utility $u^((t))$ is revealed.
+  + Prove a bound on internal regret in terms of the external regret of this auxiliary minimizer.
+  + Compare this construction with Blum-Mansour's algorithm. Explain why Stoltz-Lugosi is a special case of the Gordon-Greenwald-Marks reduction.
+]
+
+#solution[
+  Let $S_(i j)(vx) = vx + x_i (ve_j - ve_i)$, where $ve_i$ is the $i$th unit vector. Given $q^((t)) in Delta^(n(n-1))$, form $Q^((t)) = sum_(i != j) q_(i j)^((t)) S_(i j)$ and play any stationary distribution $vx^((t)) in Delta^n$ satisfying $Q^((t)) vx^((t)) = vx^((t))$. Such a distribution exists because $Q^((t))$ maps the simplex into itself. After observing $u^((t))$, give the auxiliary minimizer the payoff for expert $(i,j)$
+  $
+    V^((t))(i,j) = u^((t))(S_(i j)(vx^((t)))) - u^((t))(vx^((t)))
+      = x_i^((t)) (u^((t))(ve_j) - u^((t))(ve_i)).
+  $
+  Subtracting the common baseline $u^((t))(vx^((t)))$ does not change external regret. By the fixed-point equation and linearity, $sum_(i != j) q_(i j)^((t)) V^((t))(i,j) = u^((t))(Q^((t)) vx^((t))) - u^((t))(vx^((t))) = 0$. Consequently the auxiliary algorithm's external regret is exactly
+  $
+    max_(i != j) sum_(t=1)^T (V^((t))(i,j) - sum_(k != l) q_(k l)^((t)) V^((t))(k,l))
+      = max_(i != j) sum_(t=1)^T x_i^((t)) (u^((t))(ve_j) - u^((t))(ve_i)),
+  $
+  which is the learner's internal regret. In particular, sublinear external regret gives sublinear internal regret.
+
+  The Stoltz-Lugosi construction uses a single external-regret minimizer over ordered pairs of actions. This controls internal regret, which compares the learner with one action replacement at a time. The Blum-Mansour construction uses a separate external-regret minimizer for each action. Together, these minimizers control swap regret, which compares against maps that may replace every action simultaneously. Both constructions obtain the played strategy as a stationary distribution of a stochastic map.
+
+  Finally, take $Phi = "conv"{S_(i j): i != j}$ in the Gordon-Greenwald-Marks construction. Its auxiliary action $Q^((t)) in Phi$ is precisely the mixture above, its fixed-point oracle returns $vx^((t))$, and its utility on $S_(i j)$ is $u^((t))(S_(i j)(vx^((t))))$. Because utility is linear in the transformation, an external-regret minimizer over the $n(n-1)$ extreme maps also minimizes external regret over their convex hull. The displayed feedback differs only by a common baseline. Thus this is exactly the Stoltz-Lugosi construction.
+]
+
+= Problems <sec-problems>
+
+#exercise[
+  Computing an exact fixed point is hard in general, yet @thm-ggm assumes the oracle returns one. Suppose instead it is only guaranteed to return a point satisfying $norm(phi.alt^((t))(vx^((t))) - vx^((t)))_1 <= eps_t$. How does the guarantee degrade, and what must hold of the tolerances $eps_t$ for the construction to remain a $Phi$-regret minimizer?
+] <ex-approx-fixed-point>
+
+#solution[
+  Measure the fixed point error in the $ell_1$ norm, as in the statement, and suppose the utility gradients are bounded in the dual norm: $u^((t))(vx) = ip(vg^((t)), vx)$ with $norm(vg^((t)))_oo <= C_2$.
+
+  The proof of @thm-ggm used the fixed point property exactly once, to replace $phi.alt^((t))(vx^((t)))$ by $vx^((t))$. Keeping that term instead leaves an extra sum that does not depend on the comparator, and whose $t$-th term Hölder's inequality bounds by $norm(vg^((t)))_oo dot norm(phi.alt^((t))(vx^((t))) - vx^((t)))_1 <= C_2 eps_t$. Hence
+  #set math.equation(numbering: "(1)")
+  $
+    Phi"-Reg"^((T)) <= "Reg"_Phi^((T)) + C_2 sum_(t=1)^T eps_t,
+  $ <eq-approx-regret>
+  #set math.equation(numbering: none)
+  with @thm-ggm the case $eps_t = 0$. The construction therefore remains a $Phi$-regret minimizer as soon as $sum_(t=1)^T eps_t = o(T)$; in particular $eps_t = o(1)$ suffices, and no rate on $eps_t$ is required. #citet(<gordon2008no>) take $eps_t = 1\/sqrt(t)$, for which $sum_(t=1)^T eps_t = O(sqrt(T))$.
 ]
 
 #lec_bibliography("meta/refs.bib")

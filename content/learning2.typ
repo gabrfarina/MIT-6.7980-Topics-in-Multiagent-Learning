@@ -297,8 +297,8 @@ We mention some of the results in this direction.
       where $x_(j,s_j)^((t))$ is the probability Player $j$'s mixed strategy
       at time $t$ puts on $s_j$, because the players choose their actions independently.
       It is then a standard fact about total variation
-      (see #citet(<hoeffding1958distinguishability>)#text(";");
-      it can be proved with induction and the triangle inequality)
+      (for example see #citet(<kontorovich2024tensorization>), Equation (4);
+      it can be proven by induction and the triangle inequality)
       that
       $
         sum_(s_(-i)) lr(|product_(j != i) x_(j,s_j)^((t+1)) - product_(j != i) x_(j,s_j)^((t))|)

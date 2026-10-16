@@ -234,7 +234,7 @@
   lecture(
     "nash-properties",
     [Properties of Nash equilibrium],
-    description: [Topological and computational properties. Zero-sum games and linear programming. Correlated and coarse correlated equilibria.],
+    description: [Topological and computational properties. Zero-sum games and linear programming, with an interactive two-row game explorer. Correlated and coarse correlated equilibria.],
     instructor: [Gabriele Farina],
   ),
   lecture(
