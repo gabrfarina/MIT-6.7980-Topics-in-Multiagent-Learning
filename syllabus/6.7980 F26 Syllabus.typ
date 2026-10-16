@@ -246,7 +246,7 @@
   lecture(
     "learning-algorithms",
     [Learning in games: Algorithms],
-    description: [General principles for learning algorithms. Follow-the-leader, regret matching, multiplicative weights, and online mirror descent.],
+    description: [General principles for learning algorithms. Follow-the-leader, regret matching, multiplicative weights, and online mirror descent. Comparison of learning algorithms.],
     instructor: [Gabriele Farina],
   ),
   lecture(
