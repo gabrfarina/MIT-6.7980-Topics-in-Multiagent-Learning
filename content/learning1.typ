@@ -69,6 +69,57 @@ All these ideas work. Before we move on, though, it is worth knowing that---whil
   In the #lecture-link("learning_intro", <def-canonical-learning>)[canonical learning setup], the use of follow-the-leader by all players goes under the name of _fictitious play_ #citep(<brown1949some>) #citep(<brown1951iterative>). In certain classes of games, including two-player zero-sum games, fictitious play is able to recover a Nash equilibrium, albeit with a potentially exponentially slow convergence rate #citep(<Robinson1951>).
 ]
 
+#exercise[Karlin's conjecture][
+  Consider a two-player zero-sum game with payoff matrix $M$ and action sets $A$ and $B$.
+  Both players play using FTL. _Karlin's conjecture_ asks whether the average strategies $overline(x)_T$ and $overline(y)_T$ converge to a Nash equilibrium at rate $O(1\/sqrt(T))$.
+  More precisely, the duality gap $g_T=max_(xhat in Delta(A)) (xhat^top M overline(y)_T) - min_(yhat in Delta(B)) (overline(x)_T^top M yhat)$ converges to $0$ at rate $O(1\/sqrt(T))$.
+  Karlin's strong conjecture asks whether the rate holds for every tie-breaking rule, while Karlin's weak conjecture asks the same for lexicographic (or random) tie-breaking.
+  #footnote[
+  Karlin's strong conjecture was shown to be false in 2014 #citep(<Daskalakis14:Counter>), and the weak conjecture was disproved in a 2025 preprint #citep(<Wang25:Tiebreaking>).
+]
+
+  #set enum(numbering: "(a)")
+  
+  + Prove that if $g_T <= eps$, then $(overline(x)_T, overline(y)_T)$ is an $eps$-Nash equilibrium, meaning that players cannot gain more than $eps$ utility by unilaterally deviating from their average strategies.
+
+  + Prove that Karlin's conjecture is equivalent to the _sum_ of regrets of the two players growing as $O(sqrt(T))$.
+    Does this imply that each player's regret must grow as $O(sqrt(T))$?
+  
+] <ex:karlin>
+
+#solution[
+  #set enum(numbering: "(a)")
+
+  + Note that $max_(xhat in Delta(A)) (xhat^top M overline(y)_T)>= overline(x)_T^top M overline(y)_T >= min_(yhat in Delta(B)) (overline(x)_T^top M yhat)$, so the most player $1$ can gain from deviating is $max_(xhat in Delta(A)) (xhat^top M overline(y)_T)- overline(x)_T^top M overline(y)_T<= g_T<=eps$. 
+    Similarly, the most player $2$ can gain from deviating is $overline(x)_T^top M overline(y)_T - min_(yhat in Delta(B)) (overline(x)_T^top M yhat) <= g_T <= eps$.
+
+
+  
+  + Let $x^((t))$ and $y^((t))$ be the strategies played by the two players at time $t$. Then, the average strategies are defined as
+    $
+      overline(x)_T := 1/T sum_(t=1)^T x^((t)), quad overline(y)_T := 1/T sum_(t=1)^T y^((t)).
+    $
+    The regret of player 1 is
+    $
+      "Reg"_1^((T)) = max_(xhat in Delta(A)) sum_(t=1)^T (xhat^top M y^((t)) - (x^((t)))^top M y^((t)))
+      = T max_(xhat in Delta(A)) (xhat^top M overline(y)_T) - S,
+    $
+    where we define $S:= sum_(t=1)^T (x^((t)))^top M y^((t))$ as the cumulative payoff.
+    Similarly, the regret of player 2 is
+    $
+      "Reg"_2^((T)) =  S - T min_(yhat in Delta(B)) (overline(x)_T^top M yhat).
+    $
+    The sum of the two regrets is equal to 
+    $T[max_(xhat in Delta(A)) (xhat^top M overline(y)_T) - min_(yhat in Delta(B)) (overline(x)_T^top M yhat)]=T g_T$, $T$ times the duality gap of the strategies $overline(x)_T$ and $overline(y)_T$.
+    This implies that the duality gap growing as $O(1\/sqrt(T))$ is equivalent to the sum of regrets growing as $O(sqrt(T))$, as desired.
+
+    Because regrets can be negative, it is possible for each player's regret to grow faster than $O(sqrt(T))$ while their sum still grows as $O(sqrt(T))$.
+    For example, if $"Reg"_1^((T)) = T^(3\/4)$ and $"Reg"_2^((T)) = - T^(3\/4) + O(sqrt(T))$, then the sum of regrets grows as $O(sqrt(T))$ but player $1$'s regret grows faster than $O(sqrt(T))$.
+
+]
+
+
+
 == The Regret Matching (RM) algorithm <sec-rm>
 
 The Regret Matching algorithm #citep(<Hart00:Simple>) picks probabilities proportional to the "ReLU" of the cumulated regrets, that is,
