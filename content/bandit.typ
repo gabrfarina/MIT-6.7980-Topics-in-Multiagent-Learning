@@ -140,4 +140,60 @@ The confidence parameter enters the logarithm and the bonus. Adding exploration 
 Today, we know that bandit optimization is possible well past probability simplexes. In fact, we can construct bandit algorithms for any convex and compact domain $cX subset.eq RR^d$.
 In particular, we mention the general general result by #citet(<abernethy2008competing>), who showed that the a bandit algorithm can be constructed starting from a full-information regret miminizer built using the FTRL algorithm with a self-concordant distance-generating function.
 
+= Problems <sec-bandit-problems>
+
+#exercise[An adversary that sees the current action][
+  Consider a learner with two actions, $A = {1, 2}$, and utilities $vg^((t)) in [0,1]^A$. Suppose that, unlike the adversary described in the setup at the beginning of this lecture, the adversary observes the action $a^((t))$ sampled by the learner at round $t$ before choosing $vg^((t))$. Construct such an adversary that forces
+  $ "Reg"^((T)) >= T/2 $
+  for every learner, with probability one.
+]
+
+#solution[
+  At each round $t$, after observing $a^((t))$, the adversary sets $vg^((t)) := ve_(b^((t)))$, where $b^((t))$ is the action other than $a^((t))$. The learner plays $vx^((t)) = ve_(a^((t)))$, so it collects $ip(vg^((t)), vx^((t))) = 0$ at every round.
+
+  Let $N_a := |{t : b^((t)) = a}|$ count the rounds in which action $a$ receives utility $1$. Each round rewards exactly one action, so $N_1 + N_2 = T$. The maximum of a linear function over $Delta(A)$ is attained at a vertex, hence
+  $
+    "Reg"^((T)) = max_(xhat in Delta(A)) sum_(t=1)^T ip(vg^((t)), xhat) - sum_(t=1)^T ip(vg^((t)), vx^((t))) = max{N_1, N_2} - 0 >= T/2.
+  $
+  The argument applies to every realization of the learner's randomness, so the bound holds with probability one. It never uses the learner's feedback either, so it also holds under full-information feedback.
+
+  This does not contradict the guarantees for Exp3 and Exp3.P. In the probability model of this lecture's setup, the adversary chooses $vg^((t))$ from the history $(vx^((tau)), w^((tau)))_(tau < t)$ only. The learner's fresh randomness at round $t$ is therefore hidden from it, and randomization keeps the learner from being exploited as above. Against a deterministic learner, the adversary can compute $a^((t))$ from the history alone, so the same construction applies without seeing the current action. Sublinear regret therefore requires randomization.
+]
+
+#exercise[Exp3.P dynamics and coarse correlated equilibria][
+  Consider an $n$-player normal-form game with finite action sets $A_1, ..., A_n$, where $K_i := |A_i| >= 2$ and $K := max_i K_i$, and utilities $u_i : A_1 times dots.h.c times A_n -> [0,1]$. Players repeatedly play the game for $T$ rounds. Each player $i$ runs Exp3.P over $A_i$ and observes only its realized payoff $u_i (a^((t)))$, where $a^((t)) = (a_1^((t)), ..., a_n^((t)))$ is the realized action profile. Recall that $vmu in Delta(A_1 times dots.h.c times A_n)$ is an _$epsilon$-approximate_ #lecture-link("correlated", <def-cce>)[coarse correlated equilibrium] if
+  $ EE_(a ~ vmu) [u_i (a'_i, a_(-i)) - u_i (a)] <= epsilon quad forall i in [n], a'_i in A_i. $
+  Show that, with probability at least $1 - delta$, the empirical distribution of play
+  $ hat(vmu)^((T)) := 1/T sum_(t=1)^T ve_(a^((t))) $
+  is an $epsilon$-approximate coarse correlated equilibrium, and determine how $epsilon$ depends on $n$, $K$, $T$, and $delta$.
+]
+
+#solution[
+  *Each player faces a bandit problem.*  Fix player $i$ and define
+  $ vg_i^((t)) := (u_i (a_i, a_(-i)^((t))))_(a_i in A_i) in [0,1]^(A_i). $
+  Player $i$ plays $vx_i^((t)) = ve_(a_i^((t)))$ and observes $w_i^((t)) = u_i (a^((t))) = ip(vg_i^((t)), vx_i^((t)))$. This is exactly the bandit feedback model of this lecture, with the other players acting as the adversary.
+
+  The other players sample $a_(-i)^((t))$ from strategies computed from the history before round $t$, independently of player $i$'s draw at round $t$. Hence $vg_i^((t))$ cannot depend on $a_i^((t))$, unlike in the previous exercise. The other players do react to past play, so the adversary is adaptive, which the probability model of this lecture's setup allows.
+
+  *A regret bound for every player.*  Let player $i$ run Exp3.P with the parameters of the Exp3.P theorem above and confidence parameter $delta/n$. Write $"Reg"_i^((T))$ for player $i$'s realized regret with respect to $vg_i^((1)), ..., vg_i^((T))$. By the theorem, there is an absolute constant $C$ such that
+  $
+    PP["Reg"_i^((T)) > C(sqrt(K_i T log(n K_i T \/ delta)) + log(n K_i T \/ delta))] <= delta/n.
+  $
+  A union bound over the $n$ players shows that, with probability at least $1 - delta$, simultaneously for all $i in [n]$,
+  $
+    "Reg"_i^((T)) <= C(sqrt(K T log(n K T \/ delta)) + log(n K T \/ delta)).
+  $
+
+  *From regret to equilibrium.*  External regret is $Phi$-regret for the set of constant transformations (see #lecture-link("learning_intro", <sec-external-regret>)[external regret]). Apply the #lecture-link("learning_intro", <thmce-formal>)[regret-to-equilibrium theorem] to the played strategies $vx_i^((t)) = ve_(a_i^((t)))$. Their products are $ve_(a_1^((t))) ⊗ dots.h.c ⊗ ve_(a_n^((t))) = ve_(a^((t)))$, so the average correlated distribution of play is exactly $hat(vmu)^((T))$. For each player $i$ and deviation $a'_i in A_i$, the theorem gives
+  $
+    EE_(a ~ hat(vmu)^((T))) [u_i (a'_i, a_(-i)) - u_i (a)] = 1/T sum_(t=1)^T (g_(i, a'_i)^((t)) - ip(vg_i^((t)), vx_i^((t)))) <= ("Reg"_i^((T))) / T.
+  $
+  Hence, with probability at least $1 - delta$, $hat(vmu)^((T))$ is an $epsilon$-approximate coarse correlated equilibrium with
+  $
+    epsilon = max_(i in [n]) ("Reg"_i^((T))) / T <= C(sqrt((K log(n K T \/ delta)) / T) + (log(n K T \/ delta)) / T).
+  $
+
+  The number of players enters only through $log n$, from the union bound; each player runs its own algorithm on its own payoffs and never observes the others' actions. The bound grows as $sqrt(K)$ in the size of the largest action set, up to logarithmic factors, compared with $sqrt(log K)$ for MWU under full-information feedback; the extra factor is the price of bandit feedback. Finally, $epsilon$ decays as $tilde(O)(1 \/ sqrt(T))$, so for $epsilon <= 1$ it suffices to take $T = tilde(O)(K log(n\/delta) \/ epsilon^2)$ rounds.
+]
+
 #lec_bibliography("meta/refs.bib")
