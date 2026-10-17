@@ -195,11 +195,17 @@ A different conceptualization of a strategy for a player is as a choice of (inde
   This is not a convex function of $vx$, as it contains products of entries of $vx$.
 ]
 
-*Pros*  One might wonder whether behavioral strategies have the same representational power as normal-form strategies. After all, a normal-form strategy is an object in a much larger space, so it is conceivable that "more might be possible" in the strategic form. A positive answer equating the powers of normal-form and behavioral strategies is given by Kuhn's theorem, which requires that the game is perfect recall.
+*Pros*  One might wonder whether behavioral strategies have the same representational power as normal-form strategies. After all, a normal-form strategy is an object in a much larger space, so it is conceivable that "more might be possible" in the strategic form. The relationship is characterized by Kuhn's theorem.
 
-#theorem[Kuhn's theorem][
-  In a perfect recall extensive-form game, any distribution over terminal nodes that can be induced via normal-form strategies can be induced via behavioral strategies, and _vice versa_.
+#definition[Realization equivalence][
+  Two strategies of a player are _realization-equivalent_ if, for every strategy profile of the other players, they induce the same probability distribution over terminal histories.
+] <def:realization-equivalence>
+
+#theorem[Kuhn's theorem #citep(<Kuhn53:Extensive>)][
+  In a perfect-recall extensive-form game, every mixed strategy of a player is realization-equivalent to a behavioral strategy, and vice versa.
 ]
+
+Perfect recall matters because a behavioral strategy randomizes locally at each decision point. Remembering the information and actions that led to the current decision allows this local randomization to reproduce the outcome probabilities of a mixed strategy chosen at the start of the game.
 
 == Sequence form <sec-sequence-form>
 
