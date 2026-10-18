@@ -14,10 +14,6 @@ EXPORTER = ROOT / 'html-exporter/target/release/notes-html-exporter'
 # These are included by other figures rather than rendered on their own.
 SUPPORT_SOURCES = {
     'kernelized/vertices.typ',
-    'learning2/ftr_ent.typ',
-    'learning2/ftr_euc.typ',
-    'learning2/ftr_log.typ',
-    'learning2/omd_euc.typ',
 }
 GATES = ('assignment', 'constant', 'addition', 'subtraction',
          'multiplication', 'comparison')
