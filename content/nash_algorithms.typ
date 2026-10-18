@@ -256,7 +256,7 @@ Switching gears from the previous sections, we turn to algorithms for computing 
 
 == Preparation: symmetry and non-degeneracy
 
-To simplify our presentation, we will assume that the input game is a symmetric $n times n$ game, i.e. $C = R^T$, and we will target finding a symmetric equilibrium of this game, which is guaranteed to exist by Theorem~#ref(label("thm:existence of symmetric equilibria"), supplement: none). From our work in Section~#ref(<sec:symmetrization>, supplement: none), we can make this assumption that the game is symmetric without loss of generality. Indeed, if a given game is asymmetric we can polynomial-time reduce it to a symmetric one. The original version of the Lemke-Howson algorithm applies directly to asymmetric games, but we believe that its presentation for symmetric games is a bit simpler.
+To simplify our presentation, we will assume that the input game is a symmetric $n times n$ game, i.e. $C = R^T$, and we will target finding a symmetric equilibrium of this game, which is guaranteed to exist by Theorem~#ref(label("thm:existence of symmetric equilibria"), supplement: none). From our work in Section~#ref(<sec:symmetrization>, supplement: none), we can make this assumption that the game is symmetric without loss of generality. Indeed, if a given game is asymmetric we can polynomial-time reduce it to a symmetric one. The original version of the Lemke-Howson algorithm applies directly to asymmetric games, but we believe that its presentation for symmetric games is a bit simpler (see #ref(<ex-lh-symmetry>)).
 
 The idea of the algorithm is to perform pivoting steps between the vertices of a polytope related to the game until a Nash equilibrium is found. The ($n$-dimensional) polytope of interest is given by
 
@@ -386,6 +386,10 @@ We make some final remarks about the Lemke-Howson algorithm.
 - A single pivoting step is cheap: un-tightening one inequality and following the resulting edge amounts to solving a linear system of size $n$, so each step costs time polynomial in the description of the game. The running time is therefore governed by the _number_ of steps, that is, by the length of the main path. Since the walk never revisits a vertex, it stops after at most as many steps as the polytope has vertices, and the upper bound theorem for polytopes caps that count at fewer than $2.6^n$~#citep(<vonStengel07:Equilibrium>).
 - The number of steps really can be exponential. Savani and von Stengel~#citep(<SavaniVS06>) construct $d times d$ games in which the length of _every_ main path is at least proportional to $phi^(3 d \/ 4) approx 1.43^d$, where $phi approx 1.618$ is the golden ratio. The only freedom the algorithm has is the choice of the special action, since the pivoting rule itself is forced once that choice is made; the lower bound holds no matter which action is chosen.
 - There are generalizations of the Lemke-Howson algorithm for multi-player games working with manifolds instead of polytopes. See Rosenmüller~#citep(<Rosenmuller71>) and Wilson~#citep(<Wilson71>).
+
+#exercise[
+  We presented the Lemke-Howson algorithm for symmetric games, relying on the symmetrization of Section~#ref(<sec:symmetrization>, supplement: none), but the original algorithm of Lemke and Howson~#citep(<LemkeHowson64>) does not require symmetry. Explain how the algorithm and its labeling work without the symmetry assumption, and what the symmetric presentation simplifies.
+] <ex-lh-symmetry>
 
 = Bibliography for this lecture
 
@@ -558,4 +562,33 @@ Then for any Nash equilibrium $(bold(x)_1,...,bold(x)_n)$, by definition,
 
   Our constants shift every payoff of a given player by the same amount, and therefore preserve that player's preferences over strategies. In this example, choosing \(c=-1/2\) makes the column player's average of the payoff entries zero (the row player's average of payoff entries is already zero). Nevertheless, the resulting game is not zero-sum, which requires $sum_i u_i=0$, that is, the SUM of all payoffs of all players to be zero for any selection of pure strategies.
 
+]
+
+== Solution to #ref(<ex-lh-symmetry>)
+
+#toggle[Reveal Solution to #ref(<ex-lh-symmetry>)][
+  #proof[
+  Let $(R, C)$ be an $m times n$ game with positive entries, as we may assume by #ref(<S01-ImprovementP3.1>). The original algorithm works with one bounded polytope for each player:
+
+  $ P := { vx in RR^m : vx >= 0, C^T vx <= vone }, quad Q := { vy in RR^n : R vy <= vone, vy >= 0 } . $
+
+  Number the row actions $1, ..., m$ and the column actions $m + 1, ..., m + n$. Each action owns one inequality of $P$ and one of $Q$: row action $i$ owns $x_i >= 0$ and $ve_i^T R vy <= 1$, and column action $m + j$ owns $ve_j^T C^T vx <= 1$ and $y_j >= 0$. The _labels_ of a point are the actions whose inequalities are tight there:
+
+  $
+    L(vx) & := { i : x_i = 0 } union { m + j : ve_j^T C^T vx = 1 } , \
+    L(vy) & := { i : ve_i^T R vy = 1 } union { m + j : y_j = 0 } .
+  $
+
+  So a label of a point is either an action that the point does not play or a best response of the other player to it. A pair of vertices $(vx, vy)$ is _completely labeled_ if $L(vx) union L(vy) = { 1, ..., m + n }$, which is the analog of a democracy.
+
+  Assuming that $P$ and $Q$ are non-degenerate, the algorithm fixes a label $k$ and starts from the completely labeled pair $(0, 0)$. It drops label $k$, by un-tightening $x_k >= 0$ in $P$ if $k <= m$ and $y_(k - m) >= 0$ in $Q$ otherwise, and moves that point along an edge, which picks up exactly one new label. If the new label is $k$, the algorithm stops. Otherwise, since each label owns one inequality in each polytope, the new label is now a label of both $vx$ and $vy$, and the algorithm drops it in the _other_ polytope. The pivots therefore alternate between $P$ and $Q$, and every intermediate pair has all labels except $k$, exactly one of them twice.
+
+  This is exactly @algo-lemke-howson run on the symmetrized game $cal(G)_2$ of Section~#ref(<sec:symmetrization>, supplement: none), with special action $k$. Writing $vz = (vx, vy)$, the polytope of $cal(G)_2$ is
+
+  $ { vz : mat(0, R; C^T, 0) vz <= vone, vz >= 0 } = P times Q , $
+
+  and action $i$ of $cal(G)_2$ is represented at $(vx, vy)$ exactly when $i in L(vx) union L(vy)$. So the democracies of $cal(G)_2$ are the completely labeled pairs, property $Pi$ is the property of the intermediate pairs above, and since every edge of $P times Q$ moves only one of $vx$ and $vy$, the two algorithms take the same pivots. Correctness therefore follows from Theorem~#ref(label("thm:Lemke-Howson's correctness"), supplement: none), and the algorithm returns the Nash equilibrium $(vx \/ norm(vx)_1, vy \/ norm(vy)_1)$ of $(R, C)$ that Section~#ref(<sec:symmetrization>, supplement: none) extracts from the symmetric equilibrium of $cal(G)_2$.
+
+  Hence the symmetric presentation loses no generality: it replaces two polytopes, two kinds of labels in each, and an alternating walk on pairs of vertices by a single polytope and a single pivot rule, with the alternation hidden in the product structure of $P times Q$. A genuine difference arises only when the game is already symmetric, i.e., $C = R^T$. The symmetric algorithm then works in the $n$-dimensional polytope ${ vz : R vz <= vone, vz >= 0 }$ and returns a symmetric equilibrium, whereas the original algorithm walks on $P times Q$, in dimension $2 n$, and may return an asymmetric one. For example, in the game of chicken with $R = mat(3, 2; 4, 1)$, where the first action is to swerve, the original algorithm ends at a pure equilibrium in which only one player swerves, for every label $k$, while the symmetric algorithm finds the mixed equilibrium $((1\/2, 1\/2), (1\/2, 1\/2))$.
+  ]
 ]
