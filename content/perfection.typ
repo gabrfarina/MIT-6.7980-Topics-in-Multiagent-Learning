@@ -54,6 +54,12 @@ Unfortunately, domination of strategies is not the root cause of sequential irra
   )
 ] <ex:guess-the-ace-x>
 
+== Rational and Irrational Nash equilibria
+The gift selection of @ex:guess-the-ace-x is not important when computing a Nash Equilibria because optimal players would reach that part of the game tree. Consequently, Nash Equilibria depend only on Player1 choosing to quit. The general set of Nash equilibria are ${(0, q, g_C, g_D) : o=0, q, g_C, g_D in [0, 1]}$ where $o$ is probability of quitting, $q$ is probability of not ace, and $g_*$ is probability of giving a gift in state $* in {C, D}$. 
+
+In @ex:guess-the-ace-x, ${(0, 1, 0, 0)}$ is the rational Nash equilibrium, while ${(0, q, g_C, g_D): q in.not 1 or g_C in.not 0 or g_D in.not 0}$ are irrational equilibria. 
+
+
 = Trembling-hand refinements
 
 The issue of sequential irrationality stems from the fact that some parts of the game tree are unreachable at equilibrium. For those excluded parts of the game tree, any strategy can be picked without affecting the equilibrium.  The idea behind trembling-hand refinements is simple: to avoid sequential irrationality, it forces all players to explore the whole game tree. It does so by forcing the players to _tremble_, that is, by constraining them to play all actions at all decision points with a strictly positive lower bound probability that grows as a function of a hyperparameter $epsilon.alt > 0$. For each $epsilon.alt > 0$, a Nash equilibrium subject to the trembling constraints is found. A trembling-hand refinements is then any limit points of such Nash equilibria as $epsilon.alt -> 0^(+)$.
