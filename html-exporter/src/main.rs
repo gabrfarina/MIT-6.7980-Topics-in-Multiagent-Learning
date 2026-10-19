@@ -1027,6 +1027,11 @@ fn render_document(
         "<noscript><style>.solution-wrapper .env.proof[data-proof-kind=\"Solution\"]\
          {display:block}.solution-toggle{display:none}</style></noscript>\n",
     );
+    if document.body_html.contains("sperner-explorer") {
+        html.push_str("<script>\n");
+        html.push_str(include_str!("sperner-explorer.js"));
+        html.push_str("</script>\n");
+    }
     html.push_str(settled_hash_scroll_script());
     html.push_str("</body>\n</html>\n");
     html

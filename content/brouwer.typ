@@ -1,4 +1,5 @@
 #import "meta/gabri_notes.typ": *
+#import "meta/sperner-explorer.typ": sperner-explorer
 #show: gabri_notes.with(
   lec_num: 2,
   date: [Thu, Sep 17, 2026],
@@ -98,6 +99,10 @@ We formalize these ideas in the next sections, arriving at two results. First, w
 
   #align(center)[
     #image("figures/brouwer/example_games.svg", width: 100.0%)
+  ]
+
+  #sperner-explorer[
+    Try the same construction on a game of your own. Change a payoff and both plots update. The grid slider sets how fine the grid is, that is, the diameter $delta$. Tick the box to pad the grid with the standard boundary coloring and follow the path from @sec-sperner-graph.
   ]
 ]
 
