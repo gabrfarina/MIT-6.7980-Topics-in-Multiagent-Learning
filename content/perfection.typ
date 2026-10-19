@@ -13,22 +13,22 @@ As we discussed on multiple occasions, Nash equilibrium strategies encode the id
 Nash equilibrium strategies are only optimized for the strongest possible opponent. Because of that, they are completely indifferent to what happens in parts of the game tree that are reached only if a player makes a mistake.
 
 #example[
-  To make the discussion more concrete, consider the _Guess-the-Ace_ game, introduced by~#citet(<Miltersen06:Computing>).
+  To make the discussion more concrete, consider the _Guess-the-Ace_ game, introduced by~#citet(<Miltersen06:Computing>) and described below. The two panels show the same game tree. In each panel, the thick orange edges mark the actions that one Nash equilibrium prescribes, and a payoff of $(-\$, \$)$ means that Player~$1$ pays \$1000 to Player~$2$.
 
   #align(center)[
     #image("figures/perfection/guess-the-ace.svg", width: 100.0%)
   ]
 ] <ex:guess-the-ace>
 
-In Guess-the-Ace, at the start a standard 52-card deck is perfectly shuffled, face down, by a dealer. Then, Player~$1$ can decide whether to immediately end the game, at which point no money is transferred between the players, or offer \$1000 to Player~$2$ if they can correctly guess whether the top card of the shuffled deck is the ace of spaces or not. If Player~$2$ guesses correctly, the \$1000 get transferred from Player~$1$ to Player~$2$; if not, no money is transferred. The game tree is summarized in @ex:guess-the-ace.
+In Guess-the-Ace, at the start a standard 52-card deck is perfectly shuffled, face down, by a dealer. Then, Player~$1$ can decide whether to immediately end the game, at which point no money is transferred between the players, or offer \$1000 to Player~$2$ if they can correctly guess whether the top card of the shuffled deck is the ace of spades or not. If Player~$2$ guesses correctly, the \$1000 get transferred from Player~$1$ to Player~$2$; if not, no money is transferred. The game tree is summarized in @ex:guess-the-ace.
 
 Clearly, the only Nash equilibrium strategy for Player~$1$ is to quit immediately, or they are guaranteed to _lose_ money. Since Player~$2$ does not get to play, any strategy for Player~$2$ is a Nash equilibrium strategy.
 
-In particular, both highlighted equilibria in @ex:guess-the-ace are Nash equilibria. However, the two equilibria are significantly different from a practical point of view. Imagine that Player~$2$ is a bot playing against opponents in the real world, blindly following the Nash equilibrium strategy it has precomputed. If Player~$1$ makes a mistake and decides to offer the \$1000 instead of immediately quitting, the Nash equilibrium that bets that the top card is _not_ the ace of space has an expected utility of $>$ \$980 whereas the Nash equilibrium that bets that the top card is the ace of spade only has an expected utility of $<$ \$20.
+In particular, consider the two strategy profiles highlighted in @ex:guess-the-ace. In both, Player~$1$ quits at both nodes of information set A. The profiles differ only at information set B, which is never reached because Player~$1$ quits: on the left, Player~$2$ would guess that the top card is _not_ the ace of spades (action ‘$not$A$suit.spade.filled$’); on the right, Player~$2$ would guess that it _is_ (action ‘A$suit.spade.filled$’). Because B is never reached, the guess changes neither player's utility, and both profiles are Nash equilibria. In practice, however, the two equilibria differ a great deal. Imagine that Player~$2$ is a bot playing against opponents in the real world, blindly following the Nash equilibrium strategy it has precomputed. Suppose Player~$1$ makes a mistake and offers the \$1000 instead of quitting. The bot that guesses ‘$not$A$suit.spade.filled$’ then wins the \$1000 with probability $51\/52$, an expected gain of more than \$980. The bot that guesses ‘A$suit.spade.filled$’ wins it with probability only $1\/52$, an expected gain of less than \$20.
 
-So, while both strategy profiles in @ex:guess-the-ace are Nash equilibria, only one of the two is _“sensible”_.
+So, while both strategy profiles in @ex:guess-the-ace are Nash equilibria, only the left one is _“sensible”_.
 
-Formalizing this subtle notion of rationality within the set of Nash equilibria has been a major endeavor for the game-theoretic literature in the 70s and 80s. Today, we say that the equilibrium in @ex:guess-the-ace (Left) is _sequentially irrational_, while the one on the right is _sequentially rational_.  The takeaway lesson is:
+Formalizing this subtle notion of rationality within the set of Nash equilibria has been a major endeavor for the game-theoretic literature in the 70s and 80s. Today, we say that the equilibrium in @ex:guess-the-ace (Right) is _sequentially irrational_, while the one on the left is _sequentially rational_. At information set B, the top card is the ace of spades with probability $1\/52$ whatever Player~$1$ did; so guessing ‘A$suit.spade.filled$’ is not a best response at B, even though B is never reached at equilibrium. The takeaway lesson is:
 
 #remark[
   Not all Nash equilibria are equally “good” when the agents can make mistakes. Specifically, sequentially-irrational Nash equilibria might leave value on the table, by being incapable of capitalizing on opponents' mistakes.
@@ -41,12 +41,12 @@ The goal of this lecture is to investigate how one can rule out sequential irrat
 
 One might believe that the problem of sequential irrationality is that of picking dominated strategies. So, one might be inclined to look into the problem of finding a Nash equilibrium whose support does not include any (weakly) dominated strategy (the concept is not immediately well defined, but for the purposes of this discussion let's restrict ourselves to Nash equilibria in deterministic strategies).
 
-Unfortunately, domination of strategies is not the root cause of sequential irrationality, and therefore undomination is not its solution. Indeed, as much as undomination _does_ get rid of the undesirable behavior of @ex:guess-the-ace (Right), since action \`A$suit.spade.filled$' is strictly dominated by action \`$not$A$suit.spade.filled$', it does not prevent sequential irrationality in more complex settings, such as @ex:guess-the-ace-x.
+Unfortunately, domination of strategies is not the root cause of sequential irrationality, and therefore undomination is not its solution. Indeed, as much as undomination _does_ get rid of the undesirable behavior of @ex:guess-the-ace (Right), since action ‘A$suit.spade.filled$’ is strictly dominated by action ‘$not$A$suit.spade.filled$’, it does not prevent sequential irrationality in more complex settings, such as @ex:guess-the-ace-x.
 
 #example[
   #wrapped-figure(
     [
-      Undomination does _not_ prevent a player from playing risky actions, hoping for an opponent's mistake. In this example, again due to #citet(<Miltersen06:Computing>), the Guess-the-Ace game is slightly modified in that, when Player~$2$ guesses wrong, Player~$1$ can decide whether they still want to give \$1000 to Player~$2$ out of the kindness of their heart or not. By introducing that possibility, action \`$not$A$suit.spade.filled$' is not strictly dominating anymore, because Player~$2$ might still hope that the second gift of \$1000 is given only when the insensible guess \`A$suit.spade.filled$' is made.
+      Undomination does _not_ prevent a player from playing risky actions, hoping for an opponent's mistake. In this example, again due to #citet(<Miltersen06:Computing>), the Guess-the-Ace game is slightly modified in that, when Player~$2$ guesses wrong, Player~$1$ can decide whether they still want to give \$1000 to Player~$2$ out of the kindness of their heart or not. By introducing that possibility, action ‘$not$A$suit.spade.filled$’ is not strictly dominating anymore, because Player~$2$ might still hope that the second gift of \$1000 is given only when the insensible guess ‘A$suit.spade.filled$’ is made.
     ],
     [#image("figures/perfection/guess-the-ace-x.svg", width: 200pt)],
     side: right,
