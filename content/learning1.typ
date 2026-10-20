@@ -39,9 +39,38 @@ Our goal is to make sure that the regret grows sublinearly in $T$ no matter the 
   The natural question is: _how to prioritize?_
 ]
 
+#example[Utility and regret vectors in a two-player game][
+  Consider a two-player zero-sum game with payoff matrices
+  $
+    U_1 = mat(2, 1; 0, 2), quad U_2 = -U_1.
+  $
+  Player 1 chooses a row and player 2 chooses a column.
+  $
+    vx^((1)) = vec(1/2, 1/2), quad vy^((1)) = vec(1/4, 3/4).
+  $
+  Each player's utility vector $vg$ lists the expected payoff of each action against the other player's current mixed strategy:
+  $
+  
+  vg_1^((1)) = U_1 vy^((1)) = vec(5/4, 3/2),
+  qquad vg_2^((1)) = U_2^top vx^((1)) = vec(-1, -3/2).
+
+  $
+  Their expected utilities are therefore
+  $
+    ip(vg_1^((1)), vx^((1))) = 11/8,
+    quad ip(vg_2^((1)), vy^((1))) = -11/8.
+  $
+  Starting from $vr_1^((0)) = vr_2^((0)) = 0$, the cumulative action regret vectors after this round are
+  $
+    vr_1^((1)) &= vg_1^((1)) - 11/8 vone = vec(-1/8, 1/8), qquad
+    vr_2^((1)) &= vg_2^((1)) - (-11/8) vone = vec(3/8, -1/8).
+  $
+  Player 1 would have gained $1/8$ more expected utility by always choosing the second row, while player 2 would have gained $3/8$ more by always choosing the first column. In later rounds, we add up across all rounds to get our regret vectors.
+]
+
 == Follow-the-leader
 
-Perhaps the most natural idea would be to always play the action with the highest cumulated regret (breaking ties, say, lexicograpsically). After all, this is the action we wish the most we had played in the past. This algorithm is called _follow-the-leader (FTL)_. Unfortunately, this idea is known not to work. To see that, consider the following sequence of gradient vectors:
+Perhaps the most natural idea would be to always play the action with the highest cumulated regret (breaking ties, say, lexicographically). After all, this is the action we wish the most we had played in the past. This algorithm is called _follow-the-leader (FTL)_. Unfortunately, this idea is known not to work. To see that, consider the following sequence of gradient vectors:
 
 $
   vg^((1)) = vec(0, 1\/2), quad vg^((2)) = vec(1, 0), quad vg^((3)) = vec(0, 1), quad vg^((4)) = vec(1, 0), quad vg^((
@@ -238,7 +267,7 @@ Finally, we turn our attention to the third way of obtaining no-regret algorithm
   The follow-the-_regularized_-leader algorithm (FTRL; sometimes also called "regularized follow-the-leader") defines the choice of strategy#footnote[In particular, $vx^((1)) := argmin_(xhat in Delta(A)) psi(xhat)$ since the regrets of all actions are $0$ at the beginning.]
   $
     vx^((t)) & := argmax_(xhat in Delta(A)) {ip(vr^((t-1)), xhat) - 1 / eta psi(xhat)}.
-  $]
+  $] <def-ftrl-simplex>
 The regularization term $-psi(xhat)$ _limits the amount of variation between consecutive strategies_. This makes intuitive sense: if $eta -> 0$, $vx^((t))$ is constant (and equal to $argmin_(xhat in Delta(A)) psi(xhat)$). When $eta = oo$, we recover the follow-the-leader algorithm, where strategies can jump arbitrarily. For intermediate $eta$, as you might expect, the amount of variation between strategies at consecutive times is bounded above by a quantity proportional to $eta$:
 $
   norm(vx^((t+1)) - vx^((t))) <= eta norm(vg^((t)))_*,
@@ -340,6 +369,28 @@ In the special case in which $psi(vx) := 1/2 norm(vx)_2^2$, then the OMD algorit
   $
 ] <def-online-gradient-ascent>
 
+#example[Projecting a gradient step onto the simplex][
+  Suppose there are two actions, with
+  $
+    vx^((t)) = (0.6, 0.4), quad vg^((t)) = (1, 0), quad eta = 0.5.
+  $
+  The unconstrained gradient step gives
+  $
+    vz := vx^((t)) + eta vg^((t)) = (1.1, 0.4).
+  $
+  But this is not a probability distribution. Projected gradient ascent chooses the closest point on the simplex in Euclidean distance:
+  $
+    vx^((t+1)) = Pi_(Delta(A))(vz)
+    = argmin_(vx in Delta(A)) norm(vx - vz)_2^2.
+  $
+  Any point $(p, 1-p)$ has squared distance to $vz$ equal to
+  $
+    (p - 1.1)^2 + (1-p - 0.4)^2
+    = 2(p - 0.85)^2 + 0.125.
+  $
+  This is minimized at $p = 0.85$, giving $vx^((t+1)) = (0.85, 0.15)$. Geometrically, we subtract $0.25$ from each coordinate: this removes the excess mass of $0.5$ by moving perpendicular to the line $x_1 + x_2 = 1$. 
+]
+
 Since the squared Euclidean norm is $1$-strongly convex with respect to the $ell_2$ norm, the regret bound for OGD can be derived from the general bound for OMD (@ftrl-omd-regret-bound) and is as follows.
 
 #theorem[Regret bound for OGD][
@@ -374,6 +425,39 @@ The next plots illustrate the behavior of OGD and MWU in a simple $2 times 2$ ga
     text-width: 36%,
   )
 ]
+
+= Problems <sec-learning1-problems>
+
+#exercise[Proving MWU is a case of FTRL][
+  In @sec-omd-mwu, we claimed that multiplicative weights update is a special case of #link(<def-ftrl-simplex>)[FTRL] with regularizer equal to the negative entropy function $H(vx) := sum_(a in A) x_a log x_a$. Prove this claim, letting $eta > 0$ and using the convention $0 log 0 := 0$. Show that
+  $
+    argmax_(vx in Delta(A)) {ip(vr^((t-1)), vx) - 1/eta sum_(a in A) x_a log x_a}
+    = "softmax"(eta vr^((t-1))).
+  $
+
+
+  #solution[
+    Multiplying the objective by $eta > 0$ does not change its maximizer, so we wish to maximize
+    $
+      F(vx) := eta ip(vr^((t-1)), vx) - sum_(a in A) x_a log x_a.
+    $
+    We proceed with the method of lagrange multipliers. For a candidate with positive coordinates, the Lagrangian for the sum constraint $sum_(a in A) x_a = 1$ is
+    $
+      L(vx, lambda) := F(vx) + lambda (1 - sum_(a in A) x_a).
+    $
+    Setting its partial derivatives to zero gives for each $a$
+    $
+      eta r_a - log x_a - 1 - lambda = 0
+      quad => quad x_a = exp(eta r_a - 1 - lambda).
+    $
+    Normalizing the coordinates to sum to one therefore yields
+    $
+      x_a^* = (exp(eta r_a)exp(-1-lambda)) / (sum_(b in A) exp(eta r_b)exp(-1-lambda))=exp(eta r_a) / (sum_(b in A) exp(eta r_b)) .
+    $
+    Since $F$ is strictly concave and $x_a^*$ has positive coordinates while satisfying the Lagrange conditions, it is the unique maximizer. Thus FTRL recovers exactly the softmax strategy in @algo-mwu.
+  ]
+]
+
 
 #lec_bibliography("meta/refs.bib")
 
