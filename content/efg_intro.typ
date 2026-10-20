@@ -232,6 +232,22 @@ Conversely, it is easy to see that any $vx$ that satisfies the above constraints
   )
 ]
 
+  #example[
+    Expected utility is a sum over terminal nodes:
+    $
+  u_1 (vx \, vy) & = sum_(z in Z) u_1 (z) dot.op bb(P) [z "is reached"] \
+  & = sum_(z in Z) u_1 (z) dot.op p_c (z) dot.op x_(sigma_1 (z)) dot.op y_(sigma_2 (z)) .
+$
+    
+Here, we factor the reach probability into three independent parts: 1) nature's probability, 2) the product of Player 1's own action probabilities on the path to $z$, and 3) the product of Player 2's.
+
+*Behavioral form:* Player 1's part is a product of several variables, which makes the payoff nonlinear. For example, reacing the "check, opponent bets, fold" leaf contributes $x_{A, "chk"} * x_{D, "fold"}$, 
+
+*Sequence form:* that product is by definition a single entry. $x_{D, "fold"}$ already stores probability of "checking at A and folding at D". Therefore, Player 1's entire contribution to reaching $z$ is one variable, the entry for the last seuqnece of Player 1 on the path to $z$.
+
+This is why each term in the sum becomes $u_1 (z) dot.op p_c (z) dot.op x_(sigma_1 (z)) dot.op y_(sigma_2 (z))$. Fixing the opponent's strategy $y$ means that each term is a constant times a single entry of $x$, so the payoff is linear in $x$ and symmetric in $y$.
+  ]
+
 *Pros*  This representation of extensive-form games is convex. Hence, we can use all the convex optimization tools we have seen so far.
 
 = Bibliography for this lecture
@@ -272,5 +288,5 @@ Conversely, it is easy to see that any $vx$ that satisfies the above constraints
   - *Thirders* answer $1\/3$. When she wakes, Sleeping Beauty could be in one of three situations: 1) heads and Monday, 2) tails and Monday, or 3) tails and Tuesday. She cannot tell these three situations apart. If the experiment were repeated 100 times, about 50 runs would land heads and produce one awakening each, while about 50 runs would land tails and produce two awakenings each. Therefore, in this example, there are 150 awakenings, but only 50 of them were a result of the heads, so the answer is $1\/3$.
   
 
-  *Why it is relevant.* Viewing this as a game tree, we see that the three possible awakenings form a single information set. In fact, this informaiton set is absentminded because the tails-Monday awakening lies on the path to the tails-Tuesday awakening. The halfer counts each play of the game once, while the thirder counts each visit to the information set once, and the game tree does not distinguish between these two in terms of correctness. Under imperfect recall, optimality depends on modeling choices. In the context of the Sleeping Beauty problem, if she is offered a bet on heads at every awakening and every bet counts, a tails run produces two bets, and the thirders are correct. If only one bet per run counts, the halfers are right.
+  *Why it is relevant.* Viewing this as a game tree, we see that the three possible awakenings form a single information set. In fact, this information set is absentminded because the tails-Monday awakening lies on the path to the tails-Tuesday awakening. The halfer counts each play of the game once, while the thirder counts each visit to the information set once, and the game tree does not distinguish between these two in terms of correctness. Under imperfect recall, optimality depends on modeling choices. In the context of the Sleeping Beauty problem, if she is offered a bet on heads at every awakening and every bet counts, a tails run produces two bets, and the thirders are correct. If only one bet per run counts, the halfers are right.
 ]
