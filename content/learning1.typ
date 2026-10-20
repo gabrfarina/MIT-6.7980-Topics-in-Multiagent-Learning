@@ -204,6 +204,13 @@ With a simple modification to the analysis of RM, the same bound as RM can be pr
   text-width: 47%,
 )
 
+@fig-mwu-ftl shows that as $eta -> oo$ (zero temperature), MWU approaches follow-the-leader on the counterexample above.
+
+#figure(
+  image("figures/learning1/mwu_ftl.svg", width: 100%),
+  caption: [Left: probability $x^((t))_1$ of the first action under MWU with $eta in {1, 4, 16}$ and under follow-the-leader (dashed). Right: probability that MWU puts on the action played by follow-the-leader at time $t = 10$, as a function of $eta$.],
+) <fig-mwu-ftl>
+
 Compared to RM, MWU has a different flavor: it uses _softmax_ instead of ReLU. This change in prioritization function has a pretty significant impact on the regret bound that multiplicative weights guarantees. In particular, the following can be shown:
 
 #theorem[Regret bound for MWU][
