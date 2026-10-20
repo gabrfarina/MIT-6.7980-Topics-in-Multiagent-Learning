@@ -232,6 +232,140 @@ Conversely, it is easy to see that any $vx$ that satisfies the above constraints
 
 *Pros*  This representation of extensive-form games is convex. Hence, we can use all the convex optimization tools we have seen so far.
 
+= Practice problems <sec-efg-practice>
+
+The following problems relate the normal-form and extensive-form representations of a game, and then show that perfect-information games, a subclass of extensive-form games, always have pure Nash equilibria, unlike games in general. In the game trees below, black nodes belong to Player~1, white nodes belong to Player~2, squares are terminal histories, and shaded regions are information sets.
+
+#exercise[From normal form to extensive form][
+  Prove that any finite normal-form game with $N$ players, each having $K$ available actions, can be represented as an extensive-form game. Your proof should be constructive---that is, you should describe a general procedure that takes the game's payoff structure as input and produces a valid game tree. How many leaves (terminal nodes) does this game tree have?
+] <ex-nfg-to-efg>
+
+#solution[
+  Let the normal-form game have action sets $A_1, ..., A_N$ with $|A_i| = K$, and payoff functions $u_i : A_1 times dots.c times A_N -> bb(R)$. The idea is to let the players move one after the other, while hiding all earlier moves from each player, so that the sequential tree reproduces simultaneous play.
+
+  *Construction.* Build the tree level by level.
+  + The root is a history of Player~1, with one outgoing edge for each action $a_1 in A_1$.
+  + For $i = 2, ..., N$, each history at depth $i - 1$ corresponds to the partial profile $(a_1, ..., a_(i-1))$ of actions on its path. Assign every such history to Player~$i$, with one outgoing edge for each action $a_i in A_i$. Place all $K^(i-1)$ histories at depth $i - 1$ in a _single_ information set $I_i$ of Player~$i$. This is legal because all of them belong to Player~$i$, have the same action set $A_i$, and lie at the same depth, so none is a prefix of another.
+  + Each history at depth $N$ is a terminal history $z = (a_1, ..., a_N)$, with payoffs $u_i (z) := u_i (a_1, ..., a_N)$ for every player $i$.
+  The tree has no chance nodes.
+
+  *Correctness.* Each player $i$ has exactly one information set, $cal(I)_i = {I_i}$, with $A_(I_i) = A_i$. So a pure strategy of Player~$i$ in the tree is exactly an action $a_i in A_i$, and a mixed strategy is exactly a distribution over $A_i$. A pure profile $(a_1, ..., a_N)$ leads from the root to the unique terminal history $(a_1, ..., a_N)$, whose payoffs are $u_i (a_1, ..., a_N)$. Hence the tree has the same strategy sets and payoff functions as the original game: its normal form is the original game, and in particular the two have the same Nash equilibria.
+
+  *Number of leaves.* Each level multiplies the number of histories by $K$, so there are $K^i$ histories at depth $i$, and the tree has
+  $
+    |Z| = K^N
+  $
+  leaves, one per pure strategy profile.
+]
+
+#exercise[Rock-paper-scissors as a game tree][
+  Apply the procedure of @ex-nfg-to-efg to the game of rock-paper-scissors. Draw the complete extensive-form game tree. Assume the standard payoffs: the winner receives $+1$, the loser receives $-1$, and a tie results in $0$ for both players. Be sure to correctly draw and label all nodes, actions, payoffs, and the information set(s) for Player~2.
+] <ex-rps-efg>
+
+#solution[
+  Here $N = 2$ and $K = 3$, with actions $upsans(R)$ (rock), $upsans(P)$ (paper), and $upsans(S)$ (scissors). Player~1 acts at the root, which forms information set $upsans(A)$. Each of Player~1's actions leads to a history of Player~2, and these three histories form Player~2's single information set $upsans(B)$. Each of the $3^2 = 9$ leaves is labeled with the payoffs $(u_1, u_2)$: the leaf reached by $(a_1, a_2)$ gets $(0, 0)$ if $a_1 = a_2$, $(+1, -1)$ if $a_1$ beats $a_2$ ($upsans(R)$ beats $upsans(S)$, $upsans(S)$ beats $upsans(P)$, and $upsans(P)$ beats $upsans(R)$), and $(-1, +1)$ otherwise.
+
+  #align(center)[
+    #image("figures/efg_intro/rps_efg.svg")
+  ]
+
+  The information set $upsans(B)$ is essential: without it, Player~2 would observe Player~1's move before acting, which is a different game.
+]
+
+#exercise[From extensive form to normal form][
+  Prove that any finite extensive-form game can be converted into a normal-form representation.
+] <ex-efg-to-nfg>
+
+#solution[
+  Fix a finite extensive-form game with players $[n]$, information sets $cal(I)_i$ for each player $i in [n]$, terminal histories $Z$, and payoffs $u_i : Z -> bb(R)$. We fill in the details of the construction sketched in @sec-strategic-form.
+
+  *Strategies.* A pure strategy must tell Player~$i$ what to do wherever they may be called to act. The player cannot distinguish histories in the same information set, so a pure strategy picks one action per information set:
+  $
+    S_i := product_(I in cal(I)_i) A_I, quad s_i = (s_i (I))_(I in cal(I)_i).
+  $
+  The tree is finite, so $cal(I)_i$ and every $A_I$ are finite, and $S_i$ is finite with $|S_i| = product_(I in cal(I)_i) |A_I|$.
+
+  *Payoffs.* Fix a pure profile $s = (s_1, ..., s_n)$. Call a terminal history $z in Z$ _consistent_ with $s$ if, at every history $h$ on the path from the root to $z$ that belongs to a player $i in [n]$, the path takes action $s_i (I)$, where $I in cal(I)_i$ is the information set containing $h$. Let $p_c (z)$ be the product of the probabilities of the chance actions on the path to $z$, with $p_c (z) = 1$ if there are none, and set
+  $
+    PP_s (z) := cases(p_c (z) & "if" z "is consistent with" s\,, 0 & "otherwise.")
+  $
+  We claim this is the distribution over terminal histories induced by $s$. Indeed, by induction on depth, when the players follow $s$, each history is reached with probability equal to the product of the chance probabilities on its path if every player action on that path agrees with $s$, and $0$ otherwise: a history of Player~$i$ in information set $I$ passes all of its probability to the child reached by $s_i (I)$, and a chance history splits its probability by the chance probabilities. At the terminal histories this is $PP_s$. Define
+  $
+    U_i (s) := sum_(z in Z) PP_s (z) u_i (z) quad forall i in [n].
+  $
+  The normal-form game with players $[n]$, finite strategy sets $S_i$, and payoffs $U_i$ is the required representation. By construction, $U_i (s)$ is Player~$i$'s expected payoff when the players follow $s$ in the tree. A mixed profile $(sigma_1, ..., sigma_n)$ corresponds to each player independently sampling $s_i ~ sigma_i$ before play starts and then following $s_i$, so by linearity of expectation its expected payoff in the tree equals its mixed payoff in the normal-form game.
+]
+
+#exercise[Computing a normal form][
+  Consider the simple two-player extensive-form game below. The top number at each leaf is the payoff of Player~1, and the bottom number is the payoff of Player~2.
+
+  #align(center)[
+    #image("figures/efg_intro/practice_efg.svg")
+  ]
+
+  List all distinct pure strategies for Player~1 and Player~2. Then construct the normal-form representation of this game. The rows should correspond to Player~1's strategies and the columns to Player~2's strategies. The entries in the matrix should be the payoff tuples $(u_1, u_2)$ that result from each strategy profile.
+] <ex-efg-to-nfg-example>
+
+#solution[
+  *Player~1* has three information sets: $upsans(A)$ with actions ${upsans(1), upsans(2)}$, $upsans(B)$ with actions ${upsans(3), upsans(4)}$, and $upsans(C)$ with actions ${upsans(5), upsans(6), upsans(7)}$. We write a pure strategy as the actions it picks at $upsans(A)$, $upsans(B)$, and $upsans(C)$, in this order. There are $2 dot 2 dot 3 = 12$ of them:
+  $
+    upsans("135"), upsans("136"), upsans("137"), upsans("145"), upsans("146"), upsans("147"), upsans("235"), upsans("236"), upsans("237"), upsans("245"), upsans("246"), upsans("247").
+  $
+
+  *Player~2* has two information sets: $upsans(X)$ with actions ${upsans(a), upsans(b)}$, and $upsans(Y)$ with actions ${upsans(c), upsans(d)}$. Writing the actions at $upsans(X)$ and $upsans(Y)$ in order gives $2 dot 2 = 4$ pure strategies:
+  $
+    upsans("ac"), upsans("ad"), upsans("bc"), upsans("bd").
+  $
+
+  *Normal form.* Each entry follows the path a profile induces; for example, under $(upsans("236"), upsans("ad"))$ play follows $upsans(2)$, then $upsans(d)$, then $upsans(6)$, which yields $(8, 12)$. The resulting normal form, with rows reordered to group payoff-equivalent strategies of Player~1, is
+  #align(center, block(breakable: false, table(
+    columns: 5,
+    [], [$upsans("ac")$], [$upsans("ad")$], [$upsans("bc")$], [$upsans("bd")$],
+    [$upsans("135")$], [$3, 10$], [$3, 10$], [$6, 6$], [$6, 6$],
+    [$upsans("136")$], [$3, 10$], [$3, 10$], [$6, 6$], [$6, 6$],
+    [$upsans("137")$], [$3, 10$], [$3, 10$], [$6, 6$], [$6, 6$],
+    [$upsans("145")$], [$6, 3$], [$6, 3$], [$4, 12$], [$4, 12$],
+    [$upsans("146")$], [$6, 3$], [$6, 3$], [$4, 12$], [$4, 12$],
+    [$upsans("147")$], [$6, 3$], [$6, 3$], [$4, 12$], [$4, 12$],
+    [$upsans("235")$], [$5, 5$], [$-2, 3$], [$5, 5$], [$-2, 3$],
+    [$upsans("245")$], [$5, 5$], [$-2, 3$], [$5, 5$], [$-2, 3$],
+    [$upsans("236")$], [$10, 7$], [$8, 12$], [$10, 7$], [$8, 12$],
+    [$upsans("246")$], [$10, 7$], [$8, 12$], [$10, 7$], [$8, 12$],
+    [$upsans("237")$], [$1, 7$], [$9, 5$], [$1, 7$], [$9, 5$],
+    [$upsans("247")$], [$1, 7$], [$9, 5$], [$1, 7$], [$9, 5$],
+  )))
+  Rows within a group coincide because after $upsans(1)$ information set $upsans(C)$ is never reached, and after $upsans(2)$ information set $upsans(B)$ is never reached. Collapsing each group gives the five reduced normal-form plans $upsans("13"), upsans("14"), upsans("25"), upsans("26"), upsans("27")$ of @sec-strategic-form. Player~2's strategies do not collapse in this way: for example, $upsans("ac")$ and $upsans("ad")$ agree on the $upsans(1)$-rows but differ on the $upsans(2)$-rows.
+]
+
+We now analyze a special class of extensive-form games. A _perfect-information sequential game_ is one whose game tree has only singleton information sets, so each player knows exactly which history they are at, and no chance nodes; tic-tac-toe, chess, and go are classic examples. While normal-form games do not always have a pure Nash equilibrium (think of rock-paper-scissors), perfect-information sequential games always do.
+
+#exercise[Pure equilibria in perfect-information games][
+  Prove that every finite perfect-information sequential game has a _pure_ Nash equilibrium, that is, one in which every player uses a _deterministic_ strategy (all probability mass placed on one action).
+] <ex-pure-ne-perfect-info>
+
+#solution[
+  We use _backward induction_. All information sets are singletons, so a pure strategy of Player~$i$ picks an action $s_i (h) in A_h$ at every history $h$ of Player~$i$, where $A_h$ is the set of actions available at $h$. For any history $h$, the subtree rooted at $h$ is itself a finite perfect-information game, which we denote $Gamma_h$. There are no chance nodes, so every pure profile of $Gamma_h$ leads to a single terminal history. We prove the following claim by strong induction on the height of the subtree rooted at $h$:
+
+  _For every history $h$, the game $Gamma_h$ has a pure Nash equilibrium $s^h$._
+
+  We write $vv(h) in bb(R)^n$ for the payoffs of $s^h$. Applying the claim at the root proves the result.
+
+  *Base case.* If $h$ is terminal, nobody acts in $Gamma_h$. The empty profile is trivially an equilibrium, with $v_i (h) = u_i (h)$.
+
+  *Inductive step.* Let $h$ be a non-terminal history belonging to Player~$i$, and for each $a in A_h$ let $h a$ denote the child reached by playing $a$. Each subtree rooted at $h a$ has smaller height, so by the inductive hypothesis $Gamma_(h a)$ has a pure equilibrium $s^(h a)$ with payoffs $vv(h a)$. Since $A_h$ is finite and nonempty, we can pick
+  $
+    a^star in argmax_(a in A_h) v_i (h a).
+  $
+  Define the pure profile $s^h$ of $Gamma_h$ to play $a^star$ at $h$ and to follow $s^(h a)$ at every history in the subtree rooted at $h a$, for every $a in A_h$. This is well defined because the subtrees are disjoint. Under $s^h$, play moves to $h a^star$ and then follows $s^(h a^star)$, so $vv(h) = vv(h a^star)$.
+
+  Next we check that no player $j$ has a profitable pure deviation $s'_j$ in $Gamma_h$, where the other players keep playing $s^h_(-j)$.
+  - If $j = i$ and $s'_i (h) = a != a^star$, play moves to $h a$ and continues in $Gamma_(h a)$, where Player~$i$ deviates from the equilibrium $s^(h a)$ alone. By the inductive hypothesis, Player~$i$ gets at most $v_i (h a) <= v_i (h a^star) = v_i (h)$.
+  - Otherwise, either $j != i$ or $s'_i (h) = a^star$, and play moves to $h a^star$. From there, Player~$j$ deviates alone from the equilibrium $s^(h a^star)$ of $Gamma_(h a^star)$, so by the inductive hypothesis gets at most $v_j (h a^star) = v_j (h)$. Choices in subtrees other than the one rooted at $h a^star$ are never reached and do not affect the payoff.
+  Pure deviations therefore do not help. Since the opponents play deterministically, the payoff of a mixed deviation is an average of the payoffs of pure deviations, so it cannot help either. Hence $s^h$ is a pure Nash equilibrium of $Gamma_h$, completing the induction.
+
+  Perfect information is what makes each $Gamma_h$ a game of its own and lets Player~$i$ pick $a^star$ separately at each history; in rock-paper-scissors (@ex-rps-efg), by contrast, Player~2 must pick one action for all of $upsans(B)$. Finally, $s^h$ restricts to $s^(h')$ on the subtree rooted at any history $h'$ below $h$, so the profile built at the root is an equilibrium of every $Gamma_h$, that is, a subgame perfect equilibrium, which rules out the non-credible threats discussed in #lecture-link("perfection").
+]
+
 = Bibliography for this lecture
 
 #lec_bibliography("meta/refs.bib", title: none)
