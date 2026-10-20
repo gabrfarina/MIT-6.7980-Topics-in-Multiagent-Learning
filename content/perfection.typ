@@ -54,10 +54,20 @@ Unfortunately, domination of strategies is not the root cause of sequential irra
   )
 ] <ex:guess-the-ace-x>
 
-== Rational and Irrational Nash equilibria
-The gift selection of @ex:guess-the-ace-x is not important when computing a Nash Equilibria because optimal players would reach that part of the game tree. Consequently, Nash Equilibria depend only on Player1 choosing to quit. The general set of Nash equilibria are ${(0, q, g_C, g_D) : o=0, q, g_C, g_D in [0, 1]}$ where $o$ is probability of quitting, $q$ is probability of not ace, and $g_*$ is probability of giving a gift in state $* in {C, D}$. 
+== Rational and Irrational Nash equilibria in Guess-the-Ace
+<sec:une-equilibria>
+Player1's choice to gift at nodes $C, D$ does not effect the Nash Equilibria because optimal players would never reach that part of the game tree. Consequently, Nash Equilibria depend only on Player1 choosing to quit. The general set of Nash equilibria are:
 
-In @ex:guess-the-ace-x, ${(0, 1, 0, 0)}$ is the rational Nash equilibrium, while ${(0, q, g_C, g_D): q in.not 1 or g_C in.not 0 or g_D in.not 0}$ are irrational equilibria. 
+$
+{(o, q, g_C, g_D) : o=0, q, g_C, g_D in [0, 1]}
+
+$ 
+where $o$ is the probability that Player 1 offers (entering Player 2's
+information set $A$), $q$ is the probability that Player 2 guesses the ace,
+and $g_k$ is the probability that Player 1 gives the gift at decision
+point $k in \{C, D\}$. 
+
+The rational equilibrium is ${(0, 1, 0, 0)}$, while ${(0, q, g_C, g_D): q in.not 1 or g_C in.not 0 or g_D in.not 0}$ are irrational equilibria. 
 
 
 = Trembling-hand refinements
@@ -219,7 +229,65 @@ The practical algorithm is 3-4 orders of magnitude faster than the conceptual al
 
 #lec_bibliography("meta/refs.bib", title: none)
 
+
 #appendix[
+  = "Rational" Nash Equilibrium in @ex:guess-the-ace-x
+  From @sec:une-equilibria, the set of Nash equilibria in @ex:guess-the-ace-x is
+  $
+  {(o, q, g_C, g_D) : o=0, q, g_C, g_D in [0, 1]}.
+  $
+  The rational equilibrium is ${(0, 1, 0, 0)}$, while ${(0, q, g_C, g_D): q in.not 1 or g_C in.not 0 or g_D in.not 0}$ are irrational equilibria.
+
+  == Lemma: Player1 incentives
+  <sec:player1-incentives>
+  The game states are defined sequentially as follows: $x_O$ is the probability that Player 1 offers, $x_Q$ is the probability that Player 1 does not offer, $x_"OG"_k$ is the probability that Player1 gifts and $x_"OK"_k$ is the proabbility that Player1 keeps for $k in {C, D}$, lastly, $y_A$ is probability that Player2 guesses the ace, and $y_{not A}$ is the probability that Player2 guesses not the ace.
+
+  $
+  u_1(x, y) = -y_{not A}(frac(51, 52) x_O + frac(1, 52) x_"OG"_C) - y_A (frac(1, 52) x_O + frac(51, 52) x_"OG"_D)
+  $
+
+  Taking the derivatives we can see what happens to utility as we modify $x_O, x_"OG"_C, x_"OG"_D$ slightly, while keeping the other variables fixed. The derivatives are:
+
+  $
+  frac(d u_1(x, y), d x_O) = - (frac(51, 52) y_{not A} + frac(1, 51) y_A) < 0 \
+  frac(d u_1(x, y), d x_"OG"_C) = - frac(1, 52) y_{not A} < 0 \
+  frac(d u_1(x, y), d x_"OG"_D) = - frac(51, 52) y_A < 0 \
+  $
+
+  We can gather any increase in $x_O, x_"OG"_C, x_"OG"_D$ decreases Player1's utility. 
+
+  == Proof: EFPE recovers "Rational" Nash Equilibrium
+  From @sec:player1-incentives, Player1 maximizes utility by minimizing $x_O, x_"OG"_C, x_"OG"_D$. Under EFPE, these values are lower bounded by $epsilon.alt dot x_"prev"$ and $epsilon.alt$ when $x_"prev"$ does not exist. Thus, the EFPE solution is:
+
+  $
+  x^epsilon.alt = (x_O, x_Q, x_"OG"_C, x_"OK"_C, x_"OG"_D, x_"OK"_D) = (epsilon.alt, 1-epsilon.alt, epsilon.alt^2, 1 - epsilon.alt^2, epsilon.alt^2, 1 - epsilon.alt^2)
+  $
+
+  Under this setting, Player2's utility is
+
+  $
+  u_2(x, y) = -u_1(x, y) = y_{not A}(frac(51, 51) epsilon.alt + frac(1, 52) epsilon.alt^2) + y_A (frac(1, 52) epsilon.alt + frac(51, 52) epsilon.alt^2)
+  $
+
+  Taking the difference between $y_{not A}$ and $y_A$ options, we get
+  $
+    frac(epsilon.alt, 52) [(51 + epsilon.alt) - (1 + 51 epsilon.alt)] > 0 
+  $
+
+  Thus the unique best response for Player2 is ($y_{not A}, y_A) = (1-epsilon.alt, epsilon)$
+
+  *Uniqueness:* In any equilibrium of the perturbed game, Player1 must play $x^epsilon.alt$ since it is the unique best response to every $y$. Then Player2 must play $y^epsilon.alt$ because it is the unique best response to $x^epsilon.alt$. As a result, the perterbed game has a unique equilibrium.
+
+  *Limit:* Behaviorally
+
+  $
+  pi(O|r) = epsilon.alt wide pi(G_k|j_k) = frac(epsilon.alt^2, epsilon.alt) = epsilon.alt wide pi(N) = 1 - epsilon.alt
+  $
+
+  As $epsilon.alt -> 0^(+)$, the limit converges to the rational equilibrium. Quit; Keep at Gift nodes; guess not Ace. 
+
+
+
   = Why not uniform lower bounds in QPE?
 
   Not all vanishing perturbations $vell_1 \( epsilon.alt \) \, vell_2 \( epsilon.alt \)$ in the QPE
