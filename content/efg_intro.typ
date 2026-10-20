@@ -137,6 +137,36 @@ As a remark, @def:tfdp leaves the labeling and structure of observation nodes un
   ]
 ]
 
+#paragraph-marker() *An explicit construction*~~ @algo:efg-to-tfdp builds a TFDP for Player~$i$ directly from the game tree. A first pass records, for every sequence $sigma$ (a pair $(I, a)$ with $I in cal(I)_i$ and $a in A_I$, or the empty sequence $∅$), the set $C[sigma]$ of information sets where Player~$i$ can make their next decision after $sigma$, and whether the game can end after $sigma$ without Player~$i$ acting again. A second pass assembles the TFDP top-down, inserting an observation node only where more than one outcome can follow $sigma$.
+
+#pseudocode-list(numbered-title: [Converting a game tree into a TFDP for Player $i$])[
+  - _Pass 1: record what can follow each sequence._
+  + $C[sigma] <- emptyset$ and $"end"[sigma] <- "false"$ for every sequence $sigma$
+  + *function* `Collect`($h$, $sigma$)
+    + *if* $h in Z$:
+      + $"end"[sigma] <- "true"$
+    + *else if* $h$ belongs to Player~$i$:
+      + Let $I in cal(I)_i$ be the information set containing $h$
+      + $C[sigma] <- C[sigma] union {I}$
+      + *for each* $a in A_I$: `Collect`(child of $h$ via $a$, $(I, a)$)
+    + *else*:
+      + *for each* action $a$ at $h$: `Collect`(child of $h$ via $a$, $sigma$)
+  + `Collect`(root of the game tree, $∅$)
+  - _Pass 2: build the TFDP top-down._
+  + *function* `Build`($sigma$)
+    + *if* $C[sigma] = emptyset$: *return* a new terminal node
+    + *if* $C[sigma] = {I}$ *and* $"end"[sigma] = "false"$: *return* `Decision`($I$)
+    + Create an observation node $k$ with one signal per $I in C[sigma]$, leading to `Decision`($I$)
+    + *if* $"end"[sigma] = "true"$: add a signal at $k$ leading to a new terminal node
+    + *return* $k$
+  + *function* `Decision`($I$)
+    + Create decision node $j = I$ with actions $A_I$; for each $a in A_I$, connect $a$ to `Build`($(I, a)$)
+    + *return* $j$
+  + *return* `Build`($∅$)
+] <algo:efg-to-tfdp>
+
+Since all histories in an information set have the same trace, each $I$ lands in exactly one set $C[sigma]$, so the output is a tree, and the path from its root to $I$ is the trace of $I$. (The sets $C[sigma]$ are the sets $C_sigma$ of @sec-tfdp-notation.) For example, in Kuhn poker $C[∅] = {upsans(A), upsans(B), upsans(C)}$, giving the root observation node of @fig:kuhn-tfdp; after $(upsans(A), upsans("check"))$ the game can end or reach $upsans(D)$, giving the observation node below $upsans(A)$; and after $(upsans(A), upsans("bet"))$ the process ends.
+
 == Some notation <sec-tfdp-notation>
 
 Trees always require a bit of notation to be handled properly. We introduce some notation that will be useful when discussing decision problems faced by players in tree-form games.
