@@ -131,6 +131,8 @@ If we are content with non-Markovian strategies, a finite-horizon stochastic gam
 
 Finally, we remark that in finite-horizon games, there typically do not exist Nash equilibria in stationary and Markovian policies, because the best response of a player to the policies of the other players, even if all other players use stationary and Markovian policies, typically depends on the number of interaction steps that remain. In infinite-horizon games, however, equilibria in stationary and Markovian policies do exist, as we show in the next section.
 
+@ex-finite-horizon-stationarity gives a two-stage example and explains how including time in the state changes the stationary-policy restriction.
+
 == The infinite-horizon case
 
 #theorem[#citep(<takahashi1964equilibrium>)#citep(<fink1964equilibrium>)][
@@ -330,6 +332,90 @@ The computational comparisons should therefore be made with their models specifi
 - General-sum two-player normal-form Nash computation is PPAD-complete #citep(<chen2009settling>). For more players, exact algebraic solutions and approximate equilibria must be distinguished #citep(<etessami2010fixedpoints>).
 
 Simple stochastic games, studied by #citet(<condon1992stochastic>), form a different model: a turn-based reachability game with maximizing, minimizing, and random vertices. The decision problem belongs to NP intersect coNP. This result is not a claim about strongly polynomial algorithms for arbitrary simultaneous-move discounted Markov games. Here, “polynomial time” counts the binary encoding of numerical data, whereas “strongly polynomial” imposes a stricter arithmetic-operation requirement.
+
+= Problems <sec-stochastic-games-problems>
+
+#exercise[Finite horizons and stationary policies][
+  Construct a finite-horizon stochastic game with finite state and action sets that has no Nash equilibrium in stationary Markov policies, including randomized stationary policies. Use the Nash equilibrium definition of this lecture: a player may compare their policy with any history-dependent alternative. You may use a Markov decision process for Player 1 and add a second player with a single available action.
+
+  + Specify the states, actions, rewards, transition probabilities, horizon, discount factor, and initial distribution.
+  + Prove that every stationary Markov policy profile admits a strictly profitable unilateral change of policy. Your argument must cover all randomization probabilities, including deterministic policies.
+  + Exhibit a time-dependent Markov equilibrium and explain why including the stage index in the state makes it stationary in the expanded game. Specify the expanded state space and dynamics, including what happens when the horizon ends.
+] <ex-finite-horizon-stationarity>
+
+#solution[
+  *1. A game with two decisions.*
+  Let $S = {s,z}$, where $s$ is an active state and $z$ is an absorbing state. Player 1 has actions $A_1 = {c,e}$, called _continue_ and _exit_. Player 2 has the single action $A_2 = {d}$ and receives reward $0$ at every stage. The horizon is $H=2$, with stages $t=0,1$, the discount factor is $gamma=1$, and the initial distribution puts probability $1$ on $s$.
+
+  The following table specifies Player 1's reward and the next state. All transitions are deterministic; each listed next state has probability $1$, and all other next states have probability $0$.
+
+  #block(breakable: false)[#table(
+    columns: (auto, auto, auto, auto),
+    align: center,
+    inset: 6pt,
+    table.header([Current state], [Action profile], [Reward $r_1$], [Next state]),
+    [$s$], [$(c,d)$], [$1$], [$s$],
+    [$s$], [$(e,d)$], [$2$], [$z$],
+    [$z$], [$(c,d)$ or $(e,d)$], [$0$], [$z$],
+  )]
+
+  Each player receives the sum of their rewards at stages $0$ and $1$. There is no additional terminal reward. Thus, continuing earns $1$ and preserves the opportunity to act in $s$; exiting earns $2$ and ends all opportunities for positive rewards. The reward and transition rules themselves are independent of time.
+
+  *2. Every randomized stationary policy is suboptimal.*
+  Fix an arbitrary stationary Markov policy $pi_1$. Write
+  $ p := pi_1(e \| s) in [0,1]. $
+  Whenever the current state is $s$, this policy exits with conditional probability $p$ and continues with probability $1-p$, regardless of the stage or the preceding history. Its action distribution at $z$ is arbitrary and has no effect on rewards or transitions. Player 2's policy $pi_2$ is uniquely determined by its single action.
+
+  At stage $0$, the expected reward of Player 1 is
+  $ 2p + 1(1-p) = 1+p. $
+  The state at stage $1$ is $s$ with probability $1-p$, precisely when Player 1 continued at stage $0$. Conditional on reaching $s$, stationarity gives the same expected reward $1+p$ again. Otherwise the reward is $0$. Therefore
+  $
+    u_1(pi_1,pi_2)
+      = (1+p) + (1-p)(1+p)
+      = 2+p-p^2
+      = frac(9,4) - (p-frac(1,2))^2
+      <= frac(9,4).
+  $
+  This calculation covers every $p in [0,1]$. In particular, the deterministic policies $p=0$ and $p=1$ both give utility $2$, and the largest stationary utility, $9/4$, is attained at $p=1/2$.
+
+  Now consider the deterministic Markov policy $pi_1^*$ that continues in $s$ at stage $0$ and exits in $s$ at stage $1$. At $z$ it chooses $c$ at either stage. Starting from $s$, it receives $1+2=3$, so for every stationary $pi_1$,
+  $
+    u_1(pi_1^*,pi_2)-u_1(pi_1,pi_2)
+      = frac(3,4) + (p-frac(1,2))^2
+      >= frac(3,4) > 0.
+  $
+  The policy $pi_1^*$ is an admissible alternative in the lecture's Nash equilibrium definition: the length of the observed history determines the current stage. Hence every stationary Markov profile admits this strictly profitable unilateral change by Player 1, proving the required nonexistence.
+
+  *3. A time-dependent Markov equilibrium.*
+  The same policy $pi_1^*$ is optimal even when compared with arbitrary randomized, history-dependent policies. On any trajectory starting from $s$, exiting at stage $0$ gives total reward $2$. Continuing at stage $0$ gives reward $1$, followed by a final reward of at most $2$. Every trajectory therefore has total reward at most $3$, so every such policy has expected utility at most $3$. The policy $pi_1^*$ attains this bound. Player 2 has no alternative action, and consequently $(pi_1^*,pi_2)$ is a Nash equilibrium in time-dependent Markov policies.
+
+  Backward induction also explains the decision. At stage $1$ in state $s$, exiting gives $2$ and continuing gives $1$. At stage $0$, continuing and then playing optimally gives $1+2=3$, while exiting immediately gives $2$. The optimal action changes because the number of remaining decisions changes. Both visits to $s$ occur with probability $1$ under $pi_1^*$.
+
+  *4. Including time in the state.*
+  Define an expanded finite-horizon game with the same action sets, horizon $H=2$, and discount factor $gamma=1$. Its state space and initial distribution are
+  $
+    tilde(S) = (S times {0,1}) union {bot},
+    quad tilde(mu)((s,0)) = 1,
+  $
+  where $bot$ is a terminal state and all other initial probabilities are $0$. At an expanded state $(x,t)$, for $x in S$ and $t in {0,1}$, keep the original immediate rewards:
+  $ tilde(r)_i ((x,t),a) = r_i (x,a). $
+  For $t=0$, carry the original transition to the next time layer:
+  $ tilde(ℙ)((y,1) \| (x,0),a) = ℙ(y \| x,a) quad (x,y in S). $
+  From any $(x,1)$, move to $bot$ with probability $1$. At $bot$, all rewards are $0$ and the state remains $bot$. These rules specify every state and action; all unlisted transition probabilities are $0$. The transition after stage $1$ occurs after the final reward and contributes no further utility.
+
+  In the expanded game, Player 1 can use the stationary deterministic policy that selects
+  $
+    tilde(pi)_1^*(x,t) =
+      cases(e & "if " x=s " and " t=1,
+            c & "otherwise"),
+    quad tilde(pi)_1^*(bot)=c,
+  $
+  where selecting an action means assigning it probability $1$. Player 2 always selects $d$. This is a function of the expanded state alone. It continues at $(s,0)$ and exits at $(s,1)$, achieving the same total reward $3$.
+
+  The clock records information already available from the history length. Every original trajectory corresponds to an expanded trajectory with the same actions, rewards, and probabilities, with the stage index attached to each state. An arbitrary history-dependent alternative in the expanded game can therefore be used in the original game by reconstructing those indices from the history. Its expected utility is still at most $3$. Thus the displayed stationary profile is a Nash equilibrium of the expanded game against all history-dependent alternatives.
+
+  More generally, a finite-horizon Markov policy $pi_i (x,t)$ becomes a stationary policy on time-indexed states by setting $tilde(pi)_i (x,t)=pi_i (x,t)$. In the example, $(s,0)$ and $(s,1)$ are distinct expanded states, so a stationary policy on this state space can make the two different decisions that the horizon requires.
+] <sol-finite-horizon-stationarity>
 
 = Bibliography for this lecture
 
