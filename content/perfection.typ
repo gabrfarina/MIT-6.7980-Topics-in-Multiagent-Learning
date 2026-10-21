@@ -240,15 +240,15 @@ The practical algorithm is 3-4 orders of magnitude faster than the conceptual al
   The game states are defined sequentially as follows: $x_O$ is the probability that Player 1 offers, $x_Q$ is the probability that Player 1 does not offer, $x_"OG"_k$ is the probability that Player1 gifts and $x_"OK"_k$ is the proabbility that Player1 keeps for $k in {C, D}$, lastly, $y_A$ is probability that Player2 guesses the ace, and $y_{not A}$ is the probability that Player2 guesses not the ace.
 
   $
-  u_1(x, y) = -y_{not A}(frac(51, 52) x_O + frac(1, 52) x_"OG"_C) - y_A (frac(1, 52) x_O + frac(51, 52) x_"OG"_D)
+  u_1(x, y) = -y_(not A suit.spade.filled)(frac(51, 52) x_O + frac(1, 52) x_"OG"_C) - y_(A suit.spade.filled) (frac(1, 52) x_O + frac(51, 52) x_"OG"_D)
   $
 
   Taking the derivatives we can see what happens to utility as we modify $x_O, x_"OG"_C, x_"OG"_D$ slightly, while keeping the other variables fixed. The derivatives are:
 
   $
-  frac(d u_1(x, y), d x_O) = - (frac(51, 52) y_{not A} + frac(1, 51) y_A) < 0 \
-  frac(d u_1(x, y), d x_"OG"_C) = - frac(1, 52) y_{not A} < 0 \
-  frac(d u_1(x, y), d x_"OG"_D) = - frac(51, 52) y_A < 0 \
+  frac(d u_1(x, y), d x_O) = - (frac(51, 52) y_(not A suit.spade.filled) + frac(1, 51) y_A) < 0 \
+  frac(d u_1(x, y), d x_"OG"_C) = - frac(1, 52) y_(not A suit.spade.filled) < 0 \
+  frac(d u_1(x, y), d x_"OG"_D) = - frac(51, 52) y_(A suit.spade.filled) < 0 \
   $
 
   Any increase in $x_O, x_"OG"_C, x_"OG"_D$ decreases Player1's utility. 
@@ -264,15 +264,15 @@ The practical algorithm is 3-4 orders of magnitude faster than the conceptual al
   Under this setting, Player2's utility is
 
   $
-  u_2(x, y) = -u_1(x, y) = y_(not A)(frac(51, 51) epsilon.alt + frac(1, 52) epsilon.alt^2) + y_A (frac(1, 52) epsilon.alt + frac(51, 52) epsilon.alt^2)
+  u_2(x, y) = -u_1(x, y) = y_(not A suit.spade.filled)(frac(51, 51) epsilon.alt + frac(1, 52) epsilon.alt^2) + y_(A suit.spade.filled) (frac(1, 52) epsilon.alt + frac(51, 52) epsilon.alt^2)
   $
 
-  Taking the difference between $y_{not A}$ and $y_A$ options, we get
+  Taking the difference between $y_(not A suit.spade.filled)$ and $y_(A suit.spade.filled)$ options, we get
   $
     frac(epsilon.alt, 52) [(51 + epsilon.alt) - (1 + 51 epsilon.alt)] > 0 
   $
 
-  Thus the unique best response for Player2 is ($y_(not A), y_A) = (1-epsilon.alt, epsilon)$
+  Thus the unique best response for Player2 is ($y_(not A suit.spade.filled), y_(A suit.spade.filled)) = (1-epsilon.alt, epsilon)$
 
   *Uniqueness:* In any equilibrium of the perturbed game, Player1 must play $x^epsilon.alt$ since it is the unique best response to every $y$. Then Player2 must play $y^epsilon.alt$ because it is the unique best response to $x^epsilon.alt$. As a result, the perterbed game has a unique equilibrium.
 
@@ -315,7 +315,7 @@ The practical algorithm is 3-4 orders of magnitude faster than the conceptual al
 Our lower bounds become 
 
   $
-  x_"OG"_k, x_"OK"_k >= epsilon.alt^2 wide x_O, x_Q >= epsilon.alt wide y_(not A), y_A >= epsilon.alt
+  x_"OG"_k, x_"OK"_k >= epsilon.alt^2 wide x_O, x_Q >= epsilon.alt wide y_(not A suit.spade.filled), y_(A suit.spade.filled) >= epsilon.alt
   $
 
   In addition there exists a flow constraint $x_"OG"_k + x_"OK"_k = x_O$. We know both $x_"OG"_k$ and $x_"OK"_k$ are lower bounded by $epsilon.alt^2$, so $x_O >= 2 epsilon.alt^2$. Consequently $x_O >= max(2 epsilon.alt^2, epsilon.alt)$. We will only investigate regime where $epsilon.alt < 1/2$, so $x_O >= epsilon.alt$. This is only constraint.
