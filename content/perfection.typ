@@ -62,10 +62,7 @@ $
 {(o, q, g_C, g_D) : o=0, q, g_C, g_D in [0, 1]}
 
 $ 
-where $o$ is the probability that Player 1 offers (entering Player 2's
-information set $A$), $q$ is the probability that Player 2 guesses the ace,
-and $g_k$ is the probability that Player 1 gives the gift at decision
-point $k in \{C, D\}$. 
+where $o$ is the probability that Player 1 offers (entering Player 2's information set $A$), $q$ is the probability that Player 2 guesses no ace, and $g_k$ is the probability that Player 1 gives the gift at decision point $k in \{C, D\}$. 
 
 The rational equilibrium is ${(0, 1, 0, 0)}$, while ${(0, q, g_C, g_D): q in.not 1 or g_C in.not 0 or g_D in.not 0}$ are irrational equilibria. 
 
@@ -254,9 +251,10 @@ The practical algorithm is 3-4 orders of magnitude faster than the conceptual al
   frac(d u_1(x, y), d x_"OG"_D) = - frac(51, 52) y_A < 0 \
   $
 
-  We can gather any increase in $x_O, x_"OG"_C, x_"OG"_D$ decreases Player1's utility. 
+  Any increase in $x_O, x_"OG"_C, x_"OG"_D$ decreases Player1's utility. 
 
-  == Proof: EFPE recovers "Rational" Nash Equilibrium
+  == EFPE recovers "Rational" Nash Equilibrium in @ex:guess-the-ace-x
+  <sec:efpe>
   From @sec:player1-incentives, Player1 maximizes utility by minimizing $x_O, x_"OG"_C, x_"OG"_D$. Under EFPE, these values are lower bounded by $epsilon.alt dot x_"prev"$ and $epsilon.alt$ when $x_"prev"$ does not exist. Thus, the EFPE solution is:
 
   $
@@ -266,7 +264,7 @@ The practical algorithm is 3-4 orders of magnitude faster than the conceptual al
   Under this setting, Player2's utility is
 
   $
-  u_2(x, y) = -u_1(x, y) = y_{not A}(frac(51, 51) epsilon.alt + frac(1, 52) epsilon.alt^2) + y_A (frac(1, 52) epsilon.alt + frac(51, 52) epsilon.alt^2)
+  u_2(x, y) = -u_1(x, y) = y_(not A)(frac(51, 51) epsilon.alt + frac(1, 52) epsilon.alt^2) + y_A (frac(1, 52) epsilon.alt + frac(51, 52) epsilon.alt^2)
   $
 
   Taking the difference between $y_{not A}$ and $y_A$ options, we get
@@ -274,7 +272,7 @@ The practical algorithm is 3-4 orders of magnitude faster than the conceptual al
     frac(epsilon.alt, 52) [(51 + epsilon.alt) - (1 + 51 epsilon.alt)] > 0 
   $
 
-  Thus the unique best response for Player2 is ($y_{not A}, y_A) = (1-epsilon.alt, epsilon)$
+  Thus the unique best response for Player2 is ($y_(not A), y_A) = (1-epsilon.alt, epsilon)$
 
   *Uniqueness:* In any equilibrium of the perturbed game, Player1 must play $x^epsilon.alt$ since it is the unique best response to every $y$. Then Player2 must play $y^epsilon.alt$ because it is the unique best response to $x^epsilon.alt$. As a result, the perterbed game has a unique equilibrium.
 
@@ -284,9 +282,54 @@ The practical algorithm is 3-4 orders of magnitude faster than the conceptual al
   pi(O|r) = epsilon.alt wide pi(G_k|j_k) = frac(epsilon.alt^2, epsilon.alt) = epsilon.alt wide pi(N) = 1 - epsilon.alt
   $
 
-  As $epsilon.alt -> 0^(+)$, the limit converges to the rational equilibrium. Quit; Keep at Gift nodes; guess not Ace. 
+  As $epsilon.alt -> 0^(+)$, the limit converges to the rational equilibrium. Quit; Keep at Gift nodes; guess not Ace.
+
+  == QPE recovers "Rational" Nash Equilibrium in @ex:guess-the-ace-x
+  QPE recovers a rational Nash equilibrium through having every sequence $sigma$ of player actions have realization probability at leat $epsilon.alt^(\| sigma \|)$.
+
+  #figure(
+  table(
+    columns: 4,
+    align: (center, left, center, center),
+    stroke: none,
+    inset: (x: 10pt, y: 6pt),
+
+    table.hline(stroke: 1pt),
+    table.header(
+      [*Sequence* $sigma$], [*Actions*], [$|sigma|$], [*Lower bound* $epsilon^(|sigma|)$],
+    ),
+    table.hline(stroke: 0.5pt),
+
+    [$Q$],        [Quit],          [$1$], [$epsilon$],
+    [$O$],        [Offer],         [$1$], [$epsilon$],
+    [$O G_k$],    [Offer, Gift],   [$2$], [$epsilon^2$],
+    [$O K_k$],    [Offer, Keep],   [$2$], [$epsilon^2$],
+    table.hline(stroke: 0.3pt + gray),
+    [$N$, $A$],   [Guess (P2)],    [$1$], [$epsilon$],
+
+    table.hline(stroke: 1pt),
+  ),
+  caption: [QPE lower bounds on each sequence in Guess-the-Ace.],
+) <tab:qpe-bounds>
+
+Our lower bounds become 
+
+  $
+  x_"OG"_k, x_"OK"_k >= epsilon.alt^2 wide x_O, x_Q >= epsilon.alt wide y_(not A), y_A >= epsilon.alt
+  $
+
+  In addition there exists a flow constraint $x_"OG"_k + x_"OK"_k = x_O$. We know both $x_"OG"_k$ and $x_"OK"_k$ are lower bounded by $epsilon.alt^2$, so $x_O >= 2 epsilon.alt^2$. Consequently $x_O >= max(2 epsilon.alt^2, epsilon.alt)$. We will only investigate regime where $epsilon.alt < 1/2$, so $x_O >= epsilon.alt$. This is only constraint.
+
+  From @sec:player1-incentives, Player1 maximizes utility by minimizing $x_O, x_"OG"_C, x_"OG"_D$ and Player2 maximizes by minimizing $y_(A)$. Thus the QPE solution is:
+
+  $
+  x^epsilon.alt = (x_O, x_Q, x_"OG"_C, x_"OK"_C, x_"OG"_D, x_"OK"_D) = (epsilon.alt, 1-epsilon.alt, epsilon.alt^2, 1 - epsilon.alt^2, epsilon.alt^2, 1 - epsilon.alt^2)
+  $
+
+  These values are the same as EFPE @sec:efpe. The limit as $epsilon.alt -> 0^(+)$ is the rational Nash equilibrium.
 
 
+  
 
   = Why not uniform lower bounds in QPE?
 
