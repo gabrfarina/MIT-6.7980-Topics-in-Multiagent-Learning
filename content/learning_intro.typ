@@ -265,9 +265,10 @@ We can summarize the process pictorially as follows.
 
 A well known folk theorem establishes that the pair of average strategies produced by the regret minimizers up to any time $T$ converges to a saddle point of (@bspp), where convergence is measured via the _saddle point gap_
 $
-  0 <= gamma(vx, vy) := (max_(xhat in cX) {xhat^top U vy} - vx^top U vy) + (
-    vx^top U vy - min_(yhat in cY) {vx^top U yhat}
-  ) = max_(xhat in cX) {xhat^top U vy} - min_(yhat in cY) {vx^top U yhat}.
+  0 <= gamma(vx, vy) := \
+  (max_(xhat in cX) {xhat^top U vy} - vx^top U vy) \
+  + (vx^top U vy - min_(yhat in cY) {vx^top U yhat}) \
+  = max_(xhat in cX) {xhat^top U vy} - min_(yhat in cY) {vx^top U yhat}.
 $
 A point $(vx , vy) in cX times cY$ has zero saddle point gap if and only if it is a solution to (@bspp).
 
