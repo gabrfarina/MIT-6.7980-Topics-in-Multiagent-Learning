@@ -437,7 +437,25 @@ For concrete examples of the savings from a succinct representation, consider th
 - _Polymatrix games._ Each player's payoff is the sum of pairwise payoffs from games with its neighbors in an interaction graph. With $n$ players and edge set $E$, the payoff tables contain $O(|E| m^2)$ entries, whereas the joint-action LP can have $m^n$ probability variables. Expected payoffs under independent mixed strategies are computed by summing expectations over the pairwise tables, without enumerating joint actions.
 - _Graphical games with bounded neighborhoods._ Each player's payoff depends only on its own action and the actions of at most $k$ neighbors, and is specified by a local table. The tables contain at most $n m^(k+1)$ entries, which is polynomial in $n$ and $m$ for fixed $k$, while the joint-action LP can again have $m^n$ variables. Expected payoffs are computed by averaging each local table against the mixed strategies of the players in that neighborhood.
 
-In both examples, the strategy domains are simplexes with efficient separation oracles, and expected utilities are multilinear and evaluable in polynomial time in the compact input size. Thus, explicitly constructing the obvious CE/CCE LP can take exponential time, but the Ellipsoid-Against-Hope framework avoids that expansion. The CCE construction above uses only polynomially many product distributions and a small final LP. For CE, one must also enforce deviations conditional on the recommended action; the exact-CE variant of #citet(<jiang2011polynomial>) computes a rational CE with polynomial-size support in polynomial time for these representations. Such a CE is also a CCE. These guarantees concern finding an equilibrium, not optimizing an arbitrary objective over equilibria.
+In both examples, the strategy domains are simplexes with efficient separation oracles, and expected utilities are multilinear and computable in polynomial time in the size of the compact input. Therefore, writing down the obvious CCE LP takes exponential time, while Ellipsoid-Against-Hope avoids it: it uses only polynomially many product distributions and a small final LP. Note that these guarantees are for finding an equilibrium, not for optimizing an arbitrary objective over equilibria.
+
+== What about correlated equilibrium?
+
+The discussion above gives an efficient way to compute CCEs in a broad class of games, including multilinear games on compact convex domains. However, CEs are harder. 
+
+In a CCE, a player commits to a deviation before seeing the recommendation, so incentive constraints reduce to unconditional expected gains. 
+$ 
+EE_(a tilde mu) [u_i (a'_i, a_(-i)) - u_i (a)] <= 0,
+$
+In a CE, the player sees the recommendation first and may deviate differently, so the constraints must retain the conditional distribution given every recommendation, which could be difficult to represent when the recommendations are numerous.
+$ 
+EE_(a tilde mu) [bb(1)[a_i = a''_i] (u_i (a'_i, a_(-i)) - u_i (a))] <= 0 quad "for every pair" (a''_i, a'_i)
+$
+
+
+Although CE is harder than CCE in general, there still exists an important class of games which still can be computed efficiently: *succinct games of polynomial type*. For such games, the Ellipsoid-Against-Hope framework computes a CE in polynomial time #citep(<papadimitriou2008computing>), and a later variant even computes an exact CE, with rational probabilities and only polynomially many outcomes in this support #citep(<jiang2011polynomial>). Polymatrix games and graphical games with bounded neighborhoods are both covered.
+
+Beyond polynomial type, the situation could be more complicated. A perfect-recall extensive-form game may have exponentially many normal-form pure strategies, yet its realization-plan polytope has only polynomial dimension. This representation is enough to compute a CCE with the method above, but a CE is different: it needs deviations that depend on the recommendation received, and the compact representation  gives no effective way to express them. Computing a normal-form CE for general extensive-form and Bayesian games still remains a major open question
 
 *Deriving payoffs in a polymatrix game*  Let $N_i$ denote the neighbors of player $i$, and for every $j in N_i$ let $matM^(i j)$ be the matrix specifying player $i$'s payoff from the interaction with player $j$. Thus, at an action profile $a$,
 $
