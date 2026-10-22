@@ -88,6 +88,17 @@ In some cases, like in @fig:kuhn-tfdp, it is straightforward to compile the tree
 
 The set of decision nodes $cal(J)_i$ of the player's TFDP coincides with the set of his or her information sets, that is, $cal(J)_i = cal(I)_i$. This is consistent with the fact that the player cannot condition their behavior on anything other than their information set, given that they cannot distinguish between histories in the same information set. Furthermore, the set of actions available at any decision node $j = I in cal(J)_i$ coincides with the set of actions $A_I$ available at any history in information set $I$.
 
+Where each decision node sits in the TFDP is determined by its _trace_: the information sets Player~$i$ passed through, and the actions taken there, on the way to it.
+
+#definition[Trace][
+  Fix a player $i in \[ n \]$, an information set $I in cal(I)_i$, and a history $h in I$. Let $h_1, ..., h_m$ ($m >= 0$) be the histories of Player~$i$ that lie strictly before $h$ on the path from the root of the game tree to $h$, listed in the order in which they are encountered. For each $k = 1, ..., m$, let $I_k in cal(I)_i$ be the information set containing $h_k$, and $a_k in A_(I_k)$ be the action taken at $h_k$ on the path to $h$. The _trace_ of $h$ (for Player~$i$) is the sequence
+  $
+    (I_1, a_1, ..., I_m, a_m, I).
+  $
+] <def:trace>
+
+Histories of other players and of chance do not appear in the trace. Under perfect recall (@def:perfect-recall), Player~$i$ remembers both the actions they took and the information sets where they took them, so all histories in $I$ have the same trace, which we call the _trace of_ $I$.
+
 #example[
   Consider Kuhn poker from the point of view of Player~1 (@fig:kuhn-tfdp).
 
@@ -117,7 +128,7 @@ Traces implicitly encode a notion of partial chronological ordering between info
 
   - The set of decision nodes $cal(J)_i$ of the TFDP is equal to the set $cal(I)_i$ of information sets.
   - The set of actions available at each decision node $j = I in cal(I)_i$ (_i.e._, the set of outgoing edges from the decision node) is equal to the set of actions $A_I$ available at any history $h in I$ in the game tree.
-  - Given any decision node $j = I in cal(I)_i$, the sequence of decision nodes and actions encountered from the root of the TFDP to $j$ is equal to the trace of any history $h in I$.
+  - Given any decision node $j = I in cal(I)_i$, the sequence of decision nodes and actions encountered from the root of the TFDP to $j$ is equal to the trace of $I$ (@def:trace).
 ] <def:tfdp>
 
 As a remark, @def:tfdp leaves the labeling and structure of observation nodes unspecified. In fact, a player might have multiple TFDPs that satisfy the definition, and differ in how the observation nodes are placed. We illustrate this in the next example.
