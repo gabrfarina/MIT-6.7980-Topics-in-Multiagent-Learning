@@ -43,7 +43,15 @@ One might believe that the problem of sequential irrationality is that of pickin
 
 
 
-_Remark (Why the support definition is ambiguous for behavioral strategy):_ A behavioral strategy $b_i$ specifies an independent distribution $ p (dot | I)$ at each information set. The mixed strategies equivalent to $b_i$ (Kuhn’s Theorem) may be made up of different supports. If one equivalent strategy has no weakly dominated strategies in its supports, but another does, it is unclear whether $b_i$ contains a no weakly dominated strategy in its support. Moreover, a mixture of non-dominated strategies can itself be dominated. For example, consider a coin-flipping game where you can accept \$6 or guess H vs. T to win \$10. Each option is the best to some belief (Fair; Heads; Tails), so none is weakly dominated. Yet a mixed strategy fo $1/2-1/2$ between H and T is dominated by taking \$6 because \$5 < \$6.   
+_Remark (Why the support definition is ambiguous for behavioral strategy):_ A behavioral strategy $b_i$ specifies an independent distribution $ p (dot | I)$ at each information set. The mixed strategies equivalent to $b_i$ (Kuhn’s Theorem) may be made up of different supports. If one equivalent strategy has no weakly dominated strategies in its supports, but another does, it is unclear whether $b_i$ contains a no weakly dominated strategy in its support. Moreover, a mixture of non-dominated strategies can itself be dominated. For example, consider a coin-flipping game where you can accept \$6 or guess H vs. T to win \$10. Each option is the best to some belief (Fair; Heads; Tails), so none is weakly dominated. Yet a mixed strategy fo $1/2-1/2$ between H and T is dominated by taking \$6 because \$5 < \$6.
+
+*Definition (Undominated Nash equilibrium):* A strategy $sigma_i$ of Player $i$ is weakly dominated if there exists a $sigma'_i$ such that
+
+$
+u_i(sigma'_i, s_(-i)) >= u_i(sigma_i, s_(-i)) quad forall s_(-i) in S_(-i)
+$
+
+with the strict inequality holding for at least one $s_(-i)$. A strategy profile $sigma = (sigma_1, dots sigma_n)$ is a _undominated Nash equilibrium_ if it is a Nash equilibrium and has no $sigma_i$ that is weakly dominated.
 
 Unfortunately, domination of strategies is not the root cause of sequential irrationality, and therefore undomination is not its solution. Indeed, as much as undomination _does_ get rid of the undesirable behavior of @ex:guess-the-ace (Right), since action \`A$suit.spade.filled$' is strictly dominated by action \`$not$A$suit.spade.filled$', it does not prevent sequential irrationality in more complex settings, such as @ex:guess-the-ace-x.
 
