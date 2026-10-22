@@ -6,15 +6,18 @@
   title: "Learning with bandit feedback",
 )
 
-The #lecture-link("learning_intro", <def-external-regret>)[regret-minimization model] considered so far assumes that the learner receives enough information from the environment that she can compute her utility not only on the strategy she selected to play at each round of the interaction but also any counter-factual strategy that she could have played at that round. That is, we assume _full-information_ feedback. This is a strong assumption, and in many cases, the decision-maker only receives partial feedback. In this lecture, we consider the case where the decision maker receives feedback only on the strategy they played. This is known as _bandit feedback_.
+// Following the intro, the lecture notes always refers to the learner with she/her pronouns (you can change this later on)
+The #lecture-link("learning_intro", <def-external-regret>)[regret-minimization model] we've considered so far assumes that the learner receives enough information from the environment that she can compute her utility not only on the strategy she selected to play at each round of the interaction but also any counterfactual strategy that she could have played at that round. In more technical terms, we assume _full-information_ feedback.
+
+This is a very strong assumption, and in many cases, the decision maker only receives partial feedback. In this lecture, we consider the special case where the decision maker receives feedback only on the strategy she played. This is known as _bandit feedback_.
 
 = Setup and general considerations
 
-Like in our prior lectures, we will study _linear_ settings, where our sequential decision-maker chooses a strategy $vx^((t)) in cX$ in some strategy set satisfying $cX subset.eq RR^n$. In the full-information setting that we have already studied, the feedback that our decision maker receives, at every round $t$, is a utility function $u^((t)): vx |-> ip(vg^((t)), vx)$, from which they can compute their realized utility, $w^((t)) := ip(vg^((t)), vx^((t)))$, for the strategy they played as well as the counterfactual utility they would have received from any strategy they could have played. In the _bandit_ setting, the decision-maker only receives as feedback their realized utility $w^((t))$ as opposed to their complete utility function $u^((t))$.
+Like in our prior lectures, we will study _linear_ settings, where our sequential decision maker chooses a strategy $vx^((t)) in cX$ in some $n$-dimensional strategy set $cX subset.eq RR^n$. In the full-information setting that we have already studied, the feedback that our decision maker receives, at every round $t$, is a utility function $u^((t)): vx |-> ip(vg^((t)), vx)$, from which she can compute her realized utility, $w^((t)) := ip(vg^((t)), vx^((t)))$, for the strategy she played as well as the counterfactual utility she would have received from any strategy she could have played. In the _bandit_ setting, the decision maker only receives as feedback her realized utility $w^((t))$ as opposed to her complete utility function $u^((t))$.
 
-As a general principle, algorithms for the _bandit_ setting are constructed from regret minimizers for the full-information setting. Indeed, the key idea is to construct an _estimator_ $tilde(vg)^((t))$ of the (unobserved) utility gradient $vg^((t))$, and feed that into a full-information regret minimizer. The estimator is constructed from the observed utility $w^((t))$ and the chosen strategy $vx^((t))$.
+As a general principle, we construct algorithms for the _bandit_ setting from regret minimizers for the full-information setting. Indeed, the key idea is to construct an _estimator_ $tilde(vg)^((t))$ of the (unobserved) utility gradient $vg^((t))$, and feed that into a full-information regret minimizer. We'll construct the estimator from the observed utility $w^((t))$ and the chosen strategy $vx^((t))$.
 
-The utility function can still be picked adversarially by the environment. However, to get guarantees, it is necessary to reduce the power of the environment by letting the utility $u^((t))$ only depend on $vx^((1)), ..., vx^((t-1))$ but _not_ on $vx^((t))$. In other words, the environment can pick the utility adaptively, but must decide the utility _before_ the learner picks the strategy, and not after. This restriction still allows convergence to equilibria if bandit algorithms are used by players to iteratively update their strategies in games.
+The environment can still pick the utility function adversarially. However, to get guarantees, it is necessary to reduce the power of the environment by letting the utility $u^((t))$ only depend on $vx^((1)), ..., vx^((t-1))$ but _not_ on $vx^((t))$. In other words, the environment can pick the utility adaptively, but it must decide the utility _before_ the learner picks her strategy, not after. This restriction still allows convergence to equilibria if the learner uses a bandit strategy to iteratively update her strategy in a game.
 
 Typically, the construction of bandit algorithms follows the template shown in @fig-bandit.
 #figure(
@@ -26,8 +29,6 @@ Typically, the construction of bandit algorithms follows the template shown in @
     alt: "Bandit algorithm template: observed utility enters a gradient estimator, then a full-information regret minimizer, exploration mixture, and strategy sampler.",
   )
 ] <fig-bandit>
-
-Some loss-based algorithms obtain pseudoregret bounds without an explicit exploration mixture. High-probability guarantees require additional control of estimation errors; a uniform mixture alone does not provide that guarantee. We explain the difference next.
 
 #paragraph-marker() *Stochastic regret guarantees.*~~
 Because online learning algorithms benefit from randomization, as is crucially the case in bandit settings, the regret of a bandit algorithm is a random variable. This adds a layer of complexity when approaching the analysis of bandit algorithms. As a rule of thumb, three "flavors" of guarantees are typically considered in the literature. We list them from the weakest (and easiest to obtain) to the strongest (and hardest to obtain):
@@ -52,15 +53,15 @@ Because online learning algorithms benefit from randomization, as is crucially t
 
 To make sense of the measures with respect to which the expectations and probabilities are computed in the above definitions, consider a randomized algorithm for the learner that takes as input the history, $(vx^((tau)),w^((tau)))_(tau<t)$, observable to the learner so far and produces a strategy $vx^((t))$ and, similarly, a randomized algorithm for the adversary that takes as input the history, $(vx^((tau)),u^((tau)))_(tau<t)$, observable to the adversary so far and chooses a utility function $u^((t))$. Pitting the two algorithms against each other defines a probability measure with respect to which the above expectations and probabilities are defined.
 
-Finally, notice that Pseudoregret and expected regret guarantees are different, since $max EE <= EE max$, but the converse is not true in general. This means that bounding expected regret automatically bounds the pseudoregret but the opposite is not necessarily the case. In fact, bounds on the pseudoregret are _not_ strong enough to conclude convergence to the set of equilibria, in general.
+Notice that pseudoregret and expected regret guarantees are different, since $max EE <= EE max$, but the converse is not true in general. This means that bounding expected regret automatically bounds the pseudoregret but the opposite is not necessarily the case. In fact, bounds on the pseudoregret are _not_ strong enough to conclude convergence to the set of equilibria, in general. Similarly, getting a high-probability regret guarantee typically requires even stronger bounds on the estimator's error.
 
 #v(-1mm)
 = Adversarial bandit learning in normal-form games
 
-Let's start from the case of normal-form games, in which our decision maker faces the choice of picking an action out of a finite set $A$. The setting in this case is also known as _adversarial multi-armed bandit problem_. We have $cX = Delta(A)$.
+Let's start from the case of normal-form games, in which our decision maker faces the choice of picking an action out of a finite set $A$. The setting in this case is also known as _adversarial multi-armed bandit problem_. We have $cX = Delta(A) subset RR^A$, so the dimensionality is $n = |A|$.
 
 #paragraph-marker() *Strategy sampler.*~~
-In this settings, most algorithms use the natural strategy sampler: given a distribution $vp^((t)) in Delta(A)$, the decision maker samples an action $a^((t)) in A$ according to the probabilities in $vp^((t))$. The vector $vx^((t))$ is then set to the deterministic distribution $ve_(a^((t)))$. Clearly,
+In this setting, most algorithms use the natural strategy sampler: given a distribution $vp^((t)) in Delta(A)$, the decision maker samples an action $a^((t)) in A$ according to the probabilities in $vp^((t))$. The vector $vx^((t))$ is then set to the deterministic distribution $ve_(a^((t)))$. Clearly,
 $EE_t [vx^((t))] = vp^((t)).$
 
 #paragraph-marker() *Gradient estimator.*~~ For this setting, the standard gradient estimator is the _importance sampling_ estimator. Given the utility scalar $w^((t)) in [0, 1]$, the importance sampling estimator is defined as
@@ -137,7 +138,7 @@ The confidence parameter enters the logarithm and the bonus. Adding exploration 
 
 = Adversarial bandit learning on general convex domains
 
-Today, we know that bandit optimization is possible well past probability simplexes. In fact, we can construct bandit algorithms for any convex and compact domain $cX subset.eq RR^d$.
-In particular, we mention the general general result by #citet(<abernethy2008competing>), who showed that the a bandit algorithm can be constructed starting from a full-information regret miminizer built using the FTRL algorithm with a self-concordant distance-generating function.
+Today, we know that bandit optimization is possible well past probability simplices. In fact, we can construct bandit algorithms for any convex and compact domain $cX subset.eq RR^n$.
+In particular, we mention the general result by #citet(<abernethy2008competing>), who showed that a bandit algorithm can be constructed starting from a full-information regret minimizer built using the FTRL algorithm with a self-concordant distance-generating function.
 
 #lec_bibliography("meta/refs.bib")
