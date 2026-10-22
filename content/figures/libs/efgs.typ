@@ -111,6 +111,7 @@
   root-is-chance: true,
   action-name: it => it,
   highlight-edges: (),
+  highlight-color: black,
   sx: 0.25pt,
   sy: 0.25pt,
   draft: false,
@@ -127,7 +128,7 @@
     set-style(stroke: .22mm)
     let map-pos = ((x, y)) => (x * sx, -y * sy)
 
-    let outlined-content(pos, body) = {
+    let outlined-content(pos, body, fill: none) = {
       if not draft {
         for i in range(36) {
           let x = (calc.rem(i, 6) - 3) * .1mm
@@ -135,7 +136,7 @@
           content((pos.at(0) + x, pos.at(1) + y))[#text(white, body)]
         }
       }
-      content(pos, body)
+      content(pos, if fill == none { body } else { text(fill: fill, body) })
     }
     let parent-action(key) = {
       let parent = key
@@ -224,8 +225,11 @@
             "solid"
           },
         )
-        if key in highlight-edges {
+        let highlighted = key in highlight-edges
+        let mark-color = if highlighted { highlight-color } else { black }
+        if highlighted {
           lw.thickness = 1.2mm
+          lw.paint = highlight-color
         }
 
         if show-label {
@@ -233,11 +237,16 @@
           line(
             (a: c, b: b, number: .2),
             (a: b, b: a, number: .1),
-            mark: (end: "stealth", scale: .8, fill: black, stroke: .4mm),
+            mark: (end: "stealth", scale: .8, fill: mark-color, stroke: .4mm + mark-color),
             stroke: lw,
           )
         } else {
-          line(a, (a: b, b: a, number: .1), mark: (end: "stealth", scale: .8, fill: black, stroke: .1mm), stroke: lw)
+          line(
+            a,
+            (a: b, b: a, number: .1),
+            mark: (end: "stealth", scale: .8, fill: mark-color, stroke: .1mm + mark-color),
+            stroke: lw,
+          )
         }
         if action == "fold" {
           c.at(0) -= 1.5mm
@@ -251,7 +260,7 @@
           c.at(0) += 1mm
         }
         if show-label {
-          outlined-content(c)[#course-sans(action-name(action))]
+          outlined-content(c, fill: if highlighted { highlight-color } else { none })[#course-sans(action-name(action))]
         }
       }
     }
