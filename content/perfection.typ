@@ -39,7 +39,11 @@ The goal of this lecture is to investigate how one can rule out sequential irrat
 = Undomination is not the solution
 <sec:une>
 
-One might believe that the problem of sequential irrationality is that of picking dominated strategies. So, one might be inclined to look into the problem of finding a Nash equilibrium whose support does not include any (weakly) dominated strategy (the concept is not immediately well defined, but for the purposes of this discussion let's restrict ourselves to Nash equilibria in deterministic strategies).
+One might believe that the problem of sequential irrationality is that of picking dominated strategies. So, one might be inclined to look into the problem of finding a Nash equilibrium whose support does not include any (weakly) dominated strategy. For deterministic strategies, this is unambiguous because support for a pure strategy is the strategy itself. For behavioral strategies, it is not immediately well-defined.
+
+
+
+_Remark (Why the support definition is ambiguous for behavioral strategy):_ A behavioral strategy $b_i$ specifies an independent distribution $ p (dot | I)$ at each information set. The mixed strategies equivalent to $b_i$ (Kuhn’s Theorem) may be made up of different supports. If one equivalent strategy has no weakly dominated strategies in its supports, but another does, it is unclear whether $b_i$ contains a no weakly dominated strategy in its support. Moreover, a mixture of non-dominated strategies can itself be dominated. For example, consider a coin-flipping game where you can accept \$6 or guess H vs. T to win \$10. Each option is the best to some belief (Fair; Heads; Tails), so none is weakly dominated. Yet a mixed strategy fo $1/2-1/2$ between H and T is dominated by taking \$6 because \$5 < \$6.   
 
 Unfortunately, domination of strategies is not the root cause of sequential irrationality, and therefore undomination is not its solution. Indeed, as much as undomination _does_ get rid of the undesirable behavior of @ex:guess-the-ace (Right), since action \`A$suit.spade.filled$' is strictly dominated by action \`$not$A$suit.spade.filled$', it does not prevent sequential irrationality in more complex settings, such as @ex:guess-the-ace-x.
 
@@ -64,7 +68,7 @@ $
 $ 
 where $o$ is the probability that Player 1 offers (entering Player 2's information set $A$), $q$ is the probability that Player 2 guesses no ace, and $g_k$ is the probability that Player 1 gives the gift at decision point $k in \{C, D\}$. 
 
-The rational equilibrium is ${(0, 1, 0, 0)}$, while ${(0, q, g_C, g_D): q in.not 1 or g_C in.not 0 or g_D in.not 0}$ are irrational equilibria. 
+The rational equilibrium is ${(0, 1, 0, 0)}$, while ${(0, q, g_C, g_D): q != 1 or g_C != 0 or g_D != 0}$ are irrational equilibria. 
 
 
 = Trembling-hand refinements
@@ -233,7 +237,7 @@ The practical algorithm is 3-4 orders of magnitude faster than the conceptual al
   $
   {(o, q, g_C, g_D) : o=0, q, g_C, g_D in [0, 1]}.
   $
-  The rational equilibrium is ${(0, 1, 0, 0)}$, while ${(0, q, g_C, g_D): q in.not 1 or g_C in.not 0 or g_D in.not 0}$ are irrational equilibria.
+  The rational equilibrium is ${(0, 1, 0, 0)}$, while ${(0, q, g_C, g_D): q != 1 or g_C != 0 or g_D != 0}$ are irrational equilibria.
 
   == Lemma: Player1 incentives
   <sec:player1-incentives>
