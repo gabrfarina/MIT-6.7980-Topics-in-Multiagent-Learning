@@ -61,6 +61,7 @@ The issue of sequential irrationality stems from the fact that some parts of the
 Different equilibrium notions differ as to how the lower bounds are set as a function of $epsilon.alt$. We will see two, which are the two best known: extensive-form perfect equilibrium and quasi-perfect equilibrium.
 
 == Extensive-form perfect equilibrium (EFPE)
+<sec:efpe>
 
 _Extensive-form perfect equilibrium (EFPE)_, due to #citet(<Selten75:Reexamination>), is conceptually the simplest of the two. In an EFPE, the trembles are #lecture-link("efg_intro", <sec-behavioral-form>)[_behavioral_]: given $epsilon.alt > 0$, the perturbed game simply mandates that every action at every decision point must be picked with probability at least $epsilon.alt$.
 
@@ -108,7 +109,7 @@ Once again, we will discuss how to compute a limit point of solutions to @eq:qpe
 
 We already know from @sec:une that undomination does not imply sequential rationality. Interestingly, the converse also is not true in general. So, undomination and sequential rationality are actually incomparable concepts, in the sense that neither implies the other.
 
-At this point, one might naturally wonder whether a refinement that is both undominated and sequentially-rational can be devised. The answer is yes: a nice property of QPE is that not only it is sequentially rational, but it is also undominated! The same cannot be said of EFPE. So, as #citet(<Mertens95:Two>) noted, a _quasi-perfect equilibrium_ is nowadays considered superior to EFCE.
+At this point, one might naturally wonder whether a refinement that is both undominated and sequentially-rational can be devised. The answer is yes: a nice property of QPE is that not only it is sequentially rational, but it is also undominated! The same cannot be said of EFPE. So, as #citet(<Mertens95:Two>) noted, a _quasi-perfect equilibrium_ is nowadays considered superior to EFPE.
 
 #quote(block: true)[
   « Observe that the “quasi-perfect” equilibria $\[$..$\]$ are still sequential---and sequential equilibria have all backward-induction properties (_e.g._, Kohlberg and Mertens, 1986)---but are at the same time normal form perfect---which can be viewed as the strong version of undominated. (And every proper equilibrium is quasi-perfect.) Thus, by some irony of terminology, the “quasi”-concept seems in fact far superior to the original unqualified perfection itself. »
@@ -118,9 +119,64 @@ At this point, one might naturally wonder whether a refinement that is both undo
 
 The relationships among the different refinements is summarized in the Venn diagram of @fig:refinements.
 
-#figure(caption: [Relationships between the different Nash equilibrium refinements])[
+#figure(caption: [Relationships between the different Nash equilibrium refinements. The labels (a), (b), and (c) mark the regions that the three profiles of @ex:separating occupy.])[
   #image("figures/perfection/venn.svg", width: 60.0%)
 ] <fig:refinements>
+
+Every inclusion in @fig:refinements is strict. The next example exhibits, in the single game of @fig:separating, three profiles that separate the sets: an EFPE that is not normal-form perfect, a normal-form perfect equilibrium that is not sequential, and a QPE that is not an EFPE. Together they show that extensive-form perfection is incomparable with both normal-form perfection and quasi-perfection; the classical examples of these phenomena are due to #citet(<Selten75:Reexamination>), #citet(<vanDamme84:relation>), #citet(<kohlberg1986strategic>), and #citet(<Mertens95:Two>), whose example even has disjoint sets of EFPE and of QPE #citep(<Farina18:Practical>). For a systematic treatment, see Chapter~6 of #citet(<vanDamme91:Stability>) or the survey by #citet(<Hillas02:Foundations>).
+
+#figure(caption: [A two-player zero-sum perfect-information game, drawn once for each of the three profiles of @ex:separating. The first payoff belongs to Player~$1$, who moves at A and C (black nodes); Player~$2$ moves at B. If Player~$2$ plays $r$, Player~$1$ receives $t$; the gray label beside that leaf gives the value of $t$ in each panel. Thick orange edges are the actions that the profile prescribes. The gray labels in parentheses are the trembles that each argument relies on: in (a), the uniform trembles $epsilon.alt$ of the perturbed problem (@eq:efpe), under which continuing at A is worth $1 - epsilon.alt + 2 epsilon.alt^2 < 1$; in (b), C can be reached only if Player~$1$ deviates from $a$, so the plan $a d$ is never tested at C; in (c), a quasi-perfect Player~$1$ accounts for Player~$2$'s tremble $eta$ at B but not for a tremble of their own at C, so continuing at A is worth exactly $1$.])[
+  #image("figures/perfection/separating.svg", width: 100%)
+] <fig:separating>
+
+#figure(
+  kind: table,
+  supplement: [Table],
+  caption: [Player~$1$'s payoffs in the normal form of the game of @fig:separating: each entry is what Player~$1$ earns by following the plan in its row when Player~$2$ plays the action in its column. Player~$2$'s payoffs are their negatives. The plans $a c$ and $a d$ form a single row because C is unreached after $a$. For $t = 2$, the plan $b c$ weakly dominates stopping; for $t = 1$, every plan other than $b d$ earns $1$ whatever Player~$2$ does.],
+)[
+  #table(
+    stroke: none,
+    columns: 5,
+    align: (left, center, center, center, center),
+    inset: .7em,
+    table.header(
+      [], table.cell(colspan: 2)[*$t = 2$*, Player~$2$ plays], table.cell(colspan: 2)[*$t = 1$*, Player~$2$ plays],
+      [*Plan of Player~$1$*], [$r$], [$s$], [$r$], [$s$],
+    ),
+    [$a c$, $a d$], [$1$], [$1$], [$1$], [$1$],
+    [$b c$], [$2$], [$1$], [$1$], [$1$],
+    [$b d$], [$2$], [$-1$], [$1$], [$-1$],
+  )
+] <tab:normal-form>
+
+#example[Witnesses for the strict inclusions in @fig:refinements][
+  Consider the game of @fig:separating, whose three panels show the same tree with the payoff $t$ and the highlighted profile of the corresponding part below. We write a strategy profile as $(x y; z)$, where Player~$1$ plays $x$ at A and $y$ at C, and Player~$2$ plays $z$ at B; @tab:normal-form lists Player~$1$'s payoffs in the normal form. For either value of $t$, Player~$1$ can guarantee $1$ by stopping at A, and Player~$2$ can hold Player~$1$ to $1$ by playing $s$; so the value of the game is $1$. In all three profiles below, Player~$2$ plays $s$, and only Player~$1$'s behavior at A and at C changes.
+
+  *(a) An EFPE that is not normal-form perfect* ($t = 2$). Let $sigma = (a c; s)$. It is a Nash equilibrium: against $s$, Player~$1$ cannot earn more than the $1$ that $a$ earns, and B is unreached. It is also sequentially rational: at C, $c$ beats $d$; at B, $s$ earns Player~$2$ $-1$ while $r$ earns $-2$. To see that $sigma$ is an EFPE, consider the perturbed problem (@eq:efpe), in which every action has probability at least $epsilon.alt$ (the gray labels in @fig:separating(a)). Player~$1$ still strictly prefers $c$ at C, and Player~$2$ still strictly prefers $s$ at B, so each plays the other action with probability exactly $epsilon.alt$. Continuing at A is then worth $2 epsilon.alt + (1 - epsilon.alt)(1 - 2 epsilon.alt) = 1 - epsilon.alt + 2 epsilon.alt^2 < 1$, so Player~$1$ plays $b$ with probability exactly $epsilon.alt$. As $epsilon.alt -> 0^+$, these perturbed equilibria converge to $sigma$, which is therefore an EFPE. Yet $sigma$ is not normal-form perfect. The plan $b c$ earns Player~$1$ $2$ against $r$ and $1$ against $s$ (@tab:normal-form), so it weakly dominates stopping; hence stopping is not a best response to any completely mixed strategy of Player~$2$, which normal-form perfection requires #citep(<Selten75:Reexamination>, <Myerson78:Refinements>). Since every QPE is normal-form perfect #citep(<vanDamme84:relation>), $sigma$ is not a QPE either. The mechanism is the one noted by #citet(<vanDamme84:relation>) and #citet(<Mertens95:Two>): under the uniform trembles of (@eq:efpe), the agent at A fears Player~$1$'s own tremble at C, which costs about $2 epsilon.alt$, more than it values Player~$2$'s tremble at B, which gains about $epsilon.alt$. In the normal form, Player~$1$ commits to the whole plan $b c$ at once and has no own tremble to fear.
+
+  *(b) A normal-form perfect equilibrium that is not sequential* ($t = 1$). Let $sigma' = (a d; s)$. It is a Nash equilibrium: against $s$, no plan of Player~$1$ earns more than the $1$ that stopping earns, and B is unreached. Recall that a profile is normal-form perfect if and only if it is the limit of completely mixed profiles to each of which it is a best response #citep(<Selten75:Reexamination>, <Myerson78:Refinements>). For $k >= 4$, let Player~$2$ play $r$ with probability $1\/k$, and let Player~$1$ play each of the plans $a c$, $b c$, and $b d$ with probability $1\/k$ and the plan $a d$ otherwise. Against Player~$2$, the plan $a d$ earns $1$, as do $a c$ and $b c$, whereas $b d$ earns less; so $a d$ is a best response. Against Player~$1$, action $s$ earns Player~$2$ $-1 + 2\/k$ whereas $r$ earns $-1$; so $s$ is a best response. Letting $k -> oo$ shows that $sigma'$ is normal-form perfect. (Because the game has two players, it would suffice to note that $sigma'$ is a Nash equilibrium in undominated strategies #citep(<vanDamme91:Stability>, [Theorem~3.2.2]).) Yet at C, $d$ earns $-1$ while $c$ earns $1$; so $sigma'$ is not sequentially rational, and not even subgame perfect. Normal-form perfection guards against the opponents' mistakes, not against one's own: once Player~$1$ plans to stop at A, no strategy of Player~$2$ ever reaches C, so what the plan does there is never tested, and $a c$ and $a d$ are the same row of @tab:normal-form. #citet(<Selten75:Reexamination>) defined perfection on the agent normal form precisely to close this gap. The modified Guess-the-Ace game of @ex:guess-the-ace-x shows the same failure at an opponent's decision point: the profile in which Player~$1$ quits and never gifts while Player~$2$ guesses ‘A$suit.spade.filled$’ is a Nash equilibrium in undominated strategies (the guess ‘A$suit.spade.filled$’ is the better one against a Player~$1$ who bets and gifts only after a wrong ‘A$suit.spade.filled$’ guess), hence normal-form perfect, but Player~$2$'s guess is not a best response at B.
+
+  *(c) A QPE that is not an EFPE* ($t = 1$). Let $sigma'' = (b c; s)$. It is a Nash equilibrium ($a$ and $b$ both earn $1$ against $s$ and $c$; $r$ and $s$ both earn $-1$ against $c$), and it is sequentially rational at every decision point. In a quasi-perfect equilibrium, each player best responds at each decision point to the perturbed strategies of the _opponents_ but to their _own_ unperturbed continuation #citep(<vanDamme84:relation>), as the gray labels in @fig:separating(c) indicate. Along any sequence of completely mixed profiles converging to $sigma''$: at A, continuing and then playing $c$ earns exactly $1$, the same as stopping, so $b$ is a best response; at C, $c$ is optimal; at B, $s$ is strictly better than $r$ as long as Player~$1$ trembles to $d$. Hence $sigma''$ is a QPE. The same conclusion follows from the perturbed problem (@eq:qpe): Player~$1$'s utility there is $1 - 2(1 - y_r) x_(b d)$, so every feasible $vx$ with $x_(b d) = epsilon.alt^2$ is optimal, including $x_a = epsilon.alt$, $x_(b c) = 1 - epsilon.alt - epsilon.alt^2$, which converges to $sigma''$. Yet $sigma''$ is not an EFPE. Whenever Player~$2$ plays $r$ with some probability $eta_r < 1$ and Player~$1$ plays $d$ with some probability $eta_d > 0$, as every perturbed game forces, continuing at A earns $eta_r + (1 - eta_r)(1 - 2 eta_d) = 1 - 2 eta_d (1 - eta_r) < 1$. So the agent at A strictly prefers to stop, every perturbed equilibrium plays $b$ with the minimum allowed probability, and no limit of perturbed equilibria plays $b$, however the trembles vanish.#footnote[@sec:efpe defines an EFPE with the same lower bound $epsilon.alt$ on every action. Selten's original definition lets the lower bounds of different actions vanish at different rates #citep(<Selten75:Reexamination>). The argument covers both definitions, since it holds for every positive $eta_r$ and $eta_d$.] The unique EFPE for $t = 1$ is $(a c; s)$. The sequence-form constraints show the contrast: problem (@eq:qpe) charges Player~$1$ a fixed tremble $x_(b d) >= epsilon.alt^2$ however often they continue, whereas problem (@eq:efpe) charges $x_(b d) >= epsilon.alt x_b$, a tremble proportional to how often they continue. In words, Player~$1$ continues at A only when trusting that no mistake will be made at C; a QPE allows that trust, and an EFPE does not #citep(<Mertens95:Two>).
+] <ex:separating>
+
+@tab:separating summarizes the three profiles. Parts (a) and (c) rely on Player~$1$ being indifferent at A between stopping and continuing, and they must: for generic payoffs, the sets of sequential, extensive-form perfect, and quasi-perfect equilibrium profiles coincide #citep(<Kreps82:Sequential>, <Blume94:Algebraic>, <Pimienta14:Equivalence>), and quasi-perfect equilibria are always normal-form perfect #citep(<vanDamme84:relation>), so neither witness exists for generic payoffs. Part (b) needs no tie.
+
+#figure(
+  kind: table,
+  supplement: [Table],
+  caption: [Membership of the three strategy profiles of @ex:separating in the sets of @fig:refinements.],
+)[
+  #table(
+    stroke: none,
+    columns: 7,
+    align: (left, left, center, center, center, center, center),
+    inset: .7em,
+    table.header([*Part*], [*Profile*], [*Nash*], [*Sequential*], [*EFPE*], [*Normal-form perfect*], [*QPE*]),
+    [(a)], [$(a c; s)$, $t = 2$], [#sym.checkmark], [#sym.checkmark], [#sym.checkmark], [#sym.crossmark], [#sym.crossmark],
+    [(b)], [$(a d; s)$, $t = 1$], [#sym.checkmark], [#sym.crossmark], [#sym.crossmark], [#sym.checkmark], [#sym.crossmark],
+    [(c)], [$(b c; s)$, $t = 1$], [#sym.checkmark], [#sym.checkmark], [#sym.crossmark], [#sym.checkmark], [#sym.checkmark],
+  )
+] <tab:separating>
 
 == Computational complexity
 
