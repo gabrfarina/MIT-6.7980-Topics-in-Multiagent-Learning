@@ -208,7 +208,54 @@ One might then wonder what is known about the _iterate_ convergence to equilibri
 Complexity-theoretic considerations regarding the hardness of approximating Nash equilibria preclude this phenomenon beyond two-player zero-sum games. As we now argue, in two-player zero-sum games the phenomenon is indeed possible.
 
 #paragraph-marker() *Best-iterate convergence.*~~
-#citet(<Anagnostides22:Last-Iterate>) showed that when both players use optimistic gradient ascent, the _best_ iterate converges to the Nash equilibrium in two-player zero-sum games at the rate of $O_T (1\/sqrt(T))$. At a high level, the proof of this result is in two steps. First, the authors show that the sum of the squared distances between consecutive iterates is bounded by a constant. This implies that at least one iterate is close to the previous one. Second, they show that small simultaneous movements imply proximity to a Nash equilibrium. Both of these steps require only elementary calculations; feel free to try to reproduce the result yourself or check the details in the original paper.
+#citet(<Anagnostides22:Last-Iterate>) showed that when both players use optimistic gradient ascent, the _best_ iterate converges to the Nash equilibrium in two-player zero-sum games at the rate of $O_T (1\/sqrt(T))$. The proof has two steps, and both are elementary calculations.
+
+*Setting.* Both players run optimistic gradient ascent with $eta <= 1\/(4 norm(mU)_"op")$, so that the RVU bounds of the accelerated-convergence theorem hold with constants $Omega_1, Omega_2$. Throughout, $norm(dot.c)$ is the Euclidean norm, so that $norm(dot.c)_* = norm(dot.c)$ and $norm(mU^top)_"op" = norm(mU)_"op"$. The players receive the gradients $vg_x^((t)) = mU vy^((t))$ and $vg_y^((t)) = -mU^top vx^((t))$, and $vz^((t)), vw^((t))$ denote their intermediate iterates, as in the update rule of the optimistic gradient ascent example. Shifting the index in the second update of @eq-ogda, we have the identities
+$
+  vz^((t+1)) = Pi_cX (vz^((t)) + eta vg_x^((t))), qquad vx^((t)) = Pi_cX (vz^((t)) + eta vg_x^((t-1))),
+$
+and, analogously for Player 2, $vw^((t+1)) = Pi_cY (vw^((t)) + eta vg_y^((t)))$ and $vy^((t)) = Pi_cY (vw^((t)) + eta vg_y^((t-1)))$. Let $D$ be the largest diameter of $cX$ and $cY$, and $G$ a bound on the gradient norms. We use the RVU bounds with the sums of squared movements starting at $t = 2$. The prediction-error term at $t = 1$ is at most $eta G^2$ (taking $vm^((1)) = 0$), and we absorb it into the constants $Omega_1, Omega_2$.
+
+#theorem[Best-iterate convergence, #citep(<Anagnostides22:Last-Iterate>)][
+  For any $epsilon > 0$ and $T >= 2 + 32 (Omega_1 + Omega_2) \/ epsilon^2$, there is a $t in {3, dots, T}$ such that neither player can gain more than $epsilon (2 D \/ eta + G)$ by deviating from $(vx^((t)), vy^((t)))$. In particular, the best iterate among the first $T$ is an $O_T (1\/sqrt(T))$-approximate Nash equilibrium.
+]
+
+#proof[
+  First, the RVU bound implies that the sum of the squared distances between consecutive iterates is bounded by a constant, so some iterate barely moves. Second, small movement implies proximity to a Nash equilibrium.
+  
+  *Step 1: The sum of squared distances between consecutive iterates is bounded.* We claim that
+  $
+    sum_(t=2)^T ( norm(vx^((t)) - vx^((t-1)))^2 + norm(vy^((t)) - vy^((t-1)))^2 ) <= 16 (Omega_1 + Omega_2).
+  $
+  Adding up the two RVU bounds and using $norm(mU (vy^((t)) - vy^((t-1))))_* <= norm(mU)_"op" norm(vy^((t)) - vy^((t-1)))$ (and similarly for $mU^top$), as in the proof of the accelerated-convergence theorem, we get
+  $
+    "Reg"_1^((T)) + "Reg"_2^((T)) <= (Omega_1 + Omega_2) / eta + (eta norm(mU)_"op"^2 - 1 / (8 eta)) sum_(t=2)^T ( norm(vx^((t)) - vx^((t-1)))^2 + norm(vy^((t)) - vy^((t-1)))^2 ).
+  $
+  Since $eta norm(mU)_"op" <= 1\/4$, we have $eta norm(mU)_"op"^2 = (eta norm(mU)_"op")^2 \/ eta <= 1\/(16 eta)$, so the coefficient is at most $1\/(16 eta) - 1\/(8 eta) = -1\/(16 eta)$. By the regret-to-saddle-point-gap identity, $"Reg"_1^((T)) + "Reg"_2^((T)) >= 0$ in a zero-sum game, so $0 <= (Omega_1 + Omega_2)\/eta - 1\/(16 eta) sum_(t=2)^T (dots)$, which rearranges to the claim.
+
+  *Step 2: Small movement implies proximity to a Nash equilibrium.* Suppose that for _every_ $t in {3, dots, T}$,
+  $
+    norm(vx^((t)) - vx^((t-1)))^2 + norm(vy^((t)) - vy^((t-1)))^2 + norm(vx^((t-1)) - vx^((t-2)))^2 + norm(vy^((t-1)) - vy^((t-2)))^2 > epsilon^2.
+  $
+  Summing over $t$, every squared distance appears at most twice, so Step 1 gives $(T - 2) epsilon^2 < 32 (Omega_1 + Omega_2)$, contradicting the choice of $T$. Hence there is a $t in {3, dots, T}$ for which all four distances above are at most $epsilon$. We fix such a $t$.
+
+  _The intermediate iterates are close._ Since $vz^((t+1)) = Pi_cX (vz^((t)) + eta vg_x^((t)))$ and $vx^((t)) = Pi_cX (vz^((t)) + eta vg_x^((t-1)))$, nonexpansiveness of the projection gives
+  $
+    norm(vz^((t+1)) - vx^((t))) <= eta norm(vg_x^((t)) - vg_x^((t-1))) <= eta norm(mU)_"op" norm(vy^((t)) - vy^((t-1))) <= epsilon / 4.
+  $
+  In the same way, $norm(vx^((t-1)) - vz^((t))) <= epsilon\/4$. By the triangle inequality,
+  $ norm(vz^((t+1)) - vz^((t))) <= norm(vz^((t+1)) - vx^((t))) + norm(vx^((t)) - vx^((t-1))) + norm(vx^((t-1)) - vz^((t))) <= (3 epsilon) / 2. $
+
+  _Approximate best response._ The optimality condition of the projection defining $vz^((t+1))$ states that $ip(vz^((t)) + eta vg_x^((t)) - vz^((t+1)), vx' - vz^((t+1))) <= 0$ for every $vx' in cX$. Rearranging and using Cauchy--Schwarz,
+  $
+    ip(vg_x^((t)), vx' - vz^((t+1))) <= 1 / eta norm(vz^((t+1)) - vz^((t))) norm(vx' - vz^((t+1))) <= (3 epsilon D) / (2 eta).
+  $
+  Moreover, $ip(vg_x^((t)), vz^((t+1)) - vx^((t))) <= G norm(vz^((t+1)) - vx^((t))) <= G epsilon \/ 4$. Adding the two,
+  $
+    ip(mU vy^((t)), vx' - vx^((t))) <= epsilon ((3 D) / (2 eta) + G / 4) <= epsilon (2 D / eta + G) quad "for all" vx' in cX.
+  $
+  The left-hand side is the gain of Player 1 from deviating from $vx^((t))$ against $vy^((t))$. The same argument, with $(vw, vy, vg_y)$ in place of $(vz, vx, vg_x)$, bounds the gain of Player 2. Choosing $epsilon = sqrt(32 (Omega_1 + Omega_2) \/ (T - 2))$ gives the $O_T (1\/sqrt(T))$ rate.
+]
 
 #paragraph-marker() *Last-iterate convergence.*~~
 #citet(<Cai22:Finite>) improved the best-iterate result mentioned above by showing _last_ iterate converges to the Nash equilibrium at the rate of $O_T (1\/sqrt(T))$ for optimistic OGD. Their analysis is significantly more involved, and revolves around studying a Lyapunov potential function that was discovered via semidefinite programming.
