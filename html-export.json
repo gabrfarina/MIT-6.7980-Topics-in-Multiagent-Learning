@@ -21,7 +21,8 @@
     "bandit": "slides/L06_bandit.pdf",
     "efg-modeling": "slides/L07_efgs.pdf",
     "efg-learning": "slides/L08_efgs_learning.pdf",
-    "deep-rl-1": "slides/L09_deep_rl.pdf"
+    "deep-rl-1": "slides/L09_deep_rl.pdf",
+    "information-design": "slides/L11_mechanism_design.pdf"
   },
   "interactive_slides": {
     "learning-foundations": "slides/L04_learning_in_games.html",
