@@ -26,7 +26,8 @@
     "learning-algorithms": "slides/L05_learning_in_games.html"
   },
   "interactive_pages": {
-    "zero-sum-2xn": "interactive/zero_sum_2xn.html"
+    "zero-sum-2xn": "interactive/zero_sum_2xn.html",
+    "reinforce-pennies": "interactive/reinforce_pennies.html"
   },
   "notes": [
     {
@@ -83,6 +84,13 @@
       "supplementary": false,
       "syllabus_ids": [
         "efg-learning"
+      ]
+    },
+    {
+      "source": "content/deep_rl_gradient_estimators.typ",
+      "supplementary": false,
+      "syllabus_ids": [
+        "deep-rl-1"
       ]
     },
     {
