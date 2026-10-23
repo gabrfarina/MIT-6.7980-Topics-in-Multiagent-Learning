@@ -13,10 +13,29 @@
 
 We begin with the concept of #lecture-link("nfgs_nash", <sec-normal-form>)[normal-form games] and utilizing a #lecture-link("nfgs_nash", <def-nash-equilibrium>)[Nash equilibria] to model expected reward achieved by a set of two players. This concept naturally ties in with #lecture-link("correlated", <sec-zero-sum>)[linear programming formulations] for normal-form games (#lecture-link("correlated", <def-ce>)[correlated equilibrium] and #lecture-link("correlated", <def-cce>)[coarse correlated equilibrium]). With #lecture-link("learning_intro", <sec-external-regret>)[regret minimization], we understand how average regret approaches 0 over $T$ iterations in a game, creating a #lecture-link("learning_intro", <sec-learning-zero-sum>)[convex-concave saddle point] where the average strategies converge toward the Nash equilibrium set. 
 
-The concrete problem, from the #lecture-link("learning_intro", <sec-learning-zero-sum>)[self-play section]: the strategy sets are simplices in a normal-form game and sequence-form polytopes in an extensive-form game. Because the payoff is linear in each strategy once the other is held fixed, the problem is concave in $vx$ and convex in $vy$. In the #lecture-link("learning_intro", <def-canonical-learning>)[canonical learning setup], two regret minimizers exchange strategies and receive the linear utility induced by the opponent. The saddle-point gap of their average strategies is
-$ gamma(overline(vx), overline(vy)) = max_(xhat in cX) { xhat^top U overline(vy) } - min_(yhat in cY) { overline(vx)^top U yhat }. $
-This gap is the sum of their regrets divided by $T$, so sublinear regret drives that gap to zero.
 
-The #lecture-link("efg_intro", <sec-sequence-form>)[sequence form] is what carries this conclusion from normal-form games to extensive-form games. In that representation the utility is linear and each strategy set is a convex polytope, so the same self-play applies, as #lecture-link("learning_efg")[] spells out. Two algorithms then produce the sequence-form strategies. #lecture-link("learning1", <def-online-gradient-ascent>)[Online projected gradient ascent], the Euclidean case of online mirror descent, applies directly. Its drawback is the projection onto the sequence-form polytope. #lecture-link("learning_efg", <sec-cfr>)[Counterfactual regret minimization] avoids that projection. It builds one regret minimizer for the whole tree from a local regret minimizer at each decision point, trained on #lecture-link("learning_efg", <sec-cfr-values>)[counterfactual values].
+To this extent, the saddle point gap becomes important to analyze. With the self-play theorem, we inherently bound this gap by the sum of the players' cumulative regrets divided by T. In this way, regret minimization essentially drives equilibrium.
 
+No-regret algorithms (such as Follow-The-Leader, Regret Matching, Multiplicative Weights Update, and Online Mirror Descent) focus on balancing exploitation of good actions against stability. Below is a quick recap of each:
 
+(1) Follow-the-Leader -- we choose the action with the highest cumulative historical utility in order to smooth strategy selection.
+$ vx^((t+1)) in argmax_(a in A) (sum_(tau=1)^t vg^((tau)))_a. $
+
+(2) Regret Matching -- we choose probabilities proportional to positive cumulative regret in order to assign higher probabilities to more likely actions.
+$ vx^((t+1)) = (\[vr^((t))\]^+) / (norm(\[vr^((t))\]^+)_1). $
+
+(3) Regret Matching+ -- the probabilities are the same as in regret matching, but cumulative regret is thresholded after every update, so negative regret does not accumulate.
+$ vr^((t)) = \[vr^((t-1)) + vg^((t)) - ip(vg^((t)), vx^((t))) vone\]^+. $
+
+(4) Multiplicative Weights Update -- we apply a softmax across regret. Larger eta values lead to a greater preference for high-regret actions, while a smaller eta designates a smoother update.
+$ x_a^((t+1)) = exp(eta r_a^((t))) / (sum_(j in A) exp(eta r_j^((t)))). $
+
+(5) Follow-the-Regularized-Leader -- follow-the-leader is unstable because it jumps between actions, so a regularizer $psi$ penalizes extreme strategies.
+$ vx^((t)) = argmax_(xhat in Delta(A)) { ip(vr^((t-1)), xhat) - 1 / eta psi(xhat) }. $
+
+(6) Online Mirror Descent -- we update with the latest gradient while penalizing the movement from the previous strategy. The penalty is the Bregman divergence of a regularizer $psi$,
+$ div(xhat, vx, dgf: psi) := psi(xhat) - psi(vx) - ip(nabla psi(vx), xhat - vx), $
+and the update is
+$ vx^((t)) = argmax_(xhat in Delta(A)) { ip(vg^((t-1)), xhat) - 1 / eta div(xhat, vx^((t-1)), dgf: psi) }. $
+Negative entropy, $psi(vx) = sum_(a in A) x_a log x_a$, produces multiplicative weights. Squared Euclidean distance, $psi(vx) = 1/2 norm(vx)_2^2$, produces online projected gradient ascent,
+$ vx^((t)) = Pi_(cX)(vx^((t-1)) + eta vg^((t-1))). $
