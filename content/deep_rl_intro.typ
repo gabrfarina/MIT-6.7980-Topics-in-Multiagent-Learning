@@ -24,18 +24,10 @@ $ vx^((t+1)) in argmax_(a in A) (sum_(tau=1)^t vg^((tau)))_a. $
 (2) Regret Matching -- we choose probabilities proportional to positive cumulative regret in order to assign higher probabilities to more likely actions.
 $ vx^((t+1)) = (\[vr^((t))\]^+) / (norm(\[vr^((t))\]^+)_1). $
 
-(3) Regret Matching+ -- the probabilities are the same as in regret matching, but cumulative regret is thresholded after every update, so negative regret does not accumulate.
-$ vr^((t)) = \[vr^((t-1)) + vg^((t)) - ip(vg^((t)), vx^((t))) vone\]^+. $
-
-(4) Multiplicative Weights Update -- we apply a softmax across regret. Larger eta values lead to a greater preference for high-regret actions, while a smaller eta designates a smoother update.
+(3) Multiplicative Weights Update -- we apply a softmax across regret. Larger eta values lead to a greater preference for high-regret actions, while a smaller eta designates a smoother update.
 $ x_a^((t+1)) = exp(eta r_a^((t))) / (sum_(j in A) exp(eta r_j^((t)))). $
 
-(5) Follow-the-Regularized-Leader -- follow-the-leader is unstable because it jumps between actions, so a regularizer $psi$ penalizes extreme strategies.
-$ vx^((t)) = argmax_(xhat in Delta(A)) { ip(vr^((t-1)), xhat) - 1 / eta psi(xhat) }. $
-
-(6) Online Mirror Descent -- we update with the latest gradient while penalizing the movement from the previous strategy. The penalty is the Bregman divergence of a regularizer $psi$,
-$ div(xhat, vx, dgf: psi) := psi(xhat) - psi(vx) - ip(nabla psi(vx), xhat - vx), $
-and the update is
+(4) Online Mirror Descent -- we update with the latest gradient while penalizing the movement from the previous strategy. Cases differ for negative entropy regularizers and squared Euclidean regularizers.
 $ vx^((t)) = argmax_(xhat in Delta(A)) { ip(vg^((t-1)), xhat) - 1 / eta div(xhat, vx^((t-1)), dgf: psi) }. $
-Negative entropy, $psi(vx) = sum_(a in A) x_a log x_a$, produces multiplicative weights. Squared Euclidean distance, $psi(vx) = 1/2 norm(vx)_2^2$, produces online projected gradient ascent,
+$ psi(vx) = sum_(a in A) x_a log x_a. $
 $ vx^((t)) = Pi_(cX)(vx^((t-1)) + eta vg^((t-1))). $
