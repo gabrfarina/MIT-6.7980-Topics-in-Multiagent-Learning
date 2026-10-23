@@ -287,6 +287,10 @@ $
   At the fixed point, choose a saddle pair in each local matrix game. Fixing either player's policy gives the other player a discounted MDP. Its optimal Bellman operator fixes $vV^*$ because the chosen local strategies are a saddle pair. Uniqueness of the MDP value therefore shows that these stationary policies secure $vV^*$ against arbitrary history-dependent opponents. This proves the value and equilibrium assertions, as well as the contraction claim.
 ]
 
+#remark[
+  A unique $vV^*$ does not imply a unique equilibrium, since several equilibria can achieve the same values. For instance, if Player 1 has two actions at some state that yield the same rewards and transitions, any way of splitting probability between them gives an equilibrium.
+] <rem-nonunique-equilibria>
+
 === Computation: value iteration and a stopping certificate
 
 Value iteration starts from $vV_0=0$ and computes $vV_(t+1)=cal(T)vV_t$. Each step solves one matrix game per state. To extract policies with a specified equilibrium error, we need to relate the Bellman residual to deviation gains.
@@ -312,6 +316,10 @@ A concrete algorithm is therefore:
 4. Otherwise set $vV=vW$ and repeat.
 
 The returned policies are those computed from the same $vV$ whose residual was tested. The proof also handles $gamma=0$ without dividing by $gamma$. If the stage games are solved numerically, their optimization errors must be included in the residual and best-response bounds; the displayed certificate assumes exact local solutions.
+
+#remark[
+  Convergence of $vV_t$ to $vV^*$ does not imply that the selected policies converge. For example, in the situation of @rem-nonunique-equilibria, a solver may alternate between the two actions with identical rewards and transitions.
+]
 
 === Discount dependence and computational complexity
 
