@@ -86,6 +86,13 @@
       ]
     },
     {
+      "source": "content/deep_rl.typ",
+      "supplementary": false,
+      "syllabus_ids": [
+        "deep-rl-1"
+      ]
+    },
+    {
       "source": "content/kernelized.typ",
       "supplementary": false,
       "syllabus_ids": [
