@@ -347,7 +347,7 @@ Different regularizers produce different responses. For example, the _squared Eu
 $ p = op("clip")_([0,1]) (1/2 + (eta d)/2), $
 where clipping restricts the value to $[0,1]$. Here probability changes linearly with $d$ until it reaches a pure strategy. Negative entropy instead produces the logistic response above and remains strictly mixed for finite $d$ and $eta$. Therefore, regularization doesn't necessarily prevent pure strategies. Instead, a small increase in an action’s utility advantage only justifies a small additional shift of probability toward it, since the regularizer adds a cost for moving even further in that direction.
 
-The strong convexity of $psi$ makes this stability quantitative. In particular, consecutive FTRL strategies satisfy
+In fact, there's a bound on how much consecutive FTRL strategies can differ:
 $
   norm(vx^((t+1)) - vx^((t))) <= eta norm(vg^((t)))_*,
 $
