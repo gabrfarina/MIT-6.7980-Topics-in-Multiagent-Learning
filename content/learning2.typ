@@ -8,6 +8,20 @@
 
 #let darkblue = blue.darken(20%)
 
+// Proofs expand on the website; PDFs print their complete contents.
+#let collapsible-proof(body) = context {
+  if target() == "html" {
+    html.elem("details", attrs: (
+      style: "border:1px solid #aaa;border-radius:4px;padding:12px;margin:16px 0;",
+    ))[
+      #html.elem("summary", attrs: (style: "cursor:pointer;font-weight:bold;"))[Proof]
+      #html.elem("div")[#body]
+    ]
+  } else {
+    body
+  }
+}
+
 #v(-4mm)
 In recent years, there has been a lot of interest in the idea of _optimism_ in
 learning algorithms. We build on the #lecture-link("learning1", <ftrl-omd-general-case>)[FTRL and OMD updates and regret bounds]. The fundamental idea behind optimism is the following:
@@ -144,7 +158,7 @@ This is indeed the case, as shown by #citet(<syrgkanis2015fast>).
     )) <= max_(xhat in cX)( psi(xhat) - psi(vx^((1))) ) / ( eta ) + eta sum_(t=1)^T norm(vg^((t)) - vm^((t)))_*^2 - 1 / (8 eta) sum_(t=2)^T norm(vx^((t)) - vx^((t-1)))^2,
   $
   where $norm(dot.c)_*$ is the dual norm of $norm(dot.c)$.
-]
+] <thm-learning2-rvu>
 
 #remark[
   A consequence of the previous regret bound is the fact that---assuming $vm^((t)) = vg^((t))$ is _omniscent_---the regret of the learning algorithm _does not grow with time_.]
@@ -183,7 +197,7 @@ As noted by #citep(<syrgkanis2015fast>), the RVU bound implies accelerated conve
   Summing the inequalities and using the fact that $eta <= 1\/4 norm(mU)_"op"$ by assumption, we obtain the statement.
 ]
 
-== Accelerated learning of coarse correlated equilibria in general games
+== Accelerated learning of coarse correlated equilibria in general games <sec-fast-cce>
 
 Rates of $tilde(O)(1\/T)$ for coarse correlated and correlated equilibria (CCE)
 via learning in normal-form games (and beyond) are also known for the multiplayer case, but
@@ -192,13 +206,128 @@ convergence to CCE is driven by the _maximum_ of the regrets of the players, and
 
 We mention some of the results in this direction.
 
-- #citet(<syrgkanis2015fast>) showed $O(n log |A| T^(-3/4))$ for OMWU using RVU bounds.
+- #citet(<syrgkanis2015fast>) showed $O(n log |A| T^(-3/4))$ for OMWU using RVU bounds. We prove this bound below.
 
 - This result was later improved by #citet(<chen2020hedging>) to $O(n log^(5/6) |A| T^(-5/6))$ for _two-player_ general-sum games only.
 
 - #citet(<daskalakis2021near>) showed $O(n log |A| (log^4 T) / T)$ convergence for OMWU using a very complicated analysis based on the idea of high-order stability.
 
 - #citet(<farina2022near>) showed $O(n |A| (log T)/T)$ convergence rates using RVU bounds paired with a special regularizer.
+
+#theorem[Accelerated convergence to CCE via OMWU, #citep(<syrgkanis2015fast>)][
+  Consider an $n$-player normal-form game with rewards in $[0,1]$ and at most
+  $|A|$ actions per player, for $|A| >= 2$. If all players use OMWU with learning rate
+  $eta = n^(-1/2) T^(-1/4)$, then the average of the product distributions of
+  their strategies over $T$ rounds,
+  $
+    vmu^((T)) := 1 / T sum_(t=1)^T vx_1^((t)) ⊗ ... ⊗ vx_n^((t)),
+  $
+  is an $O(n log |A| T^(-3/4))$-CCE.
+] <lem-omwu-cce>
+
+#proof[
+  We show that the regret of any player, say Player $i$,
+  is $O(n^(1/2) log |A| T^(1/4))$, which suffices by
+  #lecture-link("learning_intro", <thmce-formal>)[the regret-to-CCE implication].
+
+  Let $vx^((t))$ be the mixed strategy that Player $i$ plays at time $t$,
+  which lies in the simplex $cX$. Let $vg^((t))$ be what Player $i$ receives at time $t$,
+  which is also the prediction used at time $t+1$ by optimism.
+  For each $j != i$, let $vx_j^((t))$ be what Player $j$ plays.
+  We assume that for any set of actions from all of the players, Player $i$
+  gets a reward in $[0,1]$ (other bounded intervals are analogous).
+
+  We use the $ell_1$ norm for $norm(dot.c)$, and the corresponding dual norm $norm(dot.c)_*$ is the $ell_infinity$ norm. The RVU bounds hold with these norms.
+
+  #lemma[
+    For every player we have $norm(vx^((t+1)) - vx^((t))) <= 2 eta$
+    for all $t$.
+  ] <lem-omwu-stability>
+
+  #collapsible-proof[
+    #proof[
+      Let $vv$ be $vg^((1)) + vg^((2)) + ... + vg^((t-2)) + 2 vg^((t-1))$
+      and let $vv'$ be $vg^((1)) + vg^((2)) + ... + vg^((t-1)) + 2 vg^((t))$.
+      Then $vx^((t))$ is a maximizer for
+      $F_(vv)(vx) := ip(vv, vx) - psi(vx) / eta$,
+      and $vx^((t+1))$ is a maximizer for the similarly defined $F_(vv')(vx)$.
+
+      Since $psi$ is $1$-strongly convex with respect to $norm(dot.c)$
+      (see #lecture-link("learning1", <sec-omd-mwu>)[the entropy properties]),
+      $F_(vv)$ is $1/eta$-strongly concave.
+      Hence
+      $
+        F_(vv)(vx^((t+1))) &<= F_(vv)(vx^((t)))
+        + ip(nabla F_(vv)(vx^((t))), vx^((t+1)) - vx^((t))) \
+        &quad - 1/(2 eta) norm(vx^((t+1)) - vx^((t)))^2.
+      $
+      Since $vx^((t))$ is a maximizer of $F_(vv)$ over the convex set $cX$,
+      we have that $ip(nabla F_(vv)(vx^((t))), vx^((t+1)) - vx^((t))) <= 0$.
+      Thus we have
+      $
+        F_(vv)(vx^((t+1))) <= F_(vv)(vx^((t)))
+        - 1/(2 eta) norm(vx^((t+1)) - vx^((t)))^2.
+      $
+      Similarly we have
+      $F_(vv')(vx^((t+1))) - F_(vv')(vx^((t))) >= 1/(2 eta) norm(vx^((t+1)) - vx^((t)))^2$.
+      Adding these two inequalities and canceling out the $psi(dot.c)$ terms gives
+      $
+        1/eta norm(vx^((t+1)) - vx^((t)))^2
+        &<= ip(vv' - vv, vx^((t+1)) - vx^((t))) \
+        &<= norm(vv' - vv)_* norm(vx^((t+1)) - vx^((t))).
+      $
+      Thus we have
+      $
+        norm(vx^((t+1)) - vx^((t)))
+        &<= eta norm(vv' - vv)_* \
+        &= eta norm(2 vg^((t)) - vg^((t-1)))_* <= 2 eta.
+      $
+    ] <proof-omwu-stability>
+  ]
+
+  #lemma[At every time $t$,
+    $norm(vg^((t+1)) - vg^((t)))_* <= sum_(j != i) norm(vx_j^((t+1)) - vx_j^((t)))$.
+  ] <lem-omwu-utility-variation>
+  #collapsible-proof[
+    #proof[
+      Let $A_(-i)$ be the set of all $(n-1)$-tuples of actions that the players besides Player $i$ can take.
+      For a sequence $a_(-i) in A_(-i)$,
+      let $p^((t))(a_(-i))$ be the probability of the other players choosing $a_(-i)$ at time $t$.
+      Then since the utility from any set of actions is in $[0,1]$,
+      $
+        norm(vg^((t+1)) - vg^((t)))_*
+        <= sum_(a_(-i) in A_(-i)) |p^((t+1))(a_(-i)) - p^((t))(a_(-i))|.
+      $
+      Note that $p^((t))(a_(-i)) = product_(j != i) x_(j,a_j)^((t))$,
+      where $x_(j,a_j)^((t))$ is the probability Player $j$'s mixed strategy
+      at time $t$ puts on $a_j$, because the players choose their actions independently.
+      It is then a standard fact about total variation that
+      $
+        sum_(a_(-i) in A_(-i)) lr(|product_(j != i) x_(j,a_j)^((t+1)) - product_(j != i) x_(j,a_j)^((t))|)
+        <= sum_(j != i) norm(vx_j^((t+1)) - vx_j^((t))).
+      $
+      A proof is in, for example, #citet(<kontorovich2024tensorization>), Equation (4).
+      It can be proven by induction on $n$ and the triangle inequality.
+    ] <proof-omwu-utility-variation>
+  ]
+
+  From the
+  RVU bound (@thm-learning2-rvu), ignoring the last term because it is always nonpositive, we get
+  $
+    "Reg"^((T))
+    &<= (max_(xhat in cX) (psi(xhat) - psi(vx^((1))))) / eta
+      + eta sum_(t=1)^T norm(vg^((t)) - vg^((t-1)))_*^2 \
+    &<= (max_(xhat in cX) (psi(xhat) - psi(vx^((1))))) / eta
+      + eta sum_(t=1)^T lr((sum_(j != i) norm(vx_j^((t)) - vx_j^((t-1)))))^2 \
+    &<= (max_(xhat in cX) (psi(xhat) - psi(vx^((1))))) / eta
+      + eta dot T dot ((n-1) dot 2 eta)^2.
+  $
+  Since $psi$ is negative entropy,
+  $max_(xhat in cX) (psi(xhat) - psi(vx^((1)))) <= log |A|$
+  (see #lecture-link("learning1", <sec-omd-mwu>)[the entropy properties]).
+  Then using $eta = n^(-1/2) T^(-1/4)$ gives
+  $"Reg"^((T)) = O(n^(1/2) log |A| T^(1/4))$, as desired.
+] <proof-omwu-cce>
 
 = Convergence in iterates <sec-iterate-convergence>
 
