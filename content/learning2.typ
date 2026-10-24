@@ -216,9 +216,13 @@ We mention some of the results in this direction.
 
 #theorem[Accelerated convergence to CCE via OMWU, #citep(<syrgkanis2015fast>)][
   Consider an $n$-player normal-form game with rewards in $[0,1]$ and at most
-  $|A| >= 2$ actions per player. If all players use OMWU with learning rate
+  $|A|$ actions per player, for $|A| >= 2$. If all players use OMWU with learning rate
   $eta = n^(-1/2) T^(-1/4)$, then the average of the product distributions of
-  their strategies over $T$ rounds is an $O(n log |A| T^(-3/4))$-CCE.
+  their strategies over $T$ rounds,
+  $
+    vmu^((T)) := 1 / T sum_(t=1)^T vx_1^((t)) ⊗ ... ⊗ vx_n^((t)),
+  $
+  is an $O(n log |A| T^(-3/4))$-CCE.
 ] <lem-omwu-cce>
 
 #proof[
@@ -229,7 +233,7 @@ We mention some of the results in this direction.
   Let $vx^((t))$ be the mixed strategy that Player $i$ plays at time $t$,
   which lies in the simplex $cX$. Let $vg^((t))$ be what Player $i$ receives at time $t$,
   which is also the prediction used at time $t+1$ by optimism.
-  For each $j$, let $vx_j^((t))$ be what Player $j != i$ plays.
+  For each $j != i$, let $vx_j^((t))$ be what Player $j$ plays.
   We assume that for any set of actions from all of the players, Player $i$
   gets a reward in $[0,1]$ (other bounded intervals are analogous).
 
@@ -286,29 +290,29 @@ We mention some of the results in this direction.
   ] <lem-omwu-utility-variation>
   #collapsible-proof[
     #proof[
-      For a sequence $s_(-i)$ of actions of all players besides Player $i$,
-      let $p^((t))(s_(-i))$ be the probability of the other players choosing $s_(-i)$ at time $t$.
+      Let $A_(-i)$ be the set of all $(n-1)$-tuples of actions that the players besides Player $i$ can take.
+      For a sequence $a_(-i) in A_(-i)$,
+      let $p^((t))(a_(-i))$ be the probability of the other players choosing $a_(-i)$ at time $t$.
       Then since the utility from any set of actions is in $[0,1]$,
       $
         norm(vg^((t+1)) - vg^((t)))_*
-        <= sum_("tuples " s_(-i)) |p^((t+1))(s_(-i)) - p^((t))(s_(-i))|.
+        <= sum_(a_(-i) in A_(-i)) |p^((t+1))(a_(-i)) - p^((t))(a_(-i))|.
       $
-      Note that $p^((t))(s_(-i)) = product_(j != i) x_(j,s_j)^((t))$,
-      where $x_(j,s_j)^((t))$ is the probability Player $j$'s mixed strategy
-      at time $t$ puts on $s_j$, because the players choose their actions independently.
-      It is then a standard fact about total variation
-      (for example see #citet(<kontorovich2024tensorization>), Equation (4);
-      it can be proven by induction and the triangle inequality)
-      that
+      Note that $p^((t))(a_(-i)) = product_(j != i) x_(j,a_j)^((t))$,
+      where $x_(j,a_j)^((t))$ is the probability Player $j$'s mixed strategy
+      at time $t$ puts on $a_j$, because the players choose their actions independently.
+      It is then a standard fact about total variation that
       $
-        sum_(s_(-i)) lr(|product_(j != i) x_(j,s_j)^((t+1)) - product_(j != i) x_(j,s_j)^((t))|)
+        sum_(a_(-i) in A_(-i)) lr(|product_(j != i) x_(j,a_j)^((t+1)) - product_(j != i) x_(j,a_j)^((t))|)
         <= sum_(j != i) norm(vx_j^((t+1)) - vx_j^((t))).
       $
+      A proof is in, for example, #citet(<kontorovich2024tensorization>), Equation (4).
+      It can be proven by induction on $n$ and the triangle inequality.
     ] <proof-omwu-utility-variation>
   ]
 
   From the
-  RVU bound (@thm-learning2-rvu), ignoring the last term we get
+  RVU bound (@thm-learning2-rvu), ignoring the last term because it is always nonpositive, we get
   $
     "Reg"^((T))
     &<= (max_(xhat in cX) (psi(xhat) - psi(vx^((1))))) / eta
