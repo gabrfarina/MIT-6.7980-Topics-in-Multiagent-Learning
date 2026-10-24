@@ -13,23 +13,24 @@ Imperfect-information extensive-form games  model tree-form strategic interactio
 The standard representation of an imperfect-information extensive-form game is through its _game tree_, which formalizes the interaction of the players as a directed tree. In the game tree, each non-terminal node belongs to exactly one player, who acts at the node by picking one of the outgoing edges (each labeled with an action name). Imperfect information is captured in this representation by partitioning the nodes of each player into sets (called information sets) of nodes that are indistinguishable to that player given his or her observations.
 
 #example[
-  As a running example, we will illustrate the representation by analyzing the game tree of a simplified two-player variant of poker (perhaps the archetype of imperfect-information extensive-form games), known as _Kuhn poker_ #citep(<Kuhn50:Simplified>). As noted by Kuhn himself, even the previous small game already captures central aspects of deceptive behavior such as _bluffing_ and _underbidding_.
+  As a running example, we use _Kuhn poker_, a two-player poker variant played with a deck of only three cards: Jack, Queen, and King #citep(<Kuhn50:Simplified>). Despite its simplicity, the game already captures central aspects of deceptive behavior such as _bluffing_ and _underbidding_.
+
+  #paragraph-marker(shape: "triangle-up") *The rules of Kuhn poker*~~ At the beginning of the game, each player contributes a \$1 ante to the pot. The deck is shuffled, each player is privately dealt one card, and the third card is set aside. Each of the six possible deals is equally likely. We abbreviate the cards as $upsans("J")$, $upsans("Q")$, and $upsans("K")$; for example, $upsans("JK")$ means that Player 1 receives a Jack and Player 2 receives a King.
+
+  After the cards are dealt, a single betting round takes place:
+
+  - Player 1 acts first and chooses either to check (continue without betting) or to bet \$1.
+  - If Player 1 checks, Player 2 may either check, which leads directly to a showdown, or bet \$1. After a bet by Player 2, Player 1 may fold or call by contributing another \$1 to the pot.
+  - If Player 1 bets, Player 2 may fold or call by contributing another \$1 to the pot.
+
+  When a player folds, the other player wins the pot. When neither player folds, the players reveal their cards in a _showdown_, and the player with the higher card wins the pot. The King is the highest card, followed by the Queen and then the Jack.
+
+  The diagram below summarizes the six possible deals and every possible betting sequence. The number at each endpoint gives Player 1's net winnings.
 
   #align(center)[
     #image("figures/efg_intro/kuhn.svg", width: 100.0%)
   ]
 ] <ex:kuhn>
-
-#paragraph-marker(shape: "triangle-up") *The rules of Kuhn poker*~~ In the game tree of Kuhn poker, the root history of the tree (the first move in the game) belongs to the _nature player_ $c$. It models a dealer that privately deals one card to each player from a shuffled deck containing cards Jack, Queen, King. The actions of the nature player correspond to the six possible assignments of two cards from the deck, which are annotated on the edges; for example, the leftmost edge $upsans("JK")$ corresponds to the case in which Player 1 is dealt a Jack and Player 2 is dealt a King. Since the deck is shuffled, each of the six actions are selected with probability 1/6 by the nature player. No matter the action selected by the dealer, the game transitions to a history of Player 1, which marks the beginning of what in poker is called a “betting round”. First, Player 1 decides to either check (continue without betting any money) or bet \$1. Then,
-
-- If Player 1 checks, Player 2 can either check, or bet \$1.
-  - If Player 2 checks, the game terminates with a showdown: the player with the higher card receives from the other player whatever amount the other player bet, plus an ante amount of \$1.
-  - If, instead, Player 2 bets the additional \$1, then Player 1 can either fold his hand or call, that is, raise his bet by \$1.
-    - If Player 1 folds, he has to give Player 2 only the \$1 ante;
-    - if Player 1 calls, a showdown with the same dynamics as before.
-- If Player 1 bets the \$1, Player 2 can either fold her hand or call.
-  - If Player 2 folds her hand, Player 2 gives Player 1 the \$1 ante.
-  - If, instead, Player 2 calls the bet, she increases her bet by \$1 and a showdown occurs, with the same dynamics as before.
 
 == Histories, actions, and payoffs
 
