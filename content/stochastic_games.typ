@@ -359,103 +359,19 @@ We conclude this reading by illustrating the concepts of stochastic games and Sh
 
 In this two-player zero-sum game, we denote $r(s,a)=r_1 (s,a)$ since $r_2 (s, a) = -r_1 (s, a)$. The transitions and payoffs for player 1 are shown in the following diagram:
 
-#move(dy: -10pt)[
-  #align(center)[
-  #block(width: 480pt, height: 130pt)[
-    // --- State s1 (Secure) ---
-    #place(top + left, dx: 50pt, dy: 65pt)[
-      #rect(
-        width: 110pt, height: 50pt, radius: 8pt, stroke: 1.5pt + rgb("#2d3748"), fill: rgb("#f7fafc"), 
-      )[
-        #align(center + horizon)[
-          #text(weight: "bold", fill: rgb("#1a202c"))[Secure]\
-          #text(fill: rgb("#4a5568"))[($s_1$)]
-        ]
-      ]
-    ]
-
-    // --- State s2 (Infiltrated) ---
-    #place(top + left, dx: 320pt, dy: 65pt)[
-      #rect(
-        width: 110pt, height: 50pt, radius: 8pt, stroke: 1.5pt + rgb("#2d3748"), fill: rgb("#edf2f7"),
-      )[
-        #align(center + horizon)[
-          #text(weight: "bold", fill: rgb("#1a202c"))[Infiltrated]\
-          #text(fill: rgb("#4a5568"))[($s_2$)]
-        ]
-      ]
-    ]
-
-    // --- Self-loop s1 ---
-    #place(top + left)[
-      #curve(
-        stroke: 1.2pt + rgb("#2d3748"),
-        fill: none,
-        curve.move((90pt, 65pt)),
-        curve.cubic((70pt, 20pt), (140pt, 20pt), (120pt, 65pt)),
-      )
-    ]
-    #place(top + left, dx: 86pt, dy: 57pt)[
-      #polygon(fill: rgb("#2d3748"), (6pt,0pt), (-2pt,4pt), (4pt,8pt))
-    ]
-    #place(top + left, dx: 10pt, dy: 25pt)[
-      #block(width: 70pt)[
-        #align(right)[#text(size: 8pt, fill: rgb("#2d3748"))[-2 (E, P)\ -1 (W, M)\ +1 (W, P)]]
-      ]
-    ]
-
-    // --- Transition s1 -> s2 (Top Arrow) ---
-    #place(top + left, dx: 160pt, dy: 82pt)[
-      #line(length: 155pt, stroke: 1.2pt + rgb("#2d3748"))
-    ]
-    #place(top + left, dx: 312pt, dy: 78.5pt)[
-      #polygon(fill: rgb("#2d3748"), (7pt,3.5pt), (0pt,0pt), (0pt,7pt))
-    ]
-    #place(top + left, dx: 160pt, dy: 66pt)[
-      #block(width: 160pt)[
-        #align(center)[#text(size: 8.5pt, fill: rgb("#2d3748"))[+3 (E, M)]]
-      ]
-    ]
-
-    // --- Transition s2 -> s1 (Bottom Arrow) ---
-    #place(top + left, dx: 165pt, dy: 98pt)[
-      #line(length: 155pt, stroke: 1.2pt + rgb("#2d3748"))
-    ]
-    #place(top + left, dx: 160pt, dy: 94.5pt)[
-      #polygon(fill: rgb("#2d3748"), (0pt,3.5pt), (7pt,0pt), (7pt,7pt))
-    ]
-    #place(top + left, dx: 160pt, dy: 103pt)[
-      #block(width: 160pt)[
-        #align(center)[#text(size: 8.5pt, fill: rgb("#2d3748"))[-1 (X, R) / -2 (P, A)]]
-      ]
-    ]
-
-    // --- Self-loop s2 ---
-    #place(top + left)[
-      #curve(
-        stroke: 1.2pt + rgb("#2d3748"),
-        fill: none,
-        curve.move((360pt, 65pt)),
-        curve.cubic((340pt, 20pt), (410pt, 20pt), (390pt, 65pt)),
-      )
-    ]
-    #place(top + left, dx: 356pt, dy: 57pt)[
-      #polygon(fill: rgb("#2d3748"), (6pt,0pt), (-2pt,4pt), (4pt,8pt))
-    ]
-    #place(top + left, dx: 395pt, dy: 25pt)[
-      #block(width: 70pt)[
-        #align(left)[#text(size: 8pt, fill: rgb("#2d3748"))[+4 (X, A)\ +2 (P, R)]]
-      ]
-    ]
+#figure[
+    #image(
+      "figures/stochastic_games/markov_game.svg",
+      width: 14cm,
+      alt: "A Markov game with two states and two players, illustrating the actions and payoffs for each state.",
+    )
   ]
-]
-]
 
 === Solving the finite-horizon version of the game
 
 The game with a short finite horizon (say, with $H=2, gamma=0.5$) can be solved using value iteration, with the algorithm outlined in Theorem ~#link(label("thm: nash existence finite horizon stochastic games"))[S6.6]. We can start by initializing $V_(i,2) (s) = 0$ at $t=H=2$ for all $s$, and then inductively compute the strategy and value functions for $t=1$ and $t=0$. The resulting strategies will form a Nash equilibrium for the finite-horizon game.
 
-*At $t=1$*, we find that the local bi-matrix game is just the payoffs $U_(i,t=1,s) = r_i (s,a) + gamma EE_(s') [V_(i,2) (s')] = r_i (s,a)$. This allows us to construct the stage games directly:
+*At $t=1$*, we find that the local bi-matrix game is just the payoffs $U_(i,t=1,s) = r_i (s,a) + gamma EE_(s') [V_(i,2) (s')] = r_i (s,a)$.
 
 - At state $s_1$ (Secure), with $A_1(s_1) = \{E, W\}$ and $A_2(s_1) = \{P, M\}$, the local bi-matrix game is:
   $ U_(t=1, s_1) = mat(
@@ -488,22 +404,22 @@ The game with a short finite horizon (say, with $H=2, gamma=0.5$) can be solved 
     (+15/14, -15/14), (-13/14, +13/14)
   ) $
   Equating Player 1's expected payoffs yields $p^* = 84/305$ for playing $E$. The stage values at $t=0$ are:
-  $ V_(1,0)(s_1) = 1047/4270 approx 0.245, quad V_(2,0)(s_1) = -1047/4270 $
+  $ V_(1,0)(s_1) = 1047/4270 approx 0.245, quad V_(2,0)(s_1) approx -0.245 $
 
 - At state $s_2$ (Infiltrated):
   $ U_(t=0, s_2) = mat(
     (-1 + 0.5(1/7), +1 - 0.5(1/7)), (+4 + 0.5(2/3), -4 - 0.5(2/3));
-    (+2 + 0.5(1/7), -2 - 0.5(1/7)), (-2 + 0.5(2/3), +2 - 0.5(2/3))
+    (+2 + 0.5(2/3), -2 - 0.5(2/3)), (-2 + 0.5(1/7), +2 - 0.5(1/7))
   ) = mat(
     (-13/14, +13/14), (+13/3, -13/3);
-    (+29/14, -29/14), (-5/3, +5/3)
+    (+7/3, -7/3), (-27/14, +27/14)
   ) $
-  Equating Player 1's expected payoffs yields $p^* = 157/378$ for playing $X$. The stage values at $t=0$ are:
-  $ V_(1,0)(s_2) = 52/63 approx 0.825, quad V_(2,0)(s_2) = -52/63 $
+  Equating Player 1's expected payoffs yields $p^* = 179/400$ for playing $X$. The stage values at $t=0$ are:
+  $ V_(1,0)(s_2) = 14677/16800 approx 0.874, quad V_(2,0)(s_2) approx -0.874 $
 
 === Solving the discounted infinite-horizon version of the game
 
-In the infinite-horizon discounted setting (now we set $gamma = 0.5$), continuation values are stationary across time steps. Following Shapley's formulation for two-player zero-sum Markov games (Section S6.3.3), we track a single value vector $vV in bb(R)^(|S|)$ representing Player 1's expected payoff (with Player 2's value defined implicitly as $-vV$).
+In the infinite-horizon discounted setting, continuation values are stationary across time steps. Following Shapley's formulation for two-player zero-sum Markov games (Section S6.3.3), we track a single value vector $vV in bb(R)^(|S|)$ representing Player 1's expected payoff (with Player 2's value defined implicitly as $-vV$).
 
 We update $vV$ iteratively using the Shapley operator $cal(T) : bb(R)^(|S|) -> bb(R)^(|S|)$, defined for each state $s in S$ as:
 $ Q_(s, vV)(a) := r(s,a) + gamma sum_(s') bb(P)(s'|s,a) V(s') $
@@ -537,17 +453,17 @@ $ (cal(T) vV)(s) := max_(pi_1 in Delta(A_1(s))) min_(pi_2 in Delta(A_2(s))) EE_(
 - At state $s_2$:
   $ Q_(s_2, vV_1) = mat(
     -1 + 0.5(1/7), +4 + 0.5(2/3);
-    +2 + 0.5(1/7), -2 + 0.5(2/3)
+    +2 + 0.5(2/3), -2 + 0.5(1/7)
   ) = mat(
     -13/14, +13/3;
-    +29/14, -5/3
+    +7/3, -27/14
   ) approx mat(
     -0.929, +4.333;
-    +2.071, -1.667
+    2.333, -1.929
   ) $
-  Solving for the minimax value of $Q_(s_2, vV_1)$ gives $(cal(T) vV_1)(s_2) = 52/63 approx 0.825$.
+  Solving for the minimax value of $Q_(s_2, vV_1)$ gives $(cal(T) vV_1)(s_2) = 14677/16800 approx 0.874$.
 
-This yields $vV_2 = cal(T) vV_1 approx vec(0.245, 0.825)$. By Shapley's Minimax Theorem (Theorem #link(label("thm: shapley's minimax theorem"))[S6.10]), $cal(T)$ is a $gamma$-contraction mapping under the supremum norm $||vV||_oo = max_s |vV(s)|$, guaranteeing that value iteration $vV_(t+1) = cal(T) vV_t$ converges exponentially to the unique fixed point $vV^* = cal(T) vV^*$.
+This yields $vV_2 = cal(T) vV_1 approx vec(0.245, 0.874)$. By Shapley's Minimax Theorem (Theorem #link(label("thm: shapley's minimax theorem"))[S6.10]), $cal(T)$ is a $gamma$-contraction mapping under the supremum norm $||vV||_oo = max_s |vV(s)|$, guaranteeing that value iteration $vV_(t+1) = cal(T) vV_t$ converges exponentially to the unique fixed point $vV^* = cal(T) vV^*$.
 
 = Bibliography for this lecture
 
