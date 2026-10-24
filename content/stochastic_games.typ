@@ -354,8 +354,8 @@ We conclude this reading by illustrating the concepts of stochastic games and Sh
   - Player 1 can choose to either "Exploit" (E) or "Wait" (W).
   - Player 2 can choose to either "Patch" (P) or "Monitor" (M).
 - If the system is in state $s_2$ (Infiltrated):
-  - Player 1 can choose to either "Exfiltrate" (X) or "Persist" (P).
-  - Player 2 can choose to either "Reboot" (R) or "Audit" (A).
+  - Player 1 can choose to either "Exfiltrate" (X) or "Hide" (H).
+  - Player 2 can choose to either "Reboot" (R) or "Scan" (S).
 
 In this two-player zero-sum game, we denote $r(s,a)=r_1 (s,a)$ since $r_2 (s, a) = -r_1 (s, a)$. The transitions and payoffs for player 1 are shown in the following diagram:
 
@@ -383,7 +383,7 @@ The game with a short finite horizon (say, with $H=2, gamma=0.5$) can be solved 
   The resulting continuation values at $t=1$ are:
   $ V_(1,1)(s_1) = 1/7, quad V_(2,1)(s_1) = -1/7 $
 
-- At state $s_2$ (Infiltrated), with $A_1(s_2) = \{X, P\}$ and $A_2(s_2) = \{R, A\}$, the local bi-matrix game is:
+- At state $s_2$ (Infiltrated), with $A_1(s_2) = \{X, H\}$ and $A_2(s_2) = \{R, S\}$, the local bi-matrix game is:
   $ U_(t=1, s_2) = mat(
     (-1, +1), (+4, -4);
     (+2, -2), (-2, +2)
