@@ -351,7 +351,7 @@ In fact, there's a bound on how much consecutive FTRL strategies can differ:
 $
   norm(vx^((t+1)) - vx^((t))) <= eta norm(vg^((t)))_*,
 $
-where $norm(dot.c)_*$ is the dual norm of the norm with respect to which $psi$ is $1$-strongly convex. This explains how the fixed regularization term controls movement even though the objective contains no explicit penalty for departing from the previous strategy.
+where $norm(dot.c)_*$ is the dual norm of the norm with respect to which $psi$ is $1$-strongly convex. This explains how the fixed regularization term controls strategy change even though the objective contains no explicit penalty for departing from the previous strategy.
 
 We will see the regret bound for FTRL in the general case in @ftrl-omd-general-case.
 
