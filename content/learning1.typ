@@ -328,7 +328,7 @@ Finally, we turn our attention to the third way of obtaining no-regret algorithm
   $]
 The role of the regularizer is to _limit variation between consecutive strategies_. FTL can change its strategy abruptly when a small change in cumulative utilities changes which action is best. FTRL controls this sensitivity by subtracting $psi(vx)/eta$ from the cumulative utility of each candidate strategy $vx$. This creates a preference for strategies with smaller values of $psi(vx)$: choosing a strategy with a larger value must be justified by a sufficient improvement in cumulative utility.
 
-The learning rate $eta$ controls the strength of this preference. For fixed cumulative utilities, as $eta -> 0$, the regularizer dominates and the selected strategy approaches $argmin_(vx in Delta(A)) psi(vx)$, regardless of which action has performed best. As $eta -> oo$, the regularization becomes negligible and the strategy approaches a cumulative-utility maximizer, recovering FTL up to tie-breaking. Intermediate values balance responsiveness to utilities against the preference imposed by the regularizer.
+The learning rate $eta$ controls the strength of this preference. For fixed cumulative utilities, as $eta -> 0$, the regularizer dominates and the selected strategy approaches $argmin_(vx in Delta(A)) psi(vx)$, regardless of which action has performed best. As $eta -> oo$, the regularization becomes negligible and the strategy approaches a cumulative-utility maximizer, recovering FTL up to tie-breaking.
 
 What does preferring smaller $psi(vx)$ actually encourage? This depends on the function we choose. For example, consider the _negative entropy_ regularizer
 $ psi(vx) = sum_(a in A) x_a log x_a. $
@@ -345,7 +345,7 @@ Near a tie, the strategy is close to uniform; as the utility advantage grows, pr
 
 Different regularizers produce different responses. For example, the _squared Euclidean norm_ $psi(vx)=1/2 norm(vx)_2^2$ gives
 $ p = op("clip")_([0,1]) (1/2 + (eta d)/2), $
-where clipping restricts the value to $[0,1]$. Here probability changes linearly with $d$ until it reaches a pure strategy. Negative entropy instead produces the logistic response above and remains strictly mixed for finite $d$ and $eta$. Therefore, regularization need not prevent pure strategies. It stabilizes the strategy because moving farther in a given direction becomes increasingly costly: a small increase in an action's utility advantage then justifies only a small additional shift of probability toward it.
+where clipping restricts the value to $[0,1]$. Here probability changes linearly with $d$ until it reaches a pure strategy. Negative entropy instead produces the logistic response above and remains strictly mixed for finite $d$ and $eta$. Therefore, regularization doesn't necessarily prevent pure strategies. Instead, a small increase in an action’s utility advantage only justifies a small additional shift of probability toward it, since the regularizer adds a cost for moving even further in that direction.
 
 The strong convexity of $psi$ makes this stability quantitative. In particular, consecutive FTRL strategies satisfy
 $
