@@ -179,7 +179,9 @@ Since the baseline only needs to be determined before the action at $j$ is sampl
 #paragraph-marker() *From REINFORCE to actor-critic.*~~
 Define the _action value_, _state value_, and _advantage_ of a decision point under the current policies:
 $
-  Q_theta (j, a) := EE_(tau ~ P_theta)[R(tau) bar.v j "reached", a "chosen"], quad V_theta (j) := sum_(b in A_j) #pol($b$, $j$) Q_theta (j, b), quad A_theta (j, a) := Q_theta (j, a) - V_theta (j).
+  Q_theta (j, a) & := EE_(tau ~ P_theta)[R(tau) bar.v j "reached", a "chosen"], \
+  V_theta (j) & := sum_(b in A_j) #pol($b$, $j$) Q_theta (j, b), \
+  A_theta (j, a) & := Q_theta (j, a) - V_theta (j).
 $
 The advantage measures how much better $a$ is than our current average behavior at $j$. Taking $b = V_theta$ in @thm-baseline and conditioning on each decision, the policy gradient can be rewritten with advantages in place of payoffs:
 $
