@@ -40,7 +40,7 @@ In this lecture, we revisit Nash equilibrium computation in general games. We wi
 
 = Support Enumeration Algorithms
 
-To develop support enumeration algorithms, we will study whether knowing the _support_ of a Nash equilibrium, i.e.~the actions that are assigned non-zero probability, can reduce the computational complexity of solving for a Nash equilibrium. We will start with two-player games and proceed to general-sum games.
+To develop support enumeration algorithms, we will study whether knowing the _support_ of a Nash equilibrium, i.e.~the actions that are assigned non-zero probability, can reduce the computational complexity of solving for a Nash equilibrium. We will start with two-player games and proceed to games with more players.
 
 == Two-player games
 
@@ -52,12 +52,12 @@ $
                upright("max ") 1 & \
       upright("s.t. ") ve_i^T R vy & >= ve_k^T R vy \, forall i in S_R \, forall k in \[ m \] \
                        vx^T C ve_j & >= vx^T C ve_k \, forall j in S_C \, forall k in \[ n \] \
-                     sum x_i = 1 & upright(" and ") sum y_i = 1 \
+                     sum x_i = 1 & upright(" and ") sum y_j = 1 \
   x_i >= 0 \, forall i in S_R & upright(" and ") x_i = 0 \, forall i in \[ m \] \\ S_R \
   y_j >= 0 \, forall j in S_C & upright(" and ") y_j = 0 \, forall j in \[ n \] \\ S_C
 $
 
-The feasibility of this linear program follows from the fact that $S_R$ and $S_C$ are the supports in some Nash equilibrium of the game. This Nash equilibrium is a feasible solution to this linear program. In the other direction, any feasible solution to the above linear program is a Nash equilibrium. This is because if $\( vx \, vy \)$ is a feasible solution to the above linear program, then $vx$ places positive probability only on a subset of $S_R$ and  $vy$ places positive probability only on a subset of $S_C$. At the same time, the first couple of constraints imply that any action in $S_R$ must be a best response to $vy$ and any action in $S_C$ must be a best response to $vy$. Putting these together we have the implications, which mean that $\( vx \, vy \)$ is a Nash equilibrium:
+The feasibility of this linear program follows from the fact that $S_R$ and $S_C$ are the supports in some Nash equilibrium of the game. This Nash equilibrium is a feasible solution to this linear program. In the other direction, any feasible solution to the above linear program is a Nash equilibrium. This is because if $\( vx \, vy \)$ is a feasible solution to the above linear program, then $vx$ places positive probability only on a subset of $S_R$ and  $vy$ places positive probability only on a subset of $S_C$. At the same time, the first couple of constraints imply that any action in $S_R$ must be a best response to $vy$ and any action in $S_C$ must be a best response to $vx$. Putting these together we have the implications, which mean that $\( vx \, vy \)$ is a Nash equilibrium:
 
 $
   & forall i : med med x_i > 0 med med => i in S_R med med => i med upright("is a best response to ") vy \; med upright("and")\
@@ -65,6 +65,39 @@ $
 $
 
 If we don't  know the supports of some Nash equilibrium, we can enumerate over all possible pairs of supports $\( S_R \, S_C \) subset.eq \[ m \] times \[ n \]$, and try to find a feasible solution of the corresponding linear program. As a Nash equilibrium always exists, at least one of these linear programs will be feasible. So the overall running time will be $2^(m + n) dot.op op("poly") \( \| R \| \, \| C \| \)$, where the $2^(m + n)$ factor is due to trying all possible pairs of supports, and the polynomial factor in the descriptions of the matrices $R$ and $C$ is determined by the complexity of solving a linear program. The exponential factor is not merely an artifact of enumerating in an unlucky order: Savani and von Stengel~#citep(<SavaniVS06>) construct $d times 2 d$ games in which about $0.7 times 1.66^d$ supports must be inspected before an equilibrium is found, on average over a random permutation of one player's actions.
+
+#example[Support enumeration in a $3 times 2$ game][
+  Consider the following game, taken from von Stengel~#citep(<vonStengel07:Equilibrium>). On the left are the payoffs (Row's first). On the right, we plot Row's expected payoff $ve_i^T R vy$ for each action $i$ as a function of $y_2$, the probability that Column plays action $2$. The bold upper envelope marks Row's best responses.
+
+  #align(center)[
+    #image(
+      "figures/nash_algorithms/support_example.svg",
+      width: 100%,
+      alt: "A three-by-two game and Row's three payoff lines as a function of Column's probability of action 2. The upper envelope bends at one third and two thirds; actions 1 and 3 tie at one half, below action 2.",
+    )
+  ]
+
+  At each value of $y_2$, the actions whose lines lie on the upper envelope are exactly Row's best responses to $vy$. The constraints for Row in the linear program require every action in $S_R$ to be a best response, so a support $S_R$ is possible only at values of $y_2$ where all of its actions lie on the envelope. The envelope follows action $1$ for $y_2 <= 1/3$, action $2$ for $1/3 <= y_2 <= 2/3$, and action $3$ for $y_2 >= 2/3$. Row can mix between multiple actions only at the two kinks: over ${1, 2}$ at $y_2 = 1/3$, and over ${2, 3}$ at $y_2 = 2/3$. The lines of actions $1$ and $3$ also cross, at $y_2 = 1/2$ (the hollow marker), but below the envelope: there, action $2$ earns $7/2$, while actions $1$ and $3$ earn only $3$. Neither action is a best response, so no pair of supports with $S_R = {1, 3}$ is feasible. This is why the constraints compare the actions in $S_R$ with every action $k in [m]$, and not only with the other actions in $S_R$.
+
+  Running through all $(2^3 - 1)(2^2 - 1) = 21$ pairs of supports, exactly three linear programs are feasible. They yield the three Nash equilibria of the game, which are the left endpoint and the two kinks of the envelope in the plot:
+
+  #align(center, table(
+    columns: 4,
+    align: center + horizon,
+    inset: 5pt,
+    stroke: .2mm,
+    table.header[$S_R$][$S_C$][$vx$][$vy$],
+    [${1}$], [${1}$], [$(1, 0, 0)$], [$(1, 0)$],
+    [${1, 2}$], [${1, 2}$], [$(4/5, 1/5, 0)$], [$(2/3, 1/3)$],
+    [${2, 3}$], [${1, 2}$], [$(0, 1/3, 2/3)$], [$(1/3, 2/3)$],
+  ))
+
+  The companion notebook #link("https://github.com/gabrfarina/MIT-6.7980-Topics-in-Multiagent-Learning/blob/main/content/notebooks/nash_algorithms/support_enumeration.ipynb")[`support_enumeration.ipynb`] implements the algorithm in a few lines of Python and reproduces this example.
+]
+
+#remark[
+  In practice, the enumeration order matters. If the game is _nondegenerate_ (no mixed strategy with support of size $s$ has more than $s$ pure best responses), then the two supports in any Nash equilibrium have the same size, so it suffices to try pairs with $|S_R| = |S_C|$. Trying small, balanced supports first, while discarding actions that are conditionally dominated, works well on many games~#citep(<Porter2008Jul>). The worst case remains exponential.
+]
 
 As a corollary of the correctness of the above algorithm, we also get a proof of the existence of Nash equilibria that use rational numbers of polynomial bit complexity in the size of the game.
 
@@ -81,7 +114,7 @@ As illustrated by the #lecture-link("correlated", <sec-irrational-equilibria>)[i
 == $n$-player games
 #label("sec:support enumeration for n players")
 
-Now, let's consider how to generalize the approach to $n$-player games, for $n > 2$. Suppose that someone told us the support $S_i subset.eq A_i$ of each player $i$'s mixed strategy in some Nash equilibrium of the game. Given this information, we could solve the following program to find a Nash equilibrium $vx = \( vx_1 \, ... \, vx_n \) in Delta \( A_1 \) times ... times Delta \( A_n \)$:
+Now, let's consider how to generalize the approach to $n$-player games, for $n > 2$. Suppose that someone told us the support $S_i subset.eq A_i$ of each player $i$'s mixed strategy in some Nash equilibrium of the game. Given this information, a Nash equilibrium $vx = \( vx_1 \, ... \, vx_n \) in Delta \( A_1 \) times ... times Delta \( A_n \)$ is a solution to the following feasibility problem. Unlike the two-player case, it is in general _not_ a linear program, but a system of polynomial equations and inequalities:
 
 $
   forall med upright("player") med i : med med med & u_i \( a_i \; vx_(- i) \) >= u_i \( a'_i \; vx_(- i) \) \, forall a_i in S_i \, forall a'_i in A_i \;\
@@ -96,7 +129,40 @@ $
   forall med upright("players") med i \, forall a_i in A_i : med med x_(i \, a_i) > 0 med med => a_i in S_i med med => a_i med upright("is a best response to ") vx_(- i) .
 $
 
-However, notice that now $u_i \( a_i \; vx_(- i) \)$ is not linear in $vx$, but a polynomial of degree $n - 1$. So the above problem amounts to solving a system of polynomial equations and inequalities in the variables $vx$.
+However, notice that now $u_i \( a_i \; vx_(- i) \)$ is not linear in $vx$, but a polynomial of degree $n - 1$. Indeed, expanding the expectation over the other players' actions gives
+
+$ u_i \( a_i \; vx_(- i) \) = sum_(a_(- i) in A_(- i)) u_i \( a_i \, a_(- i) \) product_(j != i) x_(j \, a_j) \, $
+
+where every term multiplies $n - 1$ probabilities, one from each other player. So the above problem amounts to solving a system of polynomial equations and inequalities in the variables $vx$. With $n = 2$, each product has a single factor. Row's constraints are then linear in $vy$ and Column's are linear in $vx$, which recovers the linear program of the previous section. With $n >= 3$, the products of variables cannot be avoided in general. No linear program with rational coefficients can capture the equilibria of every three-player game. A feasible linear program with rational coefficients has a rational solution, but some three-player games have #lecture-link("correlated", <sec-irrational-equilibria>)[only irrational equilibria].
+
+#example[Support enumeration in a three-player game][
+  In the following game, each player has two actions. Player $1$ picks the row, player $2$ the column, and player $3$ the table, and each cell lists the payoffs $(u_1, u_2, u_3)$.
+
+  #align(center)[
+    #image(
+      "figures/nash_algorithms/three_player_game.svg",
+      width: 72%,
+      alt: "Two two-by-two payoff tables of a three-player game, one for each action of player 3, with payoff triples in each cell.",
+    )
+  ]
+
+  Write $p := x_(1, 1)$, $q := x_(2, 1)$, and $r := x_(3, 1)$ for the probabilities of action $1$, and guess the full supports $S_1 = S_2 = S_3 = {1, 2}$. Each player must then be indifferent between their two actions. For player $1$, this means
+
+  $
+    0 & = u_1(1 ; vx_(-1)) - u_1(2 ; vx_(-1)) \
+      & = q r - 3 q (1 - r) + 3 (1 - q) r - 3 (1 - q)(1 - r) = 6 r - 2 q r - 3 .
+  $
+
+  Doing the same for players $2$ and $3$ produces the system
+
+  $
+    6 r - 2 q r - 3 = 0, quad 3 - 2 p - 2 r - p r = 0, quad 6 p - 4 p q - 3 = 0, quad p, q, r in [0, 1] .
+  $
+
+  Each equation is bilinear, i.e., a polynomial of degree $n - 1 = 2$, rather than linear. Solving the first and third equations for $r$ and $p$ and substituting into the second gives $8 q^2 - 24 q + 9 = 0$, whose only root in $[0, 1]$ is $q = (6 - 3 sqrt(2)) / 4$. Then $p = 1 / sqrt(2)$ and $r = 2 - sqrt(2)$, so this guess yields a fully mixed equilibrium with _irrational_ probabilities. The square roots come from the products of variables: a linear program with rational coefficients would have had a rational solution.
+
+  For smaller supports, the inequalities $u_i (a_i ; vx_(-i)) >= u_i (a'_i ; vx_(-i))$ against unused actions $a'_i in.not S_i$ are polynomial inequalities, and they must be checked as well. Enumerating the remaining $3^3 - 1 = 26$ support profiles yields two more equilibria, both pure: action profiles $(1, 2, 1)$ and $(2, 1, 2)$. The #link("https://github.com/gabrfarina/MIT-6.7980-Topics-in-Multiagent-Learning/blob/main/content/notebooks/nash_algorithms/support_enumeration.ipynb")[companion notebook] builds and solves these polynomial systems symbolically.
+]
 
 To analyze the running time, let us suppose for simplicity that every player has $k$ actions. Then the above problem is a system of $M = O \( n dot.op k^2 \)$ polynomial equations and inequalities, of degree $D = n - 1$ in $N = n dot.op k$ variables.#footnote[We can reduce the number of constraints to $M = O \( n dot.op k \)$ as, if we are a bit less wasteful, we can write $O \( k \)$ as opposed to $O \( k^2 \)$ constraints per player. But this won't affect the running-time asymptotics.] This can be solved, to $B$ bits of accuracy per variable, using tools from the existential theory of the reals~#citep(<renegar1992computational>), in time
 
@@ -268,7 +334,7 @@ We now make an additional assumption:  at every vertex of the above polytope, ex
 
 #exercise[
   Part 1. Show that the Lemke-Howson polytope can be perturbed with exponentially small noise so that at every vertex exactly $n$ of the inequalities are tight. Part 2. Show that, given  a Nash equilibrium of the perturbed game, an equilibrium of the original game can be recovered in polynomial time.
-]
+] <ex-lh-perturbation>
 
 == Main description of the algorithm
 
@@ -378,6 +444,10 @@ We are now ready to show that the algorithm is guaranteed to terminate at a non-
   Given the claim, the proof is concluded.
 ]
 
+#exercise[
+  Look up the definition of non-degeneracy in the original paper of Lemke and Howson~#citep(<LemkeHowson64>). What exactly does degeneracy break in the path-following argument of Theorem~#ref(label("thm:Lemke-Howson's correctness"), supplement: none)? How does perturbation fix the problem?
+] <ex-lh-degeneracy>
+
 We make some final remarks about the Lemke-Howson algorithm.
 
 - The algorithm provides an alternative proof that a Nash equilibrium exists in 2-player games. In particular, the existence of a Nash equilibrium is implied by the correctness of the algorithm.
@@ -386,6 +456,47 @@ We make some final remarks about the Lemke-Howson algorithm.
 - A single pivoting step is cheap: un-tightening one inequality and following the resulting edge amounts to solving a linear system of size $n$, so each step costs time polynomial in the description of the game. The running time is therefore governed by the _number_ of steps, that is, by the length of the main path. Since the walk never revisits a vertex, it stops after at most as many steps as the polytope has vertices, and the upper bound theorem for polytopes caps that count at fewer than $2.6^n$~#citep(<vonStengel07:Equilibrium>).
 - The number of steps really can be exponential. Savani and von Stengel~#citep(<SavaniVS06>) construct $d times d$ games in which the length of _every_ main path is at least proportional to $phi^(3 d \/ 4) approx 1.43^d$, where $phi approx 1.618$ is the golden ratio. The only freedom the algorithm has is the choice of the special action, since the pivoting rule itself is forced once that choice is made; the lower bound holds no matter which action is chosen.
 - There are generalizations of the Lemke-Howson algorithm for multi-player games working with manifolds instead of polytopes. See Rosenmüller~#citep(<Rosenmuller71>) and Wilson~#citep(<Wilson71>).
+
+= Further reading: approximate equilibria and $n$-player games <sec-lit-approx-nplayer>
+
+The algorithms in this lecture compute exact equilibria and take exponential time in the worst case. This section briefly summarizes the main known results when we relax the goal to approximate equilibria, and when the game has $n >= 3$ players. Payoffs lie in $[0, 1]$, and $eps$ always bounds a gain in payoff, not a distance between strategies: in an _$eps$-approximate Nash equilibrium_ (#lecture-link("correlated", <def-eps-nash>)[]), no player can increase their expected payoff by more than $eps$ through a unilateral deviation. Such a profile need not be close to any exact Nash equilibrium. We write $s$ for the encoding size of the game.
+
+== Two-player games <sec-lit-approx-two-player>
+
+*Polynomial time for large constant $eps$.* A simple algorithm finds a $1/2$-approximate equilibrium~#citep(<DaskalakisMP09:Note>). Row picks any action $i$, Column best responds to $i$ with an action $j$, and Row best responds to $j$ with an action $k$. Row then mixes $i$ and $k$ with probability $1/2$ each, and Column plays $j$. Row's best response to $j$ is $k$, which already receives half the probability, so Row can gain at most $1/2 (R_(k j) - R_(i j)) <= 1/2$. Column's action $j$ is a best response to $i$, so Column can gain at most $1/2$, coming from the half of Row's mixture on $k$. The best guarantee known today is due to Deligkas, Fasoulakis, and Markakis~#citep(<DeligkasFM23:OneThird>): for every constant $delta > 0$, a $(1/3 + delta)$-approximate equilibrium can be computed in polynomial time.
+
+*Quasi-polynomial time for every constant $eps$.* For every constant $eps > 0$, the sampling algorithm of Lipton, Markakis, and Mehta~#citep(<LMM03>), based on #lecture-link("correlated", <thm-lmm>)[], computes an $eps$-approximate equilibrium in time $s^(O(log s \/ eps^2))$.
+
+*Lower bounds.* Chen, Deng, and Teng~#citep(<chen2009settling>) showed that there is a constant $c > 0$ such that computing an $N^(-c)$-approximate equilibrium of an $N times N$ game is PPAD-complete. Hence, unless every problem in PPAD can be solved in polynomial time, no algorithm runs in time polynomial in both $s$ and $1 \/ eps$ (see #lecture-link("tfnp", <sec-ppad>)[]). In this regime, the best known algorithms, such as Lemke-Howson (@sec-lemke-howson), take exponential time in the worst case. For constant $eps$, Rubinstein~#citep(<Rubinstein16:Settling>) assumed the _Exponential Time Hypothesis for PPAD_: End-of-Line requires exponential time. Under this assumption, there is a constant $eps_0 > 0$ such that, for every $eps <= eps_0$, computing an $eps$-approximate equilibrium of an $N times N$ game requires time $N^(log^(1 - o(1)) N)$. So the sampling algorithm is essentially optimal for $eps <= eps_0$. The value of $eps_0$ is not explicit, and whether some constant $eps$ in between $eps_0$ and $1/3$ admits a polynomial-time algorithm is open.
+
+== Games with $n >= 3$ players <sec-lit-n-player>
+
+Let each player have $k$ actions, so that a game in normal form has size $s = n k^n$. Adding players who have a single action turns a two-player game into an $n$-player game, without changing which profiles are approximate equilibria. So the two-player lower bounds above also hold for every $n >= 3$.
+
+*Exact equilibria.* With $n >= 3$ players, equilibria can be #lecture-link("correlated", <sec-irrational-equilibria>)[irrational], so an exact equilibrium can only be described algebraically. Etessami and Yannakakis~#citep(<etessami2010fixedpoints>) showed that computing an exact equilibrium of a game with three or more players is complete for the class FIXP, which captures exact fixed points of algebraic functions. The support enumeration algorithm of Section~#ref(label("sec:support enumeration for n players"), supplement: none) approximates an equilibrium to $B$ bits of accuracy per variable in time $B dot.op L dot.op (n k)^(O(n k))$.
+
+*Approximate equilibria.* For constant $eps$, the sampling idea of Lipton, Markakis, and Mehta extends to many players. Babichenko, Barman, and Peretz~#citep(<BabichenkoBP14:Simple>) showed that, for every constant $eps > 0$, every $n$-player game with $k$ actions per player has an $eps$-approximate equilibrium in which each player's strategy is uniform over a multiset of actions whose size is polylogarithmic in $n$ and $k$. Enumerating all such strategy profiles takes time quasi-polynomial in $s$.
+
+*Succinct games.* With many players, games are usually described succinctly, so the size $n k^n$ of the normal form is exponential in the size of the description. In a _polymatrix_ game, for example, each player's payoff is a sum of two-player payoffs with a few neighbors. Rubinstein~#citep(<Rubinstein18:Inapproximability>) showed that there is a constant $eps > 0$ such that computing an $eps$-approximate equilibrium is PPAD-complete, even in polymatrix games in which every player has two actions and at most three neighbors.
+
+The following table summarizes these results.
+
+#block(breakable: false, align(center, {
+  set par(justify: false)
+  table(
+  columns: 3,
+  align: left + horizon,
+  inset: 5pt,
+  stroke: .2mm,
+  table.header[*Setting*][*Best known algorithm*][*Hardness*],
+  [Two players, $eps = 1/3 + delta$ for any constant $delta > 0$], [Polynomial time~#citep(<DeligkasFM23:OneThird>)], [--],
+  [Two players, any constant $eps > 0$], [$s^(O(log s \/ eps^2))$~#citep(<LMM03>)], [For some constant $eps_0 > 0$ and every $eps <= eps_0$: time $N^(log^(1 - o(1)) N)$ under ETH for PPAD~#citep(<Rubinstein16:Settling>)],
+  [Two players, $eps = N^(-c)$], [Lemke-Howson, exponential in the worst case (@sec-lemke-howson)], [PPAD-complete for some constant $c > 0$~#citep(<chen2009settling>)],
+  [$n >= 3$ players, exact], [Solving polynomial systems over the reals (algebraic representation)], [FIXP-complete~#citep(<etessami2010fixedpoints>)],
+  [$n >= 3$ players, normal form, any constant $eps > 0$], [Quasi-polynomial in $s = n k^n$~#citep(<BabichenkoBP14:Simple>)], [Two-player lower bounds apply],
+  [Polymatrix, two actions, constant $eps$], [--], [PPAD-complete for some constant $eps > 0$~#citep(<Rubinstein18:Inapproximability>)],
+  )
+}))
 
 = Bibliography for this lecture
 
@@ -558,4 +669,38 @@ Then for any Nash equilibrium $(bold(x)_1,...,bold(x)_n)$, by definition,
 
   Our constants shift every payoff of a given player by the same amount, and therefore preserve that player's preferences over strategies. In this example, choosing \(c=-1/2\) makes the column player's average of the payoff entries zero (the row player's average of payoff entries is already zero). Nevertheless, the resulting game is not zero-sum, which requires $sum_i u_i=0$, that is, the SUM of all payoffs of all players to be zero for any selection of pure strategies.
 
+]
+
+== Solution to #ref(<ex-lh-perturbation>)
+
+#toggle[Reveal Solution to #ref(<ex-lh-perturbation>)][
+  #proof[
+  We use the polytope $P_epsilon$ from the solution of #ref(<ex-lh-degeneracy>), which is non-degenerate whenever $epsilon > 0$ is smaller than every positive root of the polynomials $p_T$. That argument never used that the tight point lies in the polytope, so for every $delta in (0, epsilon]$, no linearly dependent set of constraints of $P_delta$ is simultaneously tight at any point of $RR^n$.
+
+  For Part 1, it remains to bound $epsilon$. Since $R$ is rational, each dependence can be chosen with integer coefficients of polynomial bit length (e.g., by Cramer's rule), so each $p_T$ has integer coefficients of polynomial bit length. Every positive root of a non-zero polynomial with integer coefficients is at least the inverse of the sum of the absolute values of its coefficients, so we can take $epsilon = 2^(-K)$ for some $K$ polynomial in the size of the game. The polytope $P_epsilon$ belongs to the game $R_epsilon$ whose $i$-th row is the $i$-th row of $R$ divided by $1 + epsilon^i$, and each entry of $R_epsilon$ differs from the corresponding entry of $R$ by at most $epsilon R_(i j)$, which is exponentially small.
+
+  For Part 2, a symmetric equilibrium $(vx, vx)$ of $R_epsilon$, such as the one returned by the algorithm, gives the non-zero democracy $vz^(*) := vx \/ max_i (R_epsilon vx)_i$ of $P_epsilon$. Let $B$ be the set of the $n$ constraints that are tight at $vz^(*)$. They are linearly independent, so writing them as equations gives a system $A_B vz = vb_B (epsilon)$, where $A_B$ is invertible and does not depend on $epsilon$, and each entry of $vb_B (epsilon)$ is $0$ or $1 + epsilon^i$. Let $vz (delta) := A_B^(-1) vb_B (delta)$ and $vz_0 := vz (0)$, the solution of the same system with every $1 + epsilon^i$ replaced by $1$. For every constraint $k in.not B$, the slack of $k$ at $vz (delta)$ in $P_delta$ is a polynomial in $delta$. It is non-negative at $delta = epsilon$, since $vz (epsilon) = vz^(*) in P_epsilon$, and it cannot vanish on $(0, epsilon]$, as otherwise the linearly dependent set $B union {k}$ would be simultaneously tight at $vz (delta)$. By continuity, it is non-negative at $delta = 0$. Hence $vz_0 in P$, and the $n$ linearly independent constraints of $B$, which represent every action, are tight at $vz_0$, so $vz_0$ is a democracy of $P$. It is non-zero, because $B$ contains a payoff constraint (as $vz^(*) != 0$), which reads $ve_i^T R vz_0 = 1$. Therefore $vz_0 \/ norm(vz_0)_1$ is a symmetric Nash equilibrium of the original game, obtained by solving one linear system.
+  ]
+]
+
+== Solution to #ref(<ex-lh-degeneracy>)
+
+#toggle[Reveal Solution to #ref(<ex-lh-degeneracy>)][
+  #proof[
+  Lemke and Howson~#citep(<LemkeHowson64>) call a game non-degenerate if the inequalities that are tight at any point of the polytope are linearly independent. For our polytope $P := { vz : R vz <= vone, vz >= 0 }$, this means that no point of $P$ makes more than $n$ of the $2 n$ inequalities tight, so every vertex makes exactly $n$ of them tight, which is the assumption under which we described the algorithm.
+
+  Degeneracy breaks the two places where the description of @algo-lemke-howson relies on this assumption. First, at a vertex with more than $n$ tight inequalities, un-tightening one of them while keeping the others tight need not define an edge, since the remaining tight inequalities may still pin down the vertex; relaxing one tight constraint may fail to expose an adjacent edge. Second, several inequalities can become tight at once at the end of an edge, so the vertex reached can have two doubly represented actions. Then property $Pi$ fails, and the pivot step, which un-tightens an inequality of _the_ action represented twice, is no longer well defined. As a result, the vertices of $G$ may not have degree $1$ (democracies) or $2$ (property $Pi$), so $G$ need not be a disjoint union of paths and cycles, and the walk from $vv_0$ can stall or cycle without reaching a non-zero democracy.
+
+  We fix the degeneracy by replacing each payoff constraint $ve_i^T R vz <= 1$ by $ve_i^T R vz <= 1 + epsilon^i$ for a small $epsilon > 0$, which amounts to shrinking row $i$ of $R$ by the factor $1 + epsilon^i$, i.e., to perturbing the game. Call the resulting polytope $P_epsilon$. The key point is that, for each linearly dependent set $T$ of constraints, the constraints in $T$ can be tight simultaneously only if $epsilon$ satisfies a certain polynomial equation. Choosing $epsilon$ so that this equation fails for every such $T$ guarantees that no linearly dependent set is ever tight simultaneously, which is exactly the non-degeneracy of $P_epsilon$.
+
+  To find the equation, let $J$ and $S$ be the indices of the non-negativity constraints and of the payoff constraints in $T$, and fix a linear dependence
+
+  $ sum_(j in J) lambda_j ve_j + sum_(i in S) mu_i R^T ve_i = 0 , $
+
+  where some $mu_i$ is non-zero because the vectors $ve_j$ are linearly independent. If all constraints in $T$ are tight at a point $vz$, i.e., $z_j = 0$ for $j in J$ and $ve_i^T R vz = 1 + epsilon^i$ for $i in S$, then the inner product of the dependence with $vz$ gives
+
+  $ p_T (epsilon) := sum_(i in S) mu_i (1 + epsilon^i) = 0 . $
+
+  This holds for every dependence of $T$, so it suffices to fix one dependence per set; the fixed dependence does not depend on $epsilon$, since the perturbation only changes the right-hand sides. As the coefficient of $epsilon^i$ in $p_T$ is $mu_i$, each $p_T$ is a non-zero polynomial. Hence the finitely many polynomials $p_T$ have finitely many roots, and any $epsilon > 0$ below all of their positive roots makes $P_epsilon$ non-degenerate. The distinct powers $epsilon^i$ are essential: the common shift $1 + epsilon$ merely rescales $P$ and preserves its degeneracies. How small $epsilon$ must be, and how to recover an equilibrium of the original game, is the subject of #ref(<ex-lh-perturbation>).
+  ]
 ]
