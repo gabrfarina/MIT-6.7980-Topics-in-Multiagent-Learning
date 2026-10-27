@@ -5,6 +5,12 @@
 #show: figure-style
 #import "../libs/efgs.typ": efg-tree, kuhn-tree
 
+// Color of the edges (and action labels) prescribed by each highlighted profile.
+#let equilibrium-color = orange.darken(10%)
+
+// Leaves where Player 2 guesses correctly and wins the \$1000.
+#let correct-guesses = ("/AT/bet/BAT", "/ANT/bet/BNAT")
+
 #stack(
       dir: ltr,
       spacing: 1fr,
@@ -28,7 +34,8 @@
             "/ANT/bet/BAT": (230, 360),
           ),
           highlight-edges: ("/AT/quit", "/ANT/quit", "/AT/bet/BNAT", "/ANT/bet/BNAT"),
-          payoff: key => if key.contains("bet") [$(-\$, \$)$] else [$(0,0)$],
+          highlight-color: equilibrium-color,
+          payoff: key => if key in correct-guesses [$(-\$, \$)$] else [$(0,0)$],
           action-name: action => if action == "BNAT" [
             #{ sym.not }A#spade
           ] else if action == "BAT" [
@@ -36,11 +43,11 @@
           ] else if action == "AT" [
             #set align(center)
             A#spade on top \
-            // ($1 / 52$)
+            ($1 / 52$)
           ] else if action == "ANT" [
             #set align(center)
             A#spade _not_ on top \
-            // ($51 / 52$)
+            ($51 / 52$)
           ] else [
             #action
           ],
@@ -49,7 +56,8 @@
         )
 
         #set align(center)
-        "Sensible" Nash equilibrium
+        "Sensible" Nash equilibrium \
+        #text(8pt)[Player 1 quits; Player 2 would guess #{ sym.not }A#spade]
       ],
       box(
         fill: blue.lighten(97%), //luma(97%),
@@ -70,8 +78,9 @@
             "/ANT/bet/BNAT": (50, 360),
             "/ANT/bet/BAT": (230, 360),
           ),
-          payoff: key => if key.contains("bet") [$(-\$, \$)$] else [$(0,0)$],
+          payoff: key => if key in correct-guesses [$(-\$, \$)$] else [$(0,0)$],
           highlight-edges: ("/AT/quit", "/ANT/quit", "/AT/bet/BAT", "/ANT/bet/BAT"),
+          highlight-color: equilibrium-color,
           action-name: action => if action == "BNAT" [
             #{ sym.not }A#spade
           ] else if action == "BAT" [
@@ -79,11 +88,11 @@
           ] else if action == "AT" [
             #set align(center)
             A#spade on top \
-            // ($1 / 52$)
+            ($1 / 52$)
           ] else if action == "ANT" [
             #set align(center)
             A#spade _not_ on top \
-            // ($51 / 52$)
+            ($51 / 52$)
           ] else [
             #action
           ],
@@ -92,6 +101,7 @@
         )
 
         #set align(center)
-        "Questionable" Nash equilibrium
+        "Questionable" Nash equilibrium \
+        #text(8pt)[Player 1 quits; Player 2 would guess A#spade]
       ],
     )
