@@ -126,7 +126,22 @@ If we are content with non-Markovian strategies, a finite-horizon stochastic gam
 
   $ pi_i^(>= t + 1) := \( pi_i \( s \, tau \) \( dot.op \) \)_(s in S \, tau >= t + 1) \, $
 
-  is optimal for player $i$ to continue the game with against the policies of the other players if the player finds himself at some state $s$ at  time $t + 1$. The induction step is showing that under the induction hypothesis, $pi_i^(>= t)$ is optimal for continuing the game with against the policies of the other players if the player finds himself at some state $s$ at  time $t$. To show the inductive step we will use the definition of the game in Step~#link(label("algorithm step: game definition"))[2.2.1] of the algorithm and the Nash equilibrium properties of the strategies picked in Step~#link(label("algorithm step: pick Nash in backwards induction"))[2.2.2]. We leave the complete details to the reader.
+  is optimal for player $i$ to continue the game with against the policies of the other players if the player finds himself at some state $s$ at  time $t + 1$. 
+  
+  The induction step is showing that under the induction hypothesis, $pi_i^(>= t)$ is optimal for continuing the game with against the policies of the other players if the player finds himself at some state $s$ at  time $t$. This can be done by supposing that player $i$ contemplates an alternative policy $pi'_i$, consisting of an alternative action distribution $pi'_i (dot.op | s, t)$ for the current step, and an arbitrary continuation strategy $(pi'_i) ^(>=t+1)$ for the future. The expected total utility of this deviated policy against opponents' fixed policies is:
+
+  $
+    U' &= sum_(a_i, a_(- i)) pi'_i (a_i | s, t) pi_(- i) (a_(- i) | s, t) [r_i (s, a_i ) + gamma sum_(s') ℙ (s' | s, a_i) dot u_(i,t+1)((pi'_i)^(>=t+1), pi_(- i)^(>=t+1) | s')] \
+    &<= sum_(a_i, a_(- i)) pi'_i (a_i | s, t) pi_(- i) (a_(- i) | s, t) [r_i (s, a_i ) + gamma sum_(s') ℙ (s' | s, a_i) dot u_(i,t+1)(pi_i^(>=t+1), pi_(- i)^(>=t+1) | s')] \
+    &= sum_(a_i, a_(- i)) pi'_i (a_i | s, t) pi_(- i) (a_(- i) | s, t) [r_i (s, a_i ) + gamma sum_(s') ℙ (s' | s, a_i) dot V_(i,t+1)(s')] 
+  $
+  where we have used the inductive hypothesis (on the optimality of $pi_i^(>=t+1)$) in obtaining the inequality, and used the definition of $V_(i,t+1)$ in the last line. Then, according to Step~#link(label("algorithm step: game definition"))[2.2.1] of the algorithm, the bracketed expression is exactly the formula used to define the payoff $U_(i,t,s)(a)$ of the hypothetical local normal-form game at state $s$ and time $t$. Therefore, 
+
+  $
+    U' &<= EE_(a_i ~pi'_i (dot.op | s, t), a_(- i) ~ pi_(- i) (dot.op | s, t)) [ U_(i,t,s)(a) ] \
+    &<= EE_(a_i ~pi_i (dot.op | s, t), a_(- i) ~ pi_(- i) (dot.op | s, t)) [ U_(i,t,s)(a) ] = u_i (pi_i^(>=t), pi_(- i)^(>=t) | s) = V_(i,t)(s) .
+  $
+  since, in a Nash equilibrium (as we have selected in Step~#link(label("algorithm step: pick Nash in backwards induction"))[2.2.2]), player $i$ cannot improve their payoff by unilaterally changing their action distribution from $pi_i (dot.op | s,t)$ to $pi'_i (dot.op | s,t)$. Thus, this shows that $pi_i^(>=t)$ is indeed a best response to $pi_(- i)^(>=t)$, concluding the induction step.
 ]
 
 Finally, we remark that in finite-horizon games, there typically do not exist Nash equilibria in stationary and Markovian policies, because the best response of a player to the policies of the other players, even if all other players use stationary and Markovian policies, typically depends on the number of interaction steps that remain. In infinite-horizon games, however, equilibria in stationary and Markovian policies do exist, as we show in the next section.
@@ -279,7 +294,7 @@ $
 
 #theorem[Shapley's Minimax Theorem][
   The operator $cal(T)$ is a contraction mapping with modulus $gamma$. That is, $norm(cal(T) vU - cal(T) vV)_oo <= gamma norm(vU - vV)_oo$. Consequently, there exists a unique value vector $vV^(*)$ such that $cal(T) vV^(*) = vV^(*)$. This $vV^(*)$ is the value of the stochastic game.
-]
+]#label("thm: shapley's minimax theorem")
 
 #proofsketch[
   The proof relies on the fact that the value of a zero-sum matrix game is _non-expansive_ with respect to its payoffs (if payoffs change by $delta$, the value changes by at most $delta$). Here, if future values $vU$ and $vV$ differ by $epsilon.alt$, the payoffs in the local matrix games differ by at most $gamma epsilon.alt$. Thus, the values of these local games differ by at most $gamma epsilon.alt$.
@@ -330,6 +345,125 @@ The computational comparisons should therefore be made with their models specifi
 - General-sum two-player normal-form Nash computation is PPAD-complete #citep(<chen2009settling>). For more players, exact algebraic solutions and approximate equilibria must be distinguished #citep(<etessami2010fixedpoints>).
 
 Simple stochastic games, studied by #citet(<condon1992stochastic>), form a different model: a turn-based reachability game with maximizing, minimizing, and random vertices. The decision problem belongs to NP intersect coNP. This result is not a claim about strongly polynomial algorithms for arbitrary simultaneous-move discounted Markov games. Here, “polynomial time” counts the binary encoding of numerical data, whereas “strongly polynomial” imposes a stricter arithmetic-operation requirement.
+
+== Example: A small two-state zero-sum game
+
+We conclude this reading by illustrating the concepts of stochastic games and Shapley's theorem with a small example. Consider a scenario where Player 1 (Attacker, Maximizer) attempts to breach a system, while Player 2 (Defender, Minimizer) attempts to prevent this. The system can be in one of two states: $s_1$ (Secure) or $s_2$ (Infiltrated). The players have the following actions and payoffs:
+
+- If the system is in state $s_1$ (Secure):
+  - Player 1 can choose to either "Exploit" (E) or "Wait" (W).
+  - Player 2 can choose to either "Patch" (P) or "Monitor" (M).
+- If the system is in state $s_2$ (Infiltrated):
+  - Player 1 can choose to either "Exfiltrate" (X) or "Hide" (H).
+  - Player 2 can choose to either "Reboot" (R) or "Scan" (S).
+
+In this two-player zero-sum game, we denote $r(s,a)=r_1 (s,a)$ since $r_2 (s, a) = -r_1 (s, a)$. The transitions and payoffs for player 1 are shown in the following diagram:
+
+#figure[
+    #image(
+      "figures/stochastic_games/markov_game.svg",
+      width: 14cm,
+      alt: "A Markov game with two states and two players, illustrating the actions and payoffs for each state.",
+    )
+  ]
+
+=== Solving the finite-horizon version of the game
+
+The game with a short finite horizon (say, with $H=2, gamma=0.5$) can be solved using value iteration, with the algorithm outlined in Theorem ~#link(label("thm: nash existence finite horizon stochastic games"))[S6.6]. We can start by initializing $V_(i,2) (s) = 0$ at $t=H=2$ for all $s$, and then inductively compute the strategy and value functions for $t=1$ and $t=0$. The resulting strategies will form a Nash equilibrium for the finite-horizon game.
+
+*At $t=1$*, we find that the local bi-matrix game is just the payoffs $U_(i,t=1,s) = r_i (s,a) + gamma EE_(s') [V_(i,2) (s')] = r_i (s,a)$.
+
+- At state $s_1$ (Secure), with $A_1(s_1) = \{E, W\}$ and $A_2(s_1) = \{P, M\}$, the local bi-matrix game is:
+  $ U_(t=1, s_1) = mat(
+    (-2, +2), (+3, -3);
+    (+1, -1), (-1, +1)
+  ) $
+  Solving for Player 1's optimal mixed strategy $p_1(E) = p$:
+  $ (-2)p + (+1)(1-p) = (+3)p + (-1)(1-p) => 1 - 3p = 4p - 1 => p^* = 2/7 $
+  The resulting continuation values at $t=1$ are:
+  $ V_(1,1)(s_1) = 1/7, quad V_(2,1)(s_1) = -1/7 $
+
+- At state $s_2$ (Infiltrated), with $A_1(s_2) = \{X, H\}$ and $A_2(s_2) = \{R, S\}$, the local bi-matrix game is:
+  $ U_(t=1, s_2) = mat(
+    (-1, +1), (+4, -4);
+    (+2, -2), (-2, +2)
+  ) $
+  Solving for Player 1's optimal mixed strategy $p_1(X) = p$:
+  $ (-1)p + (+2)(1-p) = (+4)p + (-2)(1-p) => 2 - 3p = 6p - 2 => p^* = 4/9 $
+  The resulting continuation values at $t=1$ are:
+  $ V_(1,1)(s_2) = 2/3, quad V_(2,1)(s_2) = -2/3 $
+
+*At $t=0$*, we incorporate the future continuation values $V_(i,1)(s')$ into the stage game payoffs via $U_(i,0,s)(a) = r_i (s,a) + gamma EE_(s') [V_(i,1)(s')]$ with $gamma = 0.5$:
+
+- At state $s_1$ (Secure):
+  $ U_(t=0, s_1) = mat(
+    (-2 + 0.5(1/7), +2 - 0.5(1/7)), (+3 + 0.5(2/3), -3 - 0.5(2/3));
+    (+1 + 0.5(1/7), -1 - 0.5(1/7)), (-1 + 0.5(1/7), +1 - 0.5(1/7))
+  ) = mat(
+    (-27/14, +27/14), (+10/3, -10/3);
+    (+15/14, -15/14), (-13/14, +13/14)
+  ) $
+  Equating Player 1's expected payoffs yields $p^* = 84/305$ for playing $E$. The stage values at $t=0$ are:
+  $ V_(1,0)(s_1) = 1047/4270 approx 0.245, quad V_(2,0)(s_1) approx -0.245 $
+
+- At state $s_2$ (Infiltrated):
+  $ U_(t=0, s_2) = mat(
+    (-1 + 0.5(1/7), +1 - 0.5(1/7)), (+4 + 0.5(2/3), -4 - 0.5(2/3));
+    (+2 + 0.5(2/3), -2 - 0.5(2/3)), (-2 + 0.5(1/7), +2 - 0.5(1/7))
+  ) = mat(
+    (-13/14, +13/14), (+13/3, -13/3);
+    (+7/3, -7/3), (-27/14, +27/14)
+  ) $
+  Equating Player 1's expected payoffs yields $p^* = 179/400$ for playing $X$. The stage values at $t=0$ are:
+  $ V_(1,0)(s_2) = 14677/16800 approx 0.874, quad V_(2,0)(s_2) approx -0.874 $
+
+=== Solving the discounted infinite-horizon version of the game
+
+In the infinite-horizon discounted setting, continuation values are stationary across time steps. Following Shapley's formulation for two-player zero-sum Markov games (Section S6.3.3), we track a single value vector $vV in bb(R)^(|S|)$ representing Player 1's expected payoff (with Player 2's value defined implicitly as $-vV$).
+
+We update $vV$ iteratively using the Shapley operator $cal(T) : bb(R)^(|S|) -> bb(R)^(|S|)$, defined for each state $s in S$ as:
+$ Q_(s, vV)(a) := r(s,a) + gamma sum_(s') bb(P)(s'|s,a) V(s') $
+$ (cal(T) vV)(s) := max_(pi_1 in Delta(A_1(s))) min_(pi_2 in Delta(A_2(s))) EE_(a ~ (pi_1, pi_2)) [ Q_(s,vV)(a) ] $
+
+*Iteration 0 ($t=0$):* Initialize Player 1's value vector to zero: $vV_0 = vec(0, 0)$.
+
+*Iteration 1 ($t=1$):* Compute $V_1 = cal(T) vV_0$. Because $vV_0 = 0$, $Q_(s, vV_0)(a) = r(s,a)$:
+
+- At state $s_1$: $Q_(s_1, vV_0) = mat(-2, +3; +1, -1)$. Solving for the minimax value yields $(cal(T) vV_0)(s_1) = 1/7$.
+
+- At state $s_2$: $Q_(s_2, vV_0) = mat(-1, +4; +2, -2)$. Solving for the minimax value yields $(cal(T) vV_0)(s_2) = 2/3$.
+
+- Thus, altogether we have $vV_1 = vec(1/7, 2/3) approx vec(0.143, 0.667)$.
+
+*Iteration 2 ($t=2$):* Now we can compute $vV_2 = cal(T) vV_1$. Constructing the local payoff matrices $Q_(s, vV_1)(a)$ with $gamma = 0.5$ gives us, in each state:
+
+- At state $s_1$:
+  $ Q_(s_1, vV_1) = mat(
+    -2 + 0.5(1/7), +3 + 0.5(2/3);
+    +1 + 0.5(1/7), -1 + 0.5(1/7)
+  ) = mat(
+    -27/14, +10/3;
+    +15/14, -13/14
+  ) approx mat(
+    -1.929, +3.333;
+    +1.071, -0.929
+  ) $
+  Solving for the minimax value of $Q_(s_1, vV_1)$ gives $(cal(T) vV_1)(s_1) = 1047/4270 approx 0.245$.
+
+- At state $s_2$:
+  $ Q_(s_2, vV_1) = mat(
+    -1 + 0.5(1/7), +4 + 0.5(2/3);
+    +2 + 0.5(2/3), -2 + 0.5(1/7)
+  ) = mat(
+    -13/14, +13/3;
+    +7/3, -27/14
+  ) approx mat(
+    -0.929, +4.333;
+    2.333, -1.929
+  ) $
+  Solving for the minimax value of $Q_(s_2, vV_1)$ gives $(cal(T) vV_1)(s_2) = 14677/16800 approx 0.874$.
+
+This yields $vV_2 = cal(T) vV_1 approx vec(0.245, 0.874)$. By Shapley's Minimax Theorem (Theorem #link(label("thm: shapley's minimax theorem"))[S6.10]), $cal(T)$ is a $gamma$-contraction mapping under the supremum norm $||vV||_oo = max_s |vV(s)|$, guaranteeing that value iteration $vV_(t+1) = cal(T) vV_t$ converges exponentially to the unique fixed point $vV^* = cal(T) vV^*$.
 
 = Bibliography for this lecture
 
