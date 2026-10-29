@@ -28,6 +28,7 @@
 !/slides/L05_learning_in_games.html
 !/slides/L06_bandit.pdf
 !/slides/L07_efgs.pdf
+!/slides/L11_mechanism_design.pdf
 
 # Build products, editor state, and local secrets.
 **/target/
