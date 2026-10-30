@@ -24,7 +24,7 @@
     "deep-rl-1": "slides/L09_deep_rl.pdf",
     "information-design": "slides/L11_mechanism_design.pdf",
     "team-games": "slides/L12_team_games.pdf",
-    "alignment-1": "slides/L13_large_games.pdf"
+    "kernelized": "slides/L16_large_games.pdf"
   },
   "interactive_slides": {
     "learning-foundations": "slides/L04_learning_in_games.html",

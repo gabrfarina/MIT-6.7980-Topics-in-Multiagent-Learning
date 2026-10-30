@@ -1,7 +1,7 @@
 #import "meta/gabri_notes.typ": *
 #show: gabri_notes.with(
   lec_num: 16,
-  date: [Tue, Nov 10, 2026],
+  date: [Thu, Oct 29, 2026],
   title: "High-dimensional games",
   instructor: [Prof. Constantinos Daskalakis (`costis@mit.edu`)],
 )

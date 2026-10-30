@@ -68,7 +68,7 @@
   datetime(year: parts.at(0), month: parts.at(1), day: parts.at(2))
 }
 
-#let assign-schedule(dates, entries) = {
+#let assign-schedule(dates, entries, rescheduled: (:)) = {
   assert(dates.len() > 0, message: "The schedule needs class dates.")
   let checked-dates = dates.map(calendar-date)
   assert(
@@ -116,6 +116,28 @@
     }
   }
   assert(cursor == outline.len(), message: "The schedule ends with an empty module.")
+
+  // Date-only changes preserve the numbers and module order assigned above.
+  assert(
+    rescheduled.keys().all(id => ids.contains(id)),
+    message: "Rescheduled lecture IDs must exist in the outline.",
+  )
+  let lecture-dates = result.filter(e => e.kind == "lecture").map(e => e.date)
+  for day in rescheduled.values() {
+    let checked = calendar-date(day)
+    assert(lecture-dates.contains(day), message: "Rescheduled dates must be existing lecture dates.")
+  }
+  result = result.map(entry => {
+    if entry.kind == "lecture" and rescheduled.keys().contains(entry.id) {
+      let day = rescheduled.at(entry.id)
+      if day != entry.date { entry + (original-date: entry.date, date: day) } else { entry }
+    } else { entry }
+  })
+  let assigned-dates = result.filter(e => e.kind != "module").map(e => e.date)
+  assert(
+    assigned-dates.dedup().len() == assigned-dates.len(),
+    message: "Rescheduled lectures must not share a date with another session.",
+  )
   result
 }
 
@@ -146,8 +168,8 @@
   [#linebreak()#text(size: 9.8pt)[#body]]
   v(.5mm)
 }
-#let schedule(dates, entries, hide-instructors: false) = {
-  let assigned = assign-schedule(dates, entries)
+#let schedule(dates, entries, hide-instructors: false, rescheduled: (:)) = {
+  let assigned = assign-schedule(dates, entries, rescheduled: rescheduled)
   let exported = assigned.map(e => if e.kind == "module" {
     (kind: "module", title: schedule-text(e.title))
   } else {
@@ -157,6 +179,10 @@
       number: e.number,
       iso_date: e.date,
       date: calendar-date(e.date).display("[month repr:short] [day padding:none]"),
+      original_iso_date: e.at("original-date", default: none),
+      original_date: if e.at("original-date", default: none) != none {
+        calendar-date(e.original-date).display("[month repr:short] [day padding:none]")
+      },
       title: schedule-text(e.title),
       description: schedule-text(e.description),
       instructor: schedule-text(e.instructor),
@@ -172,7 +198,7 @@
     } else {
       cells += (
         [#entry.number],
-        [#schedule-date(entry.date)#if entry.badge != [] [#linebreak()#entry.badge]],
+        [#if entry.at("original-date", default: none) != none [#text(fill: gray)[#strike[#schedule-date(entry.original-date)]]#linebreak()]#schedule-date(entry.date)#if entry.badge != [] [#linebreak()#entry.badge]],
         [*#entry.title*#if not hide-instructors and entry.instructor != [] [#h(1fr)#box[#text(size: 8.5pt)[_#(entry.instructor)_]]]#if entry.description != [] [#desc(entry.description)]],
       )
     }

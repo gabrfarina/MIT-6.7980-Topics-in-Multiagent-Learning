@@ -350,4 +350,12 @@ The project is the central component of the course and accounts for #course.grad
   ),
 )
 
-#schedule(class-dates, outline, hide-instructors: true)
+// Preserve lecture numbers and show the original dates crossed out.
+#let rescheduled-dates = (
+  "alignment-1": "2026-11-05",
+  "alignment-2": "2026-11-10",
+  "calibration": "2026-11-03",
+  "kernelized": "2026-10-29",
+)
+
+#schedule(class-dates, outline, hide-instructors: true, rescheduled: rescheduled-dates)

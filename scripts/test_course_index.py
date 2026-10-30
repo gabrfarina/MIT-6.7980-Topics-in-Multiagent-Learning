@@ -50,10 +50,49 @@ class CourseIndexTests(unittest.TestCase):
                 expected.append(day.isoformat())
             day += timedelta(days=1)
         rows = [r for m in self.modules for r in m['rows']]
-        self.assertEqual([r['iso_date'] for r in rows], expected)
+        self.assertEqual(sorted(r['iso_date'] for r in rows), expected)
+        self.assertEqual([r.get('original_iso_date') or r['iso_date'] for r in rows], expected)
         eligible = [r for r in rows if r['iso_date'] not in ('2026-10-13', '2026-11-26')]
         self.assertEqual(sum(date.fromisoformat(r['iso_date']).weekday() == 1 for r in eligible), 12)
         self.assertEqual(sum(date.fromisoformat(r['iso_date']).weekday() == 3 for r in eligible), 13)
+
+    def test_date_changes_preserve_lecture_numbers_and_show_original_dates(self):
+        rows = {r['id']: r for m in self.modules for r in m['rows'] if r['kind'] == 'lecture'}
+        changes = {
+            'alignment-1': (13, '2026-10-29', '2026-11-05'),
+            'alignment-2': (14, '2026-11-03', '2026-11-10'),
+            'calibration': (15, '2026-11-05', '2026-11-03'),
+            'kernelized': (16, '2026-11-10', '2026-10-29'),
+        }
+        page = render_index(self.config, self.modules)
+        for id, (number, original, current) in changes.items():
+            with self.subTest(lecture=id):
+                row = rows[id]
+                self.assertEqual((row['number'], row['original_iso_date'], row['iso_date']),
+                                 (number, original, current))
+                rendered = re.search(fr'<tr class="schedule-row" id="lecture-{id}">.*?</tr>', page, re.S).group()
+                self.assertRegex(rendered, fr'<del class="original-date"><time datetime="{original}"[^>]*>.*?</time></del>')
+                self.assertIn(f'<time class="rescheduled-date" datetime="{current}"', rendered)
+        self.assertEqual({id for id, row in rows.items() if row.get('original_iso_date')}, set(changes))
+        kernelized = next(c for c in self.config['notes'] if c['source'] == 'content/kernelized.typ')
+        self.assertEqual((kernelized['number'], kernelized['date']), (16, 'Thu, Oct 29, 2026'))
+        self.assertEqual(self.config['slides']['kernelized'], 'slides/L16_large_games.pdf')
+        self.assertNotIn('alignment-1', self.config['slides'])
+        self.assertNotIn('L13_large_games.pdf', page)
+
+    def test_date_changes_reject_unknown_lectures_collisions_and_nonlecture_dates(self):
+        changes = (
+            ('"alignment-1": "2026-11-05"', '"missing-topic": "2026-11-05"'),
+            ('"alignment-1": "2026-11-05"', '"alignment-1": "2026-11-10"'),
+            ('"alignment-1": "2026-11-05"', '"alignment-1": "2026-10-13"'),
+            ('"alignment-1": "2026-11-05"', '"alignment-1": "2026-11-24"'),
+            ('"alignment-1": "2026-11-05"', '"alignment-1": "2027-11-05"'),
+            ('"alignment-1": "2026-11-05"', '"alignment-1": "2026-02-30"'),
+            ('"alignment-1": "2026-11-05"', '"alignment-1": "bad date"'),
+        )
+        for original, replacement in changes:
+            with self.subTest(change=replacement), self.assertRaises(ValueError):
+                self.evaluate(self.syllabus.replace(original, replacement))
 
     def test_missing_entries_bad_dates_and_duplicate_ids_fail(self):
         variants = [

@@ -181,9 +181,17 @@ def render_index(config: dict, modules: list[dict], *, stylesheet_version: str =
             if not links:
                 links = ('<span class="notes-pending">Not yet posted</span>'
                          if number != 0 and module['title'] != 'Project work and presentations' else '')
+            date_html = f'<time datetime="{row["iso_date"]}">{escape(row["date"])}</time>'
+            if row.get('original_iso_date'):
+                date_html = (
+                    f'<del class="original-date"><time datetime="{row["original_iso_date"]}" '
+                    f'aria-label="Originally {escape(row["original_date"], quote=True)}">'
+                    f'{escape(row["original_date"])}</time></del>'
+                    f'<time class="rescheduled-date" datetime="{row["iso_date"]}" '
+                    f'aria-label="Rescheduled to {escape(row["date"], quote=True)}">{escape(row["date"])}</time>')
             rows.append(f'''<tr class="schedule-row" id="lecture-{escape(row['id'], quote=True)}">
   <th scope="row" class="session-number">{number:02}</th>
-  <td class="session-date"><time datetime="{row['iso_date']}">{escape(row['date'])}</time>{badge_html}</td>
+  <td class="session-date">{date_html}{badge_html}</td>
   <td class="session-topic"><h4>{title_html}</h4><p>{escape(row['description'])}</p></td>
   <td class="materials-cell"><div class="session-links">{links}</div></td>
 </tr>''')
