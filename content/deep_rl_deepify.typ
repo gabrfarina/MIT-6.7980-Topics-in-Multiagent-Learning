@@ -46,7 +46,7 @@ The following table summarizes the three algorithms we discuss in this section.
 
 == Learning approximate best responses <sec-deepify-br>
 
-Fix a two-player game and a strategy $vy$ of Player~2. A _best response_ of Player~1 to $vy$ is any strategy in $arg max_(vx) u_1(vx, vy)$. The key observation is that once $vy$ is fixed, Player~2 is no longer a strategic agent: their actions are random events drawn from a known distribution, exactly like chance. From Player~1's point of view, the game becomes a #lecture-link("efg_intro", <sec-tfdp>)[tree-form decision process] with a stochastic environment, which is a single-agent (partially observable) reinforcement learning problem. We can therefore approximate a best response with any off-the-shelf deep RL algorithm, such as DQN or PPO, trained by playing against $vy$.
+Fix a two-player game and a strategy $vy$ of Player~2. A _best response_ of Player~1 to $vy$ is any strategy in $arg max_(vx) u_1(vx, vy)$. Once $vy$ is fixed, Player~2 is no longer a strategic agent: their actions are random events drawn from a known distribution, exactly like chance. From Player~1's point of view, the game becomes a #lecture-link("efg_intro", <sec-tfdp>)[tree-form decision process] with a stochastic environment, which is a single-agent (partially observable) reinforcement learning problem. We can therefore approximate a best response with any off-the-shelf deep RL algorithm, such as DQN or PPO, trained by playing against $vy$.
 
 This is attractive because single-agent deep RL is a mature toolbox. Two classical algorithms are built entirely on a best-response oracle.
 
@@ -79,19 +79,19 @@ This is attractive because single-agent deep RL is a mature toolbox. Two classic
 *Fictitious play.* We met fictitious play in #lecture-link("learning1", none)[] as follow-the-leader in the #lecture-link("learning_intro", <def-canonical-learning>)[canonical learning setup]: at every iteration, each player best responds to the average of the opponent's past strategies #citep(<brown1951iterative>). In two-player zero-sum games the average strategies converge to a Nash equilibrium #citep(<Robinson1951>). Both steps inside the loop are hard at scale.
 
 - `BestResponse` is a full deep RL problem against the fixed policy $overline(pi)_(-i)$.
-- `UpdateAverage` is subtler than it looks. The average of behavioral strategies is _not_ obtained by averaging the action probabilities at each decision point separately. A decision point that the $t$-th policy rarely reaches should contribute little to the average there. The correct average is taken in the #lecture-link("efg_intro", <sec-sequence-form>)[sequence form]: if $vx^((t))$ is the sequence-form strategy of the $t$-th iterate, the average policy at decision point $j$ is
+- `UpdateAverage` requires care: the average of behavioral strategies is _not_ obtained by averaging the action probabilities at each decision point separately. A decision point that the $t$-th policy rarely reaches should contribute little to the average there. The correct average is taken in the #lecture-link("efg_intro", <sec-sequence-form>)[sequence form]: if $vx^((t))$ is the sequence-form strategy of the $t$-th iterate, the average policy at decision point $j$ is
   $
     overline(pi)^((T))(a | j) = (sum_(t=1)^T vx^((t))[p_j] dot pi^((t))(a | j)) / (sum_(t=1)^T vx^((t))[p_j]),
   $
   so each iterate is weighted by its own probability of reaching $j$ #citep(<Heinrich15:Fictitious>).
 
-_Neural fictitious self-play_ (NFSP) #citep(<Heinrich16:Deep>) approximates both steps with networks. A best-response network is trained with off-policy deep RL (DQN) on the agent's experience. An average-policy network is trained by supervised classification to imitate the actions that the agent took _when following its best-response network_. These state-action pairs are kept in a reservoir buffer, which retains a uniform sample of everything seen so far. Supervised learning on this buffer handles the weighting above automatically. A decision point appears in the buffer in proportion to how often the past best responses reached it, which is exactly the reach weight in the formula. At each step the agent acts according to the best-response network with a small probability $eta$ (the _anticipatory parameter_) and according to the average network otherwise. In this way, the experience used to train each best response comes from opponents playing (approximately) their average policies, as fictitious play prescribes.
+_Neural fictitious self-play_ (NFSP) #citep(<Heinrich16:Deep>) approximates both steps with networks. A best-response network is trained with off-policy deep RL (DQN) on the agent's experience. An average-policy network is trained by supervised classification to imitate the actions that the agent took _when following its best-response network_. These state-action pairs are kept in a reservoir buffer, which retains a uniform sample of everything seen so far. Supervised learning on this buffer handles the weighting above automatically. A decision point appears in the buffer in proportion to how often the past best responses reached it, which is the reach weight in the formula above. At each step the agent acts according to the best-response network with a small probability $eta$ (the _anticipatory parameter_) and according to the average network otherwise. In this way, the experience used to train each best response comes from opponents playing (approximately) their average policies, as fictitious play prescribes.
 
 *Double oracle.* Double oracle #citep(<McMahan03:Planning>) keeps, for each player, a _population_ $S_i$ of strategies found so far. At every iteration it solves the _restricted game_ (also called _meta-game_), the normal-form game in which each player may only mix over the strategies in their population. It then adds to each population a best response to the opponent's restricted equilibrium strategy $sigma_(-i)$. If neither best response improves on the value of the restricted game, then $sigma$ is a Nash equilibrium of the full game. Since a finite game has finitely many pure strategies, the algorithm terminates.
 
 _Policy-space response oracles_ (PSRO) #citep(<Lanctot17:Unified>) is the deep version. Each population member is a neural-network policy, and `BestResponse` is a deep RL run against the mixture $sigma_(-i)$. The restricted game is not given to us, so its payoff matrix is estimated by simulation: the entry for a pair of policies $(pi_1^k, pi_2^l)$ is the average return of many rollouts in which they play each other. PSRO also allows replacing `Nash` by other _meta-solvers_. For example, the uniform distribution over the population recovers a fictitious-play-like method.
 
-Both approximations break the exact termination test. A best response found by RL is only approximately a best response, so “the new policy does not improve” no longer certifies an equilibrium. What we keep is a meaningful algorithmic skeleton: the more accurate the oracle, the closer we are to the tabular algorithm.
+Both approximations break the exact termination test. A best response found by RL is only approximately a best response, so “the new policy does not improve” no longer certifies an equilibrium. What we keep is the outer loop itself, unchanged; its guarantee degrades gracefully with oracle accuracy, so the more accurate the oracle, the closer we are to the tabular algorithm.
 
 == Learning counterfactual regrets <sec-deepify-cfr>
 
@@ -116,7 +116,11 @@ The first issue predates deep learning. _Monte Carlo CFR_ (MCCFR) #citep(<Lancto
   $
     sum_((j, t, tilde(r)) in "memory") t dot sum_(a in A_j) (V_theta (j, a) - tilde(r)^((t))(j, a))^2.
   $
-  A squared-loss regressor predicts an average of its targets. Weighting iteration $t$ by $t$ makes this average match the weighting of linear CFR, which counts later iterations more. The prediction is therefore approximately _proportional_ to the cumulative regret $R^((t))(j, a)$, up to a positive factor that is shared by all actions at $j$.
+  A squared-loss regressor predicts a weighted average of its targets. Weighting the sample from iteration $t$ by $t$ makes this average match the weighting used by _linear CFR_ #citep(<Brown19:Discounted>), a variant that regret-matches on the linearly weighted cumulative regret
+  $
+    R_("lin")^((T))(j, a) := sum_(t=1)^T t dot r^((t))(j, a)
+  $
+  instead of the plain $R^((T))(j, a)$ defined above, and converges faster as a result. The prediction is therefore approximately _proportional_ to $R_("lin")^((T))(j, a)$ — not to the plain cumulative regret $R^((T))(j, a)$ — up to a positive factor that is shared by all actions at $j$.
 + Play regret matching on the predictions. Because regret matching normalizes, a positive common factor does not change the strategy:
   $
     pi^((t+1))(a | j) = ([V_theta (j, a)]^+) / (sum_(b in A_j) [V_theta (j, b)]^+).
@@ -125,23 +129,23 @@ The first issue predates deep learning. _Monte Carlo CFR_ (MCCFR) #citep(<Lancto
 
 As always with CFR, the guarantee concerns the _average_ strategy, not the last iterate. Deep CFR therefore stores the strategies played at sampled decision points in a separate memory and, at the end, trains a _strategy network_ to predict the (linearly weighted) average policy. This network is the one that is deployed.
 
-The variance of sampled regrets is a recurring difficulty. Sampling estimators divide by the probability of the sampled trajectory, and these importance weights can be very large. ESCHER #citep(<McAleer23:ESCHER>) avoids importance sampling by learning a _history value function_ and computing regret estimates from its predictions.
+Even external sampling has a cost: because the traverser explores every one of its own actions at each visited decision point, a single traversal's cost still grows with the traverser's branching factor. The cheaper alternative, _outcome sampling_, follows a single trajectory to a terminal node and corrects for it by dividing by the probability of that trajectory; these importance weights can be very large, and this is the main source of variance in sampling-based CFR #citep(<Steinberger20:DREAM>). ESCHER #citep(<McAleer23:ESCHER>) targets this tradeoff directly: it samples one action per decision point from a fixed baseline policy and learns a _history value function_ to estimate regrets from it, avoiding both the branching-factor cost of external sampling and the importance-weight variance of outcome sampling.
 
 == Advantages and drawbacks <sec-deepify-tradeoffs>
 
-The deepified algorithms have real strengths.
+The deepified algorithms inherit strengths from their tabular counterparts.
 
-- *Solid foundations.* Each method starts from a tabular algorithm with a convergence proof. If the networks were perfect, we would recover that algorithm. With imperfect networks, the error can often be accounted for. For instance, Deep CFR's regret bound degrades with the prediction error of the advantage network #citep(<Brown19:Deep>).
-- *A clear division of labor.* Every network has a well-defined target: a best response to a fixed opponent, an average policy, or a vector of regrets. Each of these is a standard single-agent RL or supervised learning problem that can be tested on its own.
+- *Error-aware guarantees.* Each method starts from a tabular algorithm with a convergence proof. If the networks were perfect, we would recover that algorithm. With imperfect networks, the error can often be accounted for. For instance, Deep CFR's regret bound degrades with the prediction error of the advantage network #citep(<Brown19:Deep>).
+- *Independently testable components.* Every network has a well-defined target: a best response to a fixed opponent, an average policy, or a vector of regrets. Each of these is a standard single-agent RL or supervised learning problem that can be tested on its own.
 
-They also have serious drawbacks, which ultimately motivate the second direction of this lecture.
+They also have drawbacks, which ultimately motivate the second direction of this lecture.
 
 - *Best responses are expensive.* Learning a strong best response requires exploring the game and learning how to act everywhere the opponent might take us. In practice this is nearly as hard as learning an equilibrium. The only simplification is that the opponent is fixed.
 - *The loop is nested.* Fictitious play and double oracle call the best-response oracle once per outer iteration, and each call is a full deep RL training run. Work done by one run is largely discarded when the next run starts against a new opponent mixture. Deep CFR similarly retrains its advantage network from scratch at every iteration.
-- *The outer loop can be slow even when exact.* Fictitious play can converge very slowly. With adversarial tie-breaking, its rate in $n times n$ zero-sum games can be as bad as $t^(-1\/n)$ #citep(<Daskalakis14:Counter>), and even a $10 times 10$ game in which ties play no role forces a rate no better than $t^(-1\/3)$ #citep(<Wang25:Tie>). Double oracle can require exponentially many iterations before it terminates #citep(<Zhang24:Exponential>). With deep RL, every one of these iterations becomes a training run.
+- *The outer loop can be slow even when exact.* Fictitious play can converge very slowly. With adversarial tie-breaking, its rate in $n times n$ zero-sum games can be as bad as $t^(-1\/n)$ #citep(<Daskalakis14:Counter>), and even a $10 times 10$ game forces a rate no better than $t^(-1\/3)$, regardless of how ties are broken #citep(<Wang25:Tie>). Double oracle can require a number of iterations that is exponential in the size of the game description — not merely in its number of pure strategies, which is already exponential in that size #citep(<Zhang24:Exponential>). With deep RL, every one of these iterations becomes a training run.
 - *Populations cost memory and simulation.* PSRO must store every policy it has trained and estimate a payoff matrix whose size grows quadratically with the population. Each entry of the matrix requires many rollouts.
 
-These algorithms were chosen as starting points mostly because they are simple to state, and we pay for that simplicity. The question that motivates the rest of the lecture is whether we can skip the outer loop and run gradient ascent directly on the policies. This works surprisingly well. In a large study over five imperfect-information benchmarks with exactly computed exploitability, properly tuned policy-gradient methods matched or outperformed NFSP, PSRO, and ESCHER #citep(<Rudolph26:Reevaluating>).
+The drawbacks above motivate the question that drives the rest of the lecture: can we skip the outer loop and run gradient ascent directly on the policies? In a large study over five imperfect-information benchmarks with exactly computed exploitability and over 7000 training runs, properly tuned policy-gradient methods matched or outperformed NFSP, PSRO, and ESCHER #citep(<Rudolph26:Reevaluating>).
 
 = Bibliography for this lecture
 
