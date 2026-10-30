@@ -32,6 +32,7 @@
 !/slides/L09_deep_rl.html
 !/slides/L11_mechanism_design.pdf
 !/slides/L12_team_games.pdf
+!/slides/L13_large_games.pdf
 
 # Build products, editor state, and local secrets.
 **/target/
