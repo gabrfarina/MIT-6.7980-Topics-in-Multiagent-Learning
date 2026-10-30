@@ -197,6 +197,15 @@ Pseudocode for CFR is given in @algo:cfr. Note that the implementation is parame
 
 The CFR algorithm can be used to learn a Nash equilibrium in a two-player zero-sum game by letting two regret minimizers play against each other. The two regret minimizers exchange their sequence-form strategies at every iteration according to the #lecture-link("learning_intro", <sec-learning-zero-sum>)[canonical self-play setup].
 
+= Play against a CFR-trained opponent <sec-cfr-poker>
+
+The Leduc poker deck has two of J, Q, and K. Each player antes one chip and receives one card. There are two betting rounds, with one community card revealed between them. P1 acts first in both rounds. With no outstanding bet, check or bet; facing a bet, call, fold, or raise. Each round allows at most one raise. Bets and raise increments are two chips in round one and four in round two. Folding awards the pot to the other player. At showdown, a pair wins, otherwise the higher rank wins, and equal hands split the pot.
+
+Play against a CFR-trained opponent, and use *Inspect model* or *Edit state* to explore how information sets and regret shape its strategy.
+
+#import "meta/cfr-poker.typ": cfr-poker
+#cfr-poker()
+
 = Bibliography for this lecture
 
 #lec_bibliography("meta/refs.bib", title: none)
