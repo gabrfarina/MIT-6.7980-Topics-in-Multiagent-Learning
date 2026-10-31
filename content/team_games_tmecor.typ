@@ -41,6 +41,12 @@ The two joint plans are the heads and tails branches, and the shared coin picks 
 
 Under $vmu^star$, Player 2 always guesses right, and the message is uniform and independent of the bit. So Player 3 is right with probability $1\/2$ whatever it does, and the team gets $1\/2$ against every $vy$. Conversely, the team scores only when Player 3 guesses wrong. If Player 3 guesses uniformly at random, it is wrong with probability $1\/2$, so no team strategy gets more than $1\/2$. Hence the TMECor value is $1\/2$. This is twice the TME value of $1\/4$, and it equals the min-max value computed earlier. Correlation closes the gap between the maxmin and min-max values.
 
+#exercise[The one-time pad is the only TMECor][
+  In the communication game of @fig-team-communication-game, show that $vmu^star$ is the unique TMECor. That is, show that every $vmu in Delta(Pi_1 times Pi_2)$ that guarantees the team $1\/2$ against every strategy of Player 3 equals $vmu^star$.
+
+  Hint in @sec-team-hints.
+] <exr-team-pad-unique>
+
 == Correlation restores the minimax theorem <sec-team-minimax>
 
 With correlation, the team acts as a single player whose pure strategies are the joint plans $Pi_1 times Pi_2$ and whose mixed strategies are the distributions $vmu$. The TMECor problem is then nothing but a large two-player zero-sum normal-form game between this player and the adversary. Its objective is bilinear in $(vmu, vy)$, so the #lecture-link("learning_intro", <sec-learning-minimax>)[minimax theorem] holds and the maxmin value equals the min-max value (@tab-team-minimax).
@@ -59,6 +65,17 @@ With correlation, the team acts as a single player whose pure strategies are the
     [TMECor], [$Delta(Pi_1 times Pi_2)$], [$1\/2$], [convex (bilinear saddle point)], [holds],
   ),
 ) <tab-team-minimax>
+
+#exercise[A biased bit][
+  Modify the communication game of @fig-team-communication-game so that chance draws bit 0 with probability $p$ and bit 1 with probability $1 - p$, where $1\/2 <= p < 1$. Everything else stays the same.
+
+  + Show that the TMECor value is $1 - p$.
+  + For $q in [0, 1]$, consider the biased one-time pad $vmu_q := q delta_((1, 0; 1, 0)) + (1 - q) delta_((0, 1; 0, 1))$. Show that the fair pad $vmu_(1\/2) = vmu^star$ is still a TMECor. Find all $q$ for which $vmu_q$ is a TMECor. Is the message still independent of the bit for all of them?
+  + Show that the TME value is $p (1 - p)$. Describe the uncorrelated strategies $(a, b; c, d)$ that attain it.
+  + For $p = 2\/3$, compare the ratio of the TMECor and TME values with the case $p = 1\/2$.
+
+  Hints in @sec-team-hints.
+] <exr-team-biased-bit>
 
 == Team games as imperfect-recall games <sec-team-imperfect-recall>
 
@@ -183,6 +200,15 @@ is the set of their realization vectors, the vectors the team can reach _without
   which is impossible. So $vx^(vmu^star) in.not tilde(cX)$, although it is the midpoint of two points of $V subset.eq tilde(cX)$.
 ] <ex-team-pad-not-uncorrelated>
 
+#exercise[Where the nonconvexity goes][
+  Use the communication game of @fig-team-communication-game and the vectors $vx(a, b; c, d)$ and $vy$ of @ex-team-realization.
+  + Compute $vx(a, b; c, d)^top U vy$ as a polynomial in $a, dots, f$. Check that it agrees with the expected utility computed directly from the tree.
+  + Fix Player 3 at $e = f = 1\/2$. Show that the team's utility is not a concave function of $(a, b, c, d) in [0, 1]^4$.
+  + Now take the midpoint of the same two plans in realization coordinates. What utility does it give against $e = f = 1\/2$? Which of the two midpoints can the team play without shared randomness?
+
+  Hint in @sec-team-hints.
+] <exr-team-bilinear>
+
 == Beyond the sequence form <sec-team-sequence-form>
 
 The problem of @thm-team-bspp is a convex bilinear saddle-point problem that looks like the sequence-form problem, but we have been hiding something. If the team had perfect recall, $cX$ would be a linear image of a sequence-form polytope, as $cY$ is for Player 3. A team in general does not have perfect recall. In the sequence form, each information set has exactly one parent sequence, and its flow constraint splits the mass of that sequence among the actions at the information set. In the communication game, each information set of Player 2 has two parent sequences, one through each node of Player 1.
@@ -211,6 +237,26 @@ The problem of @thm-team-bspp is a convex bilinear saddle-point problem that loo
 ] <ex-team-flow-gap>
 
 The gap is invisible in the value of this game. A point of $R$ is a pair of distributions over the team's outcomes, one for each value of the bit. If Player 3 guesses uniformly ($e = f = 1\/2$), it is wrong with probability $1\/2$ whatever these distributions are, and the team scores only when Player 3 is wrong. So the team gets at most $1\/2$ on all of $R$, and since $cX subset.eq R$, the maxmin value over $R$ is also $1\/2$. But $R$ contains strategies that no team can play. In this small game, four extra inequalities repair the relaxation. In general no repair is efficient. If $cX$ had an efficient representation, for example by polynomially many linear inequalities, we could plug it into the saddle-point problem of @thm-team-bspp and compute a TMECor in polynomial time. Computing a TMECor is NP-hard, as the next part of the lecture shows, so unless $P = NP$ no such representation exists.
+
+#exercise[The uncorrelated set is cut out by two quadratics][
+  Let $R$ be the flow relaxation of @ex-team-flow-gap. Show that
+  $
+    tilde(cX) = {vx in R : x[z_1] dot x[z_5] = x[z_3] dot x[z_4], quad x[z_7] dot x[z_11] = x[z_9] dot x[z_10]}.
+  $
+  Interpret each equation as a statement about Player 2's conditional behavior. Use the result to show again that $vx^(vmu^star) in.not tilde(cX)$, and conclude that $tilde(cX)$ is not convex.
+
+  Hint in @sec-team-hints.
+] <exr-team-uncorrelated-quadratics>
+
+= Hints for the exercises <sec-team-hints>
+
+*@exr-team-pad-unique.* First let Player 3 guess uniformly at random after each message. What does this force about how often Player 2 guesses right? Which joint plans make Player 2 right for both values of the bit? Then try the pure strategy in which Player 3 guesses 0 after the left message and 1 after the right message.
+
+*@exr-team-biased-bit.* For the first part, find a strategy of Player 3 that ignores the message and holds the team to $1 - p$. For the third part, Player 3 best-responds separately after each message. For fixed $a, b$, choose $c$ and $d$ to equalize Player 3's two options. Then use that $g(alpha, beta) := alpha beta \/ (alpha + beta)$, with $g(0, 0) := 0$, is concave and positively homogeneous on $RR_(>= 0)^2$, so $g(vu) + g(vv) <= g(vu + vv)$.
+
+*@exr-team-bilinear.* For the second part, compare the joint plans $(1, 0; 1, 0)$ and $(0, 1; 0, 1)$ with their midpoint in behavioral coordinates.
+
+*@exr-team-uncorrelated-quadratics.* By @ex-team-pad-not-uncorrelated, $tilde(cX)$ is the set of vectors $vx(a, b; c, d)$. For the reverse inclusion, set $a := x[z_1] + x[z_3]$ and $b := x[z_4] + x[z_5]$, and treat the cases $a = 0$ and $b = 0$ separately.
 
 = Bibliography for this lecture
 
