@@ -94,6 +94,37 @@ $ tilde(vg)^((t)) := (w^((t)) / y^((t))_(a^((t)))) ve_(a^((t))) in RR^A. $
   #v(-6mm)
 ]
 
+
+#paragraph-marker() *Behavior of the importance sampling estimator.*~~
+
+Although the importance sampling estimator is unbiased, its magnitude can be very large. In particular, when an action $a^((t))$ with positive gain is sampled with very small probability $y^((t))_(a^((t)))$, the estimate $w^((t)) / y^((t))_(a^((t)))$ can be arbitrarily large, even when the true gain lies in $[0,1]$.
+
+For example, if an action has sampling probability $0.001$ and gain $1$, the corresponding estimated gain is $1000$.
+
+
+An alternative is the following shifted importance sampling estimator, which we denote by $overline(vg)^((t))$ to distinguish it from the standard estimator:
+
+$
+  overline(vg)^((t)) :=
+    vone + frac(w^((t)) - 1, y^((t))_(a^((t)))) ve_(a^((t))).
+$
+
+This estimator is also unbiased. Indeed, conditioning on the history and the current gain vector,
+
+$
+  EE_t [overline(vg)^((t))]
+  = vone + sum_(a in A) y^((t))_a
+    frac(g^((t))_a - 1, y^((t))_a) ve_a
+  = vone + sum_(a in A) (g^((t))_a - 1) ve_a
+  = vg^((t)).
+$
+
+
+Since $w^((t)) in [0,1]$, the correction term is always nonpositive. Consequently, every coordinate of the shifted estimator is bounded above by $1$. However, unlike the original estimator, it can take arbitrarily large negative values when an action with gain strictly below $1$ is sampled with very small probability.
+
+Thus, while both estimators are unbiased, they have different one-sided boundedness properties. The shifted estimator is particularly useful for multiplicative-weights updates formulated in terms of gains.
+
+
 == The Exp3 algorithm
 
 Exp3 (short for "exponential weights for exploration and exploitation") adapts #lecture-link("learning1", <sec-mwu>)[multiplicative weights] to bandit feedback and was introduced by #citet(<auer2002nonstochastic>). We use a variant that needs no explicit exploration mixture. Convert rewards $g^((t))_a in [0,1]$ into losses $ell^((t))_a=1-g^((t))_a$. This changes neither realized regret nor pseudoregret.
@@ -119,7 +150,38 @@ Equivalently, the full-information utility learner receives $-hat(vell)^((t))$.
 
 == Tsallis entropy <sec-tsallis>
 
-It can be shown that, information theoretically, no bandit learning algorithm for a finite set of actions $|A|$ can achieve better than $Omega(sqrt(T |A|))$ expected regret in general. The regret guaranteed by the Exp3 algorithm is therefore optimal only up to a logarithmic factor. It remained open for a long time whether this logarithmic factor could be removed. A positive answer was given by #citet(<audibert2010regret>), who proposed the idea of replacing #lecture-link("learning1", <sec-mwu>)[MWU] with #lecture-link("learning1", <ftrl-omd-general-case>)[FTRL] instantiated with the negative $(1\/2)$-Tsallis entropy regularizer
+
+Theorem 5.1 of #citet(<auer2002nonstochastic>) establishes an $Omega(min{sqrt(T abs(A)), T})$ lower bound on expected weak regret. The same construction also gives a lower bound on pseudoregret for $2 <= |A| <= T$, as we sketch below.
+
+#paragraph-marker() *Lower bound construction (sketch).*~~
+For each fixed $j in A$, consider an environment $P_j$ in which action $j$ has independent Bernoulli gains with mean $1/2 + epsilon$, while all other actions have independent Bernoulli gains with mean $1/2$. Let $N_j$ be the number of times the learner selects action $j$. Since $j$ is the best fixed comparator in environment $P_j$, its pseudoregret is
+
+$
+  R_j = epsilon (T - EE_j [N_j]),
+$
+
+where $EE_j$ denotes expectation over the gains in $P_j$ and the learner's randomization.
+
+To show that some fixed environment is hard, consider averaging over $j$ uniformly only as a proof technique. A standard change-of-measure argument, comparing each $P_j$ with the environment where all actions have mean $1/2$, gives
+
+$
+  frac(1, |A|) sum_(j in A) EE_j [N_j]
+  <= frac(T, |A|)
+  + O(epsilon T sqrt(frac(T, |A|))).
+$
+
+Choosing $epsilon = c sqrt(frac(abs(A), T))$ for a sufficiently small constant $c > 0$ ensures that this average is at most $3T/4$. Consequently,
+
+$
+  frac(1, |A|) sum_(j in A) R_j
+  >= frac(epsilon T, 4)
+  = Omega(sqrt(T abs(A))).
+$
+
+Therefore, at least one $j in A$ satisfies $R_j = Omega(sqrt(T abs(A)))$, with the comparator $j$ fixed before taking expectations. Averaging over gain sequences in $P_j$ further implies the existence of a fixed oblivious gain sequence attaining the same lower bound. Thus, the construction establishes the claimed pseudoregret lower bound.
+
+The regret guaranteed by Exp3 is therefore optimal only up to a logarithmic factor. It remained open for a long time whether this logarithmic factor could be removed. A positive answer was given by #citet(<audibert2010regret>), who proposed replacing #lecture-link("learning1", <sec-mwu>)[MWU] with #lecture-link("learning1", <ftrl-omd-general-case>)[FTRL] instantiated with the negative $(1\/2)$-Tsallis entropy regularizer
+
 $
   psi(vx) = 2 - 2 sum_(a in A) sqrt(x_a).
 $
