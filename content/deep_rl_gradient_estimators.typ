@@ -248,7 +248,7 @@ For a thorough treatment of policy gradient and actor-critic methods in the sing
 The lecture started from a problem we have been solving since the #lecture-link("correlated", <sec-zero-sum>)[first lectures on zero-sum games]: find a saddle point of $max_(vx in cX) min_(vy in cY) vx^top matU vy$, where, for extensive-form games, $cX$ and $cY$ are the #lecture-link("efg_intro", <sec-sequence-form>)[sequence-form polytopes]. Every method we had for this problem stores something per decision point, whether an LP variable, a cumulative regret, or an average strategy, and that is exactly what breaks once the game has as many information sets as Stratego. Two ways around the obstacle were considered.
 
 - *"Deepify" game theory.* Begin with an equilibrium-finding algorithm that is already proven correct, such as fictitious play, double oracle, or CFR, identify its one expensive primitive, and hand that primitive to a neural network: a best response trained by deep RL (NFSP, PSRO), or a network that predicts cumulative regrets (Deep CFR). The appeal is that the outer loop, and with it the intuition for why the method should work, stays intact.
-- *"Game-theorify" deep RL.* Start from methods that are already known to scale, policy gradient methods in particular, and change only what is needed for them to find equilibria. This took three design choices: parameterize behavioral policies by logits, estimate gradients on policy with baselines and critics, and regularize so that self-play converges instead of cycling.
+- *"Game-theorify" deep RL.* Start from methods that are already known to scale, policy gradient methods in particular, and change only what is needed for them to find equilibria. This took three design choices: parameterize behavioral policies by logits, estimate gradients on policy with baselines and critics, and use regularization to address cycling in self-play.
 
 @tab-two-directions puts the two directions side by side.
 
@@ -267,43 +267,99 @@ The lecture started from a problem we have been solving since the #lecture-link(
     table.hline(stroke: .4pt),
     [Starting point], [a tabular algorithm with guarantees], [a scalable single-agent RL method],
     [What is learned], [best responses, regrets, average policies], [the policy itself, plus a critic],
-    [Structure], [nested: an outer loop around many training runs], [one training run of self-play],
+    [Structure], [game-theoretic updates with learned components], [direct policy updates in self-play],
     [Examples], [NFSP, PSRO, Deep CFR], [PPO, MMD, VRPO],
-    [Main cost], [each best response is a full RL problem], [noisy gradients and the need to regularize],
+    [Main cost], [best-response training (NFSP/PSRO); sampled traversals and regression (Deep CFR)], [noisy gradients and the need to regularize],
   )
 ] <tab-two-directions>
 
-What did each direction buy us? The deepified methods keep their guarantees only to the extent that every learned component is accurate, and they pay for that structure with nested training loops. A single accurate best response in a large game costs about as much to train as the equilibrium we were after in the first place, and these algorithms ask for one per outer iteration. The game-theorified methods spend their entire budget on a single self-play run. In return they give up convexity, but less than one might expect: the payoff is still hidden concave in the policy, and with truncation and regularization, policy gradient provably converges. Empirically, tuned policy gradient methods are at least as good as the deepified ones on games where exploitability can be computed exactly #citep(<rudolph2026reevaluating>), and the same recipe, together with decision-time planning, produced the first superhuman Stratego agent, at a small fraction of the compute used by earlier attempts #citep(<sokota2026scalable>).
+The deepified methods retain an explicit game-theoretic update, but their guarantees must account for errors in the learned components. Repeated best-response training can be expensive in NFSP and PSRO; Deep CFR instead spends computation on sampled traversals and regret regression. Direct policy optimization avoids a separate best-response oracle. Its convergence analysis still needs assumptions on the parameterization, updates, and regularization; hidden concavity alone does not establish convergence of neural self-play. In the reported benchmark comparisons, tuned policy gradient methods matched or outperformed the deepified methods tested #citep(<rudolph2026reevaluating>). Ataraxos demonstrates that self-play combined with decision-time planning can also produce strong play at the scale of Stratego #citep(<sokota2026scalable>).
 
 == What might still go wrong: noise <sec-still-noisy>
 
-Every gradient in this recipe is estimated from sampled play, so even a correct and unbiased method can be too noisy to train well. Baselines and critics (@sec-baselines) remove much of the noise, but games add a source of noise that single-agent RL rarely sees. We discuss two practical fixes.
+Every gradient in this recipe is estimated from sampled play, so even an unbiased estimator can be too noisy to train well. We consider two places to intervene: the advantage estimates used in an update, and the parameters retained across updates.
 
 #paragraph-marker() *Noise that survives a perfect critic.*~~
-PPO estimates advantages with GAE, which adds up one-step residuals $r + V(s') - V(s)$ along the sampled trajectory. In an MDP, an optimal policy can be deterministic, so near convergence the later actions along a trajectory are nearly predictable. In a game, equilibrium play is typically mixed, and the actions sampled _later_ in the trajectory by the opponent, by chance, and by ourselves keep injecting randomness into the estimate of the advantage of an _earlier_ action. This happens even when the value function is exact #citep(<fan2026gae>).
+Fix the policies during a rollout. Write $s_t$ for the full game state and $r_t$ for the reward to one fixed player, including at turns when another player acts. A terminal state $s_T$ has value zero. With a state-value critic $hat(V)$, GAE uses
+$
+  delta_t^V := r_t + gamma hat(V)(s_(t+1)) - hat(V)(s_t), quad
+  hat(A)_t^"GAE" := sum_(u=t)^(T-1) (gamma lambda)^(u-t) delta_u^V.
+$
+Here $gamma$ discounts rewards and $lambda in [0, 1]$ controls the trace length. Even with an exact critic, later sampled actions can make the residuals random. This matters in games because equilibrium policies may need to remain mixed #citep(<fan2026gae>).
 
 #example[Residual noise in matching pennies][
-  Let the learner play heads, after which the opponent, who does not see the learner's coin, plays heads or tails with probability $1\/2$ each, as at equilibrium. A critic that sees everything assigns value $0$ to the state "learner played heads", which is exact: the learner wins or loses $1$ with equal probability. The true advantage of heads is also $0$. Yet the GAE estimate of that advantage is $R - V = plus.minus 1$, depending on the opponent's coin. No amount of critic training removes this $plus.minus 1$, because it comes from the opponent's sampled action, not from an error in $V$.
+  Represent matching pennies as two successive decisions. At $s_0$ the learner chooses a coin; at $s_1$ the opponent chooses without observing that coin. Both policies are uniform. Condition on the learner having chosen heads, so $s_1$ is the full state "learner played heads". Set $gamma = 1$, $r_0 = 0$, and $r_1 = R$, where $R = 1$ if the opponent chooses heads and $R = -1$ otherwise.
+
+  All values below are for the learner. An exact centralized critic has $V(s_0) = V(s_1) = V(s_2) = 0$, with $s_2$ terminal. Thus
+  $
+    delta_0^V = 0, quad delta_1^V = R, quad hat(A)_0^"GAE" = lambda R.
+  $
+  The true advantage of heads is zero, but the estimate is $plus.minus lambda$ with equal probabilities. Its conditional mean is zero and its variance is $lambda^2$. At $lambda = 1$ this is the noisy Monte Carlo estimate $plus.minus 1$; at $lambda = 0$ it is exactly zero in this example. An exact critic therefore does not remove future-action noise from a multi-step trace with $lambda > 0$. Choosing $lambda = 0$ avoids this noise here, but makes the estimate depend on the accuracy of the one-step bootstrap.
 ] <ex-residual-noise>
 
-_Variance-reduced policy optimization_ (VRPO) #citep(<fan2026gae>) fixes this with a centralized action-value critic $Q(s, a)$, where $s$ is the full state of the game, including hidden information, which is allowed by the observation after @thm-baseline. Wherever GAE would bootstrap through the single action that happened to be sampled at a state, the new estimator, called _Q-boosting_, instead averages over the policy at that state, $V(s) = sum_a pi(a bar.v s) Q(s, a)$, in the spirit of Expected SARSA. If $Q$ is exact, every residual along the trajectory vanishes, and the estimate of the advantage of the action $a$ taken at $s$ is exactly $Q(s, a) - V(s)$. In @ex-residual-noise this gives $0$, with no noise at all. With an inexact critic, the estimator stays unbiased for the policy gradient when its trace parameter is $lambda = 1$, and it improves on GAE whenever the critic is accurate enough. VRPO plugs Q-boosting into PPO and otherwise leaves it unchanged. On three games with exactly computable exploitability, it reached exploitability more than $15%$ lower than tuned policy gradient baselines (independent PPO, MAPPO, MMD, and PPG), and in Dou Dizhu it overtook the previous strongest agent while using roughly $40%$ of that agent's training steps #citep(<fan2026gae>). The price is that $V(s)$ requires enumerating the actions at $s$, so large action spaces must be broken into several smaller decisions.
+#paragraph-marker() *Q-boosting.*~~
+_Variance-reduced policy optimization_ (VRPO) uses a centralized action-value critic $hat(Q)$ to construct an Expected SARSA trace #citep(<fan2026gae>). Let $pi(a bar.v s)$ denote the policy of whoever acts at $s$, evaluated using that player's information only. At a chance node it denotes Nature's fixed distribution. The critic may see the full state, including private information; the actors still obey the game's information constraints. Define
+$
+  hat(V)(s) &:= sum_a pi(a bar.v s) hat(Q)(s, a), \
+  delta_t^Q &:= r_t + gamma hat(V)(s_(t+1)) - hat(Q)(s_t, a_t), \
+  hat(A)_t^"boost" &:= hat(Q)(s_t, a_t) - hat(V)(s_t)
+    + sum_(u=t)^(T-1) (gamma lambda)^(u-t) delta_u^Q.
+$
+The action value now appears both in the initial advantage and in each residual. To see the effect, use the extensive-form representation in which chance outcomes are explicit actions: the successor state and reward are deterministic given $(s, a)$. For an exact critic, the Bellman identity gives
+$
+  Q^pi(s_t, a_t) = r_t + gamma V^pi(s_(t+1)).
+$
+Consequently $delta_t^Q = 0$ on every transition, and $hat(A)_t^"boost" = Q^pi(s_t, a_t) - V^pi(s_t)$. Conditional on the current state and action, the future-action noise has disappeared. The full policy-gradient estimate can still vary with the sampled current state and action. If environmental randomness is left inside a stochastic transition instead, the Bellman identity holds in expectation and does not imply that every sampled residual vanishes.
+
+In @ex-residual-noise, $Q(s_0, #H) = 0$, while $Q(s_1, #H) = 1$ and $Q(s_1, #T) = -1$. Hence $hat(V)(s_1) = 0$ with an exact critic, and $Q(s_1, a_1) = R$ on either outcome. The two residuals are $delta_0^Q = 0$ and $delta_1^Q = R - R = 0$. Q-boosting returns the true advantage $0$ for every $lambda$, including $lambda = 1$, where GAE has variance $1$.
+
+#paragraph-marker() *What if the critic is inaccurate?*~~
+The residual correction is essential. For a fixed critic, complete on-policy episodes, and $lambda = 1$, expanding the sum gives
+$
+  hat(A)_t^"boost" = G_t - hat(V)(s_t)
+    + sum_(u=t+1)^(T-1) gamma^(u-t) (hat(V)(s_u) - hat(Q)(s_u, a_u)),
+$
+where $G_t := sum_(u=t)^(T-1) gamma^(u-t) r_u$. Each term in the last sum has conditional mean zero before $a_u$ is sampled, by the definition of $hat(V)$. Multiplying by the score of the player's action at time $t$ preserves this cancellation: that score is already determined before every later action. The remaining baseline term also has zero expected score product, as in @thm-baseline. Thus the score-function gradient estimate remains unbiased even with an inaccurate fixed critic. This argument concerns the estimator before PPO clipping; it does not make the clipped PPO update unbiased.
+
+With $lambda < 1$, the telescoping argument no longer applies and critic error can introduce bias. Under the assumptions above, when exact-$V$ GAE has nonzero future-action noise, a sufficiently accurate $Q$-critic gives lower conditional mean-squared advantage error at the same $lambda > 0$ #citep(<fan2026gae>). This is not a guarantee for an arbitrary learned critic.
+
+VRPO retains PPO's clipped actor objective, but changes both the advantage estimate and the critic target. The critic regresses toward
+$
+  Q_t^"target" := hat(Q)(s_t, a_t)
+    + sum_(u=t)^(T-1) (gamma lambda)^(u-t) delta_u^Q,
+$
+with the target held fixed for the regression step. Evaluating $hat(V)$ requires summing over available actions, so the cost depends on the action space. The reported gains include lower exploitability on three benchmark games and strong play in Dou Dizhu #citep(<fan2026gae>); reducing estimator noise does not itself guarantee equilibrium convergence.
 
 #paragraph-marker() *Noise in the iterates.*~~
-Even with good gradient estimates, stochastic updates with a constant step size never settle exactly: the parameters keep jittering around a good region. The theory of the earlier lectures already hints at a fix. No-regret dynamics guarantee that the #lecture-link("learning_intro", <sec-learning-zero-sum>)[_average_ strategies] converge, and CFR outputs an average strategy for the same reason. A cheap stand-in is to keep an _exponential moving average_ of the parameters,
+Persistent gradient noise can keep constant-step-size updates fluctuating even near a good solution. An _exponential moving average_ (EMA) smooths the parameter sequence:
 $
   overline(theta)^((t)) = beta overline(theta)^((t-1)) + (1 - beta) theta^((t)), quad 0 < beta < 1,
 $
-and to evaluate and deploy the network with parameters $overline(theta)^((t))$ rather than $theta^((t))$. The average effectively covers the last $1 \/ (1 - beta)$ updates, so Ataraxos, which uses $beta = 0.999$ for its setup and move networks #citep(<sokota2026scalable>), averages over roughly the last thousand updates. This is a form of the iterate averaging long used in stochastic optimization #citep(<polyak1992acceleration>). One caveat is important. The map from parameters to policies is nonlinear, so the policy of $overline(theta)^((t))$ is in general _not_ the average of the policies $pi_(theta^((s)))$. It is not the reach-weighted sequence-form average that CFR and fictitious play require either. The moving average is a practical device for stability, not a substitute for the averaging in the theorems.
+Initialize $overline(theta)^((0)) = theta^((0))$ and use the averaged network for evaluation. Unrolling the recurrence gives
+$
+  overline(theta)^((t)) = beta^t theta^((0))
+    + (1-beta) sum_(k=1)^t beta^(t-k) theta^((k)).
+$
+Older updates receive geometrically decreasing weights. The characteristic window is about $1 \/ (1-beta)$ updates: Ataraxos uses $beta = 0.999$ for its setup and move networks, giving a window of roughly a thousand updates #citep(<sokota2026scalable>). A larger $beta$ smooths short fluctuations more strongly but responds more slowly when the parameters move to a new region.
+
+#example[Parameter averaging and policy averaging][
+  Consider a two-action policy with logits $(theta, 0)$, so the first action has probability $p(theta) = e^theta \/ (1 + e^theta)$. Take two checkpoints $theta^((0)) = 0$ and $theta^((1)) = log 9$. Their action probabilities are $1\/2$ and $9\/10$. One EMA update with $beta = 1\/2$ gives
+  $
+    overline(theta)^((1)) = (log 9) / 2 = log 3, quad
+    p(overline(theta)^((1))) = 3/4.
+  $
+  Averaging the two policies with the same weights instead gives $(1\/2 + 9\/10) \/ 2 = 7\/10$. Even for a single logit, averaging parameters and averaging strategies produce different policies.
+] <ex-ema-policy-average>
+
+The #lecture-link("learning_intro", <sec-learning-zero-sum>)[no-regret self-play guarantee] concerns averages of strategies in a two-player zero-sum game. In extensive-form games the corresponding behavioral average must also account for the player's own reach probabilities, as in CFR. Parameter EMA has neither that averaging rule nor, in general, uniform weights over past iterates. It is a practical smoothing method; the earlier strategy-averaging guarantee does not transfer to it.
 
 == Key take-aways <sec-key-takeaways>
 
-+ *At scale, the priorities change, but the problem does not.* We are still after a solution of the #lecture-link("correlated", <sec-zero-sum>)[saddle-point problem] we have studied since the beginning of the course, and the training loop is still the #lecture-link("learning_intro", <sec-learning-zero-sum>)[self-play setup] in which each player keeps improving against the other. What changes is that strategies now live in the parameters of a network, so the questions that mattered for tabular methods, exactness and convergence rates, give way to representation, sample efficiency, and stability. Running gradient ascent on the policy itself, in one long self-play run, turns out to beat wrapping deep learning inside an outer loop.
-+ *Losing convexity in the representation does not mean losing it in the problem.* The #lecture-link("efg_intro", <sec-sequence-form>)[sequence form] made the payoff linear, and the behavioral parameterization hides this structure without destroying it. Hidden concavity explains why gradient ascent on logits still converges.
-+ *The estimator is part of the algorithm.* Sampling on policy, subtracting baselines, learning critics, and, in games, averaging out the noise from mixed strategies (VRPO) decide in practice whether training works. At heart, these are the importance-sampling estimators we met with #lecture-link("bandit")[bandit feedback], pushed through a tree. Once a critic is in place, the update compares each action with the current average at its decision point, which is the same comparison that drives #lecture-link("learning_efg", <sec-cfr>)[CFR], with $Q$-values where CFR uses counterfactual values (@rem-cfr-connection).
-+ *Self-play needs regularization.* Simultaneous gradient updates can cycle, as in matching pennies. A softmax policy with an entropy bonus is a close relative of #lecture-link("learning1", <sec-mwu>)[multiplicative weights], that is, #lecture-link("learning1", <sec-ftrl>)[FTRL] with an entropy regularizer, and asking for the policies themselves to converge, rather than their averages, is the #lecture-link("learning2", <sec-iterate-convergence>)[last-iterate convergence] question from earlier in the course. In practice, entropy regularization should be used more heavily than single-agent defaults suggest #citep(<rudolph2026reevaluating>).
-+ *Training and planning complement each other.* A blueprint policy trained by self-play can be improved at decision time by a little extra search, as Ataraxos does in Stratego.
-
-Seen this way, little in this lecture is new in kind. What is new is the willingness to trade exact guarantees for scale, and the theory developed earlier in the course is what tells us which of those trades are safe to make.
++ *The objective is still an equilibrium.* The #lecture-link("correlated", <sec-zero-sum>)[saddle-point problem] and #lecture-link("learning_intro", <sec-learning-zero-sum>)[self-play setup] remain the same. Neural representations bring sample efficiency and stability to the foreground. The empirical comparisons support direct policy optimization on the studied games; they do not establish a universal ordering of the two routes.
++ *Track the assumptions behind convergence.* Against a fixed opponent, the #lecture-link("efg_intro", <sec-sequence-form>)[sequence-form] payoff is linear. A behavioral parameterization can hide that structure, but a gradient-ascent guarantee needs further assumptions. Simultaneous self-play changes the objective, and shared neural parameters restrict the policy class. Neither change is covered automatically by a fixed-objective result.
++ *The estimator is part of the algorithm.* The #lecture-link("bandit")[bandit estimators] explain how sampling can recover a gradient; baselines and Q-boosting's zero-mean corrections reduce its noise. The comparison of an action's value with the current average also connects actor-critic to #lecture-link("learning_efg", <sec-cfr>)[CFR], with different reach weights (@rem-cfr-connection).
++ *Separate stability from equilibrium guarantees.* Entropy connects this lecture to #lecture-link("learning1", <sec-ftrl>)[FTRL] and #lecture-link("learning1", <sec-mwu>)[multiplicative weights], but a softmax alone does not specify that update. Regularization changes the dynamics and potentially the equilibrium target; VRPO reduces estimator noise; EMA smooths parameters. Convergence of the current policies remains a separate #lecture-link("learning2", <sec-iterate-convergence>)[last-iterate] question.
++ *Training and planning complement each other.* A blueprint policy trained by self-play can be improved at decision time by extra search, as Ataraxos does in Stratego.
 
 = Bibliography for this lecture
 
