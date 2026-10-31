@@ -143,11 +143,11 @@ If we are content with non-Markovian strategies, a finite-horizon stochastic gam
           $
             U_(i \, t \, s) \( a \) = r_i \( s \, a \) + gamma EE_(s' ~ ℙ \( dot.op \| s \, a \)) \[ V_(i \, t + 1) \( s' \) \] \;
           $
-        + pick an arbitrary Nash equilibrium $pi \( dot.op \| s \, t \) in Delta \( A \)$ of the normal-form game with the above utility functions; #label("algorithm step: pick Nash in backwards induction")
+        + pick an arbitrary Nash equilibrium $(pi_1 (dot.op | s, t), ..., pi_m (dot.op | s, t)) in Delta(A_1) times ... times Delta(A_m)$ of the normal-form game with the above utility functions, and let $pi (a | s, t) := product_i pi_i (a_i | s, t)$ be the distribution over action profiles induced by the players randomizing independently: it is a product distribution, not an arbitrary (correlated) element of $Delta(A)$; #label("algorithm step: pick Nash in backwards induction")
         + set $V_(i \, t) \( s \) = EE_(a ~ pi \( dot.op \| s \, t \)) \[ U_(i \, t \, s) \( a \) \] .$ #label("algorithm step: continuation values")
   ]
 
-  To argue the correctness of the above algorithm, one proceeds as follows.  Suppose that $pi \( dot.op \| s \, t \) = \( pi_1 \( dot.op \| s \, t \) \, ... \, pi_m \( dot.op \| s \, t \) \)$ are the Nash equilibrium strategies picked in Step~#link(label("algorithm step: pick Nash in backwards induction"))[2.2.2] of the algorithm for all $s \, t$. For each player $i$, define a Markovian policy $pi_i : S times { 0 \, ... \, H - 1 } -> Delta (A_i)$ as follows:
+  To argue the correctness of the above algorithm, one proceeds as follows.  Suppose that $pi_1 (dot.op | s, t), ..., pi_m (dot.op | s, t)$ are the Nash equilibrium strategies picked in Step~#link(label("algorithm step: pick Nash in backwards induction"))[2.2.2] of the algorithm for all $s \, t$. For each player $i$, define a Markovian policy $pi_i : S times { 0 \, ... \, H - 1 } -> Delta (A_i)$ as follows:
 
   $ pi_i \( s \, t \) \( dot.op \) := pi_i \( dot.op \| s \, t \) . $
 
