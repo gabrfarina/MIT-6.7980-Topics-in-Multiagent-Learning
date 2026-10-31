@@ -57,6 +57,10 @@ When further restrictions are imposed on how the policy can depend on the histor
   $ pi_i : S -> Delta (A_i) . $
 ]
 
+Players randomize independently of each other. So, for a profile $pi = (pi_1, ..., pi_m)$ of stationary Markovian policies, we write
+$ pi (a \| s) := product_(j = 1)^m pi_j (a_j \| s) quad "and" quad pi_(-i) (a_(-i) \| s) := product_(j != i) pi_j (a_j \| s) $
+for the probability that the action profile $a = (a_1, ..., a_m)$, respectively the actions $a_(-i)$ of all players other than $i$, are played at state $s$.
+
 Given a collection of policies $pi_1 \, ... \, pi_m$ for the players of a stochastic game, the expected utility of each player is naturally defined as follows:
 
 $
@@ -187,21 +191,29 @@ Finally, we remark that in finite-horizon games, there typically do not exist Na
       $forall s : v_i^pi \( s \) = underbrace(sum_a r_i \( s \, a \) pi \( a \| s \), =: r_i^pi \( s \)) + gamma sum_(s') v_i^pi \( s' \) underbrace(sum_a pi \( a \| s \) ℙ \( s' \| s \, a \), =: Gamma^pi \( s \, s' \))$.body,
     )#label("eq:player value functions")
 
-    Notice that~#ref(label("eq:player value functions"), supplement: none) is a linear system of equations in the variables $\( v_i^pi \( s \) \)_s$, which we can rewrite more compactly as
+    This is a linear system of equations in the variables $\( v_i^pi \( s \) \)_s$.
+    Let $vr_i^pi$ be the $|S|$-long vector where the $k$th entry is $r_i^pi (s_k)$, the expected reward from state $s_k$. Also, let $Gamma^pi$ be the $|S|$ by $|S|$ matrix where the $k l$th entry is $Gamma^pi (s_k, s_l)$, the probability of entering state $s_l$ from $s_k$. Then $gamma Gamma^pi vv_i^pi$ is a vector where the $k$th entry corresponds to the infinite discounted utility starting at $s_k$, without the expected reward at $s_k$.
 
-    $ (I - gamma Gamma^pi) vv_i^pi = vr_i^pi . $
+    Then we can rewrite~#ref(label("eq:player value functions"), supplement: none) more compactly as
 
-    We now argue that the matrix $I - gamma Gamma^pi$ is invertible. To see this, note that the matrix $Gamma^pi$ is a row-stochastic matrix:
+    $
+      vv_i^pi = vr_i^pi + gamma Gamma^pi vv_i^pi \
+      (I - gamma Gamma^pi) vv_i^pi = vr_i^pi.
+    $
+
+    We now argue that the matrix $I - gamma Gamma^pi$ is invertible. To see this, note that the matrix $Gamma^pi$ is a row-stochastic matrix (the entries in each row are non-negative real numbers that sum to 1):
 
     $
       sum_(s') Gamma^pi (s \, s') = sum_(s') sum_a pi (a \| s) ℙ (s' \| s \, a) = sum_a pi (a \| s) (sum_(s') ℙ (s' \| s \, a)) = sum_a pi (a \| s) = 1 .
     $
 
-    Since $gamma < 1$ by #ref(label("def:infinite horizon stochastic game")), we have that $I - gamma Gamma^pi$ is _strictly_ diagonally dominant, which implies that $I - gamma Gamma^pi$ cannot be singular. Therefore, the system of equations has a unique solution, which corresponds to
+    Since $gamma < 1$ by #ref(label("def:infinite horizon stochastic game")), we have that $I - gamma Gamma^pi$ is _strictly_ diagonally dominant. Indeed, in the row of state $s$, the diagonal entry is $1 - gamma Gamma^pi (s, s)$, while the off-diagonal entries are $-gamma Gamma^pi (s, s')$ for $s' != s$, whose absolute values sum to $gamma sum_(s' != s) Gamma^pi (s, s') = gamma (1 - Gamma^pi (s, s))$. Since $gamma < 1$,
+    $ 1 - gamma Gamma^pi (s, s) > gamma - gamma Gamma^pi (s, s) = gamma (1 - Gamma^pi (s, s)) . $
+    This implies that $I - gamma Gamma^pi$ is invertible. Therefore, the system of equations has a unique solution, which corresponds to
 
     $ vv_i^pi = (I - gamma Gamma^pi)^(- 1) vr_i^pi . $
 
-    Furthermore, the value vectors $vv_i^pi$ are _continuous_ in the policies $pi$, because the inverse matrix of the non-singular matrix $I - gamma Gamma^pi$ is continuous in the values of the entries, and these are continuous in $pi$.
+    It follows that the value vectors $vv_i^pi$ are _continuous_ in the policies $pi$, because the inverse matrix of $I - gamma Gamma^pi$ is continuous in the values of the entries, and these are continuous in $pi$.
   - $q_i^pi (s \, a_i)$, for $s in S$ and $a_i in A_i$, is the infinite discounted utility of player $i$ if the game started at state $s$, and players used policies $pi_1 \, ... \, pi_m$, with the only exception that the very first action of player $i$ is set to $a_i$. In symbols,
 
     $
@@ -228,7 +240,7 @@ Finally, we remark that in finite-horizon games, there typically do not exist Na
 
   To complete the proof, we need to argue that the fixed point $pi^(*)$ is a Nash equilibrium, that is, for all $i$, $pi_i^(*)$ is a best response to $pi_(- i)^(*)$, even if the best response is computed with respect to arbitrary policies $pi'_i : S times \( S times A \)^(*) -> Delta \( A_i \)$.
 
-  Pick an arbitrary player $i$ and  state $s$. Using the #lecture-link("nfgs_nash", <thm-nash-improvement>)[utility-improvement argument from the Nash existence proof], we infer that
+  Pick an arbitrary player $i$ and  state $s$. Using the #lecture-link("nfgs_nash", <thm-nash-improvement>)[utility-improvement argument from the Nash existence proof], we can rule out one-step deviations:
 
   #math.equation(
     block: true,
@@ -236,9 +248,9 @@ Finally, we remark that in finite-horizon games, there typically do not exist Na
     $forall a_i in A_i \, #h(2em) v_i^(pi^(*)) \( s \) >= q_i^(pi^(*)) (s \, a_i) .$.body,
   )#label("eq:one state deviations weak")
 
-  Indeed, all that is needed to repeat the argument from Nash's proof is the linearity $v_i^pi \( s \) = sum_(a_i) pi_i (a_i \| s) dot.op q_i^pi (s \, a_i)$ and form of~#ref(label("eq:nash function for Markov games"), supplement: none).
+  This follows exactly as in Nash's proof, using the linearity $v_i^pi \( s \) = sum_(a_i) pi_i (a_i \| s) dot.op q_i^pi (s \, a_i)$ and the form of~#ref(label("eq:nash function for Markov games"), supplement: none).
 
-  With this in hand, let us now show that $pi_i^(*)$ is a best response to $pi_(- i)^(*)$ for  player $i$. From the point of view of player $i$, computing a best response to $pi_(- i)^(*)$ amounts to solving a Markov decision process (MDP) with states $S$ and actions $A_i$ and  rewards, transitions given by
+  We must now rule out multi-step deviations and show that $pi_i^(*)$ is a best response to $pi_(- i)^(*)$ for  player $i$. From the point of view of player $i$, computing a best response to $pi_(- i)^(*)$ amounts to solving a Markov decision process (MDP) with states $S$ and actions $A_i$. In this MDP, the rewards and transitions are given by
 
   $
           tilde(r) (s \, a_i) & := sum_(a_(- i)) r_i (s \, a) dot.op pi_(- i)^(*) (a_(- i) \| s) \, \
@@ -249,13 +261,43 @@ Finally, we remark that in finite-horizon games, there typically do not exist Na
 
   $ tilde(V)^(pi_i^(*)) \( s \) equiv v_i^(pi^(*)) \( s \) \, forall s . $
 
-  Moreover, #ref(label("eq:linearity between v's and q's")) and #ref(label("eq:one state deviations weak")) together imply that
+  Similarly, the $q$-values are the one-step lookahead values in this MDP. Pulling the sums over $a_(-i)$ inside the definition of $q_i^(pi^(*))$ gives
+
+  #math.equation(
+    block: true,
+    numbering: "(1)",
+    $q_i^(pi^(*)) (s \, a_i) = tilde(r) (s \, a_i) + gamma sum_(s') tilde(V)^(pi_i^(*)) \( s' \) tilde(ℙ) (s' \| s \, a_i) .$.body,
+  )#label("eq:q as MDP lookahead")
+
+  Now #ref(label("eq:linearity between v's and q's")) and #ref(label("eq:one state deviations weak")) bound $v_i^(pi^(*)) (s)$ from both sides. By #ref(label("eq:linearity between v's and q's")), $v_i^(pi^(*)) (s)$ is an average of the values $q_i^(pi^(*)) (s, a_i)$, weighted by $pi_i^(*) (a_i | s)$, so it is at most their maximum. By #ref(label("eq:one state deviations weak")), it is greater than or equal to any of them:
 
   $
-    forall s in S \, #h(2em) tilde(V)^(pi_i^(*)) \( s \) = max_(a_i) {tilde(r) (s \, a_i) + gamma sum_(s') tilde(V)^(pi_i^(*)) \( s' \) tilde(ℙ) (s' \| s \, a_i)} .
+    max_(a_i) q_i^(pi^(*)) (s \, a_i) <= v_i^(pi^(*)) \( s \) = sum_(a_i) pi_i^(*) (a_i \| s) dot.op q_i^(pi^(*)) (s \, a_i) <= max_(a_i) q_i^(pi^(*)) (s \, a_i) .
   $
 
-  The previous condition is the Bellman equation for the MDP. From the theory of MDPs, we conclude that $pi_i^(*)$ is an optimal policy in the MDP, even among history-dependent policies. Therefore $pi_i^(*)$ is a best response to $pi_(- i)^(*)$, even among history-dependent policies.
+  Therefore $v_i^(pi^(*)) (s) = max_(a_i) q_i^(pi^(*)) (s, a_i)$.
+
+  Substituting $tilde(V)^(pi_i^(*)) = v_i^(pi^(*))$ on the left and #ref(label("eq:q as MDP lookahead")) on the right yields
+
+  #math.equation(
+    block: true,
+    numbering: "(1)",
+    $forall s in S \, #h(2em) tilde(V)^(pi_i^(*)) \( s \) = max_(a_i) {tilde(r) (s \, a_i) + gamma sum_(s') tilde(V)^(pi_i^(*)) \( s' \) tilde(ℙ) (s' \| s \, a_i)} .$.body,
+  )#label("eq:bellman for best response")
+
+  This shows that $tilde(V)^(pi_i^(*))$ satisfies the _Bellman optimality equation_ for the MDP.
+
+  Recall that, for an MDP with rewards $tilde(r)$, transitions $tilde(bb(P))$, and discount $gamma < 1$, the _Bellman operator_ $cal(T)$ acts on vectors $vV in RR^(abs(S))$ as
+
+  $
+    \( cal(T) vV \) \( s \) := max_(a_i) {tilde(r) (s \, a_i) + gamma sum_(s') V \( s' \) tilde(ℙ) (s' \| s \, a_i)} .
+  $
+
+  The Bellman optimality equation is $vV = cal(T) vV$, i.e., $vV$ is a fixed point of $cal(T)$. So $tilde(V)^(pi_i^(*))$ is a fixed point of $cal(T)$.
+
+  Two standard facts about MDPs apply: $cal(T)$ is a $gamma$-contraction in the $max$-norm, so it has a _unique_ fixed point, and the fixed point is the optimal value $V^(*) (s) = sup_(pi'_i) tilde(V)^(pi'_i) (s)$, where the supremum ranges over all policies (including history-dependent ones). Therefore, $tilde(V)^(pi_i^(*)) = V^(*)$; that is, $pi_i^(*)$ attains the optimal value from every state, even among history-dependent policies.
+
+  Consequently, $pi_i^(*)$ is a best response to $pi_(- i)^(*)$, even among history-dependent policies.
 ]
 
 #remark[
