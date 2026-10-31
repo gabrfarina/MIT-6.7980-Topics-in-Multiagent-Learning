@@ -15,7 +15,7 @@
 // Figure L12.1 is shared with part 1 of the lecture. It is included here so this file compiles on its own.
 #figure(
   image("figures/team/communication_game.svg", width: 85%),
-  caption: [The communication game. Team ▲ is Players 1 and 2, and Player 3 (▼) is the adversary. Edge labels are behavioral probabilities, with $overline(x) := 1 - x$. Leaves show the team's payoff and their index $z_1, dots, z_12$. Chance draws a uniform bit that only Player 1 sees. Players 2 and 3 observe Player 1's action and then each guess the bit. Team ▲ gets 1 if Player 2 guesses right and Player 3 guesses wrong, and 0 otherwise.],
+  caption: [The communication game. Team ▲ is Players 1 and 2, and Player 3 (▼) is the adversary. Edge labels are behavioral probabilities, with $overline(x) := 1 - x$. Leaves show the team's payoff and their index $z_1, dots, z_12$. Chance draws a uniform bit that only Player 1 sees. Players 2 and 3 observe Player 1's action and then each guess the bit. Team ▲ gets 1 if Player 2 guesses right and Player 3 guesses wrong, and 0 otherwise. Player 3 does not move after a wrong guess by Player 2, since the team then gets 0.],
 ) <fig-team-communication-game>
 
 = Correlation and imperfect recall <sec-team-correlation>
@@ -44,7 +44,7 @@ The two joint plans are the heads and tails branches, and the shared coin picks 
 
 #figure(
   image("figures/team/one_time_pad.svg", width: 85%),
-  caption: [The two joint plans of the one-time pad, each drawn with probability $1\/2$. Green edges are the prescribed actions, dashed at Player 2 nodes the plan never reaches. Under either plan Player 2 guesses the bit correctly. Player 3 sees the message but not the coin.],
+  caption: [The two joint plans of the one-time pad, each drawn with probability $1\/2$. Green edges are prescribed actions, dashed at Player 2 nodes the plan never reaches. Under either plan Player 2 guesses right. Player 3 sees the message but not the plan.],
 ) <fig-team-one-time-pad>
 
 Under $vmu^star$, Player 2 always guesses right, and the message is uniform and independent of the bit. So Player 3 is right with probability $1\/2$ whatever it does, and the team gets $1\/2$ against every $vy$. Conversely, the team scores only when Player 3 guesses wrong. If Player 3 guesses uniformly at random, it is wrong with probability $1\/2$, so no team strategy gets more than $1\/2$. Hence the TMECor value is $1\/2$. This is twice the TME value of $1\/4$, and it equals the min-max value computed earlier. Correlation closes the gap between the maxmin and min-max values.
@@ -55,22 +55,14 @@ Under $vmu^star$, Player 2 always guesses right, and the message is uniform and 
   Hint in @sec-team-hints.
 ] <exr-team-pad-unique>
 #solution[
-  By @sec-team-one-time-pad, the TMECor value is $1\/2$ and $vmu^star$ attains it. It remains to show that every $vmu$ that guarantees $1\/2$ equals $vmu^star$. As in @ex-team-realization, $e$ and $f$ are the probabilities that Player 3 guesses 0 after the left and the right message. The team scores only at $z_2, z_5, z_8, z_11$, and the chance contribution along each of these paths is $1\/2$. So a pure joint plan $pi = (a, b; c, d) in {0, 1}^4$ gives
-  $
-    u(pi, e, f) = 1/2 (a c overline(e) + b overline(c) e + overline(a) d overline(f) + overline(b) overline(d) f),
-  $
-  and $u(vmu, e, f) = sum_pi mu(pi) dot u(pi, e, f)$.
+  By @sec-team-one-time-pad, $vmu^star$ guarantees $1\/2$. Suppose $vmu$ also guarantees $1\/2$, and write a joint plan as $(a, b; c, d) in {0, 1}^4$.
 
-  *Player 2 is always right.* Against $e = f = 1\/2$ we get $u(pi, 1\/2, 1\/2) = 1/2 r(pi)$, where $r(pi) := 1/2 (a c + b overline(c) + overline(a) d + overline(b) overline(d))$ is the probability that Player 2 guesses right. Since $r(pi) <= 1$ and $vmu$ guarantees $1\/2$,
-  $
-    0 <= sum_pi mu(pi) (1 - r(pi)) = 1 - 2 dot u(vmu, 1\/2, 1\/2) <= 0.
-  $
-  Hence $vmu$ puts all its mass on plans with $r(pi) = 1$. If $a = b$, Player 1 sends the same message for both bits, and Player 2's guess after it is right for only one bit, so $r(pi) = 1\/2$. If $(a, b) = (1, 0)$, Player 2 is right for both bits only when $(c, d) = (1, 0)$. If $(a, b) = (0, 1)$, only when $(c, d) = (0, 1)$. So
+  *Player 2 is always right.* If Player 3 guesses uniformly after each message, it is wrong with probability $1\/2$ whatever the team does, so the team gets half the probability that Player 2 guesses right. A guarantee of $1\/2$ therefore forces Player 2 to be right for both values of the bit under every joint plan in the support of $vmu$. If $a = b$, Player 1 sends the same message for both bits, and Player 2's guess after it is right for only one of them. If $(a, b) = (1, 0)$, Player 2 is right for both bits only when $(c, d) = (1, 0)$, and if $(a, b) = (0, 1)$, only when $(c, d) = (0, 1)$. So
   $
     vmu = lambda delta_((1, 0; 1, 0)) + (1 - lambda) delta_((0, 1; 0, 1)) quad "for some" lambda in [0, 1].
   $
 
-  *The two plans are equally likely.* The two plans give $u = (1 - e + f) \/ 2$ and $u = (1 + e - f) \/ 2$. Suppose Player 3 guesses 0 after the left message and 1 after the right message ($e = 1$, $f = 0$). Then the plans give $0$ and $1$, so the team gets $1 - lambda >= 1\/2$. Against the opposite guesses ($e = 0$, $f = 1$) the team gets $lambda >= 1\/2$. Hence $lambda = 1\/2$ and $vmu = vmu^star$.
+  *The two plans are equally likely.* Suppose Player 3 guesses 0 after the left message and 1 after the right message. It is then always right against the heads plan and always wrong against the tails plan, so the team gets $1 - lambda >= 1\/2$. Against the opposite guesses the team gets $lambda >= 1\/2$. Hence $lambda = 1\/2$ and $vmu = vmu^star$.
 ]
 
 == Correlation restores the minimax theorem <sec-team-minimax>
@@ -94,7 +86,7 @@ With correlation, the team acts as a single player whose pure strategies are the
 
 == Team games as imperfect-recall games <sec-team-imperfect-recall>
 
-Equivalently, we can think of the two teammates as one player that happens to forget. In the communication game, this player observes the bit, sends a message, then forgets the bit and continues in the role of Player 2. In @fig-team-communication-game this amounts to drawing Player 2's nodes as nodes of Player 1. Each information set of Player 2 then joins nodes that the merged player reached after observing different bits, so the player forgets what it knew. A team game is thus a two-player zero-sum game in which each team becomes a single player, who in general has imperfect recall #citep(<Farina18:Ex>, <Zhang23:Team>). Strictly, the equivalence is with _timeable_ imperfect-recall games, in which the tree can be drawn so that every information set is horizontal, that is, every player always knows what time it is. We also assume that each original player has perfect recall. We return to timeability later in the lecture. @tab-team-dictionary translates between the two views.
+Equivalently, we can think of the two teammates as one player that happens to forget. In @fig-team-communication-game this amounts to drawing Player 2's nodes as nodes of Player 1. Each information set of Player 2 then joins nodes that the merged player reached after observing different bits, so the player forgets what it knew. A team game is thus a two-player zero-sum game in which each team becomes a single player, who in general has imperfect recall #citep(<Farina18:Ex>, <Zhang23:Team>). Strictly, the equivalence is with _timeable_ imperfect-recall games, in which the tree can be drawn so that every information set is horizontal, that is, every player always knows what time it is. We also assume that each original player has perfect recall. We return to timeability later in the lecture. @tab-team-dictionary translates between the two views.
 
 #figure(
   supplement: [Table],
@@ -120,7 +112,7 @@ The question for the rest of the lecture is when a TMECor can be computed effici
 
 = Realization form <sec-team-realization-form>
 
-By @sec-team-minimax, a TMECor is a maxmin strategy of a two-player zero-sum game, so we would like to use the tools we already have for such games. The obstacle is size. The distribution $vmu$ has one coordinate per joint plan, and the number of joint plans can be exponential in the size of the game tree. As with the sequence form, we record only what affects the payoff, namely which terminal nodes the team plays toward.
+By @sec-team-minimax, a TMECor is a maxmin strategy of a two-player zero-sum game. The obstacle is size. The distribution $vmu$ has one coordinate per joint plan, and the number of joint plans can be exponential in the size of the game tree. As with the sequence form, we record only what affects the payoff, namely which terminal nodes the team plays toward.
 
 #definition[Team realization vectors #citep(<Farina18:Ex>, <Zhang23:Team>)][
   Let $Z$ be the set of terminal nodes. The _realization vector_ of a joint plan $(pi_1, pi_2) in Pi_1 times Pi_2$ is the vector $vx^(pi_1, pi_2) in {0, 1}^Z$ with $x^(pi_1, pi_2)[z] = 1$ if and only if team ▲ plays all of its actions on the path from the root to $z$. The _realization polytope_ of the team is the convex hull of these vectors,
@@ -131,7 +123,7 @@ By @sec-team-minimax, a TMECor is a maxmin strategy of a two-player zero-sum gam
 
 The polytope $cY$ of team ▼ is defined in the same way. In @def-team-tmecor, team ▼ is Player 3 alone. From now on $vy$ denotes a point of $cY$ rather than a mixed strategy of team ▼. Different joint plans can have the same realization vector. In the communication game the 16 joint plans give only 12 vectors, because if Player 1 always sends the same message, Player 2's action after the other message is never used.
 
-The _realization vector_ of a distribution $vmu in Delta(Pi_1 times Pi_2)$ is $vx^vmu := EE_((pi_1, pi_2) ~ vmu) vx^(pi_1, pi_2)$. Its entry $x^vmu [z]$ is the probability that the team plays all of its actions on the path to $z$. The map $vmu |-> vx^vmu$ is linear and sends the point mass on $(pi_1, pi_2)$ to $vx^(pi_1, pi_2)$. Since $Delta(Pi_1 times Pi_2)$ is the convex hull of the point masses, its image is exactly $conv(V) = cX$. In other words, $cX$ is the set of realization vectors of correlated team strategies. In the same way, $cY$ is the set of realization vectors of the mixed strategies of team ▼.
+The _realization vector_ of a distribution $vmu in Delta(Pi_1 times Pi_2)$ is $vx^vmu := EE_((pi_1, pi_2) ~ vmu) vx^(pi_1, pi_2)$. Its entry $x^vmu [z]$ is the probability that the team plays all of its actions on the path to $z$. The map $vmu |-> vx^vmu$ is linear and sends each point mass to the realization vector of its plan. Since $Delta(Pi_1 times Pi_2)$ is the convex hull of the point masses, its image is exactly $conv(V) = cX$, the set of realization vectors of correlated team strategies. In the same way, $cY$ is the set of realization vectors of the mixed strategies of team ▼.
 
 #example[Realization vectors in the communication game][
   Number the leaves as in @fig-team-communication-game. If both teammates always play left ($a = b = c = d = 1$), the team plays all of its actions on the paths to $z_1$, $z_2$, and $z_4$ only, so its realization vector is $(1, 1, 0 #h(.4em) bar.v #h(.4em) 1, 0, 0 #h(.4em) bar.v #h(.4em) 0, 0, 0 #h(.4em) bar.v #h(.4em) 0, 0, 0)$. It has 12 entries, one per terminal node, instead of one per joint plan. Bars separate the three leaves below each Player 2 node. For a general uncorrelated team strategy in behavioral coordinates, and for Player 3,
@@ -139,7 +131,7 @@ The _realization vector_ of a distribution $vmu in Delta(Pi_1 times Pi_2)$ is $v
     vx(a, b; c, d) & = (a c, a c, a overline(c) #h(.4em) bar.v #h(.4em) b c, b overline(c), b overline(c) #h(.4em) bar.v #h(.4em) overline(a) d, overline(a) d, overline(a) overline(d) #h(.4em) bar.v #h(.4em) overline(b) d, overline(b) overline(d), overline(b) overline(d)), \
     vy & = (e, overline(e), 1 #h(.4em) bar.v #h(.4em) 1, e, overline(e) #h(.4em) bar.v #h(.4em) f, overline(f), 1 #h(.4em) bar.v #h(.4em) 1, f, overline(f)).
   $
-  Entries repeat in pairs ($a c, a c$) where two leaves differ only in Player 3's action. Each entry of $vx(a, b; c, d)$ is a product of one probability from each teammate, the same products that made the TME problem nonconvex.
+  Each entry of $vx(a, b; c, d)$ is a product of one probability from each teammate, the same products that made the TME problem nonconvex.
 ] <ex-team-realization>
 
 == TMECor as a bilinear saddle-point problem <sec-team-bspp>
@@ -153,7 +145,7 @@ $
   If team ▲ plays $vmu$ and team ▼ plays a mixed strategy with realization vector $vy$, the expected utility of team ▲ is $(vx^vmu)^top U vy$.
 ] <lem-team-utility>
 #proof[
-  Fix a pure plan for each team, with realization vectors $vx$ and $vy$. A terminal node $z$ is reached if and only if chance, team ▲, and team ▼ each take their own actions on the path to $z$, and these three sets of edges are disjoint. So
+  Fix a pure plan for each team, with realization vectors $vx$ and $vy$. A terminal node $z$ is reached if and only if chance, team ▲, and team ▼ each take their own actions on the path to $z$, and these three sets of edges are disjoint (@fig-team-realization-inset). So
   $
     Pr[z "is reached"] & = p_"chance" (z) dot x[z] dot y[z], \
     EE[u] & = sum_(z in Z) p_"chance" (z) dot u(z) dot x[z] dot y[z] = vx^top U vy.
@@ -161,11 +153,9 @@ $
   Both sides are linear in each team's distribution over pure plans, and the two distributions are independent, so the identity extends to $vmu$ and to mixed strategies of team ▼.
 ]
 
-@fig-team-realization-inset shows the three factors of $Pr[z "is reached"]$ at two leaves of the communication game.
-
 #figure(
   image("figures/team/realization_inset.svg", width: 32%),
-  caption: [Two leaves of the communication game under the one-time pad $vmu^star$. Green edges are team actions the pad plays, and grey stubs are branches left out. The team's weight $x^(vmu^star)[z] = 1\/2$ repeats across Player 3's two actions, and chance enters only through $p_"chance" (z)$, which @lem-team-utility moves into $U$.],
+  caption: [Two leaves under the one-time pad. The team's realization vector has entry $x^(vmu^star)[z] = 1\/2$ at both, and multiplying by the chance and Player 3 factors gives the probability of reaching each leaf. Green edges are team actions, and grey stubs are branches left out.],
 ) <fig-team-realization-inset>
 
 #theorem[TMECor as a saddle-point problem #citep(<Farina18:Ex>, <Zhang23:Team>)][
@@ -176,13 +166,7 @@ $
   A distribution $vmu$ is a TMECor if and only if $vx^vmu$ is a maxmin solution of this problem, and every maxmin solution is $vx^vmu$ for some TMECor $vmu$.
 ] <thm-team-bspp>
 #proof[
-  By @lem-team-utility, the objective of @def-team-tmecor at $vmu$ equals $min_(vy in cY) (vx^vmu)^top U vy$, since the minimum over mixed strategies of team ▼ equals the minimum over their realization vectors $cY$. As $vmu$ ranges over $Delta(Pi_1 times Pi_2)$, $vx^vmu$ ranges over all of $cX$, so
-  $
-    max_(vmu in Delta(Pi_1 times Pi_2)) min_(vy in Delta(Pi_3)) EE_((pi_1, pi_2) ~ vmu) u(pi_1, pi_2, vy)
-    & = max_(vmu in Delta(Pi_1 times Pi_2)) min_(vy in cY) (vx^vmu)^top U vy \
-    & = max_(vx in cX) min_(vy in cY) vx^top U vy.
-  $
-  The objective depends on $vmu$ only through $vx^vmu$. So the two maxima are equal, and $vmu$ attains the maximum if and only if $vx^vmu$ does.
+  By @lem-team-utility, the objective of @def-team-tmecor depends on $vmu$ only through $vx^vmu$, and on the mixed strategy of team ▼ only through its realization vector. As $vmu$ and the mixed strategy of team ▼ vary, their realization vectors range over all of $cX$ and $cY$. So the problem of @def-team-tmecor and the problem above have the same value, and $vmu$ attains the maximum if and only if $vx^vmu$ does.
 ]
 
 This #lecture-link("learning_intro", <sec-learning-zero-sum>)[saddle-point problem] adapts the sequence form to teams. When a team is a single player with perfect recall, the entry $x[z]$ is the sequence-form entry of the player's last sequence on the path to $z$ (the empty sequence if the player does not act on that path). So $cX$ is a linear image of the #lecture-link("efg_intro", <sec-sequence-form>)[sequence-form polytope], and the problem above is the usual sequence-form maxmin problem composed with this linear map. For Player 3 in @ex-team-realization, this map sends the sequence-form vector $(1, e, overline(e), f, overline(f))$ to $vy$.
@@ -190,7 +174,7 @@ This #lecture-link("learning_intro", <sec-learning-zero-sum>)[saddle-point probl
 == Convexifying the TME <sec-team-convexification>
 
 // Not from the lecture: this subsection follows Farina et al. (2018), Thm 2.
-The TME can be written in the same form as @thm-team-bspp. An uncorrelated team strategy is a pair of mixed strategies, written $vx_1, vx_2$ in the definition of the TME. Since $vx$ now denotes a realization vector, we rename them $vmu_1 in Delta(Pi_1)$ and $vmu_2 in Delta(Pi_2)$. They induce the product distribution $vmu_1 times.o vmu_2$ on joint plans, and
+The TME can be written in the same form as @thm-team-bspp. Mixed strategies $vmu_1 in Delta(Pi_1)$ and $vmu_2 in Delta(Pi_2)$ of the two teammates, written $vx_1, vx_2$ in the definition of the TME, induce the product distribution $vmu_1 times.o vmu_2$ on joint plans, and
 $
   tcX := {vx^(vmu_1 times.o vmu_2) : vmu_1 in Delta(Pi_1), vmu_2 in Delta(Pi_2)} subset.eq cX
 $
@@ -200,7 +184,7 @@ is the set of their realization vectors, the vectors the team can reach _without
   The TME value is $max_(vx in tcX) min_(vy in cY) vx^top U vy$ and the TMECor value is the same problem over $conv(tcX) = cX$, where $tcX$ is the set of realization vectors of uncorrelated team strategies.
 ] <thm-team-convexification>
 #proof[
-  By @lem-team-utility, the TME objective at $(vmu_1, vmu_2)$ is $min_(vy in cY) (vx^(vmu_1 times.o vmu_2))^top U vy$, so the TME value is the maxmin problem over $tcX$. By @thm-team-bspp, the TMECor value is the same problem over $cX$, so it remains to show $conv(tcX) = cX$. A joint plan is the product of two point masses, so $V subset.eq tcX$. A product distribution is a distribution on $Pi_1 times Pi_2$, so $tcX subset.eq cX$. Taking convex hulls, $cX = conv(V) subset.eq conv(tcX) subset.eq cX$.
+  By @lem-team-utility, the TME value is the maxmin problem over $tcX$, and by @thm-team-bspp the TMECor value is the same problem over $cX$. It remains to show $conv(tcX) = cX$. A joint plan is the product of two point masses, so $V subset.eq tcX$. A product distribution is a distribution on $Pi_1 times Pi_2$, so $tcX subset.eq cX$. Taking convex hulls, $cX = conv(V) subset.eq conv(tcX) subset.eq cX$.
 ]
 
 #example[The one-time pad is not uncorrelated][
@@ -217,11 +201,7 @@ is the set of their realization vectors, the vectors the team can reach _without
 ] <ex-team-pad-not-uncorrelated>
 
 #remark[Why convexification can improve the guarantee][
-  For a fixed $vy$, the payoff $vx^top U vy$ is linear in $vx$, so its maximum over $cX = conv(tcX)$ is already attained in $tcX$. Correlation helps only in the maxmin problem, where the team commits to one $vx$ and Player 3 best-responds to it. The guarantee $min_(vy in cY) vx^top U vy$ is a minimum of linear functions, so it is concave but not linear. Since $tcX$ is not convex, its maximum over $cX$ can lie outside $tcX$. In the communication game, Player 3 holds the heads plan to $0$ by guessing $0$ after the left message and $1$ after the right message. It holds the tails plan to $0$ by the opposite guesses. The one-time pad mixes the two plans with probability $1\/2$ each, and
-  $
-    min_(vy in cY) (vx^(vmu^star))^top U vy = 1/2 > 1/4,
-  $
-  where $1\/4$ is the TME value, the best guarantee over $tcX$.
+  For a fixed $vy$, the payoff $vx^top U vy$ is linear in $vx$, so its maximum over $cX = conv(tcX)$ is already attained in $tcX$. Correlation can help only in the maxmin problem, where the team commits to one $vx$ and Player 3 best-responds to it. The guarantee $min_(vy in cY) vx^top U vy$ is a minimum of linear functions, so it is concave but in general not linear, and its maximum over $cX$ can lie outside $tcX$. In the communication game Player 3 holds each of the heads and tails plans to $0$, while their mixture, the one-time pad, guarantees $1\/2$, more than the TME value $1\/4$.
 ]
 
 #exercise[Where the nonconvexity goes][
@@ -238,7 +218,7 @@ is the set of their realization vectors, the vectors the team can reach _without
     $
       vx(a, b; c, d)^top U vy = 1/2 (a c overline(e) + b overline(c) e + overline(a) d overline(f) + overline(b) overline(d) f).
     $
-    Directly from the tree, suppose the bit is $0$. The team scores if Player 1 sends left ($a$), Player 2 guesses $0$ ($c$), and Player 3 guesses $1$ ($overline(e)$), or if Player 1 sends right ($overline(a)$), Player 2 guesses $0$ ($d$), and Player 3 guesses $1$ ($overline(f)$). For bit $1$ the scoring paths have probabilities $b overline(c) e$ and $overline(b) overline(d) f$. Weighting each bit by $1\/2$ gives the same polynomial.
+    Directly from the tree, each term is the probability, given the bit, that Player 1 sends one particular message, Player 2 is right, and Player 3 is wrong. Each bit has probability $1\/2$.
 
   + At $e = f = 1\/2$ the utility is
     $
@@ -282,7 +262,7 @@ The problem of @thm-team-bspp is a convex bilinear saddle-point problem that loo
   caption: [Schematic of $V subset.eq tcX subset.eq cX subset.neq R$ in the communication game, not to scale. Dots are some points of $V$, and hollow dots are vertices of $R$ that no team can play. The one-time pad $vx^(vmu^star)$, the midpoint of the heads and tails plans, lies in $cX$ but not in $tcX$.],
 ) <fig-team-realization-sets>
 
-The gap does not show in the value of this game. If Player 3 guesses uniformly ($e = f = 1\/2$), it is wrong with probability $1\/2$ whatever the team does, so the team gets at most $1\/2$ on all of $R$ and the maxmin value over $R$ is also $1\/2$. The companion notebook #link("https://github.com/gabrfarina/MIT-6.7980-Topics-in-Multiagent-Learning/blob/main/content/notebooks/team/communication_game.ipynb")[`communication_game.ipynb`] reproduces the realization-vector calculations and checks the game values and the flow relaxation with exact arithmetic. In general we should not expect a repair like the four inequalities above. Suppose some polynomial-time procedure produced, for every team game, a polynomial-size linear description of $cX$. Together with the sequence form for Player 3, linear programming would then solve the saddle-point problem of @thm-team-bspp in polynomial time. Computing a TMECor is NP-hard, as the next part of the lecture shows, so unless $P = NP$ no such procedure exists.
+The gap does not show in the value of this game. If Player 3 guesses uniformly ($e = f = 1\/2$), it is wrong with probability $1\/2$ whatever the team does, so the team gets at most $1\/2$ on all of $R$. The one-time pad lies in $cX subset.eq R$ and attains $1\/2$, so the maxmin value over $R$ is also $1\/2$. The companion notebook #link("https://github.com/gabrfarina/MIT-6.7980-Topics-in-Multiagent-Learning/blob/main/content/notebooks/team/communication_game.ipynb")[`communication_game.ipynb`] reproduces the realization-vector calculations and checks the game values and the flow relaxation with exact arithmetic. In general we should not expect a repair like the four inequalities above. Suppose some polynomial-time procedure produced, for every team game, a polynomial-size linear description of $cX$. Together with the sequence form for Player 3, linear programming would then solve the saddle-point problem of @thm-team-bspp in polynomial time. Computing a TMECor is NP-hard, as the next part of the lecture shows, so unless $P = NP$ no such procedure exists.
 
 = Problems <sec-team-problems>
 
@@ -327,39 +307,6 @@ The gap does not show in the value of this game. If Player 3 guesses uniformly (
   with $alpha_1 beta_2 - alpha_2 beta_1 = p (1 - p)(a - b)$. If one of them is zero, then $a = b in {0, 1}$. So equality forces $a = b$. The first term is then $a dot min(p c, (1 - p) overline(c))$, which reaches $a dot p (1 - p)$ only at $c = 1 - p$ when $a > 0$. Likewise $d = 1 - p$ when $a < 1$. The optimal uncorrelated strategies are therefore exactly those with $a = b$, with $c = 1 - p$ if $a > 0$ and $d = 1 - p$ if $a < 1$.
 ]
 
-#exercise[The uncorrelated set is cut out by two quadratics][
-  Let $R$ be the flow relaxation of @ex-team-flow-gap. Show that
-  $
-    tcX = {vx in R : x[z_1] dot x[z_5] = x[z_3] dot x[z_4], quad x[z_7] dot x[z_11] = x[z_9] dot x[z_10]}.
-  $
-  Interpret each equation as a statement about Player 2's conditional behavior. Use the result to show again that $vx^(vmu^star) in.not tcX$, and conclude that $tcX$ is not convex.
-
-  Hint in @sec-team-hints.
-] <exr-team-uncorrelated-quadratics>
-#solution[
-  Write $x_i := x[z_i]$ and let $Q$ denote the right-hand side. By @ex-team-pad-not-uncorrelated, $tcX$ is the set of vectors $vx(a, b; c, d)$ of @ex-team-realization with $(a, b; c, d) in [0, 1]^4$.
-
-  *$tcX subset.eq Q$.* The entries of $vx(a, b; c, d)$ are nonnegative and repeat in the pairs that $R$ requires. The two mass sums are $a c + a overline(c) + overline(a) d + overline(a) overline(d) = 1$ and $b c + b overline(c) + overline(b) d + overline(b) overline(d) = 1$. So $vx(a, b; c, d) in R$. Moreover
-  $
-    x_1 dot x_5 = a c dot b overline(c) = a overline(c) dot b c = x_3 dot x_4, quad
-    x_7 dot x_11 = overline(a) d dot overline(b) overline(d) = overline(a) overline(d) dot overline(b) d = x_9 dot x_10.
-  $
-
-  *$Q subset.eq tcX$.* Let $vx in Q$, and set $a := x_1 + x_3$ and $b := x_4 + x_5$. The mass constraints of $R$ and nonnegativity give $a, b in [0, 1]$, $x_7 + x_9 = overline(a)$, and $x_10 + x_11 = overline(b)$. Put $c := x_1 \/ a$ if $a > 0$, $c := x_4 \/ b$ if $a = 0 < b$, and $c := 0$ otherwise. Then $c in [0, 1]$, and we claim
-  $
-    a c = x_1, quad a overline(c) = x_3, quad b c = x_4, quad b overline(c) = x_5.
-  $
-  If $a = 0$, then $x_1 = x_3 = 0$ and the first two equations hold for every $c$. The same holds for the last two if $b = 0$. In these cases the choice of $c$ gives the other two. If $a, b > 0$, the first two hold by definition of $c$, and the last two hold if and only if $x_1 \/ a = x_4 \/ b$. This is the first equation, since
-  $
-    x_1 dot (x_4 + x_5) - x_4 dot (x_1 + x_3) = x_1 dot x_5 - x_3 dot x_4.
-  $
-  The same argument with masses $overline(a), overline(b)$ and the second equation gives $d in [0, 1]$ with $overline(a) d = x_7$, $overline(a) overline(d) = x_9$, $overline(b) d = x_10$, $overline(b) overline(d) = x_11$. The equalities $x_2 = x_1$, $x_6 = x_5$, $x_8 = x_7$, $x_12 = x_11$ of $R$ give the remaining entries. Hence $vx = vx(a, b; c, d) in tcX$.
-
-  *Interpretation.* Given bit 0, Player 1 sends the left message with probability $x_1 + x_3$. The ratios $x_1 \/ (x_1 + x_3)$ and $x_4 \/ (x_4 + x_5)$ are the probabilities that Player 2 guesses 0 after the left message, given bit 0 and given bit 1 respectively. When both are defined, the first equation says they are equal. So after the left message Player 2's guess is independent of the bit. The second equation says the same after the right message. Player 2 does not see the bit, so once the message is fixed, only a shared coin lets its guess depend on the bit.
-
-  *The one-time pad.* By @ex-team-pad-not-uncorrelated, $vx^(vmu^star)$ has $x_1 = x_5 = 1\/2$ and $x_3 = x_4 = 0$. So $x_1 dot x_5 = 1\/4 != 0 = x_3 dot x_4$, and $vx^(vmu^star) in.not tcX$. Yet $vx^(vmu^star)$ is the midpoint of $vx^((1, 0; 1, 0))$ and $vx^((0, 1; 0, 1))$, which lie in $V subset.eq tcX$. Hence $tcX$ is not convex.
-]
-
 == Hints for the exercises <sec-team-hints>
 
 *@exr-team-pad-unique.* First let Player 3 guess uniformly at random after each message. What does this force about how often Player 2 guesses right? Which joint plans make Player 2 right for both values of the bit? Then try the pure strategy in which Player 3 guesses 0 after the left message and 1 after the right message.
@@ -367,8 +314,6 @@ The gap does not show in the value of this game. If Player 3 guesses uniformly (
 *@exr-team-bilinear.* For (ii), write the utility at $e = f = 1\/2$ in terms of $a - b$ and $c - d$.
 
 *@exr-team-biased-bit.* For (i), find a strategy of Player 3 that ignores the message and holds the team to $1 - p$. For (iii), Player 3 best-responds separately after each message. For fixed $a, b$, choose $c$ and $d$ to equalize Player 3's two options. Then use that $g(alpha, beta) := alpha beta \/ (alpha + beta)$, with $g(0, 0) := 0$, is concave and positively homogeneous on $RR_(>= 0)^2$, so $g(vu) + g(vv) <= g(vu + vv)$.
-
-*@exr-team-uncorrelated-quadratics.* By @ex-team-pad-not-uncorrelated, $tcX$ is the set of vectors $vx(a, b; c, d)$. For the reverse inclusion, set $a := x[z_1] + x[z_3]$ and $b := x[z_4] + x[z_5]$, and treat the cases $a = 0$ and $b = 0$ separately.
 
 = Bibliography for this lecture
 
