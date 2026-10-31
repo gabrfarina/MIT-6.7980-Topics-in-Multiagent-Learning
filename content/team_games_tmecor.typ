@@ -12,7 +12,7 @@
 // Figure L12.1 is shared with part 1 of the lecture. It is included here so this file compiles on its own.
 #figure(
   image("figures/team/communication_game.svg", width: 85%),
-  caption: [The communication game. Team ▲ is Players 1 and 2, and Player 3 (▼) is the adversary. Chance draws a uniform bit that only Player 1 sees, with bit 0 on the left. Players 2 and 3 observe Player 1's action and then each guess the bit. Team ▲ gets 1 if Player 2 guesses right and Player 3 guesses wrong, and 0 otherwise. The game ends as soon as Player 2 guesses wrong, since the team then gets 0 whatever Player 3 does, so there are 12 leaves. Edge labels are behavioral probabilities, with $overline(x) := 1 - x$. Player 1 sends the left message with probability $a$ on bit 0 and $b$ on bit 1. Players 2 and 3 guess 0 with probability $c$ and $e$ after the left message, and $d$ and $f$ after the right one. Leaves show the team's payoff and their index $z_1, dots, z_12$.],
+  caption: [The communication game. Team ▲ is Players 1 and 2, and Player 3 (▼) is the adversary. Edge labels are behavioral probabilities, with $overline(x) := 1 - x$. Leaves show the team's payoff and their index $z_1, dots, z_12$. Chance draws a uniform bit that only Player 1 sees. Players 2 and 3 observe Player 1's action and then each guess the bit. Team ▲ gets 1 if Player 2 guesses right and Player 3 guesses wrong, and 0 otherwise.],
 ) <fig-team-communication-game>
 
 = Correlation and imperfect recall <sec-team-correlation>
@@ -156,8 +156,8 @@ Equivalently, we can think of the two teammates as one player that happens to fo
     [team strategy], [strategy for the player], [$(a, b; c, d)$ or $vmu$],
     [uncorrelated team strategy], [behavioral strategy], [$(a, b; c, d) in [0, 1]^4$],
     [correlated team strategy], [mixed strategy], [$vmu in Delta(Pi_1 times Pi_2)$],
-    [TME], [optimal behavioral strategy], [for example $a = b = c = d = 1\/2$],
-    [TMECor], [team's part of a mixed Nash equilibrium], [$vmu^star$],
+    [TME], [optimal behavioral strategy], [e.g. $a = b = c = d = 1\/2$],
+    [TMECor], [team's mixed Nash strategy], [$vmu^star$],
   ),
 ) <tab-team-dictionary>
 
@@ -312,7 +312,7 @@ The problem of @thm-team-bspp is a convex bilinear saddle-point problem that loo
   So $cX subset.neq R$, and adding the four inequalities to $R$ gives exactly $cX$. Indeed, a point of $R$ lies in $cX$ exactly when its two distributions can be coupled without using a forbidden pair. By Gale's supply–demand theorem #citep(<Gale57:Theorem>), such a coupling exists if and only if every set of bit 0 outcomes has at most the mass of its allowed bit 1 partners. For a single outcome this says that its mass is at most one minus the mass of its forbidden partner, which is one of the four inequalities in the table. Different outcomes forbid different partners, so any set of two or more outcomes is allowed all four bit 1 outcomes, and its condition follows from the total mass being 1.
 ] <ex-team-flow-gap>
 
-The gap is invisible in the value of this game. A point of $R$ is a pair of distributions over the team's outcomes, one for each value of the bit. If Player 3 guesses uniformly ($e = f = 1\/2$), it is wrong with probability $1\/2$ whatever these distributions are, and the team scores only when Player 3 is wrong. So the team gets at most $1\/2$ on all of $R$, and since $cX subset.eq R$, the maxmin value over $R$ is also $1\/2$. But $R$ contains strategies that no team can play. In this small game, four extra inequalities repair the relaxation. In general we should not expect an efficient repair. Suppose some polynomial-time procedure produced, for every team game, a polynomial-size linear description of $cX$. When team ▼ is a single player with perfect recall, as Player 3 is, $cY$ has such a description too, namely the sequence form. Linear programming would then solve the saddle-point problem of @thm-team-bspp in polynomial time. Computing a TMECor is NP-hard, as the next part of the lecture shows, so unless $P = NP$ no such procedure exists.
+The gap is invisible in the value of this game. A point of $R$ is a pair of distributions over the team's outcomes, one for each value of the bit. If Player 3 guesses uniformly ($e = f = 1\/2$), it is wrong with probability $1\/2$ whatever these distributions are, and the team scores only when Player 3 is wrong. So the team gets at most $1\/2$ on all of $R$, and since $cX subset.eq R$, the maxmin value over $R$ is also $1\/2$. The companion notebook #link("https://github.com/gabrfarina/MIT-6.7980-Topics-in-Multiagent-Learning/blob/main/content/notebooks/team/communication_game.ipynb")[`communication_game.ipynb`] checks these numbers, and the others stated in this lecture, with exact arithmetic. But $R$ contains strategies that no team can play. In this small game, four extra inequalities repair the relaxation. In general we should not expect an efficient repair. Suppose some polynomial-time procedure produced, for every team game, a polynomial-size linear description of $cX$. When team ▼ is a single player with perfect recall, as Player 3 is, $cY$ has such a description too, namely the sequence form. Linear programming would then solve the saddle-point problem of @thm-team-bspp in polynomial time. Computing a TMECor is NP-hard, as the next part of the lecture shows, so unless $P = NP$ no such procedure exists.
 
 #exercise[The uncorrelated set is cut out by two quadratics][
   Let $R$ be the flow relaxation of @ex-team-flow-gap. Show that
