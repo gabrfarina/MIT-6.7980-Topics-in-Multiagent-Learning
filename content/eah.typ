@@ -467,6 +467,418 @@ Thus, after computing $vq_i$, we obtain the deviation gain of every action of pl
 
 Computing $matM^(i j) vx_j$ takes time proportional to the size of the payoff matrix on edge $(i,j)$. Repeating this calculation over all edges takes time polynomial in the $O(|E| m^2)$-size polymatrix representation, rather than in the $m^n$ joint action profiles. Finally, deviation gains are linear in the underlying distribution. If Ellipsoid-Against-Hope returns $macron(vmu) = sum_t alpha_t vmu_t$, where every $vmu_t$ is a product distribution, then the deviation gain under $macron(vmu)$ is the same convex combination of the gains computed under the $vmu_t$.
 
+= Expected solutions beyond equilibrium computation <sec-expected-solutions>
+
+This exercise applies the defense-to-offense framework beyond equilibrium computation. It follows Sections 6–7 of #link("https://www.mit.edu/~gfarina/2026/sigecom26_turning_defense_into_offense/sigecom26_turning_defense_into_offense.pdf")[Farina's note]; the fixed-point response below uses a consistent lower-bound payoff convention.
+
+#exercise("Expected variational inequalities and expected fixed points")[
+Let $K subset.eq bb(R)^d$ be nonempty, compact, and convex, with
+$d >= 1$. Fix $epsilon.alt > 0$. Let $F : K -> bb(R)^d$ be
+bounded: there is a finite $M >= 0$ such that
+$parallel F\(vz\)parallel_2 <= M$ for every
+$vz in K$. Separately, let $f : K -> K$ be any map.
+
+Write $Delta_(upright("fin"))\(K\)$ for the set of probability
+distributions with finite support in $K$. In particular,
+
+$ mu = sum_(t = 1)^T p_t delta_(vz_t)\,#h(2em) p_t >= 0\,#h(1em) sum_(t = 1)^T p_t = 1\, $
+
+and
+$bb(E)_mu\[g\(vz\)\]= sum_t p_t g\(vz_t\)$.
+Here $delta_(vz_t)$ is the distribution concentrated at
+$vz_t$. Restricting to finite support makes every
+expectation in this exercise a finite sum, so no additional
+measurability assumption on $F$ or $f$ is required.
+
+An #strong[$epsilon.alt$-expected variational inequality solution], with
+constant tests, is a distribution $mu in Delta_(upright("fin"))\(K\)$
+such that
+
+$ bb(E)_mu #h(0em) [F \( vz \)^top \( vx - vz \)] >= - epsilon.alt #h(2em) upright("for every ") vx in K . $
+
+The test $vx$ is fixed independently of the sampled
+$vz$. This is the constant-deviation version of an EVI;
+the exercise does not require the stronger condition for all affine or
+sample-dependent deviations.
+
+An #strong[$epsilon.alt$-expected fixed point] is a distribution
+$mu in Delta_(upright("fin"))\(K\)$ such that
+
+$ ∥bb(E)_mu \[ f \( vz \) - vz \]∥_2 <= epsilon.alt . $
+
+For both applications, use the following convention: the tester
+minimizes the payoff, and the distribution player maximizes it. A
+defense response must give payoff #strong[at least zero] against the
+particular test presented to it.
+
+You may use the following finite-dimensional consequence of minimax. Its
+proof is included after the solution.
+
+#quote(block: true)[
+#strong[Mixing lemma.] Let $X subset.eq bb(R)^m$ be nonempty, compact,
+and convex, and let $S$ be a nonempty set of response labels. Suppose
+$va : S -> bb(R)^m$ and $b : S -> bb(R)$ are
+bounded. Set
+$u\(vx\,s\)= vx^top va\(s\)+ b\(s\)$.
+If, for every $vx in X$, there exists $s in S$ with
+$u\(vx\,s\)>= 0$, then, for every $eta > 0$, there is a
+finite distribution $nu$ on $S$ satisfying
+$bb(E)_(s ~ nu)\[u\(vx\,s\)\]>= - eta$ for every
+$vx in X$.
+]
+
+#strong[\(a) Expected variational inequalities.] Define
+
+$ U\(vx\,mu\)= bb(E)_mu\[F\(vz\)^top\(vx - vz\)\]. $
+
+Express $U$ using the moments
+$va_mu = bb(E)_mu\[F\(vz\)\]$ and
+$b_mu = bb(E)_mu\[F\(vz\)^top vz\]$.
+Construct a defense response to any given $vx in K$.
+Verify the hypotheses of the mixing lemma and conclude that (EVI) has a
+finite-support solution for every $epsilon.alt > 0$.
+
+#strong[\(b) Expected fixed points and payoff signs.] Let
+$B_2^d = { vq in bb(R)^d : parallel vq parallel_2 <= 1 }$
+and define
+
+$ V\(vq\,mu\)= bb(E)_mu\[vq^top\(f\(vz\)- vz\)\]. $
+
+Find a defense response to each $vq in B_2^d$, using
+linear optimization over $K$. Explain whether the response should
+minimize or maximize $vq^top vz$ under our
+payoff convention. Apply the mixing lemma and prove
+
+$ min_(vq in B_2^d) V\(vq\,mu\)= - ∥bb(E)_mu \[ f \( vz \) - vz \]∥_2 . $
+
+Deduce the existence of a finite-support solution to (EFP), without
+assuming that $f$ is continuous.
+
+#strong[\(c) Expected fixed points need not be pointwise fixed points.]
+Take $K =\[0\,1\]$ and
+
+$ f\(z\)= cases(delim: "{", 1\, & 0 <= z <= 1 / 2\,, 0\, & 1 / 2 < z <= 1 .) $
+
+Show that $f$ has no fixed point. For
+$mu = 1 / 2 delta_0 + 1 / 2 delta_1$, compute
+
+$ bb(E)_mu\[f\(z\)- z\]\,#h(2em) bb(E)_mu\[\|f\(z\)- z\|\]\,#h(2em) f\(bb(E)_mu\[z\]\)- bb(E)_mu\[z\]. $
+
+Explain why neither sampling from an expected fixed point nor replacing
+the distribution by its mean is guaranteed to produce a pointwise fixed
+point.
+
+#strong[\(d) Connecting the reductions to Ellipsoid-Against-Hope.] For
+each game, write the set of tests that obtain payoff at most
+$- epsilon.alt$ against #strong[every] pure response
+$vz in K$. Explain why the defense oracle certifies that
+this set is empty and how a response produces a linear inequality in the
+test variable.
+
+Suppose a finite collection
+$vz_1\,...\,vz_T$ of responses has been
+obtained. Formulate the two feasibility problems for weights
+$vp in Delta_T$ that would certify (EVI) and (EFP). For the
+EVI problem, explain how a linear optimization oracle over $K$ checks
+all test points without listing them. State the evaluation and geometric
+oracle access that the reductions need for an algorithmic
+implementation. Does the mere existence of a pointwise defense oracle
+guarantee that an arbitrarily chosen finite collection of responses
+admits suitable weights?
+
+This part asks for the reduction and the final certificate, not a proof
+of the ellipsoid iteration bound or a bit-complexity theorem.
+
+#strong[\(e) Optional extension: why retain $epsilon.alt > 0$ for a
+discontinuous EVI?] Let $K =\[0\,1\]$ and
+
+$ F\(z\)= cases(delim: "{", - 1\, & 0 <= z <= 1 / 2\,, 1\, & 1 / 2 < z <= 1 .) $
+
+Show that no finite-support distribution satisfies (EVI) with
+$epsilon.alt = 0$. For $0 < tau <= 1 / 2$, verify that
+$mu_tau = 1 / 2 delta_(1\/2) + 1 / 2 delta_(1\/2 + tau)$ has payoff
+$U\(x\,mu_tau\)= - tau\/2$ for every $x in\[0\,1\]$. Choose $tau$ to
+obtain an $epsilon.alt$-EVI for any $epsilon.alt > 0$.
+
+] <ex-expected-solutions>
+
+== Complete solution <sec-expected-solution>
+
+#solution[
+#strong[\(a) Expected variational inequalities]
+
+Linearity of finite sums gives
+
+$ U\(vx\,mu\)= vx^top va_mu - b_mu\,#h(2em) va_mu = sum_t p_t F\(vz_t\)\,#h(2em) b_mu = sum_t p_t F\(vz_t\)^top vz_t . $
+
+Thus the payoff is affine in the test point and linear in the
+distribution weights. It need not be linear or continuous in the
+response point $vz$. Equivalently, it is a bilinear
+pairing between the lifted test vector $\(vx\,1\)$ and the
+moment vector $\(va_mu\,- b_mu\)$.
+
+Against a particular test $vx$, choose
+$mu = delta_(vx)$. Then
+
+$ U\(vx\,delta_(vx)\)= F\(vx\)^top\(vx - vx\)= 0 . $
+
+For the mixing lemma, take $X = K$, $S = K$,
+$va\(vz\)= F\(vz\)$, and
+$b\(vz\)= - F\(vz\)^top vz$.
+Compactness supplies a finite radius
+$R = max_(vz in K) parallel vz parallel_2$,
+so $parallel va\(vz\)parallel_2 <= M$ and
+$\|b\(vz\)\|<= M R$. All hypotheses hold. Taking
+$eta = epsilon.alt$ gives a finite distribution satisfying (EVI).
+
+The diagonal defense construction alone says that each test has a
+suitable response, potentially a different one. The mixing lemma
+supplies the additional step needed to obtain one distribution that
+works for every test.
+
+#strong[\(b) Expected fixed points, with a consistent sign convention]
+
+Given $vq in B_2^d$, choose
+
+$ vz_(vq) in "arg min"_(vz in K) vq^top vz . $
+
+This minimizer exists because a linear function is continuous and $K$ is
+nonempty and compact. Since
+$f\(vz_(vq)\)in K$,
+
+$ vq^top vz_(vq) <= vq^top f\(vz_(vq)\)\,#h(2em) V\(vq\,delta_(vz_(vq))\)>= 0 . $
+
+This is the required defense response. At $vq = 0$, any
+point of $K$ works. An oracle written as a maximization oracle can
+implement this response by querying it with $- vq$.
+
+By contrast, maximizing $vq^top vz$ gives
+$vq^top\(f\(vz\)- vz\)<= 0$,
+which is not the lower-bound guarantee required here. Maximization would
+be appropriate after negating the payoff and reversing which player
+seeks a lower or upper bound.
+
+For the mixing lemma, use $X = B_2^d$, $S = K$,
+$va\(vz\)= f\(vz\)- vz$,
+and $b\(vz\)= 0$. Both $vz$ and
+$f\(vz\)$ belong to $K$, so
+$parallel va\(vz\)parallel_2 <= "diam"\(K\)$.
+The lemma therefore gives a finite distribution $mu$ with
+$V\(vq\,mu\)>= - epsilon.alt$ for all
+$vq in B_2^d$.
+
+Set
+$vr = bb(E)_mu\[f\(vz\)- vz\]$.
+For every $parallel vq parallel_2 <= 1$,
+Cauchy--Schwarz gives
+
+$ vq^top vr >= - parallel vr parallel_2 . $
+
+If $vr != 0$, equality is attained at
+$vq = - vr\/parallel vr parallel_2$.
+If $vr = 0$, every direction has payoff zero. Consequently
+
+$ min_(vq in B_2^d) V\(vq\,mu\)= - parallel vr parallel_2 . $
+
+The uniform lower bound implies
+$- parallel vr parallel_2 >= - epsilon.alt$, hence
+$parallel vr parallel_2 <= epsilon.alt$ as required.
+Neither the defense construction nor this proof uses continuity of $f$.
+
+#strong[\(c) What the expectation does, and does not, guarantee]
+
+For $z <= 1\/2$, the equation $f\(z\)= z$ would require $z = 1$,
+outside that branch. For $z > 1\/2$, it would require $z = 0$, also
+outside that branch. Thus there is no fixed point.
+
+At the two support points, $f\(0\)- 0 = 1$ and $f\(1\)- 1 = - 1$.
+Therefore
+
+$ bb(E)_mu\[f\(z\)- z\]= 1 / 2\(1\)+ 1 / 2\(- 1\)= 0\,#h(2em) bb(E)_mu\[\|f\(z\)- z\|\]= 1 . $
+
+This distribution is an exact expected fixed point, although every
+sampled point has residual magnitude one. Its mean is
+$bb(E)_mu\[z\]= 1\/2$. With the specified value at the boundary,
+$f\(1\/2\)= 1$, so
+
+$ f\(bb(E)_mu\[z\]\)- bb(E)_mu\[z\]= 1 - 1 / 2 = 1 / 2 . $
+
+Expected residuals can cancel. The definition controls the norm of the
+expected residual, not the expected norm, and it does not permit moving
+$f$ outside the expectation. In general
+$f\(bb(E)_mu\[z\]\)!= bb(E)_mu\[f\(z\)\]$.
+
+#strong[\(d) Empty test sets, cuts, and finite certificates]
+
+The two sets are
+
+$ Omega_(upright(V I)) = { vx in K : F\(vz\)^top\(vx - vz\)<= - epsilon.alt upright(" for every ") vz in K }\, $
+
+$ Omega_(upright(F P)) = { vq in B_2^d : vq^top\(f\(vz\)- vz\)<= - epsilon.alt upright(" for every ") vz in K } . $
+
+Both are convex intersections of the test domain with linear halfspaces.
+They are empty: the defense response at any candidate test has payoff at
+least zero, contradicting $epsilon.alt > 0$.
+
+For a candidate $vx_0 in K$, the VI response is
+$vz = vx_0$. Every point in the purported
+feasible set must obey
+
+$ F\(vx_0\)^top\(vx - vx_0\)<= - epsilon.alt . $
+
+The candidate itself has left-hand side zero. For a candidate direction
+$vq_0 in B_2^d$, the fixed-point response
+$vz_(vq_0)$ similarly produces the
+constraint
+
+$ vq^top\(f\(vz_(vq_0)\)- vz_(vq_0)\)<= - epsilon.alt\, $
+
+violated by $vq_0$. If the coefficient vector of either
+inequality is zero, the inequality is $0 <= - epsilon.alt$ and itself
+certifies emptiness; otherwise it supplies a genuine separating
+halfspace. A candidate outside the test domain must instead be rejected
+by that domain's separation oracle.
+
+These responses play the same role as the violated constraints selected
+in S2. The generalized EAH procedure selects responses and recovers
+mixing weights using quantitative geometric and precision guarantees.
+Mere emptiness of an arbitrary strict system, or small volume without an
+appropriate quantitative argument, is not being used here as a proof of
+an approximation guarantee.
+
+For given responses $vz_1\,...\,vz_T$,
+define
+
+$ va\(vp\)= sum_t p_t F\(vz_t\)\,#h(1em) b\(vp\)= sum_t p_t F\(vz_t\)^top vz_t\,#h(1em) vr\(vp\)= sum_t p_t\(f\(vz_t\)- vz_t\). $
+
+The VI certificate is the feasibility problem
+
+$ vp in Delta_T\,#h(2em) min_(vx in K) vx^top va\(vp\)- b\(vp\)>= - epsilon.alt . $
+
+The minimum exists. A linear optimization oracle returns a worst test
+$vx^(*)$. If its payoff is below $- epsilon.alt$, the
+linear inequality
+
+$ sum_t p_t F\(vz_t\)^top\(vx^(*) - vz_t\)>= - epsilon.alt $
+
+is a violated constraint in weight space. This checks the entire test
+set, not only a sample of its points. If $K$ is a polytope with an
+explicitly listed vertex set, testing all vertices also suffices, since
+the payoff is affine. One must not assume that such a vertex list is
+small.
+
+The fixed-point certificate is
+
+$ vp in Delta_T\,#h(2em) parallel vr\(vp\)parallel_2 <= epsilon.alt . $
+
+This is a convex feasibility problem, specifically a second-order cone
+constraint together with simplex constraints; it is not generally a
+linear program under the Euclidean norm. If it is violated, the
+direction
+$vq^(*) = - vr\/parallel vr parallel_2$
+exposes a violated linear test.
+
+To implement the reductions, the VI game needs evaluation of $F$ at
+response points and separation over $K$\; its defense response itself
+needs no nonlinear optimization. Linear optimization over $K$ checks the
+final VI certificate. The fixed-point game needs evaluation of $f$,
+linear optimization over $K$ to produce its defense response, and
+separation over the unit ball, which is explicit. For a direction
+outside the ball, the separating inequality
+$vq_0^top vq <= parallel vq_0 parallel_2$
+is valid on the ball and violated by
+$vq = vq_0$.
+
+The exercise's mathematical assumptions alone do not provide efficient
+oracle implementations. A polynomial-time claim additionally needs
+quantitative bounds on feature vectors and domain geometry, efficient
+evaluation/response/separation oracles, and controlled numerical
+precision and encoding. The mixing lemma proves existence, not such a
+running-time bound. No efficient optimization of the arbitrary nonlinear
+maps $F$ or $f$ is assumed.
+
+Finally, arbitrary collections of responses need not admit suitable
+weights. For example, in part (c), if the collection contains only
+$z_1 = 0$, every mixture over that collection has residual one and fails
+(EFP) for $epsilon.alt < 1$. EAH's selection and certificate extraction
+are substantive steps; simply averaging any responses is not a
+substitute.
+
+#strong[\(e) Optional extension: approximate does not automatically mean
+exact]
+
+At the test $x = 1\/2$,
+
+$ F\(z\)\(1\/2 - z\)= cases(delim: "{", z - 1\/2\, & z <= 1\/2\,, 1\/2 - z\, & z > 1\/2 .) $
+
+Every value is nonpositive, and it is zero only at $z = 1\/2$. For a
+finite distribution to have expected payoff at least zero at this test,
+all its positive mass must therefore be at $z = 1\/2$. But the resulting
+$delta_(1\/2)$ has payoff $F\(1\/2\)\(1 - 1\/2\)= - 1\/2$ at $x = 1$.
+Thus no exact finite-support EVI solution exists.
+
+On the other hand,
+
+$ U\(x\,mu_tau\)= 1 / 2\[-\(x - 1\/2\)\]+ 1 / 2\[x -\(1\/2 + tau\)\]= - tau\/2 $
+
+for every $x in\[0\,1\]$. Choosing $tau = min { 1\/4\,epsilon.alt } > 0$
+gives a valid support point in $K$ and payoff at least $- epsilon.alt$.
+This example explains why the general mixing lemma provides arbitrarily
+accurate finite distributions without asserting an exact EVI solution
+for discontinuous $F$.
+
+]
+
+== Why finite mixtures exist <sec-expected-mixing-proof>
+
+The following argument proves the mixing lemma used in the exercise.
+
+Let
+
+$ A = {\(va\(s\)\,b\(s\)\): s in S } subset.eq bb(R)^(m + 1)\,#h(2em) C = overline("conv"\(A\)) . $
+
+Boundedness of $va$ and $b$ makes $C$ bounded. In finite
+dimension its closure is compact, and $C$ is nonempty and convex. For
+$vy =\(va\,beta\)in C$, define
+
+$ L\(vx\,vy\)= vx^top va + beta . $
+
+This is continuous and affine in each argument. Equivalently, after
+replacing $X$ by ${\(vx\,1\): vx in X }$, it
+is a bilinear payoff on two compact convex sets. The finite-dimensional
+minimax theorem applies, giving
+
+$ max_(vy in C) min_(vx in X) L\(vx\,vy\)= min_(vx in X) max_(vy in C) L\(vx\,vy\)>= 0 . $
+
+The inequality follows because, for each $vx$, the defense
+hypothesis provides a point of $A subset.eq C$ with payoff at least
+zero. There is therefore $vy^(*) in C$ with
+$L\(vx\,vy^(*)\)>= 0$ for all
+$vx in X$.
+
+Let
+$H = max_(vx in X) parallel\(vx\,1\)parallel_2$,
+a finite positive number. By the definition of closure, choose
+$tilde(vy) in "conv"\(A\)$ with
+$parallel tilde(vy) - vy^(*) parallel_2 < eta\/H$.
+For every $vx in X$,
+
+$ \|L\(vx\,tilde(vy)\)- L\(vx\,vy^(*)\)\|<= H parallel tilde(vy) - vy^(*) parallel_2 < eta . $
+
+The bound is uniform over the whole test domain. By the definition of
+convex hull, $tilde(vy)$ is a finite convex combination of
+points of $A$. Use those response labels and coefficients as $nu$. It
+satisfies the desired payoff bound for every test.
+
+Crucially, we took the closure of the moment set, not the closure of the
+graph of $F$ or $f$ and not an unjustified compactness assumption on all
+distributions. The final distribution uses actual response points.
+Approximating its moments accounts for $eta > 0$.
+
+
+
+
+
 = Bibliographic remarks
 
 If you are curious to read more, the following papers contains extensions and refinements of the idea of Ellipsoid-Against-Hope.

@@ -378,6 +378,13 @@
     } else { it }
   }
 
+  // A solution's authored label belongs to its outer toggle wrapper.
+  show html.elem.where(tag: "div"): it => {
+    if it.attrs.at("class", default: "").split().contains("solution-wrapper") and it.has("label") and not "data-label" in it.attrs {
+      html.elem(it.tag, attrs: (..it.attrs, "data-label": str(it.label)), it.body)
+    } else { it }
+  }
+
   // for styling, use `where` to assign classes for different types of figure
   show figure: it => {
     // Preserve authored labels even when Typst has no reference that would
