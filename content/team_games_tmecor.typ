@@ -166,7 +166,13 @@ $
   A distribution $vmu$ is a TMECor if and only if $vx^vmu$ is a maxmin solution of this problem, and every maxmin solution is $vx^vmu$ for some TMECor $vmu$.
 ] <thm-team-bspp>
 #proof[
-  By @lem-team-utility, the objective of @def-team-tmecor depends on $vmu$ only through $vx^vmu$, and on the mixed strategy of team ▼ only through its realization vector. As $vmu$ and the mixed strategy of team ▼ vary, their realization vectors range over all of $cX$ and $cY$. So the problem of @def-team-tmecor and the problem above have the same value, and $vmu$ attains the maximum if and only if $vx^vmu$ does.
+  By @lem-team-utility, the objective of @def-team-tmecor at $vmu$ equals $min_(vy in cY) (vx^vmu)^top U vy$, since the minimum over mixed strategies of team ▼ equals the minimum over their realization vectors $cY$. As $vmu$ ranges over $Delta(Pi_1 times Pi_2)$, $vx^vmu$ ranges over all of $cX$, so
+  $
+    max_(vmu in Delta(Pi_1 times Pi_2)) min_(vy in Delta(Pi_3)) EE_((pi_1, pi_2) ~ vmu) u(pi_1, pi_2, vy)
+    & = max_(vmu in Delta(Pi_1 times Pi_2)) min_(vy in cY) (vx^vmu)^top U vy \
+    & = max_(vx in cX) min_(vy in cY) vx^top U vy.
+  $
+  The objective depends on $vmu$ only through $vx^vmu$. So the two maxima are equal, and $vmu$ attains the maximum if and only if $vx^vmu$ does.
 ]
 
 This #lecture-link("learning_intro", <sec-learning-zero-sum>)[saddle-point problem] adapts the sequence form to teams. When a team is a single player with perfect recall, the entry $x[z]$ is the sequence-form entry of the player's last sequence on the path to $z$ (the empty sequence if the player does not act on that path). So $cX$ is a linear image of the #lecture-link("efg_intro", <sec-sequence-form>)[sequence-form polytope], and the problem above is the usual sequence-form maxmin problem composed with this linear map. For Player 3 in @ex-team-realization, this map sends the sequence-form vector $(1, e, overline(e), f, overline(f))$ to $vy$.
