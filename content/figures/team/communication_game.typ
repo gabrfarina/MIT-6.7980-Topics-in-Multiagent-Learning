@@ -24,14 +24,14 @@
   p2-2: (4, -3.3),
   p2-3: (7, -3.3),
   p2-4: (10, -3.3),
-  z2-1: (1.85, -4.45),
-  z2-2: (3.15, -4.45),
-  z2-3: (7.85, -4.45),
-  z2-4: (9.15, -4.45),
-  p3-1: (1, -5.4),
-  p3-2: (4, -5.4),
-  p3-3: (7, -5.4),
-  p3-4: (10, -5.4),
+  z2-1: (1.85, -4.7),
+  z2-2: (3.15, -4.7),
+  z2-3: (7.85, -4.7),
+  z2-4: (9.15, -4.7),
+  p3-1: (1, -6.15),
+  p3-2: (4, -6.15),
+  p3-3: (7, -6.15),
+  p3-4: (10, -6.15),
 )
 // Terminal payoffs (team utility) below the P3 nodes, left then right child.
 // Leaves are numbered z_1, ..., z_12 left to right (message, then bit, then P2, then P3),
@@ -51,12 +51,12 @@
   ("p1r", "p2-2", $b$, .22),
   ("p1r", "p2-4", $overline(b)$, .45),
   ("p2-1", "p3-1", $c$, .42),
-  ("p2-1", "z2-1", $overline(c)$, .53),
-  ("p2-2", "z2-2", $c$, .53),
+  ("p2-1", "z2-1", $overline(c)$, .55),
+  ("p2-2", "z2-2", $c$, .55),
   ("p2-2", "p3-2", $overline(c)$, .42),
   ("p2-3", "p3-3", $d$, .42),
-  ("p2-3", "z2-3", $overline(d)$, .53),
-  ("p2-4", "z2-4", $d$, .53),
+  ("p2-3", "z2-3", $overline(d)$, .6),
+  ("p2-4", "z2-4", $d$, .6),
   ("p2-4", "p3-4", $overline(d)$, .42),
 )
 
@@ -72,8 +72,11 @@
       let n = calc.sqrt((u - x) * (u - x) + (v - y) * (v - y))
       ((u - x) / n, (v - y) / n)
     }
-    let tri-r = .25 // distance from a triangle's centre to where an edge stops
-    let radius(key) = if key == "root" { .17 } else if key.starts-with("z") { .1 } else { tri-r }
+    let tri-r = .34 // distance from a triangle's centre to where an edge stops
+    // Rounded band around an information set. hy is its half-height, and dy shifts it
+    // toward the wide side of the triangles.
+    let band = (padx: .55, hy: .43, dy: .09)
+    let radius(key) = if key == "root" { .27 } else if key.starts-with("z") { .1 } else { tri-r }
 
     let halo(pos, body) = {
       for i in range(36) {
@@ -88,6 +91,14 @@
     let edge(a, b, ra, rb, label: none, t: .5) = {
       let u = unit(a, b)
       let start = add(a, u, s: ra)
+      // rb = -1 means: stop at the top edge of the child's information set.
+      let dy = if b.at(1) < -5 { -band.dy } else { band.dy }
+      // A shallow edge into the outer end of a band enters through its side.
+      let left-end = b.at(0) in (1, 7)
+      let side = if (left-end and u.at(0) > 0) or (not left-end and u.at(0) < 0) {
+        band.padx / calc.abs(u.at(0))
+      } else { 99 }
+      let rb = if rb < 0 { calc.min((band.hy + dy) / -u.at(1), side) } else { rb }
       let stop = add(b, u, s: -(rb + .02))
       let arrow = (end: "stealth", scale: .8, fill: black, stroke: .3mm)
       let lw = .3mm + black
@@ -103,28 +114,34 @@
     }
 
     let infoset(a, b, paint) = {
-      line(a, b, stroke: (thickness: 6.2mm, paint: paint.lighten(35%), cap: "round"))
-      line(a, b, stroke: (thickness: 5.7mm, paint: paint.lighten(82%), cap: "round"))
+      let dy = if paint == p3-color { -band.dy } else { band.dy }
+      rect(
+        (a.at(0) - band.padx, a.at(1) + dy - band.hy),
+        (b.at(0) + band.padx, b.at(1) + dy + band.hy),
+        radius: band.hy,
+        fill: paint.lighten(82%),
+        stroke: .25mm + paint.lighten(35%),
+      )
     }
 
     let triangle(p, paint, number, up: true) = {
       let s = if up { 1 } else { -1 }
-      let (w, h) = (.44, .38)
+      let (w, h) = (.62, .54)
       line(
         add(p, (0, s * 2 * h / 3)),
         add(p, (-w / 2, -s * h / 3)),
         add(p, (w / 2, -s * h / 3)),
         close: true,
-        fill: paint,
+        fill: paint.darken(22%),
         stroke: .25mm + paint.darken(40%),
       )
-      content(add(p, (0, -s * .015)), course-sans(6pt, white, weight: "bold", number))
+      content(p, course-sans(7pt, white, weight: "bold", number))
     }
 
     let leaf(p, value, name) = {
       rect(add(p, (-.08, -.08)), add(p, (.08, .08)), fill: white, stroke: .22mm)
       halo(add(p, (0, -.3)), text(7pt, $#value$))
-      content(add(p, (0, -.58)), text(6.5pt, gray.darken(55%), $z_#name$))
+      content(add(p, (0, -.6)), text(7.5pt, gray.darken(70%), $bold(z)_#name$))
     }
 
     // Information sets of P2 and P3 (P1's two nodes are singletons).
@@ -134,7 +151,7 @@
     infoset(nodes.p3-3, nodes.p3-4, p3-color)
 
     for (parent, child, label, t) in edges {
-      edge(nodes.at(parent), nodes.at(child), radius(parent), radius(child), label: label, t: t)
+      edge(nodes.at(parent), nodes.at(child), radius(parent), if child.starts-with("p2") or child.starts-with("p3") { -1 } else { radius(child) }, label: label, t: t)
     }
     let p3-labels = (
       p3-1: ($e$, $overline(e)$),
@@ -146,17 +163,17 @@
     for (key, values) in p3-leaves {
       let p = nodes.at(key)
       for (i, dx) in (-.6, .6).enumerate() {
-        let z = add(p, (dx, -1.3))
-        edge(p, z, tri-r, .1, label: p3-labels.at(key).at(i), t: .48)
+        let z = add(p, (dx, -1.55))
+        edge(p, z, tri-r, .1, label: p3-labels.at(key).at(i), t: .55)
         leaf(z, values.at(i), p3-names.at(key).at(i))
       }
     }
 
     // Nodes on top of edges and infosets.
     let p = nodes.root
-    circle(p, radius: 1.5mm, fill: white, stroke: .22mm)
-    line(add(p, (-.1, -.1)), add(p, (.1, .1)), stroke: .22mm)
-    line(add(p, (-.1, .1)), add(p, (.1, -.1)), stroke: .22mm)
+    circle(p, radius: 2.5mm, fill: white, stroke: .25mm)
+    line(add(p, (-.177, -.177)), add(p, (.177, .177)), stroke: .25mm)
+    line(add(p, (-.177, .177)), add(p, (.177, -.177)), stroke: .25mm)
     for key in ("p1l", "p1r") { triangle(nodes.at(key), p1-color, "1") }
     for key in ("p2-1", "p2-2", "p2-3", "p2-4") { triangle(nodes.at(key), p2-color, "2") }
     for key in ("p3-1", "p3-2", "p3-3", "p3-4") { triangle(nodes.at(key), p3-color, "3", up: false) }
