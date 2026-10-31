@@ -91,16 +91,18 @@
       (m.at(0) - d, m.at(1)), close: true, fill: black, stroke: none)
 
     // Labels.
-    halo((m.at(0) - .2, m.at(1) - .05), $bold(x)^(bold(mu)^star)$, anchor: "east")
-    content((p2.at(0) - .12, p2.at(1) + .22), course-sans(9pt, weight: "bold", plan-color.darken(25%), "Heads"), anchor: "south-east")
-    content((p4.at(0) - .12, p4.at(1) - .2), course-sans(9pt, weight: "bold", plan-color.darken(25%), "Tails"), anchor: "north-east")
-    content((q1.at(0) + .35, q1.at(1) + .25), text(11pt, $R$), anchor: "south-west")
-    content((-2.7, -.6), text(11pt, hull-color.darken(20%), $cal(X)$))
-    content((1.0, .1), text(11pt, uncor-color.darken(30%), $accent(cal(X), tilde, size: #130%)$))
-    // V, pointing at two of its points.
-    let vpos = (5.0, -1.95)
-    content(vpos, text(11pt, $V$))
-    line((vpos.at(0) - .05, vpos.at(1) + .25), lerp(vpos, p0, .9), stroke: .2mm)
-    line((vpos.at(0) - .25, vpos.at(1) - .02), lerp(vpos, p5, .93), stroke: .2mm)
+    halo((m.at(0) - .22, m.at(1) - .05), text(13.5pt, $bold(x)^(bold(mu)^star)$), anchor: "east")
+    content((p2.at(0) - .12, p2.at(1) + .22), course-sans(11pt, weight: "bold", plan-color.darken(25%), "Heads"), anchor: "south-east")
+    content((p4.at(0) - .12, p4.at(1) - .2), course-sans(11pt, weight: "bold", plan-color.darken(25%), "Tails"), anchor: "north-east")
+    content((-2.75, -.6), text(14pt, hull-color.darken(20%), $cal(X)$))
+    content((1.0, .1), text(14pt, uncor-color.darken(30%), $accent(cal(X), tilde, size: #130%)$))
+    content((q1.at(0) + .35, q1.at(1) + .25), text(14pt, $R$), anchor: "south-west")
+    // Legend.
+    let ly = -3.55
+    let lx = -4.3
+    circle((lx, ly), radius: .09, fill: black, stroke: none)
+    content((lx + .25, ly), text(11pt)[point of $V$ (a joint plan)], anchor: "west")
+    circle((lx + 5.1, ly), radius: .1, fill: white, stroke: .3mm + black)
+    content((lx + 5.35, ly), text(11pt)[vertex of $R$ outside $cal(X)$], anchor: "west")
   }),
 )
