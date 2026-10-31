@@ -19,7 +19,7 @@
 // Node positions (cm), those of communication_game.typ with x scaled by sx.
 #let sx = .6
 #let nodes = (
-  root: (5.5, 0),
+  root: (5.5, -.45),
   p1l: (2.5, -1.5),
   p1r: (8.5, -1.5),
   p2-1: (1, -3.3),

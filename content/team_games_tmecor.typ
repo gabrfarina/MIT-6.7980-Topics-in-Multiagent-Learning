@@ -6,6 +6,9 @@
   instructor: [Brian Hu Zhang],
 )
 
+// The set of uncorrelated realization vectors. The default tilde is easy to misread as a bar.
+#let tcX = $accent(cX, tilde, size: #130%)$
+
 // L12, part 2 (correlation and imperfect recall, slides 6-7) and part 3 (realization form, slide 8).
 // Parts 1 and 4 (the game, the TME, and hardness) are in a separate contribution.
 
@@ -40,7 +43,7 @@ $
 The two joint plans are the heads and tails branches, and the shared coin picks between them (@fig-team-one-time-pad).
 
 #figure(
-  image("figures/team/one_time_pad.svg", width: 100%),
+  image("figures/team/one_time_pad.svg", width: 85%),
   caption: [The two joint plans of the one-time pad in the communication game of @fig-team-communication-game. Before play, the teammates pick the heads plan (left) or the tails plan (right), each with probability $1\/2$. Green edges are the actions the plan prescribes. Dashed green edges are prescribed at Player 2 nodes that the plan never reaches. Under either plan Player 2 guesses right for both values of the bit. Player 3 sees the message but not the coin.],
 ) <fig-team-one-time-pad>
 
@@ -52,7 +55,7 @@ Under $vmu^star$, Player 2 always guesses right, and the message is uniform and 
   Hint in @sec-team-hints.
 ] <exr-team-pad-unique>
 #solution[
-  By @sec-team-one-time-pad, the TMECor value is $1\/2$ and $vmu^star$ attains it. It remains to show that every $vmu$ that guarantees $1\/2$ equals $vmu^star$. As in @ex-team-realization, $e$ and $f$ are the probabilities that Player 3 guesses 0 after the left and the right message. The team scores only at $z_2, z_5, z_8, z_11$, and chance reaches each of them with probability $1\/2$. So a pure joint plan $pi = (a, b; c, d) in {0, 1}^4$ gives
+  By @sec-team-one-time-pad, the TMECor value is $1\/2$ and $vmu^star$ attains it. It remains to show that every $vmu$ that guarantees $1\/2$ equals $vmu^star$. As in @ex-team-realization, $e$ and $f$ are the probabilities that Player 3 guesses 0 after the left and the right message. The team scores only at $z_2, z_5, z_8, z_11$, and the chance contribution along each of these paths is $1\/2$. So a pure joint plan $pi = (a, b; c, d) in {0, 1}^4$ gives
   $
     u(pi, e, f) = 1/2 (a c overline(e) + b overline(c) e + overline(a) d overline(f) + overline(b) overline(d) f),
   $
@@ -180,6 +183,13 @@ The polytope $cY$ of team ▼ is defined in the same way. In @def-team-tmecor, t
 
 The _realization vector_ of a distribution $vmu in Delta(Pi_1 times Pi_2)$ is $vx^vmu := EE_((pi_1, pi_2) ~ vmu) vx^(pi_1, pi_2)$. Its entry $x^vmu [z]$ is the probability that the team plays all of its actions on the path to $z$. The map $vmu |-> vx^vmu$ is linear and sends the point mass on $(pi_1, pi_2)$ to $vx^(pi_1, pi_2)$. Since $Delta(Pi_1 times Pi_2)$ is the convex hull of the point masses, its image is exactly $conv(V) = cX$. In other words, $cX$ is the set of realization vectors of correlated team strategies. In the same way, $cY$ is the set of realization vectors of the mixed strategies of team ▼.
 
+For the one-time pad, $vx^(vmu^star)$ is the average of the realization vectors of the heads and tails plans (@fig-team-realization-tree).
+
+#figure(
+  image("figures/team/realization_tree.svg", width: 85%),
+  caption: [The realization vector $vx^(vmu^star)$ of the one-time pad of @fig-team-one-time-pad. The heads and tails plans each have a realization vector in $V$, a $0$/$1$ vector with one entry per leaf, and $vx^(vmu^star)$ is their average. Below each leaf $z$ is $x^(vmu^star)[z]$, the probability that the team plays all of its actions on the path to $z$. These numbers are realization weights, not payoffs, and they leave out the chance probabilities. Leaves with positive weight are filled green. A thick green team edge is played, together with the team's earlier actions on its path, with probability $1\/2$, and a thin grey team edge with probability $0$. Each Player 2 node is reached under only one of the two plans, so the two nodes of an information set carry different green actions. Chance and Player 3 edges are black.],
+) <fig-team-realization-tree>
+
 #example[Realization vectors in the communication game][
   Number the leaves as in @fig-team-communication-game. If both teammates always play left ($a = b = c = d = 1$), the team plays all of its actions on the paths to $z_1$, $z_2$, and $z_4$ only, so its realization vector is $(1, 1, 0 #h(.4em) bar.v #h(.4em) 1, 0, 0 #h(.4em) bar.v #h(.4em) 0, 0, 0 #h(.4em) bar.v #h(.4em) 0, 0, 0)$. It has 12 entries, one per terminal node, instead of one per joint plan. Bars separate the three leaves below each Player 2 node. For a general uncorrelated team strategy in behavioral coordinates, and for Player 3,
   $
@@ -232,19 +242,19 @@ This #lecture-link("learning_intro", <sec-learning-zero-sum>)[saddle-point probl
 // Not from the lecture: this subsection follows Farina et al. (2018), Thm 2.
 The TME can be written in the same form as @thm-team-bspp. An uncorrelated team strategy is a pair of mixed strategies, written $vx_1, vx_2$ in the definition of the TME. Since $vx$ now denotes a realization vector, we rename them $vmu_1 in Delta(Pi_1)$ and $vmu_2 in Delta(Pi_2)$. They induce the product distribution $vmu_1 times.o vmu_2$ on joint plans, and
 $
-  tilde(cX) := {vx^(vmu_1 times.o vmu_2) : vmu_1 in Delta(Pi_1), vmu_2 in Delta(Pi_2)} subset.eq cX
+  tcX := {vx^(vmu_1 times.o vmu_2) : vmu_1 in Delta(Pi_1), vmu_2 in Delta(Pi_2)} subset.eq cX
 $
 is the set of their realization vectors, the vectors the team can reach _without_ shared randomness. This set need not be convex, and @ex-team-pad-not-uncorrelated shows that it is not convex in the communication game.
 
 #theorem[TMECor convexifies TME #citep(<Farina18:Ex>)][
-  The TME value is $max_(vx in tilde(cX)) min_(vy in cY) vx^top U vy$ and the TMECor value is the same problem over $conv(tilde(cX)) = cX$, where $tilde(cX)$ is the set of realization vectors of uncorrelated team strategies.
+  The TME value is $max_(vx in tcX) min_(vy in cY) vx^top U vy$ and the TMECor value is the same problem over $conv(tcX) = cX$, where $tcX$ is the set of realization vectors of uncorrelated team strategies.
 ] <thm-team-convexification>
 #proof[
-  By @lem-team-utility, the TME objective at $(vmu_1, vmu_2)$ is $min_(vy in cY) (vx^(vmu_1 times.o vmu_2))^top U vy$, so the TME value is the maxmin problem over $tilde(cX)$. By @thm-team-bspp, the TMECor value is the same problem over $cX$, so it remains to show $conv(tilde(cX)) = cX$. A joint plan is the product of two point masses, so $V subset.eq tilde(cX)$. A product distribution is a distribution on $Pi_1 times Pi_2$, so $tilde(cX) subset.eq cX$. Taking convex hulls, $cX = conv(V) subset.eq conv(tilde(cX)) subset.eq cX$.
+  By @lem-team-utility, the TME objective at $(vmu_1, vmu_2)$ is $min_(vy in cY) (vx^(vmu_1 times.o vmu_2))^top U vy$, so the TME value is the maxmin problem over $tcX$. By @thm-team-bspp, the TMECor value is the same problem over $cX$, so it remains to show $conv(tcX) = cX$. A joint plan is the product of two point masses, so $V subset.eq tcX$. A product distribution is a distribution on $Pi_1 times Pi_2$, so $tcX subset.eq cX$. Taking convex hulls, $cX = conv(V) subset.eq conv(tcX) subset.eq cX$.
 ]
 
 #example[The one-time pad is not uncorrelated][
-  Every path of the communication game meets one decision node of Player 1 and one information set of Player 2, so $vx^(vmu_1 times.o vmu_2)$ depends on $vmu_1$ and $vmu_2$ only through the probability of each action at each of these, that is, through the behavioral probabilities $(a, b; c, d)$. Hence $tilde(cX)$ is exactly the set of vectors $vx(a, b; c, d)$ of @ex-team-realization with $(a, b; c, d) in [0, 1]^4$. The realization vector of the one-time pad is
+  Every path of the communication game meets one decision node of Player 1 and one information set of Player 2, so $vx^(vmu_1 times.o vmu_2)$ depends on $vmu_1$ and $vmu_2$ only through the probability of each action at each of these, that is, through the behavioral probabilities $(a, b; c, d)$. Hence $tcX$ is exactly the set of vectors $vx(a, b; c, d)$ of @ex-team-realization with $(a, b; c, d) in [0, 1]^4$. The realization vector of the one-time pad is
   $
     vx^(vmu^star) = 1/2 vx^((1, 0; 1, 0)) + 1/2 vx^((0, 1; 0, 1)) = (1/2, 1/2, 0 #h(.4em) bar.v #h(.4em) 0, 1/2, 1/2 #h(.4em) bar.v #h(.4em) 1/2, 1/2, 0 #h(.4em) bar.v #h(.4em) 0, 1/2, 1/2) in cX.
   $
@@ -253,7 +263,7 @@ is the set of their realization vectors, the vectors the team can reach _without
     a c = 1/2, quad a overline(c) = 0 & quad ==> quad c = 1, \
     b c = 0, quad b overline(c) = 1/2 & quad ==> quad c = 0,
   $
-  which is impossible. So $vx^(vmu^star) in.not tilde(cX)$, although it is the midpoint of two points of $V subset.eq tilde(cX)$.
+  which is impossible. So $vx^(vmu^star) in.not tcX$, although it is the midpoint of two points of $V subset.eq tcX$.
 ] <ex-team-pad-not-uncorrelated>
 
 #exercise[Where the nonconvexity goes][
@@ -281,9 +291,9 @@ is the set of their realization vectors, the vectors the team can reach _without
 
   + The realization vectors of the two plans are $(1, 1, 0 #h(.4em) bar.v #h(.4em) 0, 0, 0 #h(.4em) bar.v #h(.4em) 0, 0, 0 #h(.4em) bar.v #h(.4em) 0, 1, 1)$ and $(0, 0, 0 #h(.4em) bar.v #h(.4em) 0, 1, 1 #h(.4em) bar.v #h(.4em) 1, 1, 0 #h(.4em) bar.v #h(.4em) 0, 0, 0)$. Their midpoint is $vx^(vmu^star)$ of @ex-team-pad-not-uncorrelated. Since $vx |-> vx^top U vy$ is linear, it gives the average utility $1\/2$. Indeed, by (i) it gives $1/4 (overline(e) + e + overline(f) + f) = 1\/2$ against every $vy$.
 
-    The behavioral midpoint has realization vector $vx(1\/2, 1\/2; 1\/2, 1\/2)$, with every entry equal to $1\/4$. It lies in $tilde(cX)$, so the team can play it without shared randomness, but it only gets $1\/4$. The realization midpoint is not in $tilde(cX)$ by @ex-team-pad-not-uncorrelated. It needs the shared coin.
+    The behavioral midpoint has realization vector $vx(1\/2, 1\/2; 1\/2, 1\/2)$, with every entry equal to $1\/4$. It lies in $tcX$, so the team can play it without shared randomness, but it only gets $1\/4$. The realization midpoint is not in $tcX$ by @ex-team-pad-not-uncorrelated. It needs the shared coin.
 
-  The products $a c, b overline(c), dots$ that make $u$ nonconcave have not disappeared. They are the coordinates of $vx$. So the objective is linear in $vx$, and the nonconvexity has moved into the set $tilde(cX)$, which correlation convexifies to $cX$ (@thm-team-convexification).
+  The products $a c, b overline(c), dots$ that make $u$ nonconcave have not disappeared. They are the coordinates of $vx$. So the objective is linear in $vx$, and the nonconvexity has moved into the set $tcX$, which correlation convexifies to $cX$ (@thm-team-convexification).
 ]
 
 == Beyond the sequence form <sec-team-sequence-form>
@@ -312,21 +322,28 @@ The problem of @thm-team-bspp is a convex bilinear saddle-point problem that loo
   So $cX subset.neq R$, and adding the four inequalities to $R$ gives exactly $cX$. Indeed, a point of $R$ lies in $cX$ exactly when its two distributions can be coupled without using a forbidden pair. By Gale's supply–demand theorem #citep(<Gale57:Theorem>), such a coupling exists if and only if every set of bit 0 outcomes has at most the mass of its allowed bit 1 partners. For a single outcome this says that its mass is at most one minus the mass of its forbidden partner, which is one of the four inequalities in the table. Different outcomes forbid different partners, so any set of two or more outcomes is allowed all four bit 1 outcomes, and its condition follows from the total mass being 1.
 ] <ex-team-flow-gap>
 
+@fig-team-realization-sets places $R$ next to the other sets of this section.
+
+#figure(
+  image("figures/team/realization_sets.svg", width: 70%),
+  caption: [A schematic picture of the inclusions $V subset.eq tcX subset.eq cX subset.neq R$ for the communication game. It is not a projection and not to scale, since the sets live in $RR^12$. The dots are six of the 12 points of $V$ and the corners of the blue polygon $cX = conv(V)$. The hollow dots are four of the 16 vertices of the flow relaxation $R$ of @ex-team-flow-gap (grey, dashed border), the four that no team can play. The purple region $tcX$ of uncorrelated team strategies contains every point of $V$ but is not convex. The dashed segment joins the green points of the heads and tails plans, and its midpoint $vx^(vmu^star)$, the one-time pad, lies in $cX$ but not in $tcX$.],
+) <fig-team-realization-sets>
+
 The gap is invisible in the value of this game. A point of $R$ is a pair of distributions over the team's outcomes, one for each value of the bit. If Player 3 guesses uniformly ($e = f = 1\/2$), it is wrong with probability $1\/2$ whatever these distributions are, and the team scores only when Player 3 is wrong. So the team gets at most $1\/2$ on all of $R$, and since $cX subset.eq R$, the maxmin value over $R$ is also $1\/2$. The companion notebook #link("https://github.com/gabrfarina/MIT-6.7980-Topics-in-Multiagent-Learning/blob/main/content/notebooks/team/communication_game.ipynb")[`communication_game.ipynb`] reproduces the realization-vector calculations and checks the game values and the flow relaxation with exact arithmetic. But $R$ contains strategies that no team can play. In this small game, four extra inequalities repair the relaxation. In general we should not expect an efficient repair. Suppose some polynomial-time procedure produced, for every team game, a polynomial-size linear description of $cX$. When team ▼ is a single player with perfect recall, as Player 3 is, $cY$ has such a description too, namely the sequence form. Linear programming would then solve the saddle-point problem of @thm-team-bspp in polynomial time. Computing a TMECor is NP-hard, as the next part of the lecture shows, so unless $P = NP$ no such procedure exists.
 
 #exercise[The uncorrelated set is cut out by two quadratics][
   Let $R$ be the flow relaxation of @ex-team-flow-gap. Show that
   $
-    tilde(cX) = {vx in R : x[z_1] dot x[z_5] = x[z_3] dot x[z_4], quad x[z_7] dot x[z_11] = x[z_9] dot x[z_10]}.
+    tcX = {vx in R : x[z_1] dot x[z_5] = x[z_3] dot x[z_4], quad x[z_7] dot x[z_11] = x[z_9] dot x[z_10]}.
   $
-  Interpret each equation as a statement about Player 2's conditional behavior. Use the result to show again that $vx^(vmu^star) in.not tilde(cX)$, and conclude that $tilde(cX)$ is not convex.
+  Interpret each equation as a statement about Player 2's conditional behavior. Use the result to show again that $vx^(vmu^star) in.not tcX$, and conclude that $tcX$ is not convex.
 
   Hint in @sec-team-hints.
 ] <exr-team-uncorrelated-quadratics>
 #solution[
-  Write $x_i := x[z_i]$ and $overline(a) := 1 - a$, and let $Q$ denote the right-hand side. By @ex-team-pad-not-uncorrelated, $tilde(cX)$ is the set of vectors $vx(a, b; c, d)$ of @ex-team-realization with $(a, b; c, d) in [0, 1]^4$.
+  Write $x_i := x[z_i]$ and $overline(a) := 1 - a$, and let $Q$ denote the right-hand side. By @ex-team-pad-not-uncorrelated, $tcX$ is the set of vectors $vx(a, b; c, d)$ of @ex-team-realization with $(a, b; c, d) in [0, 1]^4$.
 
-  *$tilde(cX) subset.eq Q$.* The entries of $vx(a, b; c, d)$ are products of numbers in $[0, 1]$, so they are nonnegative. We have
+  *$tcX subset.eq Q$.* The entries of $vx(a, b; c, d)$ are products of numbers in $[0, 1]$, so they are nonnegative. We have
   $
     x_1 + x_3 + x_7 + x_9 & = a c + a overline(c) + overline(a) d + overline(a) overline(d) = 1, \
     x_4 + x_5 + x_10 + x_11 & = b c + b overline(c) + overline(b) d + overline(b) overline(d) = 1,
@@ -337,7 +354,7 @@ The gap is invisible in the value of this game. A point of $R$ is a pair of dist
     x_7 dot x_11 = overline(a) d dot overline(b) overline(d) = overline(a) overline(d) dot overline(b) d = x_9 dot x_10.
   $
 
-  *$Q subset.eq tilde(cX)$.* Let $vx in Q$, and set $a := x_1 + x_3$ and $b := x_4 + x_5$. The two mass constraints of $R$ and nonnegativity give $a, b in [0, 1]$, $x_7 + x_9 = overline(a)$, and $x_10 + x_11 = overline(b)$. Put $c := x_1 \/ a$ if $a > 0$, $c := x_4 \/ b$ if $a = 0 < b$, and $c := 0$ if $a = b = 0$. Then $c in [0, 1]$, and we claim
+  *$Q subset.eq tcX$.* Let $vx in Q$, and set $a := x_1 + x_3$ and $b := x_4 + x_5$. The two mass constraints of $R$ and nonnegativity give $a, b in [0, 1]$, $x_7 + x_9 = overline(a)$, and $x_10 + x_11 = overline(b)$. Put $c := x_1 \/ a$ if $a > 0$, $c := x_4 \/ b$ if $a = 0 < b$, and $c := 0$ if $a = b = 0$. Then $c in [0, 1]$, and we claim
   $
     a c = x_1, quad a overline(c) = x_3, quad b c = x_4, quad b overline(c) = x_5.
   $
@@ -345,11 +362,11 @@ The gap is invisible in the value of this game. A point of $R$ is a pair of dist
   $
     x_1 dot (x_4 + x_5) - x_4 dot (x_1 + x_3) = x_1 dot x_5 - x_3 dot x_4.
   $
-  Define $d$ in the same way from $(x_7, x_9)$ and $(x_10, x_11)$, with masses $overline(a)$ and $overline(b)$. The same argument with the second equation gives $overline(a) d = x_7$, $overline(a) overline(d) = x_9$, $overline(b) d = x_10$, and $overline(b) overline(d) = x_11$. The equalities $x_2 = x_1$, $x_6 = x_5$, $x_8 = x_7$, $x_12 = x_11$ of $R$ give the remaining entries. Hence $vx = vx(a, b; c, d) in tilde(cX)$.
+  Define $d$ in the same way from $(x_7, x_9)$ and $(x_10, x_11)$, with masses $overline(a)$ and $overline(b)$. The same argument with the second equation gives $overline(a) d = x_7$, $overline(a) overline(d) = x_9$, $overline(b) d = x_10$, and $overline(b) overline(d) = x_11$. The equalities $x_2 = x_1$, $x_6 = x_5$, $x_8 = x_7$, $x_12 = x_11$ of $R$ give the remaining entries. Hence $vx = vx(a, b; c, d) in tcX$.
 
   *Interpretation.* Given bit 0, Player 1 sends the left message with probability $x_1 + x_3$, and $x_1$ is the probability that Player 1 sends the left message and Player 2 guesses 0. So $x_1 \/ (x_1 + x_3)$ is the probability that Player 2 guesses 0 given the left message and bit 0. Likewise $x_4 \/ (x_4 + x_5)$ is the same probability given the left message and bit 1. When the left message has positive probability under both bits, the first equation says that these two conditional probabilities are equal. In other words, after the left message Player 2's guess is independent of the bit. The second equation says the same after the right message, with $x_7 \/ (x_7 + x_9) = x_10 \/ (x_10 + x_11)$. Player 2 does not see the bit, so without shared randomness it cannot react to it. With a shared coin it can.
 
-  *The one-time pad.* By @ex-team-pad-not-uncorrelated, $vx^(vmu^star)$ has $x_1 = x_5 = 1\/2$ and $x_3 = x_4 = 0$. So $x_1 dot x_5 = 1\/4 != 0 = x_3 dot x_4$, and $vx^(vmu^star) in.not tilde(cX)$. After the left message, Player 2 guesses 0 with probability $1$ if the bit is 0 and with probability $0$ if it is 1. The endpoints $vx^((1, 0; 1, 0))$ and $vx^((0, 1; 0, 1))$ lie in $V subset.eq tilde(cX)$, and $vx^(vmu^star)$ is their midpoint. Hence $tilde(cX)$ is not convex.
+  *The one-time pad.* By @ex-team-pad-not-uncorrelated, $vx^(vmu^star)$ has $x_1 = x_5 = 1\/2$ and $x_3 = x_4 = 0$. So $x_1 dot x_5 = 1\/4 != 0 = x_3 dot x_4$, and $vx^(vmu^star) in.not tcX$. After the left message, Player 2 guesses 0 with probability $1$ if the bit is 0 and with probability $0$ if it is 1. The endpoints $vx^((1, 0; 1, 0))$ and $vx^((0, 1; 0, 1))$ lie in $V subset.eq tcX$, and $vx^(vmu^star)$ is their midpoint. Hence $tcX$ is not convex.
 ]
 
 = Hints for the exercises <sec-team-hints>
@@ -360,7 +377,7 @@ The gap is invisible in the value of this game. A point of $R$ is a pair of dist
 
 *@exr-team-bilinear.* For (ii), write the utility at $e = f = 1\/2$ in terms of $a - b$ and $c - d$.
 
-*@exr-team-uncorrelated-quadratics.* By @ex-team-pad-not-uncorrelated, $tilde(cX)$ is the set of vectors $vx(a, b; c, d)$. For the reverse inclusion, set $a := x[z_1] + x[z_3]$ and $b := x[z_4] + x[z_5]$, and treat the cases $a = 0$ and $b = 0$ separately.
+*@exr-team-uncorrelated-quadratics.* By @ex-team-pad-not-uncorrelated, $tcX$ is the set of vectors $vx(a, b; c, d)$. For the reverse inclusion, set $a := x[z_1] + x[z_3]$ and $b := x[z_4] + x[z_5]$, and treat the cases $a = 0$ and $b = 0$ separately.
 
 = Bibliography for this lecture
 

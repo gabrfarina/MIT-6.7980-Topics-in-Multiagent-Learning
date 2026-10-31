@@ -17,7 +17,7 @@
 // Node positions (cm). P2_1, P2_2 share an infoset, as do P2_3, P2_4, and
 // likewise for P3. P1's left node is reached on the first chance outcome.
 #let nodes = (
-  root: (5.5, 0),
+  root: (5.5, -.45),
   p1l: (2.5, -1.5),
   p1r: (8.5, -1.5),
   p2-1: (1, -3.3),
