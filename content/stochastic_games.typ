@@ -288,7 +288,7 @@ $
 ]
 
 #remark[
-  A unique $vV^*$ does not imply a unique equilibrium, since several equilibria can achieve the same values. For instance, if Player 1 has two actions at some state that yield the same rewards and transitions, any way of splitting probability between them gives an equilibrium.
+  A unique $vV^*$ does not imply a unique equilibrium, since several equilibria can achieve the same values. For instance, suppose Player 1 has two actions at some state that yield the same rewards and transitions, and some equilibrium plays them with total probability $p > 0$ at that state. Then any way of splitting $p$ between the two actions gives an equilibrium with the same values.
 ] <rem-nonunique-equilibria>
 
 === Computation: value iteration and a stopping certificate
@@ -318,10 +318,10 @@ A concrete algorithm is therefore:
 The returned policies are those computed from the same $vV$ whose residual was tested. The proof also handles $gamma=0$ without dividing by $gamma$. If the stage games are solved numerically, their optimization errors must be included in the residual and best-response bounds; the displayed certificate assumes exact local solutions.
 
 #remark[
-  Convergence of $vV_t$ to $vV^*$ does not imply that the selected policies converge. For example, in the situation of @rem-nonunique-equilibria, a solver may alternate between the two actions with identical rewards and transitions.
+  Convergence of $vV_t$ to $vV^*$ does not imply that the selected policies converge. For example, in the situation of @rem-nonunique-equilibria, a solver may alternate between different ways of splitting $p$ between the two actions.
 ]
 
-The companion notebook #link("https://github.com/gabrfarina/MIT-6.7980-Topics-in-Multiagent-Learning/blob/main/content/notebooks/stochastic_games/value_iteration.ipynb")[`value_iteration.ipynb`] implements this algorithm on the two-state attacker–defender game, plots the residual for several discount factors, and verifies the returned policies by solving each player's best-response MDP.
+The companion notebook `content/notebooks/stochastic_games/value_iteration.ipynb` implements this algorithm on the two-state attacker–defender game, plots the residual for several discount factors, and verifies the returned policies by solving each player's best-response MDP.
 
 === Discount dependence and computational complexity
 
