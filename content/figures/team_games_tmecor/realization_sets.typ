@@ -1,4 +1,4 @@
-// Schematic of the nested sets of the realization-form section of L12:
+// Schematic of the nested sets of the realization-form section of the team-games lecture:
 // V ⊂ tilde(X) ⊂ X = conv(V) ⊂ R. Not a projection and not to scale. Six points of V
 // stand in for the 12 realization vectors, and four hollow corners stand in for the
 // four vertices of R that no team can play. Heads and tails span an edge of X (checked
@@ -93,7 +93,7 @@
     halo((m.at(0) + .25, m.at(1)), text(13.5pt, $bold(x)^(bold(mu)^star)$), anchor: "west")
     content((ph.at(0) - .1, ph.at(1) + .22), course-sans(11pt, weight: "bold", plan-color.darken(25%), "Heads"), anchor: "south-east")
     content((pt.at(0) - .1, pt.at(1) - .2), course-sans(11pt, weight: "bold", plan-color.darken(25%), "Tails"), anchor: "north-east")
-    content((0, .1), text(14pt, uncor-color.darken(30%), $accent(cal(X), tilde, size: #130%)$))
+    content((0, .1), text(14pt, uncor-color.darken(30%), $tilde(cal(X))$))
     // cX labelled at its boundary, so it does not read as the region between the curves.
     let xpos = (2.6, 2.75)
     content(xpos, text(14pt, hull-color.darken(20%), $cal(X)$), anchor: "south-west")

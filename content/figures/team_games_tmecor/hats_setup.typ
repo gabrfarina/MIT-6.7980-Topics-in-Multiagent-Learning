@@ -1,4 +1,4 @@
-// Setup of Example "Three hats" in L12. Three teammates stand in a circle, so each
+// Setup of Example "Three hats" in the team-games lecture. Three teammates stand in a circle, so each
 // sees the other two hats (dashed sight lines) but not its own (the "?" on each hat).
 // Plan: "on seeing two equal hats, guess the other color, otherwise pass".
 // Left panel (red, red, blue): teammate 3 sees two reds and guesses blue, which is
