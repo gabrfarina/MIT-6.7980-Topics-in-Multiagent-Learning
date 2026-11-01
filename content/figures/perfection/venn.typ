@@ -48,4 +48,10 @@
     draw-outline("SRE")
     draw-outline("QPE")
     draw-outline("EFPE")
+
+    // Regions witnessed by the separating examples in the text.
+    let marker(pos, lbl) = content(pos, text(8pt, fill: col.darken(40%), lbl))
+    marker((6.1, 1.25), [(a)]) // EFPE, not normal-form perfect
+    marker((1.2, 3.25), [(b)]) // normal-form perfect, not sequential
+    marker((1.65, 2.25), [(c)]) // QPE, not EFPE
   })
