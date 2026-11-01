@@ -81,8 +81,8 @@
   #cross(xy(0.5, 0.5))
   #dot(xy(0.8, 0.35), blue, hollow: true)
   #dot(xy(trace.last().at(1), trace.last().at(2)), brown)
-  #label(0.13, 0.28, $q_1$, width: 0.5cm)
-  #label(2.1, 5.35, $p_1$, width: 1.5cm)
+  #label(0.13, 0.28, $q$, width: 0.5cm)
+  #label(2.1, 5.35, $p$, width: 1.5cm)
 
   #for t in (0, 500, 1000) {
     let x = ty(t, 1).at(0)
@@ -109,5 +109,5 @@
   #segment((7.5, 5.9), (7.95, 5.9), stroke: 0.95pt + blue)
   #label(8.08, 5.77, [Nash gap], width: 1.45cm, alignment: left)
   #segment((9.9, 5.9), (10.35, 5.9), stroke: (paint: brown, thickness: 0.95pt, dash: "dashed"))
-  #label(10.48, 5.77, [KKT residual], width: 2.0cm, alignment: left)
+  #label(10.48, 5.77, [Residual], width: 2.0cm, alignment: left)
 ]
