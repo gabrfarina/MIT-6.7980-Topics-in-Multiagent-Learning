@@ -6,7 +6,7 @@
   instructor: [Prof. Gabriele Farina (`gfarina@mit.edu`)],
 )
 
-#lecture-link("correlated", <def-cce>)[] introduced the notion of coarse correlated equilibria. As we discussed, coarse correlated equilibria sidestep various difficulties (including topological and related to use of irrational numbers) that come with Nash equilibria. In this lecture, we show a powerful centralized algorithm for computing coarse correlated equilibria. (Soon in this course, we will also see that coarse correlated equilibria can also be #lecture-link("learning_intro", <sec-learning-correlated>)[_learned_ efficiently in a distributed multi-agent setting].)
+#lecture-link("correlated", <def-cce>)[] introduced the notion of coarse correlated equilibria. As we discussed, coarse correlated equilibria sidestep various difficulties (including topological and related to use of irrational numbers) that come with Nash equilibria. In this lecture, we show a powerful centralized algorithm for computing coarse correlated equilibria. (Soon in this course, we will see that coarse correlated equilibria can also be #lecture-link("learning_intro", <sec-learning-correlated>)[_learned_ efficiently in a distributed multi-agent setting].)
 
 The #lecture-link("correlated", <sec-cce>)[CCE incentive constraints] give a linear program for computing a coarse correlated equilibrium, in which the variables correspond to the probabilities $mu_(a_1 \, ... \, a_n)$ of the joint actions, and the constraints correspond to the incentive constraints of the players. While this is a perfectly valid way to compute a coarse correlated equilibrium, it has the drawback that the linear program has a number of variables that is exponential in the number of players. This becomes an issue quickly, if we want to consider games with many players. It also is a problem for those games in which the payoff tensor has a succinct representation (for example, a sparse factorization that we can exploit); there, we would ideally want an algorithm that runs in polynomial time in the size of such a succinct representation. The latter is often the case in structured games, which we will see later in this course.
 
@@ -219,7 +219,7 @@ $
   )}) .
 $
 
-The constraints of the set are all linear in $vnu$, and the set is empty. By Farkas' lemma, there must exist a convex combination of the constraints the makes all the coefficients on the left-hand size non-positive. In other words, there must exist $alpha_1 \, ... \, alpha_T >= 0$ with $sum_t alpha_t=1$ such that
+The constraints of the set are all linear in $vnu$, and the set is empty. By Farkas' lemma, there must exist a convex combination of the constraints that makes all the coefficients on the left-hand side non-positive. In other words, there must exist $alpha_1 \, ... \, alpha_T >= 0$ with $sum_t alpha_t=1$ such that
 
 $
   sum_(t = 1)^T alpha_t bb(E)_(a ~ vmu_t) [u_i (a'_i \, a_(- i)) - u_i (a_i \, a_(- i))] <= 0 \, #h(2em) forall i in \[ n \] \, a'_i in A_i .
@@ -231,7 +231,7 @@ $
   bb(E)_(a ~ macron(vmu)) [u_i (a'_i \, a_(- i)) - u_i (a_i \, a_(- i))] <= 0 \, #h(2em) forall i in \[ n \] \, a'_i in A_i \,
 $
 
-and hence $macron(vmu)$ is a coarse correlated equilibrium. The only question is whether this combination ${ alpha_t }$ can computed efficiently. This is indeed the case, as we can use linear programming directly to find such a combination, by solving the feasibility program
+and hence $macron(vmu)$ is a coarse correlated equilibrium. The only question is whether this combination ${ alpha_t }$ can be computed efficiently. This is indeed the case, as we can use linear programming directly to find such a combination, by solving the feasibility program
 
 $
   upright("find") & alpha_1 \, ... \, alpha_T >= 0\
@@ -426,7 +426,7 @@ This completes the sketch of the proof of the correctness of the Ellipsoid-Again
 
 The above argument mostly uses ideas from convex optimization. In particular, it extends, with suitable oracle and encoding assumptions, to _multilinear games on compact convex domains_, that is, any setting with the following properties:
 
-- Player $i$'s strategy set is a nonempty compact convex set of some dimension $d_i$, with suitable rational descriptions or geometric bounds for the ellipsoid method. For normal-form games, a strategy is an element of $Delta \( A_i \)$, that is, a distribution over the player's strategies. We assume an efficient separation oracle with the bit-complexity and geometric bounds required by convex optimization.
+- Player $i$'s strategy set is a nonempty compact convex set of some dimension $d_i$, with suitable rational descriptions or geometric bounds for the ellipsoid method. For normal-form games, a strategy is an element of $Delta \( A_i \)$, that is, a distribution over the player's actions. We assume an efficient separation oracle with the bit-complexity and geometric bounds required by convex optimization.
 - The utility function $u_i \( vx_1 \, ... \, vx_n \)$ is linear in each player's strategy. For normal-form games, this is true since the utility is just an expectation.
 - The utility function $u_i \( vx_1 \, ... \, vx_n \)$ can be evaluated efficiently, let's say in time $R$.
 
@@ -469,7 +469,7 @@ Computing $matM^(i j) vx_j$ takes time proportional to the size of the payoff ma
 
 = Bibliographic remarks
 
-If you are curious to read more, the following papers contains extensions and refinements of the idea of Ellipsoid-Against-Hope.
+If you are curious to read more, the following papers contain extensions and refinements of the idea of Ellipsoid-Against-Hope.
 
 #lec_bibliography("meta/refs.bib", title: none)
 
