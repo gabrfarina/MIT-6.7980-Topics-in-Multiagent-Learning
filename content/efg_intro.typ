@@ -194,17 +194,33 @@ By considering the normal-form game in which each player's strategy space is the
 
 A different conceptualization of a strategy for a player is as a choice of (independent) distributions over the set of actions $A_j$ at each decision node $j in cal(J)$. This is called a _behavioral strategy_. We can represent it accordingly as a vector $vx in bb(R)_(>= 0)^Sigma$ indexed over sequences. Each entry $x_(j a)$ assigns to action $a$ at decision node $j$ the probability of picking that action at that decision node. The set of all possible behavioral strategies is clearly convex, as it is the Cartesian product of probability simplexes---one per each decision node.
 
-*Cons*  However, this representation has a major drawback: the probability of reaching a particular terminal state in the decision process is the product of all actions on the path from the root to the terminal state. This makes many expressions of interest that depend on the probability of reaching terminal states (including crucially the expected utility in the game) non-convex.
+*Cons*  However, this representation has a major drawback: a terminal history's probability includes a product of the player's action probabilities along its path, together with the probabilities of chance and opponent actions. Even with the opponents' strategies fixed, expected utility can therefore be neither convex nor concave in the player's behavioral strategy, despite the strategy set itself being convex.
 
 #example[
-  Consider the game of Kuhn poker, and let $vx \, vy$ be behavioral strategies for both players. The expected utility function for Player 1 is given by
+  Consider Kuhn poker. Each of the six initial card deals has probability $1/6$, so every terminal-history contribution to expected utility must include this factor.
 
+  Fix Player 2's behavioral strategy as follows: with any card, bet after Player 1 checks, and fold after Player 1 bets. Consider the following family of behavioral strategies for Player 1:
+
+  - With a Queen or King, always bet initially.
+  - With a Jack, check with probability $p$ and bet with probability $1-p$. After checking and facing a bet, call with probability $q$ and fold with probability $1-q$.
+
+  Fix Player 1's behavior at the other, unreachable decision nodes arbitrarily. The parameters $(p, q) in [0, 1]^2$ describe a convex subset of behavioral strategies: averaging two parameter pairs averages all their behavioral probabilities.
+
+  In the four deals where Player 1 holds a Queen or King, Player 2 folds to the initial bet, giving Player 1 payoff $1$. In the two deals where Player 1 holds a Jack, betting gives payoff $1$, while checking leads to payoff $-1$ upon folding and $-2$ upon calling. Thus, the expected utility on this family is
   $
-    u_1 (vx \, vy) & := (- 1) dot.op x_(upsans(A \, c h k)) dot.op y_(upsans(P \, c h k)) + (- 1) dot.op x_(upsans(A \, c h k)) dot.op y_(upsans(P \, b e t)) dot.op x_(upsans(D \, f o l d))\
-    & #h(2em) + (- 2) dot.op x_(upsans(A \, c h k)) dot.op y_(upsans(P \, b e t)) dot.op x_(upsans(D \, c a l l)) + dots.h.c .
+    f(p, q) &:= 4/6 dot.op 1 + 2/6 ((1-p) dot.op 1 + p ((1-q) dot.op (-1) + q dot.op (-2))) \
+            &= 1 - (2p + p q)/3.
   $
 
-  This is not a convex function of $vx$, as it contains products of entries of $vx$.
+  This function is neither convex nor concave on the relevant domain. At the midpoint of $(0,0)$ and $(1,1)$,
+  $
+    f(1/2, 1/2) = 7/12 > (f(0,0) + f(1,1))/2 = 1/2,
+  $
+  which violates convexity. At the midpoint of $(0,1)$ and $(1,0)$,
+  $
+    f(1/2, 1/2) = 7/12 < (f(0,1) + f(1,0))/2 = 2/3,
+  $
+  which violates concavity. Since the opponent's strategy is fixed and all these points are valid behavioral strategies, the expected utility is neither convex nor concave in Player 1's behavioral strategy in general.
 ]
 
 *Pros*  One might wonder whether behavioral strategies have the same representational power as normal-form strategies. After all, a normal-form strategy is an object in a much larger space, so it is conceivable that "more might be possible" in the strategic form. The relationship is characterized by Kuhn's theorem.
@@ -232,7 +248,7 @@ The _sequence-form representation_ #citep(<Romanovskii62:Reduction>, <Koller96:E
 Conversely, it is easy to see that any $vx$ that satisfies the above constraints is the sequence-form representation of at least one behavioral strategy.
 
 #example[
-  Consider the tree-form decision process faced by Player 1 in the small game of @ex:small-efg. The decision process has four decision nodes $J = {upsans(A) \, upsans(B) \, upsans(C) \, upsans(D)}$ and nine sequences including the empty sequence $∅$. For decision node D, the parent sequence is $p_(upsans(D)) = upsans(A 2)$; for $upsans(B)$ and $upsans(C)$ it is $p_(upsans(B)) = p_(upsans(C)) = upsans(A 1)$; for $upsans(A)$ it is the empty sequence $p_(upsans(A)) = ∅$. The constraints that define the sequence-form polytope @def:sf, besides nonnegativity, are
+  Consider the tree-form decision process faced by Player 1 in the small game of @ex:small-efg. The decision process has four decision nodes $J = {upsans(A) \, upsans(B) \, upsans(C) \, upsans(D)}$ and ten sequences including the empty sequence $∅$. For decision node D, the parent sequence is $p_(upsans(D)) = upsans(A 2)$; for $upsans(B)$ and $upsans(C)$ it is $p_(upsans(B)) = p_(upsans(C)) = upsans(A 1)$; for $upsans(A)$ it is the empty sequence $p_(upsans(A)) = ∅$. The constraints that define the sequence-form polytope @def:sf, besides nonnegativity, are
 
   #wrapped-figure(
     [
@@ -244,9 +260,39 @@ Conversely, it is easy to see that any $vx$ that satisfies the above constraints
     side: right,
     text-width: 65%,
   )
+
+  For a numerical example, write $b_(j a)$ for the behavioral probability of choosing action $a$ at decision node $j$, and retain $x_(j a)$ for the sequence-form coordinate. Choose the following behavioral probabilities, with actions ordered as indicated:
+
+  #table(
+    columns: (auto, auto, 1fr, 1fr),
+    align: center,
+    table.header([Node], [Actions], [Behavioral probabilities], [Sequence-form coordinates]),
+    $upsans(A)$, $(1,2)$, $(0.6,0.4)$, $(0.6,0.4)$,
+    $upsans(B)$, $(3,4)$, $(0.25,0.75)$, $(0.15,0.45)$,
+    $upsans(C)$, $(5,6)$, $(0.5,0.5)$, $(0.3,0.3)$,
+    $upsans(D)$, $(7,8,9)$, $(0.2,0.3,0.5)$, $(0.08,0.12,0.20)$,
+  )
+
+  Set $x_∅ = 1$ and recursively compute $x_(j a) = x_(p_j) b_(j a)$. For example,
+  $
+    x_(upsans(B 3)) &= x_(upsans(A 1)) b_(upsans(B 3)) = 0.6 dot.op 0.25 = 0.15, \
+    x_(upsans(D 9)) &= x_(upsans(A 2)) b_(upsans(D 9)) = 0.4 dot.op 0.5 = 0.20.
+  $
+  The resulting coordinates satisfy all the flow constraints:
+  $
+    0.6 + 0.4 &= 1, \
+    0.15 + 0.45 &= 0.6, \
+    0.3 + 0.3 &= 0.6, \
+    0.08 + 0.12 + 0.20 &= 0.4.
+  $
+
+  Both $upsans(B)$ and $upsans(C)$ have parent sequence $upsans(A 1)$, so each node's outgoing coordinates sum to $0.6$. We do not split this weight between the two nodes: sequence form records products of this player's own action probabilities, excluding the opponent's probabilities of selecting which node is reached. More generally, chance probabilities are also excluded. Thus, these coordinates need not equal the actual probabilities of reaching the corresponding actions in the game.
+
+  Conversely, whenever $x_(p_j) > 0$, recover the behavioral probabilities by $b_(j a) = x_(j a)/x_(p_j)$. For instance, $b_(upsans(B 3)) = 0.15/0.6 = 0.25$. If $x_(p_j) = 0$, nonnegativity and the flow constraint force every outgoing coordinate at $j$ to be zero. Any probability distribution over $A_j$ then gives the same sequence-form coordinates. For example, if Player 1 always chooses action $2$ at $upsans(A)$, the behavioral choices at $upsans(B)$ and $upsans(C)$ can be arbitrary.
+
 ]
 
-*Pros*  This representation of extensive-form games is convex. Hence, we can use all the convex optimization tools we have seen so far.
+*Pros*  The sequence-form strategy set is convex. With the opponents' strategies fixed, expected utility is linear in these coordinates, so we can apply the convex optimization tools we have seen so far.
 
 = Bibliography for this lecture
 
