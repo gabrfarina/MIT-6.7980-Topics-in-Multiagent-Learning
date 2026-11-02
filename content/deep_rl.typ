@@ -47,7 +47,7 @@ Ataraxos #citep(<Sokota26:Scalable>) is a Stratego AI that combines self-play re
 
 // do we talk about PPO?
 
-=== Design and Implementation
+== Design and Implementation
 
 Ataraxos has four main parts: a policy over the entire setup that helps construct the setup that we play, a belief network that refines our estimates about hidden pieces based on the board position, a behavioral policy that estimates the value of certain moves, and DTP to refine our behavioral policy.
 
@@ -78,11 +78,29 @@ Ataraxos has four main parts: a policy over the entire setup that helps construc
 *Decision-time Planning:* We use the belief network to generate complete boards on which Ataraxos can actually simulate moves. This allows us to search deeper into the tree of possible outcomes can perform DTP by using the belief network. It allows Ataraxos to sample complete boards on which to run the moves and evaluate expected rewards (with this sampled "complete" information). Ataraxos searches 40-ply deep, with 1000 rollouts per move. 
 
 
-=== How Does This Relate to What We've Been Learning?
-// regularization, update size, dynamically damped self-play, etc. 
-TBA 
+== Back to the Present! <sec-ataraxos-relation>
 
-=== Results
+
+// kveni12 PR where they talk about REINFORCE is important here
+Hopefully this doesn't come as a surprise, but we've actually studied many of the components that make Ataraxos effective. Ataraxos simply uses the techniques that scale well with compute, instead of building in additional structure.
+
+
+*Behavioral policies:* Ataraxos takes advantage of the hidden concavity we discussed earlier. However, if a policy never reaches a decision point, it never receives a gradient. As a result, if we add a bit of entropy at a decision point, the regularized utility now becomes strongly concave in sequence form. The regularlized utility satisfies the P\u{141} condition. This guarantees the gradient ascent condition that we discussed earlier. 
+
+
+*Training:* Ataraxos performs gradient ascent on the regularized objective
+$
+  J(theta) = EE_(tau ~ pi_theta) [R(tau)] - alpha sum_j Pr[j] dot "KL"(pi_theta (dot bar.v j) || rho(dot bar.v j))
+$
+where $R(tau)$ is the outcome of the game, $rho$ is a magnet policy (which is a uniform distribution over all of the moves), $Pr[j]$ is the probability of reaching decision point $j$, and the same network plays both seats. We cannot compute $nabla J$ exactly, so we use REINFORCE, refined with a learned critic. Ataraxos spends its compute on the parts of the game tree that strong play actually reaches. It also only trains on moves with a large estimated advantage, since moves whose value is close to the average barely contribute to the gradient.
+
+
+*Regularization:* At each iteration, the move network maximizes a function that roughly resembles PPO. There also exists a reverse KL term, which represents a regularization toward the magnet policy, and a second reverse KL term that limits how far a single step can move from the policy that collected the data. The fact that these are reverse KL terms means that the magnet term is exactly an entropy bonus (when the magnet is uniform), the second term keeps each update from moving probability onto moves the training data says little about, and together they give the form of a magnetic mirror descent step. This regularization is strongest at the start of training and annealed toward zero over time. 
+
+
+Hopefully, you have realized that we've talked about many of these things before, but if you haven't, it might be a good idea to go review some previous lectures. 
+
+== Results
 
 Ataraxos is the first agent to be superhuman at Stratego! It won against Pim Niemeijer, who is the most decorated Stratego player of all time (more than $600$ weeks at rank 1). Ataraxos went $15-1-4$ against Pim. Interesting, Pim could adapt to Ataraxos, the first ten games going $9-1-0$ to Ataraxos, and the next ten going $6-0-4$ to Ataraxos. In another test, Ataraxos went $38-2-0$ in the 2025 World Championship. 
 
