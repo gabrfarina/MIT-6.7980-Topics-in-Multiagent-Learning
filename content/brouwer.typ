@@ -74,9 +74,9 @@ We illustrate the previous theorem in the colored grid of @fig:sperner-coloring.
     #image("figures/brouwer/sperner_triangulation.svg")
   ]
 ]
-#remark[*Necessity of hypothesis in Sperner.* Sperner's lemma has three boundary conditions. Let us say that we have an all blue colored $n$x$n$ grid. This all-blue grid vioaltes exactly one of the three boundary conditions. This violates the first condition. The left-most column contains blue. The second and third conditions are satisfied. Since this grid is monochromatic, there are 0 trichromatic triangles. This violates the claims of at least one trichromatic triangle and an odd number of trichromatic triangles in Sperner's lemma.
+#remark[*Necessity of hypotheses in Sperner.* Sperner's lemma has three boundary conditions, each of which is necessary. Let us say that we have an all blue colored $n$x$n$ grid. This all-blue grid violates the first boundary condition (the left-most column contains blue), while the second and third conditions are satisfied. Since this grid is monochromatic, there are 0 trichromatic triangles. This violates the claims of at least one trichromatic triangle and an odd number of trichromatic triangles in Sperner's lemma.
 
-Similarly, an all-red and and an all-yellow $n$x$n$ grid violate exactly one condition. Each of these examples have 0 trichromatic triangles and causes Sperner's lemma to fail.]<necessity-sperner-hypothesis>
+Similarly, an all-red and and an all-yellow $n$x$n$ grid violate exactly one condition. Each of these examples has 0 trichromatic triangles and causes Sperner's lemma to fail.]<necessity-sperner-hypothesis>
 
 
 
