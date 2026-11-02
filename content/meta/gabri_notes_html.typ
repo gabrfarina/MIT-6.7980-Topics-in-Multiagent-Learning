@@ -27,7 +27,7 @@
 #import "notation.typ": html-vA as vA, html-vR as vR
 #import "notation.typ": html-xhat as xhat, html-yhat as yhat, html-mU as mU, html-upsans as upsans
 #import "markers.typ": paragraph-marker
-#import "lecture-links.typ": lecture-link, lecture-title
+#import "lecture-links.typ": interactive-link, lecture-link, lecture-title
 #import "typography.typ": course-sans-font
 
 #let thmcounters = state("thmcounters", (:))
