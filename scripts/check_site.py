@@ -127,10 +127,11 @@ def source_image_paths(text):
 
 def image_inventory_issues(source, source_text, page, page_name, *, root=None):
     """Compare paths and multiplicities, not merely the number of <img> tags."""
+
     def resolve_image(path):
         candidate = Path(path)
-        if root is not None and candidate.is_absolute() and not candidate.is_relative_to(root):
-            # Relocated build inputs use Typst's project-root absolute paths.
+        if root is not None and path.startswith('/') and not candidate.is_relative_to(root):
+            # Leading "/" denotes a Typst project-root path.
             candidate = root / path.lstrip('/')
         candidate = (source.parent / candidate).resolve()
         if root is not None and candidate.is_relative_to(root / HTML_FIGURES):
