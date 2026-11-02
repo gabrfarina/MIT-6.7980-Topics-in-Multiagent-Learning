@@ -169,7 +169,11 @@ Finally, we remark that in finite-horizon games, there typically do not exist Na
     We now argue that the matrix $I - gamma Gamma^pi$ is invertible. To see this, note that the matrix $Gamma^pi$ is a row-stochastic matrix (the entries in each row are non-negative real numbers that sum to 1):
 
     $
-      sum_(s') Gamma^pi (s \, s') = sum_(s') sum_a pi (a \| s) ℙ (s' \| s \, a) = sum_a pi (a \| s) (sum_(s') ℙ (s' \| s \, a)) = sum_a pi (a \| s) = 1 .
+      sum_(s') Gamma^pi (s \, s') 
+      & = sum_(s') sum_a pi (a \| s) ℙ (s' \| s \, a) \
+      & = sum_a pi (a \| s) (sum_(s') ℙ (s' \| s \, a)) \
+      & = sum_a pi (a \| s) \
+      & = 1 .
     $
 
     Since $gamma < 1$ by #ref(label("def:infinite horizon stochastic game")), we have that $I - gamma Gamma^pi$ is _strictly_ diagonally dominant. Indeed, in the row of state $s$, the diagonal entry is $1 - gamma Gamma^pi (s, s)$, while the off-diagonal entries are $-gamma Gamma^pi (s, s')$ for $s' != s$, whose absolute values sum to $gamma sum_(s' != s) Gamma^pi (s, s') = gamma (1 - Gamma^pi (s, s))$. Since $gamma < 1$,
