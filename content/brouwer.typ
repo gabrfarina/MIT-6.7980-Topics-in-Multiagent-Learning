@@ -343,18 +343,18 @@ _Continuity_, _compactness_, and _convexity_ are each necessary in Brouwer's the
 ]
 #exercise[KKM Lemma][Prove the following result: consider a triangle $T$ with vertices $A$, $B$, $C$, and three closed sets $S_A$, $S_B$, $S_C$ contained within $T$ such that
 - $A in S_A, B in S_B, C in S_C$.
-- The entire edge $overline(A)overline(B)$ is contained in $S_A union A_B union S_C$
-- The entire triangle $T$ is contained in $S_A union A_B union S_C$.
-Then $S_A inter A_B inter S_C !=  nothing$; there is a point in all three sets.
-#solution[For every $n > 1$, we can divide the sides of $T$ into $n$ equal segments. We can then draw lines parallel to the untouched edge through these division points. This splits triangle $T$ into $n^2$ congruent triangles.  Let us call the diameter of triangle $T$ as $D$. Each of the smaller $n^2$ triangles has a diameter of $D/n$.
+- The entire edge $overline(A)overline(B)$ is contained in $S_A union union S_B$, and similarly for the other two edges.
+- The entire triangle $T$ is contained in $S_A union S_B union S_C$.
+Then $S_A inter S_B inter S_C !=  nothing$; there is a point in all three sets.
+#solution[For every $n > 1$, we can divide the sides of $T$ into $n$ equal segments. We can then draw lines parallel to the untouched edge through these division points. This splits triangle $T$ into $n^2$ congruent triangles.  Let the diameter of triangle $T$ be $D$, so each of the smaller $n^2$ triangles has a diameter of $D/n$.
 
-Now we can color the smaller triangles. We want to color each vertex of this triangulation a label $A$, $B$, or $C$ such that the vertex lies in $S_A$ $S_B$, $S_C$ respectively. We can label each of the vertices of $T$ as $A$, $B$, and $C$ with the labels $A$, $B$, and $C$. This is valid by the first KKM condition. Next, every vertex on the edge $overline(A)overline(B)$, not including the corners $A$ and $B$, a label of whichever set contains it, $A$ or $B$. We can apply this reasoning for the other two edges. This is valid by the second KKM condition. Finally, a vertex not on one of the edges of $T$ gets a label of whichever set contains it, $A$, $B$, or $C$. This is valid by the third hypothesis.
+We now color the vertices of the smaller triangles. Specifically, we label each vertex $v$ of this triangulation with $L in {A, B, C}$  such that $v in S_L$, which is always possible by the third KKM condiiton. By the first condition, we may assume that vertices $A$, $B$, and $C$ receive their corresponding label. By the second condition, we may label every vertex on the edge $overline(A)overline(B)$ with either $A$ or $B$. We can apply this reasoning for the other two edges.
 
-Now we can see that each vertex of $T$ has a distinct color. The three edges of $T$ have only the colors of its endpoints. This is the definition of a Sperner coloring. Therefore, there must be at least one trichromatic triangle with vertices $a_n$, $b_n$, $c_n$ in which $a_n in A, b_n in B, c_n in C$. From our small triangle construction earlier, the pairwise distances in this trichromatic triangle are at most $D/n$.
+Now there is a different color excluded from each three edges of $T$. In other words, we have a Sperner coloring. Therefore, there must be at least one trichromatic triangle with vertices $a_n$, $b_n$, $c_n$ in which $a_n in A, b_n in B, c_n in C$ (the proof of this fact is analogous to our proof for a square grid). The pairwise distances between the vertices of this trichromatic triangle are at most $D/n$.
 
-We know that $T$ is closed and bounded in $RR^2$. Therefore, $T$ is compact. By Bolzano-Weierstrass, the $a_n$ sequence has a convering subsequence $a_n_k arrow x^* in T$. Since we know that $abs(a_n_k - b_n_k) <= D/n_k arrow 0$ by the triangle inequality, we can also say that $b_n_k arrow x^*$ and $c_n_k arrow x^*$.
+Since $T$ is compact, the $a_n$ sequence has a convering subsequence $a_n_k arrow x^* in T$ by Bolzano-Weierstrass. Since we know that $abs(a_n_k - b_n_k) <= D/n_k arrow 0$ by the triangle inequality, we can also say that $b_n_k arrow x^*$ and $c_n_k arrow x^*$.
 
-We know that $S_A$ is a closed set and it contains every $a_n_k$. Therefore $S_A$ must contain $x^*$. Similarly, $x^* in S_B$ and $x^* in S_C$. Therefore, we can conclude that $x^* in S_A inter A_B inter S_C$.]]
+We know that $S_A$ is a closed set and it contains every $a_n_k$. Therefore $S_A$ must contain $x^*$. Similarly, $x^* in S_B$ and $x^* in S_C$. Therefore, we can conclude that $x^* in S_A inter S_B inter S_C$.]]
 
 
 #exercise[Continuous curves][Suppose you have a continuous curve $c_1$ that starts at $(0, 0)$ and ends at $(1, 1)$, and stays in the unit square. Suppose you have another continuous curve $c_2$ that starts at $(0, 1)$, ends at $(1, 0)$, and stays in the unit square. Use Brouwer's fixed point theorem to show that the two curves must have at least one intersection.
