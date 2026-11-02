@@ -117,6 +117,13 @@ generates the course index and syllabus PDF, and assembles `html/`. The bundle
 target requires Typst 0.15.1 and currently uses its experimental feature flag.
 `make bundle` also produces `dist/6.7980-notes.zip`.
 
+Before copying slides into the site, the build exports each configured
+interactive slide PDF from its standalone HTML deck. It waits for the deck and
+fonts to load, prints every view, and checks the PDF page count. A changed HTML
+deck, missing PDF, or `--force` regenerates the PDF; an unchanged deck is reused.
+Install Chrome or Chromium for this step, or set `CHROME_BIN` to its executable.
+No npm installation is needed.
+
 `make figures` rebuilds just the SVGs beside their sources. The figure builder
 discovers new standalone sources automatically, skips shared libraries and
 include-only component plots, and expands `gate.typ` into all six gate SVGs.
@@ -153,7 +160,7 @@ After the Rust converter has been built, a quicker rebuild is:
 python3 scripts/build_site.py --skip-build --zip
 ```
 
-Builds reuse unchanged figure variants, native lecture bundles, individual
+Builds reuse unchanged figure variants, interactive slide PDFs, native lecture bundles, individual
 postprocessed HTML pages, and the syllabus PDF. Dependency records include the
 files actually read by Typst, compiler settings, and output checksums; missing
 or modified outputs are rebuilt. Each lecture's final HTML is checked separately.
