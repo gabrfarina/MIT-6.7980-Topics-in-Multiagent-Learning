@@ -167,6 +167,8 @@ In turn, using a standard compactness argument, @cor:sperner implies Brouwer's f
   The function $d(vz) := norm(f(vz) - vz)_oo$ is continuous on the compact square $[0,1]^2$. By Weierstrass's extreme value theorem, it attains a minimum $m >= 0$ at some point $vz^*$. For every $epsilon.alt > 0$, @cor:sperner gives a point $vz$ with $d(vz) < 2 epsilon.alt$, so $m < 2 epsilon.alt$ for every $epsilon.alt > 0$. Therefore $m = 0$, and $f(vz^*) = vz^*$.
 ]
 
+Note that while Sperner's lemma states the existence of an odd number of trichromatic triangles, the compactness argument above fails to prove that there are an odd number of fixed points and consequently an odd number of Nash equilibria. The supplementary reading on #lecture-link("nash_algorithms", <sec-lemke-howson>)[Lemke-Howson algorithm] develops a constructive proof of oddness for 2-player games. Wilson's Oddness Theorem then extends this result, stating that for almost all finite normal-form games - specifically, all "non-degenerate" games - the number of Nash equilibria is finite and odd #citep(<Wilson71>). The proof uses differential topology rather than combinatorics. It assigns each equilibrium an index of ±1 and shows that these indices must sum to 1, so the total number of Nash equilibria in such games must be odd.
+
 = Proof of Sperner's lemma <sec-sperner-proof>
 
 Now we turn to proving Sperner's lemma. As it turns out, the lemma can be obtained as a corollary of a very basic parity argument on directed graphs #citep(<cohen1967sperner>, <papadimitriou1994parity>).
