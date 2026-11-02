@@ -6,7 +6,7 @@
   instructor: [Prof. Gabriele Farina (`gfarina@mit.edu`)],
 )
 
-= Choice III: regularization <sec-rl-regularization>
+= Self-play and regularization <sec-rl-regularization>
 
 Choosing a policy representation and a gradient estimator does not settle
 whether self-play converges. Each player's objective changes as the opponent
