@@ -375,6 +375,36 @@ The next plots illustrate the behavior of OGD and MWU in a simple $2 times 2$ ga
   )
 ]
 
+= Choosing learning rates without knowing the horizon <sec-dynamic-learning-rates>
+
+The learning rates above depend on the final number of rounds $T$. For example, if $norm(vg^((t)))_oo <= 1$ and $|A| >= 2$, the MWU bound (after dropping its nonpositive term) is
+$ "Reg"^((T)) <= (log |A|)/eta + eta T. $
+Choosing $eta = sqrt((log |A|)/T)$ balances these terms. How can we choose a rate when we do not know when play will stop?
+
+== The doubling trick
+
+Run successive epochs of lengths $1, 2, 4, 8, ...$. At the start of an epoch of planned length $H$, restart MWU with zero cumulative regrets and use the fixed rate $eta = sqrt((log |A|)/H)$. Even if play stops partway through the epoch, its regret is at most $2 sqrt(H log |A|)$. The regret against any fixed action over the whole run is at most the sum of the epoch regrets. Since
+$ sum_(j=0)^k sqrt(2^j) <= sqrt(2^k)/(1-1/sqrt(2)), $
+and the last epoch starts at round $2^k <= T$, the total regret is $O(sqrt(T log |A|))$. Restarting lets us apply the fixed-rate bound separately in each epoch, removing advance knowledge of $T$ at the cost of a constant factor.
+
+== Decreasing the rate without restarts
+
+Another approach uses a rate proportional to $1/sqrt(t)$. For projected gradient ascent, write
+$ vx^((t+1)) = #text(size: 14pt, $Pi$)_(cX)(vx^((t)) + eta_t vg^((t))). $
+Suppose $cX$ is nonempty, convex, and compact, with Euclidean diameter $D > 0$, and $norm(vg^((t)))_2 <= G$ for a known $G > 0$. For any positive, nonincreasing sequence $eta_t$, the projection argument behind @ogd-regret-bound gives
+$ "Reg"^((T)) <= D^2/(2 eta_T) + 1/2 sum_(t=1)^T eta_t norm(vg^((t)))_2^2. $
+Indeed, the one-round bound against a fixed comparator $xhat in cX$ is
+$ ip(vg^((t)), xhat-vx^((t))) <= (norm(vx^((t))-xhat)_2^2 - norm(vx^((t+1))-xhat)_2^2)/(2 eta_t) + eta_t/2 norm(vg^((t)))_2^2. $
+When summed, the distance terms are at most $D^2/(2 eta_T)$ because $1/eta_t$ is nondecreasing. Taking $eta_t = D/(G sqrt(t))$ and using $sum_(t=1)^T 1/sqrt(t) <= 2 sqrt(T)$ yields $"Reg"^((T)) <= 3/2 D G sqrt(T)$ for every $T >= 1$, without knowing $T$ in advance. The varying-rate argument is necessary: substituting $eta_T$ into a fixed-rate theorem would not justify this bound.
+
+== Varying rates in FTRL and multiplicative updates
+
+With entropy regularization, FTRL at round $t$ uses
+$ vx^((t)) = "softmax"(eta_t sum_(tau=1)^(t-1) vg^((tau))). $
+Cumulative regrets give the same softmax as cumulative utilities, since they differ by a constant across actions. In contrast, the recursive update
+$ x_a^((t+1)) prop x_a^((t)) exp(eta_t g_a^((t))) $
+started from the uniform distribution gives $vx^((t)) = "softmax"(sum_(tau=1)^(t-1) eta_tau vg^((tau)))$. FTRL rescales the entire history with the current rate; the recursive update weights each round with its own rate. They agree for a fixed rate but generally differ for varying rates, so their guarantees require separate analyses.
+
 #lec_bibliography("meta/refs.bib")
 
 #changelog[
