@@ -55,7 +55,7 @@ $ O(sqrt(K T log(K T / delta)) + log(K T / delta)). $
 
 
 
-However, these strategies depend on simulating and gathering information from many game states, creating a need for sample efficiency. In this way, #lecture-link("efg_intro", <sec-game-trees>)[extensive form games] become crucial, as they allow us to model sequential interactions with hidden information. This topic naturally leads us into the next section of the introduction, where we discuss reinforcement learning
+However, these strategies depend on simulating and gathering information from many game states, creating a need for sample efficiency. In this way, #lecture-link("efg_intro", <sec-game-trees>)[extensive form games] become crucial, as they allow us to model sequential interactions with hidden information. This topic naturally leads us into the next section of the introduction, where we discuss reinforcement learning.
 
 = Overview (Game Theory-ifying RL)
 
