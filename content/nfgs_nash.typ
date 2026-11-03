@@ -1,4 +1,5 @@
 #import "meta/gabri_notes.typ": *
+#import "meta/reference-solutions.typ": reference-solutions
 #show: gabri_notes.with(
   lec_num: 1,
   date: [Tue, Sep 15, 2026],
@@ -44,7 +45,7 @@ To represent a normal-form game, it is common to use a matrix representation.
   Suppose Player 1 and Player 2 from the prisoner's dilemma (Example 1.1) randomize their actions. Let Player 1 flip a fair coin, playing the strategy $vx_1 = (0.5 \, 0.5)$ for (Deny, Confess). Let Player 2 lean heavily toward denying, playing $vx_2 = (0.8 \, 0.2)$.
 
   Player 1's expected utility is simply the sum of their payoffs for each possible outcome, weighted by the joint probability of that outcome occurring:
-  
+
   $ u_1 (vx_1 \, vx_2) & = (0.5)(0.8)(-1) + (0.5)(0.2)(-3) + (0.5)(0.8)(0) + (0.5)(0.2)(-2) \
     & = -0.4 - 0.3 + 0 - 0.2 \
     & = -0.9 . $
@@ -81,6 +82,212 @@ Unfortunately, dominant strategies are the exception rather than the rule. Most 
 
   In fact, not even a randomized strategy of Player 1 can be dominant. Suppose $vx_1 in Delta (A_1)$ were dominant. Against scissors, rock earns the largest payoff in the game, $1$, and it is the only action that does so; hence, for $vx_1$ to be at least as good as rock against scissors, $vx_1$ must put all of its mass on rock. By the same argument applied to paper, against which only scissors earns $1$, $vx_1$ must put all of its mass on scissors. These two requirements are incompatible, so Player 1 has no dominant strategy. By symmetry, neither does Player 2, and the game has no dominant-strategy equilibrium.
 ]
+
+== Iterated removal of dominated strategies <sec-iterated-dominance>
+
+The idea of dominance can also be useful even when a player does not have a dominant strategy. An action that is clearly inferior can be removed from consideration, and after doing so, some actions that were not originally dominated may become dominated in the smaller game. Repeating this process is called _iterated removal of dominated strategies_.
+
+We will focus here on dominance by pure actions. An action $a_i in A_i$ is _strictly dominated_ by another action $b_i in A_i$ if
+
+$
+  u_(i)(b_i \, a_(-i)) > u_(i)(a_i \, a_(-i))
+$
+
+for every action profile $a_(-i)$ of the other players.
+
+Similarly, $a_i$ is _weakly dominated_ by $b_i$ if
+
+$
+  u_(i)(b_i \, a_(-i)) >= u_(i)(a_i \, a_(-i))
+$
+
+for every $a_(-i)$, with strict inequality for at least one $a_(-i)$.
+
+In _iterated removal of dominated strategies_, we repeatedly remove a currently dominated action and reconsider dominance in the reduced game. A natural question is whether the final reduced game depends on the order in which dominated actions are removed.
+
+#exercise[Does the order of elimination matter?][
+Throughout this exercise, consider only dominance by pure actions.
+
+*Problem 1: Strict dominance.*
+
+Suppose that at each step we may remove any action that is currently strictly dominated.
+
+1. Suppose action $a_i$ is strictly dominated by $b_i$. Show that removing some other action cannot cause $a_i$ to stop being strictly dominated, unless the removed action is $b_i$ itself.
+
+2. Now suppose $b_i$ is removed because it is strictly dominated by another action $c_i$. Show that, in the resulting reduced game, $c_i$ strictly dominates $a_i$.
+
+3. Use these observations to argue that, in a finite game, the set of actions surviving iterated removal of *strictly* dominated actions does not depend on the order of removal.
+
+*Problem 2: Weak dominance.*
+
+Now consider the following two-player game:
+
+#align(center)[
+  #table(
+    columns: (auto, auto, auto, auto),
+    align: center,
+    inset: 6pt,
+    stroke: 0.4pt + luma(170),
+    table.header(
+      [*Player 1 / Player 2*],
+      [*$L$*],
+      [*$M$*],
+      [*$R$*],
+    ),
+    [*$T$*], [$(1,1)$], [$(1,0)$], [$(0,0)$],
+    [*$B$*], [$(1,1)$], [$(0,1)$], [$(1,0)$],
+  )
+]
+
+1. Show that, in the original game, both $M$ and $R$ are weakly dominated by $L$ for Player 2.
+
+2. First remove $R$. In the resulting game, determine whether either of Player 1's actions becomes weakly dominated. Continue removing weakly dominated actions until no further removal is possible.
+
+3. Instead, return to the original game and first remove $M$. Again, continue removing weakly dominated actions until no further removal is possible.
+
+4. Compare the two final reduced games. Does iterated removal of weakly dominated actions depend on the order of removal?
+
+5. Explain intuitively why the argument from Problem 1 fails for weak dominance.
+] <ex-iterated-dominance>
+
+== Detailed solutions
+
+#solution[Problem 1][
+Suppose that $a_i$ is strictly dominated by $b_i$. Then, for every currently available action profile $a_(-i)$ of the other players,
+
+$
+  u_(i)(b_i \, a_(-i)) > u_(i)(a_i \, a_(-i)).
+$
+
+If some action other than $b_i$ is removed, the set of opponent action profiles only becomes smaller. The same strict inequality therefore continues to hold for every remaining $a_(-i)$, so $a_i$ remains strictly dominated by $b_i$.
+
+The only interesting case is when $b_i$ itself is removed. Since an action can only be removed at this stage if it is strictly dominated, suppose that $b_i$ is strictly dominated by $c_i$. Then, for every remaining $a_(-i)$,
+
+$
+  u_(i)(c_i \, a_(-i))
+  >
+  u_(i)(b_i \, a_(-i))
+  >
+  u_(i)(a_i \, a_(-i)).
+$
+
+Hence $c_i$ strictly dominates $a_i$ in the reduced game.
+
+Therefore, removing the action that dominates $a_i$ does not save $a_i$: another surviving action takes its place as a strict dominator. Repeating this argument along any chain of removed actions shows that changing the order of elimination cannot make a strictly dominated action survive.
+
+Since the game is finite, every sequence of eliminations eventually terminates. The set of actions remaining after all possible strictly dominated actions have been removed is therefore independent of the order in which they were removed.
+]
+
+#solution[Problem 2][
+Consider Player 2's payoffs.
+
+For $L$, the payoffs against $(T,B)$ are
+
+$
+  (1,1).
+$
+
+For $M$, they are
+
+$
+  (0,1),
+$
+
+and for $R$, they are
+
+$
+  (0,0).
+$
+
+Therefore $L$ weakly dominates $M$, since
+
+$
+  1 > 0
+  quad "against" quad T,
+$
+
+while
+
+$
+  1 = 1
+  quad "against" quad B.
+$
+
+Similarly, $L$ weakly dominates $R$ since
+
+$
+  1 > 0
+$
+
+against both $T$ and $B$.
+
+Now first remove $R$. The remaining payoff matrix for Player 1 is
+
+#align(center)[
+  #table(
+    columns: (auto, auto, auto),
+    align: center,
+    inset: 6pt,
+    stroke: 0.4pt + luma(170),
+    table.header(
+      [*Player 1 / Player 2*],
+      [*$L$*],
+      [*$M$*],
+    ),
+    [*$T$*], [$1$], [$1$],
+    [*$B$*], [$1$], [$0$],
+  )
+]
+
+Thus $T$ weakly dominates $B$: the two actions give the same payoff against $L$, while $T$ gives a strictly higher payoff against $M$.
+
+We may therefore remove $B$. Once only $T$ remains, Player 2 receives payoff $1$ from $L$ and payoff $0$ from $M$, so $M$ is dominated by $L$. Removing $M$ leaves only
+
+$
+  (T,L).
+$
+
+Now return to the original game and instead remove $M$ first. Player 1's remaining payoffs are
+
+#align(center)[
+  #table(
+    columns: (auto, auto, auto),
+    align: center,
+    inset: 6pt,
+    stroke: 0.4pt + luma(170),
+    table.header(
+      [*Player 1 / Player 2*],
+      [*$L$*],
+      [*$R$*],
+    ),
+    [*$T$*], [$1$], [$0$],
+    [*$B$*], [$1$], [$1$],
+  )
+]
+
+Now $B$ weakly dominates $T$: the two actions give the same payoff against $L$, while $B$ gives a strictly higher payoff against $R$.
+
+We may therefore remove $T$. Once only $B$ remains, Player 2 receives payoff $1$ from $L$ and payoff $0$ from $R$, so $R$ is dominated by $L$. Removing $R$ leaves only
+
+$
+  (B,L).
+$
+
+Thus the two valid elimination orders produce different outcomes:
+
+$
+  (T,L)
+  quad "versus" quad
+  (B,L).
+$
+
+Iterated removal of weakly dominated actions is therefore not, in general, order-independent.
+
+The difference from strict dominance comes from the possibility of _ties_. A weak dominance relationship may depend on one particular opponent action being the place where the inequality is strict. If that opponent action is removed, the strict inequality may disappear, leaving only equality and destroying the weak dominance relationship.
+
+With strict dominance, by contrast, the inequality is strict against every remaining opponent action. Removing actions therefore cannot destroy the strict advantage, which is what makes iterated removal of strictly dominated actions order-independent.
+]
+
 
 == Maxmin strategies
 
@@ -184,19 +391,19 @@ In general, defining what constitutes “optimal play” is tricky. But we can s
 ]
 #proof[
   Let $vx = (vx_1 \, ... \, vx_n)$ be a strategy profile. Assume there exists a strictly profitable randomized deviation $vx'_i in Delta (A_i)$ for player $i$, meaning:
-  
+
   $ u_i (vx'_i \, vx_(- i)) > u_i (vx_i \, vx_(- i)) . $
 
   By the definition of expected utility for a mixed strategy, this is the weighted sum of the pure action payoffs:
-  
+
   $ sum_(a_i in A_i) x'_(i \, a_i) u_i (a_i \, vx_(- i)) > u_i (vx_i \, vx_(- i)) . $
 
   For the sake of contradiction, assume that no deterministic action is strictly profitable. Thus, for all $a_i in A_i$:
-  
+
   $ u_i (a_i \, vx_(- i)) <= u_i (vx_i \, vx_(- i)) . $
 
   Because $vx'_i$ is a valid strategy in $Delta (A_i)$, we know $x'_(i \, a_i) >= 0$ for all $a_i$ and $sum_(a_i in A_i) x'_(i \, a_i) = 1$. Multiplying our assumption by the probabilities $x'_(i \, a_i)$ and summing over all $a_i in A_i$ yields:
-  
+
   $ sum_(a_i in A_i) x'_(i \, a_i) u_i (a_i \, vx_(- i)) & <= sum_(a_i in A_i) x'_(i \, a_i) u_i (vx_i \, vx_(- i)) \
     & = u_i (vx_i \, vx_(- i)) sum_(a_i in A_i) x'_(i \, a_i) \
     & = u_i (vx_i \, vx_(- i)) . $
@@ -225,7 +432,7 @@ In general, defining what constitutes “optimal play” is tricky. But we can s
 #remark[
   All the games considered above are _one-shot games of complete information_. _Complete information_ means that the players know everything about each other's payoffs. _One-shot_ means that the players meet for a single interaction, with no stages or sequential decisions.
 
-  One-shot games are also meant to model repeated occurrences of the same conflict, provided there are no strategic correlations between occurrences. If such correlations exist, we leave the realm of one-shot games and enter that of _repeated games_. 
+  One-shot games are also meant to model repeated occurrences of the same conflict, provided there are no strategic correlations between occurrences. If such correlations exist, we leave the realm of one-shot games and enter that of _repeated games_.
 ]
 
 = Existence of mixed-strategy Nash equilibrium <sec-nash-existence>
@@ -274,7 +481,7 @@ where we used the fact that $sum_(a_i in A_i) x_(i \, a_i) = 1$ since $vx_i$ is 
 
   #align(center)[
     #image("figures/nfgs_nash/nash_plots.svg", width: 100.0%)
-  ]  
+  ]
 
 
   The background of the plots highlights the angle of displacement induced by the Nash improvement function, according to the gradient wheel shown below here.
@@ -384,6 +591,190 @@ $
 Explain why it is sufficient to impose one payoff constraint for each *pure* action of Player 2, even though the definition of a maxmin strategy allows Player 2 to use an arbitrary mixed strategy.
 
 *Problem 2: Theater or football.* Consider the theater-or-football game:
+= A quadratic-regret improvement function <sec-quadratic-improvement>
+
+#exercise[A Quadratic-Regret Improvement Function][
+The Nash improvement function adds the positive part of each action's regret to its current probability and then normalizes. In this exercise, we study a variant that adds the *square* of the positive regret instead. The two functions can produce different updates, but we will show that they have exactly the same fixed points: the Nash equilibria of the game.
+
+Consider a finite normal-form game with players $i in [n]$, finite nonempty action sets $A_i$, and real-valued payoffs. Write $vx=(vx_1 \,  ...  \, vx_n)$ for a mixed-strategy profile, with $vx_i in  Delta (A_i)$ and action probabilities $x_(i \, a_i)$. Recall
+
+$
+r_(i \, a_i) (vx)
+:=u_i (a_i \, vx_(-i))-u_i (vx) \,
+ quad quad  [r]^+:= max {0 \, r}.
+$
+
+Define
+
+$
+S_i (vx):= sum_(b_i in  A_i)  ([r_(i \, b_i) (vx)]^+  )^2
+$
+
+and the *quadratic-regret improvement function* $psi$ by
+
+$
+psi_(i \, a_i) (vx)
+:=frac(x_(i \, a_i)+  ([r_(i \, a_i) (vx)]^+  )^2, 1+S_i (vx)).
+$
+
+Let $psi_i (vx)$ denote Player $i$'s entire updated strategy vector. The positive part is taken *before* squaring: when the regret is negative, the added term is zero.
+
+*Problem 1: Validity and continuity.* Prove that $psi$ is a continuous map from the product of the players' strategy simplices into itself. In particular, show that every coordinate is nonnegative and that the coordinates of each player's updated strategy sum to one.
+
+#reference-solutions(title: [Show / hide solution to Problem 1])[
+#solution[Problem 1][
+Every positive-part square is nonnegative, so $S_i (vx) >= 0$ and
+
+$
+1+S_i (vx) >= 1>0.
+$
+
+There are finitely many actions and all payoffs are real-valued, so all regrets and all sums in the formula are finite. Thus the denominator is finite and strictly positive everywhere on the strategy space.
+
+The numerator is nonnegative because both $x_(i \, a_i)$ and $([r_(i \, a_i) (vx)]^+)^2$ are nonnegative. Hence $psi_(i \, a_i) (vx) >= 0$ for every player and action.
+
+For each player $i$,
+
+$
+sum_(a_i in  A_i) psi_(i \, a_i) (vx)
+&=frac( sum_(a_i in  A_i)x_(i \, a_i)+ sum_(a_i in  A_i)  ([r_(i \, a_i) (vx)]^+  )^2, 1+S_i (vx))\
+
+&=frac(1+S_i (vx), 1+S_i (vx))\
+
+&=1.
+$
+
+The second equality uses that $vx_i$ is a probability distribution. Nonnegativity and normalization show that $psi_i (vx) in  Delta (A_i)$ for every $i$, so $psi$ maps the product of simplices into itself.
+
+In a finite game, expected utilities are finite sums of products of strategy probabilities and fixed payoffs. They are therefore continuous in the strategy profile. Each regret is a difference of continuous functions. Taking the positive part, squaring, and adding finitely many terms preserve continuity. Finally, division by $1+S_i (vx)$ preserves continuity because this denominator never vanishes. Each coordinate of $psi$ is continuous, and therefore so is $psi$.
+]
+]
+
+*Problem 2: Unilateral improvement.* Prove the identity
+
+$
+u_i ( psi_i (vx) \, vx_(-i))-u_i (vx)
+=frac( sum_(a_i in  A_i)  ([r_(i \, a_i) (vx)]^+  )^3, 1+S_i (vx)).
+$
+
+Conclude that, with the opponents' strategies held fixed, the update never lowers Player $i$'s expected payoff and strictly raises it whenever some action has positive regret.
+
+*Hint.* Expand the expected utility using linearity in Player $i$'s strategy, subtract the current utility over a common denominator, and use $([r]^+)^2r=([r]^+)^3$.
+
+#reference-solutions(title: [Show / hide solution to Problem 2])[
+#solution[Problem 2][
+Fix a player $i$ and a profile $vx$. Throughout this calculation, the opponents continue to use $vx_(-i)$. For readability, abbreviate
+
+$
+U:=u_i (vx) \,  quad quad
+v_(a_i):=u_i (a_i \, vx_(-i)) \,  quad quad
+w_(a_i):=  ([r_(i \, a_i) (vx)]^+  )^2 \,
+$
+
+and write $S=S_i (vx)= sum_(a_i in  A_i)w_(a_i)$. By the definition of expected utility,
+
+$
+sum_(a_i in  A_i)x_(i \, a_i)v_(a_i)=U.
+$
+
+Substituting the update formula gives
+
+$
+u_i ( psi_i (vx) \, vx_(-i))
+&= sum_(a_i in  A_i)frac(x_(i \, a_i)+w_(a_i), 1+S)v_(a_i)\
+
+&=frac(U+ sum_(a_i in  A_i)w_(a_i)v_(a_i), 1+S).
+$
+
+Subtracting $U$ over a common denominator,
+
+$
+u_i ( psi_i (vx) \, vx_(-i))-U
+&=frac(U+ sum_(a_i in  A_i)w_(a_i)v_(a_i)-(1+S)U, 1+S)\
+
+&=frac( sum_(a_i in  A_i)w_(a_i)v_(a_i)-S U, 1+S)\
+
+&=frac( sum_(a_i in  A_i)w_(a_i)(v_(a_i)-U), 1+S).
+$
+
+The last equality uses $S= sum_(a_i in  A_i)w_(a_i)$. Since $v_(a_i)-U=r_(i \, a_i) (vx)$, each numerator term equals
+
+$
+w_(a_i)(v_(a_i)-U)
+=  ([r_(i \, a_i) (vx)]^+  )^2r_(i \, a_i) (vx)
+=  ([r_(i \, a_i) (vx)]^+  )^3.
+$
+
+To verify the last equality, if the regret is positive, both sides equal its cube; if it is zero or negative, both sides are zero. Restoring the full notation yields
+
+$
+u_i ( psi_i (vx) \, vx_(-i))-u_i (vx)
+=frac( sum_(a_i in  A_i)  ([r_(i \, a_i) (vx)]^+  )^3, 1+S_i (vx)).
+$
+
+Every numerator term is nonnegative and the denominator is positive, so the payoff change is nonnegative. If some regret is positive, its positive-part cube is strictly positive, so the payoff change is strictly positive. If all regrets are nonpositive, the change is zero.
+]
+]
+
+*Problem 3: Fixed points and Nash equilibria.* Prove both directions of
+
+$
+psi (vx)=vx
+ quad  <=>  quad
+vx upright(" is a Nash equilibrium").
+$
+
+For the fixed-point-to-equilibrium direction, use Problem 2 and explain why ruling out profitable pure-action deviations also rules out profitable mixed-strategy deviations.
+
+#reference-solutions(title: [Show / hide solution to Problem 3])[
+#solution[Problem 3][
+*Nash equilibrium implies fixed point.* Suppose $vx$ is a Nash equilibrium. Deviating to any pure action is an allowed unilateral deviation, so for every player $i$ and action $a_i$,
+
+$
+u_i (a_i \, vx_(-i)) <=  u_i (vx) \,
+ quad quad upright("hence") quad quad  r_(i \, a_i) (vx) <= 0.
+$
+
+Thus every positive-part square is zero and $S_i (vx)=0$. The update reduces to
+
+$
+psi_(i \, a_i) (vx)=frac(x_(i \, a_i)+0, 1+0)=x_(i \, a_i).
+$
+
+Every coordinate is unchanged, so $psi (vx)=vx$.
+
+*Fixed point implies Nash equilibrium.* Conversely, suppose $psi (vx)=vx$. Then $psi_i (vx)=vx_i$ for each player, so
+
+$
+u_i ( psi_i (vx) \, vx_(-i))-u_i (vx)=0.
+$
+
+By Problem 2, a positive regret would make this difference strictly positive. Therefore every regret must be nonpositive:
+
+$
+r_(i \, a_i) (vx) <= 0
+ quad upright("for every player ")i upright(" and action ")a_i in  A_i.
+$
+
+This rules out all profitable pure deviations. To cover mixed deviations explicitly, let $vy_i in  Delta (A_i)$ be any alternative strategy, with action probabilities $y_(i \, a_i)$. Linearity and $sum_(a_i in  A_i)y_(i \, a_i)=1$ give
+
+$
+u_i (vy_i \, vx_(-i))-u_i (vx)
+&= sum_(a_i in  A_i)y_(i \, a_i)  (u_i (a_i \, vx_(-i))-u_i (vx)  )\
+
+&= sum_(a_i in  A_i)y_(i \, a_i)r_(i \, a_i) (vx)\
+
+& <= 0.
+$
+
+The final inequality follows because each probability is nonnegative and each regret is nonpositive. No player has a profitable mixed deviation, so $vx$ is a Nash equilibrium.
+
+This proves both directions. As a consequence, the quadratic-regret map can also be used in the lecture's existence argument: the product of strategy simplices is nonempty, compact, and convex, and Problem 1 gives a continuous self-map. Brouwer's theorem gives a fixed point, and the equivalence just proved makes it a Nash equilibrium.
+]
+]
+
+*Problem 4: Comparing the updates.* Consider the following matching-pennies game, where entries give $(u_1 \, u_2)$:
+
 #align(center)[
 #table(
   columns: (auto, auto, auto),
@@ -570,6 +961,615 @@ Finally, this maxmin strategy is *not* the same as Player 1's strategy in the mi
 
 This illustrates that outside two-player zero-sum games, a maxmin strategy need not coincide with a Nash-equilibrium strategy. The maxmin strategy optimizes against the worst possible behavior of the opponent, whereas a Nash strategy is chosen as a best response to the opponent's equilibrium behavior.
 ]
+  table.header([*Player 1 / Player 2*], [*$L$*], [*$R$*]),
+  [$U$], [$(1 \, -1)$], [$(-1 \, 1)$],
+  [$D$], [$(-1 \, 1)$], [$(1 \, -1)$],
+)
+]
+
+Start at the pure profile $(U \, L)$, represented by $vx_1=(1 \, 0)$ in the order $(U \, D)$ and $vx_2=(1 \, 0)$ in the order $(L \, R)$.
+
+*Problem 4.1.* Compute every action's regret and the updated strategies under both $psi$ and the original Nash improvement function $phi$.
+#reference-solutions(title: [Show / hide solution to Problem 4.1])[
+#solution[Problem 4.1][
+*Regrets at the starting profile.* At $(U \, L)$, Player 1 receives payoff $1$ and Player 2 receives payoff $-1$. Player 1's action payoffs against $L$ are $1$ for $U$ and $-1$ for $D$, giving
+
+$
+r_(1 \, U) (vx)=1-1=0 \,  quad quad
+r_(1 \, D) (vx)=-1-1=-2.
+$
+
+Player 2's action payoffs against $U$ are $-1$ for $L$ and $1$ for $R$, giving
+
+$
+r_(2 \, L) (vx)=-1-(-1)=0 \,  quad quad
+r_(2 \, R) (vx)=1-(-1)=2.
+$
+
+*Quadratic update.* Player 1 has no positive regret, so $S_1 (vx)=0$ and $psi_1 (vx)=(1 \, 0)$. For Player 2, $S_2 (vx)=0^2+2^2=4$, hence
+
+$
+psi_2 (vx)
+=(frac(1+0, 1+4) \, frac(0+4, 1+4))
+=(frac(1, 5) \, frac(4, 5)).
+$
+
+*Original Nash update.* The original function uses the positive regret itself. Player 1 again stays at $(1 \, 0)$, while Player 2 updates to
+
+$
+phi_2 (vx)
+=(frac(1+0, 1+2) \, frac(0+2, 1+2))
+=(frac(1, 3) \, frac(2, 3)).
+$
+
+Thus $psi$ and $phi$ give different updated strategy profiles at the same input, even though their fixed-point sets coincide.
+]
+]
+
+*Problem 4.2.* Compute both players' expected payoffs when both use their $psi$-updated strategies. Does Problem 2 imply that both players' payoffs must increase when they update simultaneously? Explain your answer.
+#reference-solutions(title: [Show / hide solution to Problem 4.2])[
+#solution[Problem 4.2][
+*Payoffs after applying the quadratic update to both players.* The new profile is $((1 \, 0) \, (1/5 \, 4/5))$. Its expected payoffs are
+
+$
+u_1 ( psi_1 (vx) \,  psi_2 (vx))
+=frac(1, 5)(1)+frac(4, 5)(-1)=-frac(3, 5) \,
+$
+
+and
+
+$
+u_2 ( psi_1 (vx) \,  psi_2 (vx))
+=frac(1, 5)(-1)+frac(4, 5)(1)=frac(3, 5).
+$
+
+Player 2 improves from $-1$ to $3/5$, a gain of $8/5$. This agrees with Problem 2, which gives $2^3/(1+2^2)=8/5$, since Player 1's strategy stays unchanged in this example.
+
+Player 1's payoff falls from $1$ to $-3/5$. There is no contradiction: Problem 2 holds the opponents' strategies fixed. For Player 1, it compares $u_1 ( psi_1 (vx) \, vx_2)$ with $u_1 (vx)$, both of which equal $1$. It does not compare the old payoff with the payoff after Player 2 also updates.
+
+Therefore the unilateral improvement property does not guarantee that every player's payoff increases under simultaneous updates. Likewise, a characterization of fixed points alone does not establish that repeatedly applying the map converges to one.
+]
+]
+
+] <ex-quadratic-improvement>
+= Equilibrium practice <sec-equilibrium-practice>
+
+#exercise[Finding Equilibria in Small Games][
+In each two-player game below, Player 1 chooses a row, either $U$ (up) or $D$ (down), and Player 2 chooses a column, either $L$ (left) or $R$ (right). Each entry lists the payoffs in the order $(u_1 \, u_2)$; larger payoffs are better.
+
+Let $p$ be the probability that Player 1 chooses $U$, and let $q$ be the probability that Player 2 chooses $L$. Thus the strategy vectors are $vx_1=(p \, 1-p)$ and $vx_2=(q \, 1-q)$, where $0 <=  p \, q <= 1$. We describe a strategy profile by the pair $(p \, q)$.
+
+A pure strategy is a special case of a mixed strategy. Here, a *non-pure equilibrium* means an equilibrium in which at least one player randomizes between both actions; a *fully mixed equilibrium* means that both players do so.
+
+Use the lecture's dominance convention: a strategy is *dominant* if it is at least as good as every alternative strategy against every opponent strategy. For pure actions, call dominance *strict* if the payoff inequality is strict against every opponent action, and *weak* if it is never reversed and is strict against at least one opponent action. A dominant-strategy equilibrium requires both players to use dominant strategies.
+
+For each game:
+
+1. Identify any dominant strategies, state whether the pure-action comparisons are strict or weak, and find all dominant-strategy equilibria. If none exist, explain why.
+2. Find all pure-strategy Nash equilibria by checking unilateral deviations.
+3. Find all non-pure Nash equilibria, or prove that none exist. Derive the expected payoffs of each action and check both interior and boundary values of $p$ and $q$, so that your list is complete.
+
+*Hint.* A player who assigns positive probability to both actions must be indifferent between them. If one action gives strictly higher expected payoff, a best response assigns probability one to that action. Indifference is only a necessary condition for a player who mixes: check the other player's best-response condition too.
+
+*A common method.*
+
+For a fixed opponent strategy, the expected payoff of a mixture is the probability-weighted average of its pure-action payoffs. Consequently, it is enough to compare pure actions: a mixture cannot outperform the better action. A player can mix between both actions only when their payoffs are equal.
+
+We will write expressions such as $u_1 (U \, vx_2)$ for the payoff from playing $U$ against Player 2's mixture. The variables $p$ and $q$ always denote the probabilities specified above, not payoff values.
+
+*Game A: Strict incentives*
+
+#align(center)[
+#table(
+  columns: (auto, auto, auto),
+  align: center,
+  inset: 6pt,
+  stroke: 0.4pt + luma(170),
+
+  table.header([*Player 1 / Player 2*], [*$L$*], [*$R$*]),
+
+  [$U$], [$(3 \, 3)$], [$(0 \, 4)$],
+
+  [$D$], [$(4 \, 0)$], [$(1 \, 1)$],
+
+)
+]
+
+#reference-solutions(title: [Show / hide solution to Game A])[
+#solution[Game A][
+*Dominance.* Against $L$, Player 1 earns $4$ from $D$ and $3$ from $U$. Against $R$, Player 1 earns $1$ from $D$ and $0$ from $U$. Thus $D$ strictly dominates $U$.
+
+Similarly, Player 2 earns $4>3$ by choosing $R$ rather than $L$ against $U$, and $1>0$ by choosing $R$ rather than $L$ against $D$. Thus $R$ strictly dominates $L$. The unique dominant-strategy equilibrium is $(D \, R)$, or $(p \, q)=(0 \, 0)$.
+
+*All Nash equilibria.* Against an arbitrary $q$,
+
+$
+u_1 (U \, vx_2)=3q \,  quad quad
+u_1 (D \, vx_2)=4q+(1-q)=1+3q.
+$
+
+The second payoff is larger by $1$ for every $q$. A mixture putting positive probability on $U$ therefore earns strictly less than playing $D$ alone. Every best response has $p=0$.
+
+For Player 2,
+
+$
+u_2 (vx_1 \, L)=3p \,  quad quad
+u_2 (vx_1 \, R)=4p+(1-p)=1+3p.
+$
+
+Every best response has $q=0$. The two conditions hold simultaneously only at $(p \, q)=(0 \, 0)$. At $(D \, R)$, either player's switch lowers its payoff from $1$ to $0$, so this profile is indeed a Nash equilibrium.
+
+Therefore $(D \, R)$ is the unique pure Nash equilibrium, and there are no non-pure Nash equilibria. Strict dominance also excludes any other dominant mixed strategy.
+]
+]
+
+*Game B: Coordination with different preferences*
+
+#align(center)[
+#table(
+  columns: (auto, auto, auto),
+  align: center,
+  inset: 6pt,
+  stroke: 0.4pt + luma(170),
+
+  table.header([*Player 1 / Player 2*], [*$L$*], [*$R$*]),
+
+  [$U$], [$(3 \, 2)$], [$(0 \, 0)$],
+
+  [$D$], [$(0 \, 0)$], [$(2 \, 3)$],
+
+)
+]
+
+#reference-solutions(title: [Show / hide solution to Game B])[
+#solution[Game B][
+*Dominance.* Player 1 strictly prefers $U$ against $L$, but strictly prefers $D$ against $R$. Player 2 strictly prefers $L$ against $U$, but strictly prefers $R$ against $D$. Neither player has a dominant pure action.
+
+There is also no dominant mixed strategy: to be optimal against $L$, Player 1 would have to choose $U$ with probability one, whereas optimality against $R$ requires choosing $D$ with probability one. The requirements are incompatible. The same argument applies to Player 2. Hence there is no dominant-strategy equilibrium.
+
+*Pure Nash equilibria.* At $(U \, L)$, each player would drop to payoff $0$ by deviating. The same is true at $(D \, R)$. Thus both are Nash equilibria. At $(U \, R)$, Player 1 can switch to $D$ and improve from $0$ to $2$; at $(D \, L)$, Player 1 can switch to $U$ and improve from $0$ to $3$. There are no other pure equilibria.
+
+*Mixed Nash equilibria.* Player 1's action payoffs are
+
+$
+u_1 (U \, vx_2)=3q \,  quad quad
+u_1 (D \, vx_2)=2(1-q).
+$
+
+Player 1 is indifferent exactly when $3q=2(1-q)$, or $q=2/5$. It strictly prefers $U$ for $q>2/5$ and $D$ for $q<2/5$.
+
+Player 2's action payoffs are
+
+$
+u_2 (vx_1 \, L)=2p \,  quad quad
+u_2 (vx_1 \, R)=3(1-p).
+$
+
+Player 2 is indifferent exactly when $2p=3(1-p)$, or $p=3/5$. It strictly prefers $L$ for $p>3/5$ and $R$ for $p<3/5$.
+
+Thus the fully mixed candidate is
+
+$
+(p \, q)=(frac(3, 5) \, frac(2, 5)) \,  quad quad
+vx_1=(frac(3, 5) \, frac(2, 5)) \,  quad
+vx_2=(frac(2, 5) \, frac(3, 5)).
+$
+
+At this profile, both actions give Player 1 payoff $6/5$, and both actions give Player 2 payoff $6/5$. Every unilateral mixture also gives that same player's payoff $6/5$, so neither player can improve. The candidate is a Nash equilibrium.
+
+*Completeness.* If $q>2/5$, Player 1 must choose $p=1$, which forces Player 2's best response $q=1$. If $q<2/5$, Player 1 must choose $p=0$, which forces $q=0$. If $q=2/5$, Player 2 is mixing between both actions, so its best-response condition requires $p=3/5$. These cases cover the entire square $0 <=  p \, q <= 1$.
+
+The complete equilibrium set is $(p \, q)=(1 \, 1)$, $(0 \, 0)$, and $(3/5 \, 2/5)$. In particular, there are no equilibria in which exactly one player mixes.
+]
+]
+
+*Game C: Matching pennies*
+
+#align(center)[
+#table(
+  columns: (auto, auto, auto),
+  align: center,
+  inset: 6pt,
+  stroke: 0.4pt + luma(170),
+
+  table.header([*Player 1 / Player 2*], [*$L$*], [*$R$*]),
+
+  [$U$], [$(1 \, -1)$], [$(-1 \, 1)$],
+
+  [$D$], [$(-1 \, 1)$], [$(1 \, -1)$],
+
+)
+]
+
+#reference-solutions(title: [Show / hide solution to Game C])[
+#solution[Game C][
+*Dominance and pure equilibria.* Player 1 prefers $U$ against $L$ and $D$ against $R$. Player 2 prefers $R$ against $U$ and $L$ against $D$. These conflicting strict best responses rule out dominant strategies, including dominant mixed strategies.
+
+There is no pure Nash equilibrium. At $(U \, L)$ and $(D \, R)$, Player 2 can increase its payoff from $-1$ to $1$ by switching columns. At $(U \, R)$ and $(D \, L)$, Player 1 can increase its payoff from $-1$ to $1$ by switching rows.
+
+*Mixed Nash equilibria.* The action payoffs are
+
+$
+u_1 (U \, vx_2)=2q-1 \,  quad quad
+u_1 (D \, vx_2)=1-2q \,
+$
+
+and
+
+$
+u_2 (vx_1 \, L)=1-2p \,  quad quad
+u_2 (vx_1 \, R)=2p-1.
+$
+
+Player 1 is indifferent exactly when $q=1/2$, and Player 2 is indifferent exactly when $p=1/2$. At $(p \, q)=(1/2 \, 1/2)$, every action gives payoff $0$ to its player. All unilateral mixtures also give payoff $0$, so this profile is a Nash equilibrium.
+
+*Completeness.* If $q>1/2$, Player 1 strictly prefers $U$, so $p=1$; Player 2 then strictly prefers $R$, giving $q=0$, a contradiction. If $q<1/2$, Player 1 strictly prefers $D$, so $p=0$; Player 2 then strictly prefers $L$, giving $q=1$, again a contradiction. Therefore $q=1/2$ in every equilibrium. Since Player 2 then mixes, its indifference condition requires $p=1/2$.
+
+Thus $(1/2 \, 1/2)$ is the unique Nash equilibrium. It is fully mixed, and there is no dominant-strategy equilibrium.
+]
+]
+
+*Game D: Ties and boundary equilibria (additional challenge)*
+
+#align(center)[
+#table(
+  columns: (auto, auto, auto),
+  align: center,
+  inset: 6pt,
+  stroke: 0.4pt + luma(170),
+
+  table.header([*Player 1 / Player 2*], [*$L$*], [*$R$*]),
+
+  [$U$], [$(1 \, 1)$], [$(1 \, 0)$],
+
+  [$D$], [$(1 \, 0)$], [$(0 \, 0)$],
+
+)
+]
+
+For Game D, also explain why a Nash equilibrium need not be a dominant-strategy equilibrium, even when both players have dominant actions.
+
+#reference-solutions(title: [Show / hide solution to Game D])[
+#solution[Game D][
+*Dominance.* For Player 1, $U$ and $D$ both give payoff $1$ against $L$, while $U$ gives $1>0$ against $R$. Thus $U$ weakly dominates $D$, but does not strictly dominate it.
+
+For Player 2, $L$ gives $1>0$ against $U$, while both columns give $0$ against $D$. Thus $L$ weakly dominates $R$, but does not strictly dominate it. The profile $(U \, L)$ is a dominant-strategy equilibrium under the stated convention.
+
+It is the only such equilibrium. A row mixture with $p<1$ gives payoff $p<1$ against $R$, so it is not dominant. A column mixture with $q<1$ gives payoff $q<1$ against $U$, so it is not dominant either. There is no equilibrium in strictly dominant actions.
+
+*All Nash equilibria.* The expected action payoffs are
+
+$
+u_1 (U \, vx_2)=1 \,  quad quad
+u_1 (D \, vx_2)=q \,
+$
+
+and
+
+$
+u_2 (vx_1 \, L)=p \,  quad quad
+u_2 (vx_1 \, R)=0.
+$
+
+If $q<1$, Player 1 strictly prefers $U$, so any equilibrium would have $p=1$. But then Player 2 strictly prefers $L$, forcing $q=1$, a contradiction. Thus every equilibrium must have $q=1$.
+
+When $q=1$, Player 1's two actions both give payoff $1$, so every $p in [0 \, 1]$ is a best response. Player 2's choice $L$ is also a best response: it gives payoff $p >= 0$, whereas $R$ gives $0$. Consequently, the complete equilibrium set is
+
+$
+{(p \, q):0 <=  p <= 1 \,  thin q=1}.
+$
+
+The pure equilibria are $(U \, L)$ and $(D \, L)$, corresponding to $p=1$ and $p=0$. For every $0<p<1$, there is a non-pure equilibrium in which Player 1 mixes and Player 2 chooses $L$ with probability one. There are no fully mixed equilibria.
+
+*Why Nash does not imply dominance.* At $(D \, L)$, Player 1 is best responding to the actual opponent action $L$, because $U$ would give the same payoff. But $D$ is not dominant: against $R$, switching to $U$ would improve Player 1's payoff. Nash equilibrium requires optimality against the opponent's chosen strategy; dominance requires optimality against every opponent strategy. This also shows why a weakly dominated action can still be played in a Nash equilibrium.
+]
+]
+
+#reference-solutions(title: [Show / hide answer summary])[
+#block(breakable: false)[
+*Answer summary*
+
+Here $(p \, q)$ records the probabilities of $U$ and $L$, respectively. Dominant-strategy equilibria use the non-strict convention stated in the exercise.
+
+#align(center)[
+#table(
+  columns: (auto, 1fr, 1fr, 1fr),
+  align: left,
+  inset: 6pt,
+  stroke: 0.4pt + luma(170),
+
+  table.header([*Game*], [*Pure Nash equilibria*], [*Non-pure Nash equilibria*], [*Dominant-strategy equilibria*]),
+
+  [A], [$(D \, R)$], [None], [$(D \, R)$; both actions strictly dominant],
+
+  [B], [$(U \, L)$, $(D \, R)$], [$(p \, q)=(3/5 \, 2/5)$], [None],
+
+  [C], [None], [$(p \, q)=(1/2 \, 1/2)$], [None],
+
+  [D], [$(U \, L)$, $(D \, L)$], [$(p \, 1)$ for $0<p<1$], [$(U \, L)$; both actions weakly dominant],
+
+)
+]
+]
+]
+
+] <ex-small-game-equilibria>
+= Exercises <sec-nash-exercises>
+
+#exercise[Another Look at the Nash Improvement Function][
+In this problem, we will go through Nash’s original proof to show that Nash equilibria are the fixed points of the improvement function.
+
+Recall the Nash improvement function discussed in class: given player strategies $x_1 in  Delta (A_1) \,  ...  \, x_n in  Delta (A_n)$, the Nash improvement function $phi : Delta (A_1) times  dots.h.c  times  Delta (A_n) ->  Delta (A_1) times  dots.h.c  times  Delta (A_n)$ is given by:
+
+$
+phi_(i \, a_i) (x_1 \,  ...  \, x_n):=
+frac(x_(i \, a_i)+[r_(i \, a_i) (x_1 \,  ...  \, x_n)]^+, 1+ sum_(a'_i in  A_i) [r_(i \, a'_i) (x_1 \,  ...  \, x_n)]^+)
+$
+
+for all player $i in [n]$ and action $a_i in  A_i$, where $[r]^+:= max {0 \, r}$ denotes the positive part of $r$ and
+
+$
+r_(i \, a_i) (x_1 \,  ...  \, x_n):=u_i (a_i \, x_(-i))-u_i (x_1 \,  ...  \, x_n)
+$
+
+is the expected regret that player $i$ experiences with respect to action $a_i in  A_i$.
+
+*Problem 1.1.* Show that if $r_(i \, a_i) (x_1 \,  ...  \, x_n)>0$ for some player $i in [n]$ and action $a_i in  A_i$, then $phi_(i \, a_i) (x_1 \,  ...  \, x_n)>0$.
+
+#reference-solutions(title: [Show / hide solution to Problem 1.1])[
+#solution[Problem 1.1][
+Fix a player $i in [n]$ and an action $a_i in  A_i$ for which $r_(i \, a_i) (x_1 \,  ...  \, x_n)>0$.
+
+Because the regret is strictly positive, its positive part equals the regret itself:
+
+$
+[r_(i \, a_i) (x_1 \,  ...  \, x_n)]^+
+=r_(i \, a_i) (x_1 \,  ...  \, x_n)>0.
+$
+
+Also, $x_(i \, a_i) >= 0$, since it is a probability. Therefore the numerator defining $phi_(i \, a_i)$ is strictly positive:
+
+$
+x_(i \, a_i)+[r_(i \, a_i) (x_1 \,  ...  \, x_n)]^+>0.
+$
+
+Every positive-part term in the denominator is nonnegative, so
+
+$
+1+ sum_(a'_i in  A_i) [r_(i \, a'_i) (x_1 \,  ...  \, x_n)]^+ >= 1>0.
+$
+
+This denominator is finite because the game has finitely many actions and real-valued payoffs. Dividing the strictly positive numerator by the strictly positive denominator gives
+
+$
+phi_(i \, a_i) (x_1 \,  ...  \, x_n)>0.
+$
+
+This conclusion holds even when $x_(i \, a_i)=0$: an action with positive regret receives positive probability after the update.
+]
+]
+
+*Problem 1.2.* Show that the expected regret player $i$ experiences satisfies
+
+$
+sum_(a_i in  A_i) r_(i \, a_i) (x_1 \,  ...  \, x_n) dot.op  x_(i \, a_i)=0.
+$
+
+#reference-solutions(title: [Show / hide solution to Problem 1.2])[
+#solution[Problem 1.2][
+Fix a player $i$ and a strategy profile $(x_1 \,  ...  \, x_n)$. When the other players' strategies $x_(-i)$ are fixed, player $i$'s current expected utility is the average of the utilities of its actions, weighted by its current action probabilities:
+
+$
+u_i (x_1 \,  ...  \, x_n)
+= sum_(a_i in  A_i) u_i (a_i \, x_(-i)) dot.op  x_(i \, a_i).
+$
+
+Here $u_i (a_i \, x_(-i))$ already averages over the other players' random choices. Averaging these quantities over player $i$'s own random choice gives its overall expected utility.
+
+Substituting the definition of regret and distributing the sum, we obtain
+
+$
+& sum_(a_i in  A_i) r_(i \, a_i) (x_1 \,  ...  \, x_n) dot.op  x_(i \, a_i)\
+
+&= sum_(a_i in  A_i)  (u_i (a_i \, x_(-i))-u_i (x_1 \,  ...  \, x_n)  ) dot.op  x_(i \, a_i)\
+
+&= sum_(a_i in  A_i) u_i (a_i \, x_(-i)) dot.op  x_(i \, a_i)
+- sum_(a_i in  A_i) u_i (x_1 \,  ...  \, x_n) dot.op  x_(i \, a_i)\
+
+&=u_i (x_1 \,  ...  \, x_n)-u_i (x_1 \,  ...  \, x_n) sum_(a_i in  A_i)x_(i \, a_i)\
+
+&=u_i (x_1 \,  ...  \, x_n)-u_i (x_1 \,  ...  \, x_n)\
+
+&=0.
+$
+
+In the third equality, the first sum is the expected-utility expression above, and $u_i (x_1 \,  ...  \, x_n)$ can be factored out of the second sum because it does not depend on the summation index $a_i$. The fourth equality uses $sum_(a_i in  A_i)x_(i \, a_i)=1$.
+
+Thus
+
+$
+sum_(a_i in  A_i) r_(i \, a_i) (x_1 \,  ...  \, x_n) dot.op  x_(i \, a_i)=0.
+$
+
+This identity holds at every strategy profile, whether or not it is a Nash equilibrium. It does not imply that every individual regret is zero or nonpositive: positive and negative contributions can cancel.
+]
+]
+
+Now, select any fixed point $(x_1^(*) \,  ...  \, x_n^(*))$ of function $phi$, i.e. such that $phi_(i \, a_i) (x_1^(*) \,  ...  \, x_n^(*))=x_(i \, a_i)^(*)$ for all players $i$ and action $a_i in  A_i$.
+
+*Problem 1.3.* Show that the above results imply that, for any player $i in [n]$ and action $a_i in  A_i$,
+
+$
+r_(i \, a_i) (x_1^(*) \,  ...  \, x_n^(*)) <= 0.
+$
+
+Conclude that $(x_1^(*) \,  ...  \, x_n^(*))$ is a Nash equilibrium.
+
+★ Hint: for the sake of contradiction, assume $r_(i \, a_i) (x_1^(*) \,  ...  \, x_n^(*))>0$ for some player $i$ and action $a_i$. Under this assumption, demonstrate that there exists an alternative action $a'_i$ such that $phi_(i \, a'_i) (x_1^(*) \,  ...  \, x_n^(*))<x_(i \, a'_i)^(*)$.
+
+#reference-solutions(title: [Show / hide solution to Problem 1.3])[
+#solution[Problem 1.3][
+Let $(x_1^(*) \,  ...  \, x_n^(*))$ be a fixed point of $phi$. Thus, for every player $i$ and action $a_i in  A_i$,
+
+$
+phi_(i \, a_i) (x_1^(*) \,  ...  \, x_n^(*))=x_(i \, a_i)^(*).
+$
+
+We first show that no action has positive regret, following the hint.
+
+*Step 1: Assume that a positive regret exists.*
+
+Suppose, for a contradiction, that there are a player $i$ and an action $a_i in  A_i$ such that
+
+$
+r_(i \, a_i) (x_1^(*) \,  ...  \, x_n^(*))>0.
+$
+
+Problem 1.1 implies that $phi_(i \, a_i) (x_1^(*) \,  ...  \, x_n^(*))>0$. Since the profile is a fixed point,
+
+$
+x_(i \, a_i)^(*)= phi_(i \, a_i) (x_1^(*) \,  ...  \, x_n^(*))>0.
+$
+
+Consequently, this action contributes a strictly positive term to the probability-weighted regret sum:
+
+$
+r_(i \, a_i) (x_1^(*) \,  ...  \, x_n^(*)) dot.op  x_(i \, a_i)^(*)>0.
+$
+
+The fixed-point condition is essential here: positive regret alone does not imply that the original probability $x_(i \, a_i)^(*)$ is positive.
+
+*Step 2: Find an alternative action with negative regret and positive probability.*
+
+By Problem 1.2,
+
+$
+sum_(a'_i in  A_i) r_(i \, a'_i) (x_1^(*) \,  ...  \, x_n^(*)) dot.op  x_(i \, a'_i)^(*)=0.
+$
+
+The finite sum contains the strictly positive term identified in Step 1. If every other term were nonnegative, the sum would be strictly positive. Therefore there must be an alternative action $a'_i in  A_i$, distinct from $a_i$, satisfying
+
+$
+r_(i \, a'_i) (x_1^(*) \,  ...  \, x_n^(*)) dot.op  x_(i \, a'_i)^(*)<0.
+$
+
+Probabilities cannot be negative. Moreover, a zero probability would make this product zero. It follows that
+
+$
+x_(i \, a'_i)^(*)>0
+ quad quad upright("and") quad quad
+r_(i \, a'_i) (x_1^(*) \,  ...  \, x_n^(*))<0.
+$
+
+In particular,
+
+$
+[r_(i \, a'_i) (x_1^(*) \,  ...  \, x_n^(*))]^+=0.
+$
+
+*Step 3: Show that this alternative action's probability strictly decreases.*
+
+The assumed positive regret in Step 1 implies
+
+$
+sum_(a''_i in  A_i) [r_(i \, a''_i)(x_1^(*) \,  ...  \, x_n^(*))]^+>0.
+$
+
+Here $a''_i$ is simply a summation index ranging over all actions of player $i$. We use it to distinguish the sum from the particular alternative action $a'_i$ identified in Step 2.
+
+Substituting the zero positive-part regret for that alternative action into the update formula gives
+
+$
+phi_(i \, a'_i) (x_1^(*) \,  ...  \, x_n^(*))
+&=frac(x_(i \, a'_i)^(*)+[r_(i \, a'_i) (x_1^(*) \,  ...  \, x_n^(*))]^+, 1+ sum_(a''_i in  A_i) [r_(i \, a''_i)(x_1^(*) \,  ...  \, x_n^(*))]^+)\
+
+&=frac(x_(i \, a'_i)^(*), 1+ sum_(a''_i in  A_i) [r_(i \, a''_i)(x_1^(*) \,  ...  \, x_n^(*))]^+)\
+
+&<x_(i \, a'_i)^(*).
+$
+
+The final inequality is strict because the numerator $x_(i \, a'_i)^(*)$ is strictly positive and the denominator is strictly greater than $1$.
+
+But the fixed-point condition requires $phi_(i \, a'_i) (x_1^(*) \,  ...  \, x_n^(*))=x_(i \, a'_i)^(*)$. This is the desired contradiction. Hence our assumption that a positive regret exists is false, and
+
+$
+r_(i \, a_i) (x_1^(*) \,  ...  \, x_n^(*)) <= 0
+ quad upright("for every ")i in [n]upright(" and ")a_i in  A_i.
+$
+
+*Step 4: Verify the Nash condition, including mixed-strategy deviations.*
+
+The regret inequalities show that no player can improve its utility by switching to a pure action. To cover an arbitrary mixed-strategy deviation as well, fix a player $i$ and let $x'_i in  Delta (A_i)$ be any alternative strategy, with action probabilities $x'_(i \, a_i)$.
+
+By linearity of expected utility in player $i$'s strategy and the identity $sum_(a_i in  A_i)x'_(i \, a_i)=1$,
+
+$
+&u_i (x'_i \, x_(-i)^(*))-u_i (x_1^(*) \,  ...  \, x_n^(*))\
+
+&= sum_(a_i in  A_i) u_i (a_i \, x_(-i)^(*)) dot.op  x'_(i \, a_i)
+-u_i (x_1^(*) \,  ...  \, x_n^(*)) sum_(a_i in  A_i)x'_(i \, a_i)\
+
+&= sum_(a_i in  A_i)  (u_i (a_i \, x_(-i)^(*))-u_i (x_1^(*) \,  ...  \, x_n^(*))  ) dot.op  x'_(i \, a_i)\
+
+&= sum_(a_i in  A_i) r_(i \, a_i) (x_1^(*) \,  ...  \, x_n^(*)) dot.op  x'_(i \, a_i)\
+
+& <= 0.
+$
+
+Each term in the final sum is nonpositive because $r_(i \, a_i) (x_1^(*) \,  ...  \, x_n^(*)) <= 0$ and $x'_(i \, a_i) >= 0$. Therefore, for every player $i$ and every alternative mixed strategy $x'_i$,
+
+$
+u_i (x'_i \, x_(-i)^(*)) <=  u_i (x_1^(*) \,  ...  \, x_n^(*)).
+$
+
+No player benefits from a unilateral deviation. This is exactly the definition of a Nash equilibrium, so $(x_1^(*) \,  ...  \, x_n^(*))$ is a Nash equilibrium.
+]
+]
+
+*Problem 1.4.* Prove the converse: if $(x_1 \,  ...  \, x_n)$ is a Nash equilibrium, then it is a fixed point of $phi$. Together with Problem 1.3, conclude that
+
+$
+phi (x_1 \,  ...  \, x_n)=(x_1 \,  ...  \, x_n)
+ quad  <=>  quad
+(x_1 \,  ...  \, x_n)upright(" is a Nash equilibrium").
+$
+#reference-solutions(title: [Show / hide solution to Problem 1.4])[
+#solution[Problem 1.4][
+Suppose $(x_1 \,  ...  \, x_n)$ is a Nash equilibrium. Fix any player $i$ and action $a_i in  A_i$. Switching to the pure action $a_i$ is an allowed unilateral deviation, so the Nash condition implies
+
+$
+u_i (a_i \, x_(-i)) <=  u_i (x_1 \,  ...  \, x_n).
+$
+
+Subtracting the current utility from both sides yields
+
+$
+r_(i \, a_i) (x_1 \,  ...  \, x_n)
+=u_i (a_i \, x_(-i))-u_i (x_1 \,  ...  \, x_n) <= 0.
+$
+
+Hence $[r_(i \, a_i) (x_1 \,  ...  \, x_n)]^+=0$ for every player and action. Substituting into the improvement function gives
+
+$
+phi_(i \, a_i) (x_1 \,  ...  \, x_n)
+&=frac(x_(i \, a_i)+[r_(i \, a_i) (x_1 \,  ...  \, x_n)]^+, 1+ sum_(a'_i in  A_i) [r_(i \, a'_i) (x_1 \,  ...  \, x_n)]^+)\
+
+&=frac(x_(i \, a_i)+0, 1+0)\
+
+&=x_(i \, a_i).
+$
+
+Every coordinate is unchanged, so $phi (x_1 \,  ...  \, x_n)=(x_1 \,  ...  \, x_n)$. Thus every Nash equilibrium is a fixed point. Together with Problem 1.3, this proves
+
+$
+phi (x_1 \,  ...  \, x_n)=(x_1 \,  ...  \, x_n)
+ quad  <=>  quad
+(x_1 \,  ...  \, x_n)upright(" is a Nash equilibrium").
+$
+]
+]
+
+] <ex-nash-fixed-points-alternative>
 
 = Suggested Examples <sec-examples>
 
