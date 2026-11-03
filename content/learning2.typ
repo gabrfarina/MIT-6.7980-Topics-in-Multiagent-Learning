@@ -199,7 +199,11 @@ A similar phenomenon occurs in continuous time, where the learner reacts to the 
   $
   which gives $norm(vx - vx') <= eta norm(vs - vs')_*$.
 
-  _Remark._ Compared with the #lecture-link("learning1", <ftrl-omd-regret-bound>)[discrete-time regret bound for FTRL], the term $eta sum_t norm(vg^((t)))_*^2$ is absent: it is entirely due to discretization. In continuous time there is no trade-off in choosing $eta$, and the regret stays bounded by a constant at all times.
+  _Remark._ After dropping its last term, which is nonpositive, the #lecture-link("learning1", <ftrl-omd-regret-bound>)[regret bound for discrete-time FTRL] reads
+  $
+    "Reg"^((T)) <= B / eta + eta sum_(t=1)^T norm(vg^((t)))_*^2, quad "where" B := max_(xhat in cX) psi(xhat) - min_(xhat in cX) psi(xhat).
+  $
+  Our bound on $"Reg"(T)$ contains the first term but not the second. The second term arises because the discrete-time learner picks $vx^((t))$ before observing $vg^((t))$, so each decision lags one step behind the gradient it is evaluated on. The continuous-time iterate $vx(t)$ depends on all gradients up to time $t$, so there is no such lag. In particular, $eta$ no longer needs to be tuned to $T$. With bounded gradients, the best choice for discrete-time FTRL is $eta approx 1 \/ sqrt(T)$, which balances the two terms and gives regret of order $sqrt(T)$. The regret of continuous-time FTRL is at most $B \/ eta$ for any $eta > 0$ and all $T$.
 ]
 
 == Accelerated learning of Nash equilibria in two-player zero-sum games <sec-fast-zero-sum>
