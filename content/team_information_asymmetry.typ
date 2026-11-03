@@ -57,6 +57,11 @@ Why does this count help? The reachability entries retain which histories are co
   Suppose a public state has three last-infosets and each has actions $L$ and $R$. There are at most $3^3=27$ signatures. For example, $(⊥,L,R)$ says that the first information set is excluded by its player's plan, while the other two prescribe $L$ and $R$. This is an upper bound: some signatures may violate the game's reachability constraints, and different signatures need not create different DAG nodes. If all three information sets must be reachable under every plan, only the $2^3=8$ action-only signatures remain.
 ]
 
+#figure(
+  image("figures/team_games/last_infoset_signature.svg", width: 100%),
+  caption: [Encoding a plan at a public state with $k_P=3$ and $b=2$. Each last-infoset contributes $⊥$, $L$, or $R$; the highlighted choices give $(⊥,L,R)$. These are encoding choices, not branches of a game tree. Some combinations may be infeasible, so $27$ is an upper bound.],
+) <fig-team-last-infoset-signature>
+
 The lecture's $(b+1)^k$ bound captures this combinatorial part of the observation-point count. In a construction that further separates compatible histories into public-observation components, one signature may generate several disjoint components. Accounting for their incident edges gives the more explicit bound
 $
   E <= N (b+1)^(k+1)
