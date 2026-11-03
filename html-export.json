@@ -24,12 +24,14 @@
     "deep-rl-1": "slides/L09_deep_rl.pdf",
     "information-design": "slides/L11_mechanism_design.pdf",
     "team-games": "slides/L12_team_games.pdf",
+    "calibration": "slides/L15_calibration_gordon.pdf",
     "kernelized": "slides/L16_large_games.pdf"
   },
   "interactive_slides": {
     "learning-foundations": "slides/L04_learning_in_games.html",
     "learning-algorithms": "slides/L05_learning_in_games.html",
-    "deep-rl-1": "slides/L09_deep_rl.html"
+    "deep-rl-1": "slides/L09_deep_rl.html",
+    "calibration": "slides/L15_calibration_gordon.html"
   },
   "notes": [
     {

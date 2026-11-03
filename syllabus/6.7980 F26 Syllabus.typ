@@ -290,7 +290,7 @@ The project is the central component of the course and accounts for #course.grad
   lecture(
     "calibration",
     [Forecasting and calibration],
-    description: [Calibrated prediction and its connections to learning in games.],
+    description: [ECE and multicalibration. Two routes to $Phi$-regret minimization: fixed points and calibrated forecasts.],
     instructor: [Gabriele Farina],
   ),
   lecture(
