@@ -8,7 +8,7 @@
 
 // Introduction only. 
 
-= Overview (Deepifying Game Theory)
+= Overview (Deepify-ing Game Theory)
 
 
 We begin with the concept of #lecture-link("nfgs_nash", <sec-normal-form>)[normal-form games] and utilizing a #lecture-link("nfgs_nash", <def-nash-equilibrium>)[Nash equilibria] to model expected reward achieved by a set of two players. This concept naturally ties in with #lecture-link("correlated", <sec-zero-sum>)[linear programming formulations] for normal-form games (#lecture-link("correlated", <def-ce>)[correlated equilibrium] and #lecture-link("correlated", <def-cce>)[coarse correlated equilibrium]). With #lecture-link("learning_intro", <sec-external-regret>)[regret minimization], we understand how average regret approaches 0 over $T$ iterations in a game, creating a #lecture-link("learning_intro", <sec-learning-zero-sum>)[convex-concave saddle point] where the average strategies converge toward the Nash equilibrium set. 
@@ -57,7 +57,7 @@ $ O(sqrt(K T log(K T / delta)) + log(K T / delta)). $
 
 However, these strategies depend on simulating and gathering information from many game states, creating a need for sample efficiency. In this way, #lecture-link("efg_intro", <sec-game-trees>)[extensive form games] become crucial, as they allow us to model sequential interactions with hidden information. This topic naturally leads us into the next section of the introduction, where we discuss reinforcement learning
 
-= Overview (Game Theory'ing RL)
+= Overview (Game Theory-ifying RL)
 
 
 We can model these games as trees (corresponding decision nodes, observation nodes, and transition functions). While Kuhn's theorem allows us to state mixed normal-form and behavioral strategies as realization-equivalent, sequence-form strategies have convex representations that are amenable to linear optimization.
