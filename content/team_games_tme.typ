@@ -26,14 +26,14 @@ Our running example is the _communication game_ of @fig-team-communication-game.
 
 Team ▲ gets $1$ if Player 2 guesses right and Player 3 guesses wrong, and $0$ otherwise. Player 1 thus wants to tell Player 2 the bit without telling Player 3, but any message that Player 2 can read, Player 3 can read too.
 
-// The communication-game figure is shared with team_games_tmecor.typ. It is included
-// here so this file compiles on its own.
+// This figure uses the same notation and leaf numbering as team_games_tmecor.typ,
+// so the realization vectors there refer to the same leaves.
 #figure(
-  caption: [The communication game. Team ▲ is Players 1 and 2, and Player 3 (▼) is the adversary. Edge labels are behavioral probabilities, with $overline(x) := 1 - x$. Leaves show the team's payoff and index $z_1, ..., z_12$. Chance draws a uniform bit, 0 on the left, that only Player 1 sees. Players 2 and 3 observe Player 1's action and each guess the bit. Team ▲ gets 1 if Player 2 guesses right and Player 3 guesses wrong, and 0 otherwise. Player 3 does not move after a wrong guess by Player 2, as the team then gets 0.],
+  caption: [The communication game. Team ▲ is Players 1 and 2, and Player 3 (▼) is the adversary. Chance ($C$) draws a uniform bit, 0 on the left, that only Player 1 sees. Dashed lines join the nodes of an information set, which a player cannot tell apart, since Players 2 and 3 see the message but not the bit. Edge labels are behavioral probabilities, with $overline(x) := 1 - x$. Leaves show the team's payoff and are numbered $z_1, ..., z_12$. Player 3 does not move after a wrong guess by Player 2, as the team then gets 0.],
 )[
   #image(
-    "figures/team_games_tmecor/communication_game.svg",
-    width: 79%,
+    "figures/team_games_tme/communication_game.svg",
+    width: 90%,
     alt: "Game tree of the communication game. Chance draws a bit, Player 1 sends a message, and Players 2 and 3 each guess the bit.",
   )
 ] <fig-team-communication-game>
@@ -122,7 +122,7 @@ The nodes of Player 2 that see the same variable $x_i$ form one information set,
   caption: [The game $G_phi$ for $phi = (x_1 or x_2) and (not x_1 or x_2) and (x_1 or not x_2)$. Chance picks a clause uniformly, which only Player 1 sees. Player 1 points to a literal. Player 2 sees only its variable, so the three nodes of each color form one information set. Leaves show the team's payoff, which is $1$ when the literal is true. The assignment $x_1 = x_2 = T$ satisfies $phi$, and the team wins surely if Player 2 plays it and Player 1 points to $x_1$, $x_2$, and $x_1$.],
 )[
   #image(
-    "figures/team_games_tmecor/sat_reduction.svg",
+    "figures/team_games_tme/sat_reduction.svg",
     width: 90%,
     alt: "Game tree of the satisfiability reduction. Chance picks one of three clauses, Player 1 picks a literal of the clause, and Player 2 assigns its variable true or false. Player 2 nodes are colored by variable.",
   )
