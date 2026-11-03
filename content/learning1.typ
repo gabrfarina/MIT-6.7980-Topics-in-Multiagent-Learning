@@ -166,7 +166,7 @@ As of today, Regret Matching and its variants are still often some of the most p
 
 == The Regret Matching#super[+] (RM#super[+]) algorithm <sec-rmp>
 
-The Regret Matching#super[+] algorithm #citep(<Tammelin14:Solving>)#citep(<Tammelin15:Solving>) is given in @algo-rmp. It differs from RM only on the last line, where a further thresholding is added. That small change has the effect that actions with negative cumulated regret (that is, "bad" actions) are treated as actions with $0$ regret. Hence, intuitively, if a bad action were to become good over time, it would take less time for RM#super[+] to notice and act on that change.
+The Regret Matching#super[+] algorithm #citep(<Tammelin14:Solving>)#citep(<Tammelin15:Solving>) is given in @algo-rmp. It differs from RM only on the last line, where a further thresholding is added. That small change has the effect that actions with negative cumulated regret (that is, "bad" actions) are treated as actions with $0$ regret. Hence, intuitively, if a bad action were to become good over time, it would take less time for RM#super[+] to notice and act on that change (see @ex-rm-vs-rmp).
 Because of that, Regret Matching#super[+] has stronger practical performance and is often preferred over Regret Matching in the game solving literature.
 
 With a simple modification to the analysis of RM, the same bound as RM can be proven.
@@ -176,6 +176,25 @@ With a simple modification to the analysis of RM, the same bound as RM can be pr
   So again, if all the gradient vectors satisfy $norm(vg^((t)))_oo <= 1$ at all times $t$ then the regret satisfies $ "Reg"^((T)) <= 2 sqrt(T dot |A|). $
 
 ]
+
+#example[A bad action that becomes good][
+  Consider two actions and the following sequence of gradient vectors, in which the first action is bad for the first $T_0$ rounds and then becomes the best one:
+  $
+    vg^((t)) = vec(0, 1) quad "for" t <= T_0, qquad vg^((t)) = vec(1, 0) quad "for" t > T_0.
+  $
+  Both algorithms play the uniform strategy at time $1$ and only the second action from time $2$ to time $T_0$.
+  Under RM, each of these rounds decreases the cumulated regret of the first action by $1$, so that $r^((T_0))_1 = 1\/2 - T_0$. After the switch, the regret of the first action grows by $1$ per round, but RM keeps playing the second action until that regret becomes positive: it plays the first action with probability $1\/2$ at time $2T_0 + 1$, and with probability $1$ only from time $2T_0 + 2$ on.
+  RM#super[+] instead keeps the regret of the first action at $0$ throughout the first phase. It plays the first action with probability $2\/3$ at time $T_0 + 2$ and with probability $1$ from time $T_0 + 3$ on, no matter how long the first action was bad.
+
+  #figure(
+    image(
+      "figures/learning1/rm_vs_rmp.svg",
+      width: 100%,
+      alt: "Probability of the first action and its cumulated regret over time under RM and RM+; RM+ switches to the first action right after the switch, while RM waits until its negative regret is worked off.",
+    ),
+    caption: [Probability $x^((t))_1$ of the first action (left) and its cumulated regret $r^((t))_1$ (right) under RM and RM#super[+], with $T_0 = 50$ (dashed line).],
+  )
+] <ex-rm-vs-rmp>
 
 == Multiplicative weights update (MWU) <sec-mwu>
 
@@ -329,6 +348,23 @@ The two runs illustrate four differences between RM and MWU.
 - *Worst-case bounds are loose on a single run.* The observed regrets ($1$ and $4\/7$) are far below the guarantees ($approx 3.87$ and $approx 3.61$), because the theorems must hold for _every_ sequence of utility vectors, including far more adversarial ones.
 
 The accompanying #link("https://colab.research.google.com/github/gabrfarina/MIT-6.7980-Topics-in-Multiagent-Learning/blob/main/content/notebooks/learning1/rm_mwu_walkthrough.ipynb")[notebook] reproduces both tables in exact arithmetic, runs the algorithms for many more rounds, and lets you vary $eta$ and watch the strategies of RM and MWU move on the simplex.
+#exercise[No-regret learning in graphical games][
+  Consider a graphical game played over a $d$-regular graph, where each of the $n$ nodes is a player with $m$ actions and payoffs in $[-1, 1]$. Each player's utility $u_i$ depends on their own action $a_i$ and the actions $a_(N(i))$ of their $d$ neighbors $N(i)$.
+  + How many numbers are needed to write down the game as a generic normal-form game? How many when exploiting the graph structure?
+  + How many variables does the natural LP formulation of a #lecture-link("correlated", <def-cce>)[coarse correlated equilibrium] have?
+  + Suppose all players run MWU in the #lecture-link("learning_intro", <def-canonical-learning>)[canonical learning setup]. How many rounds $T$ suffice to guarantee an $epsilon$-approximate coarse correlated equilibrium, that is, a correlated strategy that satisfies the constraints of a coarse correlated equilibrium up to an additive $epsilon$?
+  + What is the overall runtime?
+] <ex-graphical-game>
+
+#solution[
+  *Part 1.* Each $u_i$ only depends on $a_i$ and $a_(N(i))$, so it is a table with $m^(d+1)$ entries, and the game needs $n dot m^(d+1)$ numbers. A generic $n$-player game would need $n dot m^n$.
+
+  *Part 2.* The LP has one variable $mu_(a_1, ..., a_n)$ for each action profile, so $m^n$ variables. This is exponential in $n$, even though the game itself only takes $n dot m^(d+1)$ numbers. #lecture-link("eah")[] shows how to get around this.
+
+  *Part 3.* The payoffs are in $[-1, 1]$, so $norm(vg_i^((t)))_oo <= 1$ and @mwu-regret-bound gives each player regret at most $2 sqrt(T log m)$. By #lecture-link("learning_intro", <thmce-formal>)[], the average distribution of play is then an $epsilon$-approximate CCE with $epsilon <= 2 sqrt(log m \/ T)$. So we need $T = ceil(4 log m \/ epsilon^2)$ rounds, which does not depend on $n$ or $d$.
+
+  *Part 4.* In each round, player $i$ computes the expected utility of each of its $m$ actions. Each one is a sum over the $m^d$ action profiles of its neighbors, so this takes $O(d dot m^(d+1))$ time per player and $O(n d dot m^(d+1))$ per round. Over $T$ rounds, the total is $O(n d dot m^(d+1) log m \/ epsilon^2)$, polynomial in the size of the game and in $1\/epsilon$.
+]
 
 = More general approaches: FTRL and OMD <sec-ftrl>
 
