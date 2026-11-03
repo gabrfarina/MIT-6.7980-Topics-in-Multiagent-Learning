@@ -77,6 +77,37 @@ In particular, $u_i \( pi_1 \, ... \, pi_m \)$ is the expected discounted utilit
   If all strategies $pi_1 \, ... \, pi_m$ are Markovian, the Nash equilibrium is called _Nash equilibrium in Markovian strategies._ Similarly, if all strategies $pi_1 \, ... \, pi_m$ are stationary and Markovian, the Nash equilibrium is called _Nash equilibrium in stationary and Markovian strategies._
 ]
 
+== Equilibrium from the initial distribution versus Markov perfection
+<sec-markov-perfect>
+
+The Nash condition above compares expected utilities from the specified initial distribution $vmu$. It can leave suboptimal behavior in continuations that are never reached at equilibrium. Restricting policies to be Markovian does not resolve this: Markovianity restricts dependence on history, whereas _Markov perfection_ requires optimality in continuation games.
+
+Write $V_(i \, t)^pi \( s \)$ for player $i$'s expected utility when play is started at state $s$ at time $t$ under profile $pi$, with rewards discounted by $gamma^(tau-t)$ at time $tau$. The sum ends at $H-1$ in a finite-horizon game. This starts a new continuation game, even if $s$ originally had probability zero. For a stationary Markovian profile in an infinite-horizon game, the value is independent of $t$ and equals $v_i^pi \( s \)$ defined below.
+
+#definition[Markov-perfect equilibrium][
+  A Markovian profile $pi$ is a _Markov-perfect equilibrium_ (MPE) if, for every player $i$, state $s$, and time $t$ at which play can continue,
+
+  $ V_(i \, t)^pi \( s \) >= V_(i \, t)^((pi'_i \, pi_(-i))) \( s \) #h(1em) forall pi'_i . $
+
+  Here $pi'_i$ is any continuation policy, including a history-dependent one; opponents retain their prescribed policies from time $t$ onward. For finite horizons $t=0 \, ... \, H-1$; for infinite horizons $t >= 0$.
+] <def-markov-perfect>
+
+Thus MPE requires equilibrium in _every state and time continuation game_.#footnote[For $gamma>0$, this implies subgame perfection on feasible histories, since rescaling continuation utility by $gamma^t>0$ preserves best responses. Our definition also tests state and time pairs absent from the tree rooted at $vmu$. At $gamma=0$, it compares immediate rewards in each newly started continuation; the original initial-time utility ignores every reward after time $0$.] In particular, it implies Nash equilibrium for every initialization distribution: average the condition at $t=0$ over $s ~ vmu$, using
+
+$ u_i \( pi \) = sum_(s in S) vmu(s) V_(i \, 0)^pi \( s \) . $
+
+The converse fails for a specified $vmu$, even for stationary Markovian policies. This is the same issue of behavior outside equilibrium play illustrated in #[
+  #show link: it => {
+    let body = [the supplementary reading on sequential irrationality]
+    if target() != "html" { body = text(fill: blue.darken(40%), body) }
+    if it.body == body { it } else { link(it.dest, body) }
+  }
+  #lecture-link("perfection")]. For a general treatment of MPE, see #citet(<maskin2001markov>).
+
+#example[Nash equilibrium supported by a noncredible threat][
+  Let $H=2$, $gamma=1$, $S={s_0 \, s_1 \, z}$, and $vmu(s_0)=1$. At $s_0$, player $1$ chooses Out, giving immediate rewards $(0 \, 2)$ and moving to $z$, or Enter, giving $(0 \, 0)$ and moving to $s_1$. At $s_1$, player $2$ chooses Fight, giving $(-1 \, -1)$, or Accommodate, giving $(1 \, 1)$; either moves to $z$. The other player's action at each state has no effect, and $z$ is absorbing with zero rewards. The stationary profile “always Out, always Fight” is Nash from $vmu$: entering would reduce player $1$'s utility from $0$ to $-1$, while player $2$ cannot affect their payoff when player $1$ stays out. These conclusions hold for arbitrary unilateral policies. However, at $(s_1 \, 1)$, player $2$ improves from $-1$ to $1$ by accommodating, so the profile is not Markov-perfect.
+] <ex-nash-not-markov-perfect>
+
 = Nash Equilibrium Existence
 
 == The finite-horizon case
@@ -112,11 +143,11 @@ If we are content with non-Markovian strategies, a finite-horizon stochastic gam
           $
             U_(i \, t \, s) \( a \) = r_i \( s \, a \) + gamma EE_(s' ~ ℙ \( dot.op \| s \, a \)) \[ V_(i \, t + 1) \( s' \) \] \;
           $
-        + pick an arbitrary Nash equilibrium $pi \( dot.op \| s \, t \) in Delta \( A \)$ of the normal-form game with the above utility functions; #label("algorithm step: pick Nash in backwards induction")
+        + pick an arbitrary Nash equilibrium $(pi_1 (dot.op | s, t), ..., pi_m (dot.op | s, t)) in Delta(A_1) times ... times Delta(A_m)$ of the normal-form game with the above utility functions, and let $pi (a | s, t) := product_i pi_i (a_i | s, t)$ be the distribution over action profiles induced by the players randomizing independently: it is a product distribution, not an arbitrary (correlated) element of $Delta(A)$; #label("algorithm step: pick Nash in backwards induction")
         + set $V_(i \, t) \( s \) = EE_(a ~ pi \( dot.op \| s \, t \)) \[ U_(i \, t \, s) \( a \) \] .$ #label("algorithm step: continuation values")
   ]
 
-  To argue the correctness of the above algorithm, one proceeds as follows.  Suppose that $pi \( dot.op \| s \, t \) = \( pi_1 \( dot.op \| s \, t \) \, ... \, pi_m \( dot.op \| s \, t \) \)$ are the Nash equilibrium strategies picked in Step~#link(label("algorithm step: pick Nash in backwards induction"))[2.2.2] of the algorithm for all $s \, t$. For each player $i$, define a Markovian policy $pi_i : S times { 0 \, ... \, H - 1 } -> Delta (A_i)$ as follows:
+  To argue the correctness of the above algorithm, one proceeds as follows.  Suppose that $pi_1 (dot.op | s, t), ..., pi_m (dot.op | s, t)$ are the Nash equilibrium strategies picked in Step~#link(label("algorithm step: pick Nash in backwards induction"))[2.2.2] of the algorithm for all $s \, t$. For each player $i$, define a Markovian policy $pi_i : S times { 0 \, ... \, H - 1 } -> Delta (A_i)$ as follows:
 
   $ pi_i \( s \, t \) \( dot.op \) := pi_i \( dot.op \| s \, t \) . $
 
@@ -127,6 +158,10 @@ If we are content with non-Markovian strategies, a finite-horizon stochastic gam
   $ pi_i^(>= t + 1) := \( pi_i \( s \, tau \) \( dot.op \) \)_(s in S \, tau >= t + 1) \, $
 
   is optimal for player $i$ to continue the game with against the policies of the other players if the player finds himself at some state $s$ at  time $t + 1$. The induction step is showing that under the induction hypothesis, $pi_i^(>= t)$ is optimal for continuing the game with against the policies of the other players if the player finds himself at some state $s$ at  time $t$. To show the inductive step we will use the definition of the game in Step~#link(label("algorithm step: game definition"))[2.2.1] of the algorithm and the Nash equilibrium properties of the strategies picked in Step~#link(label("algorithm step: pick Nash in backwards induction"))[2.2.2]. We leave the complete details to the reader.
+]
+
+#remark[
+  Backward induction establishes optimality at every state and time, so the constructed profile is Markov-perfect. Its continuation values $V_(i \, t) \( s \)$ equal $V_(i \, t)^pi \( s \)$.
 ]
 
 Finally, we remark that in finite-horizon games, there typically do not exist Nash equilibria in stationary and Markovian policies, because the best response of a player to the policies of the other players, even if all other players use stationary and Markovian policies, typically depends on the number of interaction steps that remain. In infinite-horizon games, however, equilibria in stationary and Markovian policies do exist, as we show in the next section.
@@ -221,6 +256,10 @@ Finally, we remark that in finite-horizon games, there typically do not exist Na
   $
 
   The previous condition is the Bellman equation for the MDP. From the theory of MDPs, we conclude that $pi_i^(*)$ is an optimal policy in the MDP, even among history-dependent policies. Therefore $pi_i^(*)$ is a best response to $pi_(- i)^(*)$, even among history-dependent policies.
+]
+
+#remark[
+  The Bellman optimality condition holds at every state. Thus $pi^(*)$ is a stationary Markov-perfect equilibrium, and is Nash for every initialization distribution.
 ]
 
 == Shapley's theorem for two-player zero-sum Markov games

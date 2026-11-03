@@ -44,26 +44,41 @@ def interactive_slide_output(source: str) -> str:
     return 'slides/' + Path(source).name
 
 
+def interactive_page_output(source: str) -> str:
+    if (not isinstance(source, str) or Path(source).suffix.lower() != '.html'
+            or Path(source).parent != Path('interactive')):
+        raise ValueError(f'Configured interactive pages must be standalone interactive/*.html: {source!r}')
+    return 'interactive/' + Path(source).name
+
+
+def standalone_sources(config: dict) -> set[str]:
+    """Published HTML with embedded assets; interactive pages may reuse course fonts."""
+    return set(config.get('interactive_slides', {}).values()) | set(config.get('interactive_pages', {}).values())
+
+
 class StandaloneSlides(HTMLParser):
     """Check standalone assets and keep private speaker notes out of published slides."""
-    def __init__(self):
+    def __init__(self, *, shared_fonts=False):
         super().__init__()
+        self.shared_fonts = shared_fonts
         self.document = False
         self.in_style = False
         self.in_slide_data = False
         self.slide_data = []
 
-    @staticmethod
-    def asset(value: str) -> None:
+    def asset(self, value: str) -> None:
+        if self.shared_fonts and value.split('?', 1)[0] in {
+                '../assets/fonts/SourceSans3-Regular-web.woff',
+                '../assets/fonts/SourceSans3-Bold-web.woff'}:
+            return
         if value and not value.strip().lower().startswith(('data:', '#')):
             raise ValueError('Interactive slides must embed their assets; found: ' + value[:120])
 
-    @classmethod
-    def css(cls, value: str) -> None:
+    def css(self, value: str) -> None:
         if re.search(r'@import\b', value, re.I):
             raise ValueError('Interactive slides must inline imported stylesheets.')
         for match in re.finditer(r'url\(\s*([\'"]?)(.*?)\1\s*\)', value, re.I | re.S):
-            cls.asset(match[2])
+            self.asset(match[2])
 
     def handle_starttag(self, tag, attrs):
         self.document |= tag == 'html'
@@ -110,8 +125,8 @@ class StandaloneSlides(HTMLParser):
             self.slide_data.append(data)
 
 
-def validate_standalone_slide(path: Path) -> None:
-    page = StandaloneSlides()
+def validate_standalone_slide(path: Path, *, shared_fonts: bool = False) -> None:
+    page = StandaloneSlides(shared_fonts=shared_fonts)
     page.feed(path.read_text(encoding='utf-8'))
     page.close()
     if not page.document:
@@ -122,10 +137,14 @@ def copied_files(config: dict) -> dict[str, str]:
     files = {'assets/course/' + name: source for name, source in COURSE_FIGURES.items()}
     owners = {}
     for field, output_name in (('slides', slide_output),
-                               ('interactive_slides', interactive_slide_output)):
+                               ('interactive_slides', interactive_slide_output),
+                               ('interactive_pages', interactive_page_output)):
         slides = config.get(field, {})
         if not isinstance(slides, dict):
-            raise ValueError(f'{field} must map stable lecture IDs to source paths.')
+            raise ValueError(f'{field} must map stable IDs to source paths.')
+        if field == 'interactive_pages' and (bad := [key for key in slides if not isinstance(key, str)
+                                                     or not re.fullmatch(r'[a-z][a-z0-9-]*', key)]):
+            raise ValueError('Invalid interactive page IDs: ' + ', '.join(map(repr, bad)))
         for source in slides.values():
             output = output_name(source)
             key = output.casefold()
@@ -184,14 +203,14 @@ def validate_inputs(config: dict, modules: list[dict], root: Path) -> None:
         result = subprocess.run(['pdfinfo', str(root / source)], capture_output=True, text=True)
         if result.returncode:
             raise ValueError(f'Invalid slide PDF: {source}\n{result.stderr.strip()}')
-    for source in set(config.get('interactive_slides', {}).values()):
-        validate_standalone_slide(root / source)
+    for source in standalone_sources(config):
+        validate_standalone_slide(root / source, shared_fonts=source in config.get('interactive_pages', {}).values())
 
 
 def copy_public_files(config: dict, root: Path, destination: Path) -> None:
     # Recheck at the copy boundary even if a caller skipped validate_inputs.
-    for source in set(config.get('interactive_slides', {}).values()):
-        validate_standalone_slide(root / source)
+    for source in standalone_sources(config):
+        validate_standalone_slide(root / source, shared_fonts=source in config.get('interactive_pages', {}).values())
     for output, source in copied_files(config).items():
         target = destination / output
         target.parent.mkdir(parents=True, exist_ok=True)
