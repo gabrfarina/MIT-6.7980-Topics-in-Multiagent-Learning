@@ -375,6 +375,8 @@ For now, we remark a crucial aspect of MWU. Compared with the regret bound of RM
   This is an average over our randomly generated utility sequences. At least one fixed sequence must therefore give expected regret at least this large, with the remaining expectation taken only over the learner's randomness.
 
   Setting $c = c_1/2$ proves the claim. MWU guarantees at most $2 sqrt(T log n)$, while every algorithm sometimes incurs at least $c sqrt(T log n)$, for each fixed $n$ and sufficiently large $T$. Thus the rate is asymptotically optimal up to constant factors.
+]
+
 == Worked example: three rounds of RM and MWU by hand <sec-rm-mwu-walkthrough>
 
 The pseudocode of @algo-rm and @algo-mwu is short, but it is easy to lose track of which quantity is computed when. Here we run both algorithms by hand for three rounds on the same utility vectors and record every intermediate quantity, using follow-the-leader as a baseline.
@@ -518,7 +520,7 @@ Finally, we turn our attention to the third way of obtaining no-regret algorithm
   The follow-the-_regularized_-leader algorithm (FTRL; sometimes also called "regularized follow-the-leader") defines the choice of strategy#footnote[In particular, $vx^((1)) := argmin_(xhat in Delta(A)) psi(xhat)$ since the regrets of all actions are $0$ at the beginning.]
   $
     vx^((t)) & := argmax_(xhat in Delta(A)) {ip(vr^((t-1)), xhat) - 1 / eta psi(xhat)}.
-  $]
+  $] <def-ftrl-simplex>
 The role of the regularizer is to _limit variation between consecutive strategies_. FTL can change its strategy abruptly when a small change in cumulative utilities changes which action is best. FTRL controls this sensitivity by subtracting $psi(vx)/eta$ from the cumulative utility of each candidate strategy $vx$. This creates a preference for strategies with smaller values of $psi(vx)$: choosing a strategy with a larger value must be justified by a sufficient improvement in cumulative utility.
 
 The learning rate $eta$ controls the strength of this preference. For fixed cumulative utilities, as $eta -> 0$, the regularizer dominates and the selected strategy approaches $argmin_(vx in Delta(A)) psi(vx)$, regardless of which action has performed best. As $eta -> oo$, the regularization becomes negligible and the strategy approaches a cumulative-utility maximizer, recovering FTL up to tie-breaking.
@@ -541,7 +543,6 @@ $ p = op("clip")_([0,1]) (1/2 + (eta d)/2), $
 where clipping restricts the value to $[0,1]$. Here probability changes linearly with $d$ until it reaches a pure strategy. Negative entropy instead produces the logistic response above and remains strictly mixed for finite $d$ and $eta$. Therefore, regularization doesn't necessarily prevent pure strategies. Instead, a small increase in an action’s utility advantage only justifies a small additional shift of probability toward it, since the regularizer adds a cost for moving even further in that direction.
 
 In fact, there's a bound on how much consecutive FTRL strategies can differ:
-  $] <def-ftrl-simplex>
 The regularization term $-psi(xhat)$ _limits the amount of variation between consecutive strategies_. This makes intuitive sense: if $eta -> 0$, $vx^((t))$ is constant (and equal to $argmin_(xhat in Delta(A)) psi(xhat)$). When $eta = oo$, we recover the follow-the-leader algorithm, where strategies can jump arbitrarily. For intermediate $eta$, as you might expect, the amount of variation between strategies at consecutive times is bounded above by a quantity proportional to $eta$:
 $
   norm(vx^((t+1)) - vx^((t))) <= eta norm(vg^((t)))_*,
