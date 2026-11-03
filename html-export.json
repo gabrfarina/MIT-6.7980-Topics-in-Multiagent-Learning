@@ -25,6 +25,9 @@
     "learning-foundations": "slides/L04_learning_in_games.html",
     "learning-algorithms": "slides/L05_learning_in_games.html"
   },
+  "interactive_pages": {
+    "zero-sum-2xn": "interactive/zero_sum_2xn.html"
+  },
   "notes": [
     {
       "source": "content/nfgs_nash.typ",
