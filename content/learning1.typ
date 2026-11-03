@@ -375,6 +375,31 @@ The next plots illustrate the behavior of OGD and MWU in a simple $2 times 2$ ga
   )
 ]
 
+#block(breakable: false)[
+= Algorithm comparison <sec-algorithm-comparison>
+
+All rows assume linear utility feedback. For the simplex bounds, let $m := |A| >= 2$ and $norm(vg^((t)))_oo <= 1$, with rates chosen for a known horizon $T$ as above. FTRL/OMD use the regularity assumptions and initialization stated above, the algorithm-specific $B > 0$ from @ftrl-omd-regret-bound, $norm(vg^((t)))_* <= G$, and $eta = sqrt(B)/(G sqrt(T))$ for $G > 0$.
+
+#block[
+#set par(justify: false)
+#table(
+  columns: (0.9fr, 2.5fr, 1.25fr, 1.45fr),
+  inset: 5pt,
+  align: left + top,
+  table.header([*Method*], [*Update / state*], [*Choices*], [*Regret guarantee*]),
+  [FTL], [Choose an action with maximal cumulative utility (equivalently, regret)], [No learning rate; tie rule], [Can be $Theta(T)$, even for two actions],
+  [RM], [Normalize the positive part of cumulative regrets], [No learning rate], [$<= 2 sqrt(T m)$ on $Delta(A)$],
+  [RM#super[+]], [Add instantaneous regrets to a state clipped at zero after every round, then normalize], [No learning rate], [$<= 2 sqrt(T m)$ on $Delta(A)$],
+  [MWU], [Softmax of cumulative utilities; equivalently, recursive exponential updates for fixed $eta$], [Learning rate $eta$], [$<= 2 sqrt(T log m)$ on $Delta(A)$],
+  [FTRL], [Maximize cumulative linear utility minus $psi/eta$], [Regularizer $psi$ and rate $eta$], [$<= 2 G sqrt(B T)$ on $cX$],
+  [OMD], [Maximize the latest linear utility minus the Bregman divergence from the previous iterate, scaled by $1/eta$], [Regularizer $psi$ and rate $eta$], [$<= 2 G sqrt(B T)$ on $cX$],
+  [Projected gradient ascent], [Take a gradient step and project onto $cX$ in Euclidean distance], [Learning rate $eta$], [$<= sqrt(2 T m)$ on $Delta(A)$],
+)
+]
+
+MWU is both entropy FTRL and entropy OMD on the simplex for a fixed rate; projected gradient ascent is Euclidean OMD. RM#super[+]'s clipped state is not cumulative regret; both RM variants may choose any strategy when normalization is impossible. The parameter choices above are theoretical prescriptions, not requirements for empirical tuning.
+]
+
 #lec_bibliography("meta/refs.bib")
 
 #changelog[
