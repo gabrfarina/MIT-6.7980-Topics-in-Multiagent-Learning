@@ -29,7 +29,7 @@ Team ▲ gets $1$ if Player 2 guesses right and Player 3 guesses wrong, and $0$ 
 // This figure uses the same notation and leaf numbering as team_games_tmecor.typ,
 // so the realization vectors there refer to the same leaves.
 #figure(
-  caption: [The communication game. Team ▲ is Players 1 and 2, and Player 3 (▼) is the adversary. Chance ($C$) draws a uniform bit, 0 on the left, that only Player 1 sees. Dashed lines join the nodes of an information set, which a player cannot tell apart, since Players 2 and 3 see the message but not the bit. Edge labels are behavioral probabilities, with $overline(x) := 1 - x$. Leaves show the team's payoff and are numbered $z_1, ..., z_12$. Player 3 does not move after a wrong guess by Player 2, as the team then gets 0.],
+  caption: [The communication game. Team ▲ is Players 1 and 2, and Player 3 (▼) is the adversary. Chance ($times.o$) draws a uniform bit, 0 on the left, that only Player 1 sees. Shaded bands are information sets, whose nodes a player cannot tell apart, since Players 2 and 3 see the message but not the bit. Edge labels are behavioral probabilities, with $overline(x) := 1 - x$. Leaves show the team's payoff and are numbered $z_1, ..., z_12$. Player 3 does not move after a wrong guess by Player 2, as the team then gets 0.],
 )[
   #image(
     "figures/team_games_tme/communication_game.svg",
@@ -119,12 +119,12 @@ Let $phi = C_1 and dots.c and C_m$ be a formula in conjunctive normal form over 
 The nodes of Player 2 that see the same variable $x_i$ form one information set, so a pure plan $pi_2$ of Player 2 is exactly a truth assignment to $x_1, ..., x_n$. A pure plan $pi_1$ of Player 1 picks one literal from each clause. Each player acts once, so each has perfect recall. The game tree has one chance node, $m$ nodes of Player 1, one node of Player 2 per literal occurrence, and two leaves below each, so its size is linear in the size of $phi$.
 
 #figure(
-  caption: [The game $G_phi$ for $phi = (x_1 or x_2) and (not x_1 or x_2) and (x_1 or not x_2)$. Chance picks a clause uniformly, which only Player 1 sees. Player 1 points to a literal. Player 2 sees only its variable, so the three nodes of each color form one information set. Leaves show the team's payoff, which is $1$ when the literal is true. The assignment $x_1 = x_2 = T$ satisfies $phi$, and the team wins surely if Player 2 plays it and Player 1 points to $x_1$, $x_2$, and $x_1$.],
+  caption: [The game $G_phi$ for $phi = (x_1 or x_2) and (not x_1 or x_2) and (x_1 or not x_2)$. Chance picks a clause uniformly, which only Player 1 sees. Player 1 points to a literal. Player 2 sees only its variable, so the three nodes in each shaded band form one information set. The two bands are drawn at different heights because their nodes alternate along the tree. Leaves show the team's payoff, which is $1$ when the literal is true. The assignment $x_1 = x_2 = T$ satisfies $phi$, and the team wins surely if Player 2 plays it and Player 1 points to $x_1$, $x_2$, and $x_1$.],
 )[
   #image(
     "figures/team_games_tme/sat_reduction.svg",
     width: 90%,
-    alt: "Game tree of the satisfiability reduction. Chance picks one of three clauses, Player 1 picks a literal of the clause, and Player 2 assigns its variable true or false. Player 2 nodes are colored by variable.",
+    alt: "Game tree of the satisfiability reduction. Chance picks one of three clauses, Player 1 picks a literal of the clause, and Player 2 assigns its variable true or false. Player 2 nodes that see the same variable are joined by a shaded band.",
   )
 ] <fig-team-sat-reduction>
 
