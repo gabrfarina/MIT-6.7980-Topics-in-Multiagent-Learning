@@ -1,11 +1,12 @@
-// Interactive demos are standalone HTML pages listed under `interactive_demos`
-// in html-export.json and published as interactive/<name>.html. The HTML
-// edition embeds the demo; the paged edition links to its public page.
+// Embeds one of the course's interactive pages (interactive/<name>.html, listed
+// under `interactive_pages` in html-export.json). The HTML edition embeds the
+// page in an iframe; the paged edition links to its public page, like
+// `interactive-link` in lecture-links.typ.
 #import "lecture-links.typ": course-url
 
 #let interactive-demo(name, title: "Interactive demo", height: 640) = context {
-  assert(name.match(regex("^[a-z0-9]+(-[a-z0-9]+)*$")) != none,
-    message: "Expected a demo basename such as \"sperner-adversary\".")
+  assert(name.match(regex("^[a-z][a-z0-9_]*$")) != none,
+    message: "Expected the basename of an interactive/*.html page.")
   assert(type(title) == str, message: "Expected a plain-text demo title.")
   let page = "interactive/" + name + ".html"
   if target() == "html" {

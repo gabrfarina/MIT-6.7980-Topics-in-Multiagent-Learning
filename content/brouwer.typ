@@ -74,6 +74,11 @@ We illustrate the previous theorem in the colored grid of @fig:sperner-coloring.
     #image("figures/brouwer/sperner_triangulation.svg")
   ]
 ]
+#remark[*Necessity of hypotheses in Sperner.* Sperner's lemma has three boundary conditions, each of which is necessary. Let us say that we have an all blue colored $n times n$ grid. This all-blue grid violates the first boundary condition (the left-most column contains blue), while the second and third conditions are satisfied. Since this grid is monochromatic, there are 0 trichromatic triangles. This violates the claims of at least one trichromatic triangle and an odd number of trichromatic triangles in Sperner's lemma.
+
+Similarly, an all-red and and an all-yellow $n times n$ grid violate exactly one condition. Each of these examples has 0 trichromatic triangles and causes Sperner's lemma to fail.]<necessity-sperner-hypothesis>
+
+
 
 == The connection between Brouwer and Sperner <sec-brouwer-sperner>
 
@@ -99,7 +104,7 @@ We formalize these ideas in the next sections, arriving at two results. First, w
   #align(center)[
     #image("figures/brouwer/example_games.svg", width: 100.0%)
   ]
-]
+] <ex:sperner-toy-games>
 
 It is worth noting that the trichromatic triangles obtained via the above reduction are not always in the proximity of exact fixed points of the function. Unless the discretization is fine enough and $f$ has extra properties, we will only guarantee that the trichromatic triangles are in the proximity of approximate fixed points. While this is not the case in the examples above, it can be the case.
 
@@ -167,6 +172,8 @@ In turn, using a standard compactness argument, @cor:sperner implies Brouwer's f
   The function $d(vz) := norm(f(vz) - vz)_oo$ is continuous on the compact square $[0,1]^2$. By Weierstrass's extreme value theorem, it attains a minimum $m >= 0$ at some point $vz^*$. For every $epsilon.alt > 0$, @cor:sperner gives a point $vz$ with $d(vz) < 2 epsilon.alt$, so $m < 2 epsilon.alt$ for every $epsilon.alt > 0$. Therefore $m = 0$, and $f(vz^*) = vz^*$.
 ]
 
+Note that while Sperner's lemma states the existence of an odd number of trichromatic triangles, the compactness argument above fails to prove that there are an odd number of fixed points and consequently an odd number of Nash equilibria. The supplementary reading on #lecture-link("nash_algorithms", <sec-lemke-howson>)[Lemke-Howson algorithm] develops a constructive proof of oddness for 2-player games. Wilson's Oddness Theorem then extends this result, stating that for almost all finite normal-form games - specifically, all "non-degenerate" games - the number of Nash equilibria is finite and odd #citep(<Wilson71>). The proof uses differential topology rather than combinatorics. It assigns each equilibrium an index of ±1 and shows that these indices must sum to 1, so the total number of Nash equilibria in such games must be odd.
+
 = Proof of Sperner's lemma <sec-sperner-proof>
 
 Now we turn to proving Sperner's lemma. As it turns out, the lemma can be obtained as a corollary of a very basic parity argument on directed graphs #citep(<cohen1967sperner>, <papadimitriou1994parity>).
@@ -189,6 +196,179 @@ Now that our boundary coloring is standard, we can easily show Sperner's lemma u
 ]
 
 For the standard Sperner coloring of @fig:sperner-coloring, the corresponding graph is shown just above on the left.
+
+The paths below follow the Sperner discretizations in @ex:sperner-toy-games.
+
+#figure(
+  context {
+    // Keep the diagram editable with this lecture. Use the same payoff matrices,
+    // color tie-breaking, grid helper, and drawing style as the toy-game example.
+    import "@preview/cetz:0.3.4"
+    import "figures/libs/sperner.typ": _sperner_grid, sperner_w, sperner_h
+    import "figures/libs/nash.typ": softbr
+    import "meta/linalg.typ": transpose
+    let for-html = target() == "html"
+    set text(font: if for-html { "Georgia" } else { "New Computer Modern" }, size: 9pt)
+    // CeTZ positions its own content; omit the lecture's HTML alignment wrapper.
+    show align: it => it.body
+    // Payoffs and coloring match the existing toy-game discretizations.
+
+    let tof_A1 = ((0, 5), (1, 0))
+    let tof_A2 = ((0, 1), (5, 0))
+    let psg_A1 = ((-1, 1), (1, -1))
+    let psg_A2 = ((1, -1), (-1, 1))
+    let pdi_A1 = ((-1, -3), (0, -2))
+    let pdi_A2 = ((-1, 0), (-3, -2))
+
+    let improvement(A1, A2) = {
+      let A2T = transpose(A2)
+      (p, q) => {
+        let x = (1 - p, p)
+        let y = (1 - q, q)
+        (softbr(x, A1, y).at(1), softbr(y, A2T, x).at(1))
+      }
+    }
+
+    // Rows run from top to bottom, as in libs/sperner.typ.
+    // Preserve the tie-breaking of the original toy-game figure.
+    let toy-coloring(A1, A2, n: 8) = {
+      let f = improvement(A1, A2)
+      let rows = ()
+      for i in range(n + 1) {
+        rows.push("")
+        for j in range(n + 1) {
+          let p = j / n
+          let q = (n - i) / n
+          let (pp, qq) = f(p, q)
+          let (dp, dq) = (pp - p, qq - q)
+          let ch = if dp >= 0 and dq >= 0 { "y" } else if dp >= dq { "r" } else { "b" }
+          if j == n and ch == "y" { ch = "b" }
+          else if i == 0 and ch == "y" { ch = "r" }
+          else if j == 0 and ch == "b" { ch = "y" }
+          else if i == n and ch == "r" { ch = "y" }
+          rows.at(-1) += ch
+        }
+      }
+      rows
+    }
+
+    // Construct the directed graph from the actual red-yellow doors, not drawn paths.
+    let sperner-graph(rows) = {
+      let n = rows.len() - 1
+      assert(rows.all(row => row.len() == n + 1))
+      let padded = ("r" + "b" * (n + 2),)
+      for row in rows { padded.push("r" + row + "b") }
+      padded.push("y" * (n + 2) + "b")
+      let color(v) = padded.at(n + 2 - v.at(1)).at(v.at(0))
+      let triangles = ()
+      let doors = (:)
+      for y in range(n + 2) {
+        for x in range(n + 2) {
+          // Counterclockwise vertices; same falling diagonal as _sperner_grid.
+          for vertices in (
+            ((x, y), (x + 1, y), (x, y + 1)),
+            ((x + 1, y + 1), (x, y + 1), (x + 1, y)),
+          ) {
+            let id = triangles.len()
+            let center = (vertices.map(v => v.at(0)).sum() / 3,
+                          vertices.map(v => v.at(1)).sum() / 3)
+            triangles.push((vertices: vertices, center: center,
+              trichromatic: vertices.map(color).dedup().len() == 3))
+            for i in range(3) {
+              let a = vertices.at(i)
+              let b = vertices.at(calc.rem(i + 1, 3))
+              if (color(a), color(b)).sorted() == ("r", "y") {
+                let key = repr((a, b).sorted(key: v => v.at(0) + (n + 3) * v.at(1)))
+                let entries = doors.at(key, default: ())
+                // Crossing a CCW boundary edge outwards keeps its second vertex left.
+                entries.push((id: id, outgoing: color(b) == "r"))
+                doors.insert(key, entries)
+              }
+            }
+          }
+        }
+      }
+      let next = (none,) * triangles.len()
+      let prev = (none,) * triangles.len()
+      for entries in doors.values() {
+        if entries.len() == 2 {
+          let outgoing = entries.find(e => e.outgoing).id
+          let incoming = entries.find(e => not e.outgoing).id
+          assert(next.at(outgoing) == none and prev.at(incoming) == none)
+          next.at(outgoing) = incoming
+          prev.at(incoming) = outgoing
+        } else {
+          // The only unpaired door is the entry on the standard bottom-left boundary.
+          assert(entries.len() == 1 and entries.first().id == 0)
+        }
+      }
+      let paths = ()
+      for start in range(triangles.len()) {
+        if prev.at(start) == none and next.at(start) != none {
+          let path = (start,)
+          let node = start
+          while next.at(node) != none {
+            node = next.at(node)
+            assert(not path.contains(node), message: "A source path cannot enter a cycle.")
+            path.push(node)
+          }
+          assert(start == 0 or triangles.at(start).trichromatic)
+          assert(triangles.at(node).trichromatic)
+          paths.push(path)
+        }
+      }
+      let endpoints = paths.map(p => (p.first(), p.last())).flatten().filter(id => id != 0)
+      assert(endpoints.sorted() == range(triangles.len()).filter(id => triangles.at(id).trichromatic))
+      (rows: padded, triangles: triangles, paths: paths, next: next, prev: prev)
+    }
+
+    let panel(title, A1, A2) = {
+      let graph = sperner-graph(toy-coloring(A1, A2))
+      cetz.canvas(length: .5cm, {
+        import cetz.draw: *
+        let w = sperner_w
+        let h = sperner_h
+        let pos(v) = (v.at(0) * w, v.at(1) * h)
+        let center(id) = pos(graph.triangles.at(id).center)
+        _sperner_grid(..graph.rows, radius: .65mm, bottom_left: purple.lighten(60%))
+        // The original unit square is one grid step inside the artificial frame.
+        rect(pos((1, 1)), pos((9, 9)), stroke: (paint: black, thickness: .3mm, dash: "dashed"))
+        for path in graph.paths {
+          let main = path.first() == 0
+          let paint = if main { black } else { purple }
+          let stroke = (paint: paint, thickness: .35mm)
+          for (a, b) in path.zip(path.slice(1)) {
+            // A white underlay separates the path from the triangulation edges.
+            line(center(a), center(b), stroke: .65mm + white)
+            line(center(a), center(b), stroke: stroke,
+              mark: (end: ">", scale: .38, fill: paint))
+          }
+          for id in (path.first(), path.last()) {
+            circle(center(id), radius: .55mm, fill: paint, stroke: none)
+          }
+        }
+        content(pos((5, 11.1)), emph(title))
+      })
+    }
+
+    let drawing = grid(columns: 3, column-gutter: 3mm, align: top + center,
+      panel("Theater or football", tof_A1, tof_A2),
+      panel("Prisoner's dilemma", pdi_A1, pdi_A2),
+      panel("Penalty shot game", psg_A1, psg_A2),
+    )
+    let diagram = context {
+      let width = if for-html { 585pt } else { 405pt }
+      let factor = width / measure(drawing).width * 100%
+      scale(x: factor, y: factor, reflow: true, drawing)
+    }
+    if for-html {
+      html.frame(diagram)
+    } else {
+      diagram
+    }
+  },
+  caption: [Sperner paths for the three games in @ex:sperner-toy-games.],
+) <fig-sperner-toy-paths>
 
 == Properties of the Sperner graph <sec-sperner-graph>
 
@@ -240,37 +420,6 @@ We stated and proved Sperner's lemma for the two-dimensional grid, and used that
 The square is not essential to Sperner's lemma. Suppose we triangulate a triangle whose three corners are colored red, yellow, and blue. On each boundary side, allow only the colors of its two endpoints. Interior vertices may have any of the three colors. This boundary rule also guarantees a trichromatic small triangle. Indeed, the red-yellow side has an odd number of red-yellow edges, since its colors begin red and end yellow, while the other two sides have none. Counting red-yellow edges over all small triangles, interior edges are counted twice. Each trichromatic triangle has exactly one such edge, whereas each nontrichromatic triangle has zero or two. Thus the number of trichromatic triangles is odd, and in particular nonzero.
 
 There is a $d$-dimensional generalization of Sperner's lemma, which can be used to prove Brouwer's fixed point theorem for continuous functions mapping $\[ 0 \, 1 \]^d$ to itself. In the high-dimensional  case, a $d$-dimensional grid is partitioned into simplices, the $d$-dimensional analog of triangles, without introducing any more vertices other than those in the grid. The vertices of the grid are now colored with $d + 1$ colors, $0 \, 1 \, ... \, d$. Now, a coloring is valid if color $i$ is not present in facet $x_i = 0$, for all $i = 1 \, ... \, d$, and color $0$ is not present in all facets $x_i = 1$, for all $i = 1 \, ... \, d$. Sperner's lemma guarantees the existence of a simplex that has all $d + 1$ colors on its $d + 1$ vertices. Using the $d$-dimensional version of Sperner's lemma to prove Brouwer's fixed point theorem for continuous functions mapping the $d$-dimensional hypercube to itself is analogous to the $d = 2$ case. Finally, given Brouwer's fixed point theorem for the hypercube it is not hard to prove it for other convex and compact sets. Given a function defined on an arbitrary convex and compact set, one can first affinely transform the coordinate system so the set lies inside the unit hypercube. Then the function can be extended outside of the set by first projecting points of the hypercube to the set and then applying the function. This will not introduce any spurious fixed points.
-
-= Problems <sec-brouwer-problems>
-
-#exercise[Splitting the Rent][
-  
-  Three roomates (Costis, Nathan, and Gabriele) just moved in together to a 3-bedroom apartment. They want to decide who gets which room and how to split the \$3000 rent. Call the rooms $R,Y,B$ (red, yellow, blue) and the roommates $C,N,G$. Rooms are not identical and different roommates may value them differently.
-  
-  Define a "valid rent split" to be a tuple of three non-negative integers $p_R, p_Y, p_B >= 0$ with $p_R + p_Y + p_B = 3000$. Each roommate $C,N,G$ has a desire function $d_C, d_N, d_G : ZZ_(>=0)^3 -> {R,Y,B}$ respectively that maps a valid rent split to a room they prefer. For example, $d_C (p_R, p_Y, p_B)=R$ means that Costis prefers the red room at these prices. Assume that if some room has price 0, then _every_ roommate prefers it to any room with non-zero price. Specifically,
-  - if $p_R = 0$, $d_C (p_R,p_Y,p_B) = d_N (p_R,p_Y,p_B) = d_G (p_R,p_Y,p_B) = R$
-  - if $p_Y = 0$ and $p_R>0$, $d_C (p_R,p_Y,p_B) = d_N (p_R,p_Y,p_B) = d_G (p_R,p_Y,p_B) = Y$
-  - if $p_B = 0$ and $p_R,p_Y>0$, $d_C (p_R,p_Y,p_B) = d_N (p_R,p_Y,p_B) = d_G (p_R,p_Y,p_B) = B$
-  
-  #strong[(a) 15 points.] Prove that there exists: (i) an assignment of roommates to rooms $r_C, r_N, r_G in {R, Y, B}$ (a permutation), and (ii) a valid rent split $p_R,p_Y,p_B$ such that everyone is _almost happy_. For every roommate $i in {C,N,G}$ there exists a valid rent split $p'_R,p'_Y,p'_B$ with $|p_R - p'_R| <= 1$ for all $r in {R, Y, B}$ such that $d_i (p'_R,p'_Y,p'_B)=r_i$.
-
-  Hint: The discrete set of valid rent splits triangulate the simplex of non-negative triples summing to 3000. Consider a Sperner-style labeling of this triangulation.
-
-  #solution[
-    Consider the set of valid rent splits $ Delta={(p_R,p_Y,p_B) in ZZ_(>=0)^3 : p_R + p_Y + p_B = 3000} $
-    This is a triangulation of the simplex of non-negative triples summing to 3000, where neighboring vertices differ by at most 1 in every coordinate. We assign one of the roommates as the owner of each vertex $v=(p_R, p_Y, p_B)$. Namely,
-    the owner of vertex $v$ is the $i$th element of ${C, N, G}$ with $i = (p_R + 2 * p_Y) mod 3$. Each triangle then has one vertex owned by each roommate. We color each vertex $(p_R, p_Y, p_B)$ according the preference of the owner $d_i (p_R, p_Y, p_B)$. We override the coloring of the vertex $(0, 3000, 0)$ to be B so the boundary conditions of the Sperner coloring are satisfied. Also note the overridden triangle $(0, 3000, 0), (1, 2999, 0), (0, 2999, 1)$ is not trichromatic. By Sperner's lemma, there exists at least one trichromatic triangle. At this triangle, we have all three roommates, and all three colors. Picking any of the three vertices of this triangle as the prices, we have a valid rent split and an assignment of roommates to rooms that makes everyone almost happy - unhappy roommates would be happy with their rooms at the prices given by an adjacent vertex.
-  ]
-  
-  #strong[(b) 10 points.] Design an algorithm that computes an assignment and prices that make every roommate almost happy (in the sense above). Your algorithm can query the desire functions $d_C,d_N,d_G$ on valid rent splits $(p_R,p_Y,p_B)$. For example, querying $d_C (p_R,p_Y,p_B)$ is asking Costis "Given valid rent split $(p_R,p_Y,p_B)$, which room do you prefer?"
-
-  Hint: Use these queries to implement the proof of Sperner's lemma we saw in class.
-
-  #solution[
-    Iterate over all valid rent splits $(p_R,p_Y,p_B)$. At each valid rent split, we consider the triangle above and below it. For each triangle, for each vertex we identify the owner as the $i$th entry of ${C, N, G}$ with $i = (p_R + 2 * p_Y) mod 3 $. We then use the desire function ($d_C,d_N,d_G$) of the owner of that vertex to determine its coloring. If we find a trichromatic triangle, we return the prices corresponding to one of  the vertices of that triangle, and the room assignment given by the owners of each vertex and their desired rooms at those vertices. This algorithm runs in polynomial time with respect to the price of the apartment, $n=3000$, as there are $O(n^2)$ valid rent splits.
-  ]
-]
-
 
 = Necessity of the hypotheses <sec-brouwer-hypotheses>
 
@@ -338,6 +487,60 @@ _Continuity_, _compactness_, and _convexity_ are each necessary in Brouwer's the
   ]
 ]
 
+= Problems <sec-brouwer-problems>
+
+#exercise[Splitting the Rent][
+  
+  Three roomates (Costis, Nathan, and Gabriele) just moved in together to a 3-bedroom apartment. They want to decide who gets which room and how to split the \$3000 rent. Call the rooms $R,Y,B$ (red, yellow, blue) and the roommates $C,N,G$. Rooms are not identical and different roommates may value them differently.
+  
+  Define a "valid rent split" to be a tuple of three non-negative integers $p_R, p_Y, p_B >= 0$ with $p_R + p_Y + p_B = 3000$. Each roommate $C,N,G$ has a desire function $d_C, d_N, d_G : ZZ_(>=0)^3 -> {R,Y,B}$ respectively that maps a valid rent split to a room they prefer. For example, $d_C (p_R, p_Y, p_B)=R$ means that Costis prefers the red room at these prices. Assume that if some room has price 0, then _every_ roommate prefers it to any room with non-zero price. Specifically,
+  - if $p_R = 0$, $d_C (p_R,p_Y,p_B) = d_N (p_R,p_Y,p_B) = d_G (p_R,p_Y,p_B) = R$
+  - if $p_Y = 0$ and $p_R>0$, $d_C (p_R,p_Y,p_B) = d_N (p_R,p_Y,p_B) = d_G (p_R,p_Y,p_B) = Y$
+  - if $p_B = 0$ and $p_R,p_Y>0$, $d_C (p_R,p_Y,p_B) = d_N (p_R,p_Y,p_B) = d_G (p_R,p_Y,p_B) = B$
+  
+  #strong[(a) 15 points.] Prove that there exists: (i) an assignment of roommates to rooms $r_C, r_N, r_G in {R, Y, B}$ (a permutation), and (ii) a valid rent split $p_R,p_Y,p_B$ such that everyone is _almost happy_. For every roommate $i in {C,N,G}$ there exists a valid rent split $p'_R,p'_Y,p'_B$ with $|p_R - p'_R| <= 1$ for all $r in {R, Y, B}$ such that $d_i (p'_R,p'_Y,p'_B)=r_i$.
+
+  Hint: The discrete set of valid rent splits triangulate the simplex of non-negative triples summing to 3000. Consider a Sperner-style labeling of this triangulation.
+
+  #solution[
+    Consider the set of valid rent splits $ Delta={(p_R,p_Y,p_B) in ZZ_(>=0)^3 : p_R + p_Y + p_B = 3000} $
+    This is a triangulation of the simplex of non-negative triples summing to 3000, where neighboring vertices differ by at most 1 in every coordinate. We assign one of the roommates as the owner of each vertex $v=(p_R, p_Y, p_B)$. Namely,
+    the owner of vertex $v$ is the $i$th element of ${C, N, G}$ with $i = (p_R + 2 * p_Y) mod 3$. Each triangle then has one vertex owned by each roommate. We color each vertex $(p_R, p_Y, p_B)$ according the preference of the owner $d_i (p_R, p_Y, p_B)$. We override the coloring of the vertex $(0, 3000, 0)$ to be B so the boundary conditions of the Sperner coloring are satisfied. Also note the overridden triangle $(0, 3000, 0), (1, 2999, 0), (0, 2999, 1)$ is not trichromatic. By Sperner's lemma, there exists at least one trichromatic triangle. At this triangle, we have all three roommates, and all three colors. Picking any of the three vertices of this triangle as the prices, we have a valid rent split and an assignment of roommates to rooms that makes everyone almost happy - unhappy roommates would be happy with their rooms at the prices given by an adjacent vertex.
+  ]
+  
+  #strong[(b) 10 points.] Design an algorithm that computes an assignment and prices that make every roommate almost happy (in the sense above). Your algorithm can query the desire functions $d_C,d_N,d_G$ on valid rent splits $(p_R,p_Y,p_B)$. For example, querying $d_C (p_R,p_Y,p_B)$ is asking Costis "Given valid rent split $(p_R,p_Y,p_B)$, which room do you prefer?"
+
+  Hint: Use these queries to implement the proof of Sperner's lemma we saw in class.
+
+  #solution[
+    Iterate over all valid rent splits $(p_R,p_Y,p_B)$. At each valid rent split, we consider the triangle above and below it. For each triangle, for each vertex we identify the owner as the $i$th entry of ${C, N, G}$ with $i = (p_R + 2 * p_Y) mod 3 $. We then use the desire function ($d_C,d_N,d_G$) of the owner of that vertex to determine its coloring. If we find a trichromatic triangle, we return the prices corresponding to one of  the vertices of that triangle, and the room assignment given by the owners of each vertex and their desired rooms at those vertices. This algorithm runs in polynomial time with respect to the price of the apartment, $n=3000$, as there are $O(n^2)$ valid rent splits.
+  ]
+]
+#exercise[KKM Lemma][Prove the following result: consider a triangle $T$ with vertices $A$, $B$, $C$, and three closed sets $S_A$, $S_B$, $S_C$ contained within $T$ such that
+- $A in S_A, B in S_B, C in S_C$.
+- The entire edge $overline(A)overline(B)$ is contained in $S_A union union S_B$, and similarly for the other two edges.
+- The entire triangle $T$ is contained in $S_A union S_B union S_C$.
+Then $S_A inter S_B inter S_C !=  nothing$; there is a point in all three sets.
+#solution[For every $n > 1$, we can divide the sides of $T$ into $n$ equal segments. We can then draw lines parallel to the untouched edge through these division points. This splits triangle $T$ into $n^2$ congruent triangles.  Let the diameter of triangle $T$ be $D$, so each of the smaller $n^2$ triangles has a diameter of $D/n$.
+
+We now color the vertices of the smaller triangles. Specifically, we label each vertex $v$ of this triangulation with $L in {A, B, C}$  such that $v in S_L$, which is always possible by the third KKM condiiton. By the first condition, we may assume that vertices $A$, $B$, and $C$ receive their corresponding label. By the second condition, we may label every vertex on the edge $overline(A)overline(B)$ with either $A$ or $B$. We can apply this reasoning for the other two edges.
+
+Now there is a different color excluded from each three edges of $T$. In other words, we have a Sperner coloring. Therefore, there must be at least one trichromatic triangle with vertices $a_n$, $b_n$, $c_n$ in which $a_n in A, b_n in B, c_n in C$ (the proof of this fact is analogous to our proof for a square grid). The pairwise distances between the vertices of this trichromatic triangle are at most $D/n$.
+
+Since $T$ is compact, the $a_n$ sequence has a convering subsequence $a_n_k arrow x^* in T$ by Bolzano-Weierstrass. Since we know that $abs(a_n_k - b_n_k) <= D/n_k arrow 0$ by the triangle inequality, we can also say that $b_n_k arrow x^*$ and $c_n_k arrow x^*$.
+
+We know that $S_A$ is a closed set and it contains every $a_n_k$. Therefore $S_A$ must contain $x^*$. Similarly, $x^* in S_B$ and $x^* in S_C$. Therefore, we can conclude that $x^* in S_A inter S_B inter S_C$.]]
+
+
+#exercise[Continuous curves][Suppose you have a continuous curve $c_1$ that starts at $(0, 0)$ and ends at $(1, 1)$, and stays in the unit square. Suppose you have another continuous curve $c_2$ that starts at $(0, 1)$, ends at $(1, 0)$, and stays in the unit square. Use Brouwer's fixed point theorem to show that the two curves must have at least one intersection.
+
+#solution[Let us first define the cuntonuous curves $c_1 = (x_1(s), y_1(s))$ and $c_2 = (x_2(t), y_2(t))$ for $s, t in [0, 1]$. We know that from how we defined $c_1$ and $c_2$ that $c_1(0) = (0, 0)$, $c_1(1) = (1, 1)$, $c_2(0) = (0, 1)$, and $c_2(1) = (1, 0)$.
+
+Let us suppose for contradiction that for all $(s, t) in [0, 1]^2$, $c_1(s) != c_2(t)$. Then we can say that $d(s, t) = c_2(t) - c_1(s)$, where $d(s, t) != 0$. We can normalize this distance by $N(s, t) = max(abs(d_x), abs(d_y))$ where $N(s, t) > 0$. Let us call this normalized distance $K(s, t)$. Now $K(s, t) = d(s, t)/N(s, t)$ lies somewhere on the boundary of $[-1, 1]^2$. 
+
+We want to map $K(s, t)$ to $[0, 1]^2$. We can define $F(s, t) = 1/2 vec(1, 1) + 1/2 K(s, t)$. Since we built $F(s, t)$ off of our continuous $c_1$ and $c_2$ and $N(s, t)>0$, we know that $F(s, t)$ is a continuous map to itself or the unit square.
+
+Applying Brouwer's fixed point theorem to $F(s, t)$, we know there is a fixed point $(s^*, t^*) = F(s^*, t^*)$ that lies on the boundary of $[0, 1]^2$. This is impossible because our curves $c_1$ and $c_2$ both stay in the unit square. Therefore, there is no fixed point. This contradicts Brouwer's fixed point theorem. Our initial condition must be incorrect. There must be some $(s, t) in [0, 1]^2$ such that $c_1(s) = c_2(t)$ and the curves intersect.]]
 = Bibliography for this lecture
 
 #lec_bibliography("meta/refs.bib", title: none)
@@ -393,7 +596,7 @@ _Continuity_, _compactness_, and _convexity_ are each necessary in Brouwer's the
 
   The proof mode of the game below runs the adversary described above. You can query points, or whole rows and columns, until you find a trichromatic triangle, and you can reveal the coloring the adversary is currently committed to.
 
-  #interactive-demo("sperner-adversary", title: "Find the rainbow triangle", height: 720)
+  #interactive-demo("sperner_adversary", title: "Find the rainbow triangle", height: 720)
 
 
   = Lipschitz continuity of the Nash improvement function <sec-nash-lipschitz>
