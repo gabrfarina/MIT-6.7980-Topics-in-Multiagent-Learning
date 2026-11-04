@@ -1,9 +1,10 @@
 // The communication game of the team-games lecture (part 1). Chance draws a
 // uniform bit that only P1 sees. P1 sends left or right, which P2 and P3 both see,
 // and P2 and P3 then guess the bit. Team ▲ (P1, P2) gets 1 iff P2 is right and the
-// adversary ▼ (P3) is wrong. Information sets are dashed lines. Edge labels are the
-// behavioral probabilities a, ..., f of the notes, and leaves are numbered
-// z_1, ..., z_12 left to right, as in the realization vectors of part 3.
+// adversary ▼ (P3) is wrong. Information sets are shaded bands, as in the other
+// lectures. Edge labels are the behavioral probabilities a, ..., f of the notes, and
+// the leaves z_1, ..., z_12 sit in one row, left to right, as in the realization
+// vectors of part 3.
 #set page(width: auto, height: auto, margin: 0mm, fill: none)
 #import "../libs/typography.typ": figure-font, figure-style
 #import "../../meta/typography.typ": course-sans
@@ -15,8 +16,7 @@
 #let team-color = rgb(46, 104, 181)
 #let mate-color = rgb(118, 82, 166)
 #let adv-color = rgb(222, 110, 20)
-
-#let ybar(x) = $overline(#x)$
+#let bar(x) = $overline(#x)$
 
 #box(
   fill: panel,
@@ -25,23 +25,36 @@
   cetz.canvas(length: 1cm, {
     import cetz.draw: *
 
-    let lab(p, body, size: 9pt) = content(p, box(fill: panel, inset: 1.2pt, text(size, body)))
-    // Arrow from a to b, shortened by ra at a and rb at b, with a label at fraction t.
-    let arrow(a, b, ra, rb, label: none, t: .5) = {
+    let (y0, y1, y2, y3, yl) = (0, -1.4, -3.0, -4.8, -6.4)
+    let hy = .42 // half-height of an information-set band
+    let node-r = .3
+
+    let lab(p, body) = content(p, box(fill: panel, inset: 1.2pt, text(9pt, body)))
+    // Arrow from a to b. It leaves a at distance ra and stops at distance rb from b,
+    // or where it reaches the height stop-y (a band's top) or the abscissa stop-x
+    // (a band's side).
+    let arrow(a, b, ra, rb, label: none, t: .5, stop-y: none, stop-x: none) = {
       let (dx, dy) = (b.at(0) - a.at(0), b.at(1) - a.at(1))
       let n = calc.sqrt(dx * dx + dy * dy)
       let (ux, uy) = (dx / n, dy / n)
-      line(
-        (a.at(0) + ra * ux, a.at(1) + ra * uy),
-        (b.at(0) - rb * ux, b.at(1) - rb * uy),
-        stroke: .3mm,
-        mark: (end: "stealth", scale: .7, fill: black),
-      )
-      if label != none {
-        lab((a.at(0) + t * dx, a.at(1) + t * dy), label)
+      let end = if stop-x != none {
+        let s = (stop-x - a.at(0)) / dx
+        (stop-x, a.at(1) + s * dy)
+      } else if stop-y == none {
+        (b.at(0) - rb * ux, b.at(1) - rb * uy)
+      } else {
+        let s = (stop-y - a.at(1)) / dy
+        (a.at(0) + s * dx, stop-y)
       }
+      line((a.at(0) + ra * ux, a.at(1) + ra * uy), end, stroke: .3mm,
+        mark: (end: "stealth", scale: .7, fill: black))
+      if label != none { lab((a.at(0) + t * dx, a.at(1) + t * dy), label) }
     }
-    let node-r = .3
+    let band(x0, x1, y, paint, label) = {
+      rect((x0 - .55, y - hy), (x1 + .55, y + hy), radius: hy,
+        fill: paint.lighten(82%), stroke: .3mm + paint.lighten(30%))
+      content(((x0 + x1) / 2, y), text(9pt, paint.darken(15%), label))
+    }
     let tri(p, paint, num, up: true) = {
       let s = if up { 1 } else { -1 }
       line(
@@ -53,61 +66,53 @@
     let leaf(p, value, k) = {
       rect((p.at(0) - .08, p.at(1) - .08), (p.at(0) + .08, p.at(1) + .08), fill: white, stroke: .22mm)
       content((p.at(0), p.at(1) - .32), text(8pt, $#value$))
-      content((p.at(0), p.at(1) - .68), text(7pt, luma(35%), $z_#k$))
-    }
-    let infoset(a, b, paint, label, side: left) = {
-      line(a, b, stroke: (paint: paint, thickness: .35mm, dash: "dashed"))
+      content((p.at(0), p.at(1) - .68), text(8pt, luma(30%), $z_#k$))
     }
 
-    let root = (6, 0)
-    let p1 = ((3, -1.5), (9, -1.5)) // bit 0, bit 1
-    let y2 = -3.3
-    let y3 = -4.9
-    let yl = -6.4
-    // P2 nodes in tree order: (bit, message, x).
-    let p2 = ((0, "L", 1.5), (1, "L", 4.5), (0, "R", 7.5), (1, "R", 10.5))
+    // Leaves z_1, ..., z_12 in one row.
+    let lx(k) = .6 + (k - 1) * 1.0
+    let root = (6.1, y0)
+    let p1 = ((2.6, y1), (9.6, y1)) // bit 0, bit 1
+    // P2 nodes in tree order (bit, message): each sits above its three leaves.
+    let p2 = ((0, "L", lx(2)), (1, "L", lx(5)), (0, "R", lx(8)), (1, "R", lx(11)))
 
-    // Information sets first, under everything else.
-    infoset((1.5 + .3, y2), (4.5 - .3, y2), mate-color, none)
-    infoset((7.5 + .3, y2), (10.5 - .3, y2), mate-color, none)
-    infoset((.75 + .3, y3), (5.25 - .3, y3), adv-color, none)
-    infoset((6.75 + .3, y3), (11.25 - .3, y3), adv-color, none)
-    content((3, y2 + .25), text(7.5pt, mate-color.darken(20%), [sees left]))
-    content((9, y2 + .25), text(7.5pt, mate-color.darken(20%), [sees right]))
-    content((3, y3 + .25), text(7.5pt, adv-color.darken(25%), [sees left]))
-    content((9, y3 + .25), text(7.5pt, adv-color.darken(25%), [sees right]))
+    // Information sets, under everything else.
+    band(lx(2), lx(5), y2, mate-color, [sees left])
+    band(lx(8), lx(11), y2, mate-color, [sees right])
+    band((lx(1) + lx(2)) / 2, (lx(5) + lx(6)) / 2, y3, adv-color, [sees left])
+    band((lx(7) + lx(8)) / 2, (lx(11) + lx(12)) / 2, y3, adv-color, [sees right])
 
     // Chance and Player 1.
     arrow(root, p1.at(0), .27, node-r, label: $1\/2$)
     arrow(root, p1.at(1), .27, node-r, label: $1\/2$)
-    content((p1.at(0).at(0) - .75, p1.at(0).at(1) + .1), text(8pt, luma(30%), [bit 0]))
-    content((p1.at(1).at(0) + .75, p1.at(1).at(1) + .1), text(8pt, luma(30%), [bit 1]))
-    arrow(p1.at(0), (1.5, y2), node-r, node-r, label: $a$, t: .45)
-    arrow(p1.at(0), (7.5, y2), node-r, node-r, label: ybar($a$), t: .2)
-    arrow(p1.at(1), (4.5, y2), node-r, node-r, label: $b$, t: .2)
-    arrow(p1.at(1), (10.5, y2), node-r, node-r, label: ybar($b$), t: .45)
+    content((p1.at(0).at(0) - .8, y1 + .05), text(9pt, luma(30%), [bit 0]))
+    content((p1.at(1).at(0) + .8, y1 + .05), text(9pt, luma(30%), [bit 1]))
+    arrow(p1.at(0), (lx(2), y2), node-r, 0, label: $a$, t: .45, stop-y: y2 + hy)
+    arrow(p1.at(0), (lx(8), y2), node-r, 0, label: bar($a$), t: .22, stop-x: lx(8) - .55)
+    arrow(p1.at(1), (lx(5), y2), node-r, 0, label: $b$, t: .22, stop-x: lx(5) + .55)
+    arrow(p1.at(1), (lx(11), y2), node-r, 0, label: bar($b$), t: .45, stop-y: y2 + hy)
 
-    // Player 2, Player 3, and leaves. Leaf numbers run left to right.
+    // Player 2, Player 3, and leaves. A right guess by Player 2 leads to Player 3,
+    // and a wrong one ends the game with payoff 0.
     let k = 1
     for (bit, msg, x) in p2 {
-      let (g0, g1) = if msg == "L" { ($c$, ybar($c$)) } else { ($d$, ybar($d$)) }
-      let (h0, h1) = if msg == "L" { ($e$, ybar($e$)) } else { ($f$, ybar($f$)) }
-      // Player 2 guesses 0 (left edge) or 1 (right edge). A right guess leads to
-      // Player 3, a wrong one ends the game with payoff 0.
+      let (g0, g1) = if msg == "L" { ($c$, bar($c$)) } else { ($d$, bar($d$)) }
+      let (h0, h1) = if msg == "L" { ($e$, bar($e$)) } else { ($f$, bar($f$)) }
       for (guess, glabel) in ((0, g0), (1, g1)) {
-        let q = (x - .75 + 1.5 * guess, y3)
         if guess == bit {
-          arrow((x, y2), q, node-r, node-r, label: glabel)
+          // Player 3 sits above the two leaves that follow.
+          let q = ((lx(k) + lx(k + 1)) / 2, y3)
+          arrow((x, y2), q, node-r, 0, label: glabel, t: .5, stop-y: y3 + hy)
           for (pg, hlabel) in ((0, h0), (1, h1)) {
-            let z = (q.at(0) - .45 + .9 * pg, yl)
-            arrow(q, z, .2, .1, label: hlabel, t: .45)
+            let z = (lx(k), yl)
+            arrow(q, z, .2, .12, label: hlabel, t: .45)
             // The team wins iff Player 3 guesses wrong.
             leaf(z, if pg == bit { 0 } else { 1 }, k)
             k += 1
           }
         } else {
-          let z = (q.at(0), yl)
-          arrow((x, y2), z, node-r, .1, label: glabel, t: .25)
+          let z = (lx(k), yl)
+          arrow((x, y2), z, node-r, .12, label: glabel, t: .27)
           leaf(z, 0, k)
           k += 1
         }
@@ -116,12 +121,12 @@
 
     // Nodes on top.
     circle(root, radius: .25, fill: white, stroke: .25mm)
-    content(root, text(8pt, $C$))
+    line((root.at(0) - .177, -.177), (root.at(0) + .177, .177), stroke: .25mm)
+    line((root.at(0) - .177, .177), (root.at(0) + .177, -.177), stroke: .25mm)
     for p in p1 { tri(p, team-color, "1") }
-    for (bit, msg, x) in p2 {
-      tri((x, y2), mate-color, "2")
-      let q = (x - .75 + 1.5 * bit, y3)
-      tri(q, adv-color, "3", up: false)
+    for (bit, msg, x) in p2 { tri((x, y2), mate-color, "2") }
+    for (a, b) in ((1, 2), (5, 6), (7, 8), (11, 12)) {
+      tri(((lx(a) + lx(b)) / 2, y3), adv-color, "3", up: false)
     }
   }),
 )
