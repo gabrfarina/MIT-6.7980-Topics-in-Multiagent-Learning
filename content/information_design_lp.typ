@@ -28,7 +28,7 @@ mediator and the players in the communication game. The mediator has
 perfect recall there, since it remembers every report it receives and every
 recommendation it sends, so by
 #lecture-link("efg_intro", <sec-behavioral-form>)[Kuhn's theorem] we can
-represent its randomized strategy by a sequence-form vector vmu in cX_M.
+represent its randomized strategy by a sequence-form vector $vmu in cX_M$.
 
 == The optimization problem <sec-l11-program>
 
