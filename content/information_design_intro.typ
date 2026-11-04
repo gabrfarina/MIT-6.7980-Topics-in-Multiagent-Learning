@@ -14,8 +14,7 @@
 We begin with two examples of how commitment and communication can change
 strategic behavior: a leader committing to a strategy, and a mediator
 coordinating players through recommendations. Both illustrate how to choose
-a committed strategy that makes following a recommendation a best response
-#citep(<Zhang2026Mechanism>, [slides 2--6]).
+a committed strategy that makes following a recommendation a best response.
 
 == Stackelberg equilibrium <sec-l11-stackelberg>
 
