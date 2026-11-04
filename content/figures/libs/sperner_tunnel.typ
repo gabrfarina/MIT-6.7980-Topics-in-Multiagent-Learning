@@ -1,7 +1,7 @@
 // Tunnel colorings from the query lower bound for Sperner's lemma
 // (content/brouwer.typ, <sec-sperner-query-lower-bound>). The geometry and the
 // painting rule mirror makeProofEngine in
-// content/interactive/sperner-adversary.html; keep the two in sync.
+// interactive/sperner_adversary.html; keep the two in sync.
 //
 // Points are (x, y) with y pointing up. A coloring of the grid {0, ..., n}^2 is
 // a flat array whose entry y * (n + 1) + x is one of tunnel-red, tunnel-yellow,
