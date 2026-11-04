@@ -88,7 +88,7 @@ For a two-player zero-sum game, the #lecture-link("learning_intro", <sec-learnin
 ]
 
 The two orders of play explain the gap. In the min-max problem the adversary commits first, and the team then tailors its message to the adversary's known guesses. In the max-min problem the team commits first. A message that tells Player 2 anything about the bit then tells Player 3 the same thing, so the team can do no better than having Player 2 guess blindly. For instance, if Player 1 sends the bit in the clear, Player 3 copies Player 2's guess and the team gets $0$. The team's utility is not concave in $(a, b; c, d)$, so the minimax theorem does not apply. The next part of the lecture shows that shared randomness closes the gap.
-// Once merged with team_games_tmecor.typ, link "next part" to @sec-team-correlation.
+// Merge: link "The next part of the lecture" to @sec-team-correlation in part 2.
 
 == Why not Nash equilibrium? <sec-team-nash>
 
@@ -105,7 +105,8 @@ This is why we optimize over the team's strategy as a whole, as in @def-team-tme
 = Computational hardness <sec-team-hardness>
 
 In a two-player zero-sum extensive-form game, the #lecture-link("efg_intro", <sec-sequence-form>)[sequence form] gives a maxmin strategy by a linear program of polynomial size. For teams, finding the value is NP-hard, even without an adversary. The reason is that the team, viewed as one player, can forget what one teammate knew when the other acts.
-// Once merged with team_games_tmecor.typ, reference @sec-team-imperfect-recall here. The reduction below is due to #citet(<Koller92:Complexity>), who phrased it as a single player with imperfect recall.
+The reduction below is due to #citet(<Koller92:Complexity>), who phrased it as a single player with imperfect recall.
+// Merge: link "can forget" to @sec-team-imperfect-recall in part 2.
 
 == The satisfiability reduction <sec-team-sat>
 
@@ -139,7 +140,7 @@ The nodes of Player 2 that see the same variable $x_i$ form one information set,
   The team can win $G_phi$ with probability $1$ if and only if $phi$ is satisfiable. This holds both with and without correlation. Hence deciding whether the TME value, or the TMECor value, of a team game is $1$ is NP-hard, even when both teammates have perfect recall and there is no adversary.
 ] <thm-team-sat>
 #proof[
-  ($<==$) Let $sigma$ satisfy $phi$. Player 2 plays $pi_2 = sigma$, and in each clause Player 1 points to a literal that $sigma$ makes true. By @lem-team-sat-plans this pure, hence uncorrelated, joint plan wins with probability $1$.
+  ($<==$) Let $alpha$ be an assignment that satisfies $phi$. Player 2 plays $pi_2 = alpha$, and in each clause Player 1 points to a literal that $alpha$ makes true. By @lem-team-sat-plans this pure, hence uncorrelated, joint plan wins with probability $1$.
 
   ($==>$) Suppose that a distribution $vmu$ over joint plans wins with probability $1$. Its value is the average of the values of the plans in its support, each at most $1$, so some plan $(pi_1, pi_2)$ wins with probability $1$. By @lem-team-sat-plans, the literal $pi_1 (j)$ is true under $pi_2$ for every clause $C_j$, so the assignment $pi_2$ satisfies $phi$. Uncorrelated strategies are a special case of distributions over joint plans, so the same holds for the TME.
 
@@ -196,7 +197,8 @@ The gap $1\/8$ is the largest this reduction can give. A uniformly random assign
 ] <exr-team-no-adversary>
 
 #solution[
-  With no adversary, the team's utility is $EE_((pi_1, pi_2) ~ vmu) [u(pi_1, pi_2)]$, a linear function of $vmu in Delta(Pi_1 times Pi_2)$. Its maximum over the simplex is attained at a vertex, a point mass on a joint plan. A point mass is the product of two point masses, so it is uncorrelated, and the TME value is at least the TMECor value. The reverse inequality holds since every uncorrelated strategy is correlated. In the communication game, Player 3 moves after seeing the message, so the team's guarantee $min_vy EE[u]$ is a minimum of linear functions of $vmu$. It is concave rather than linear, so its maximum need not be at a vertex. Indeed it is $1\/2$ at the one-time pad, the correlated strategy of the next part of the lecture, but $0$ at every joint plan.
+  With no adversary, the team's utility is $EE_((pi_1, pi_2) ~ vmu) [u(pi_1, pi_2)]$, a linear function of $vmu in Delta(Pi_1 times Pi_2)$. Its maximum over the simplex is attained at a vertex, a point mass on a joint plan. A point mass is the product of two point masses, so it is uncorrelated, and the TME value is at least the TMECor value. The reverse inequality holds since every uncorrelated strategy is correlated. With an adversary, the team's guarantee $min_vy EE[u]$ is a minimum of linear functions of $vmu$. It is concave rather than linear, so its maximum need not be at a vertex. In the communication game it is $1\/2$ at the one-time pad, the correlated strategy of the next part of the lecture, but $0$ at every joint plan.
+  // Merge: link "one-time pad" to @sec-team-one-time-pad in part 2.
 ]
 
 = Bibliography for this lecture
