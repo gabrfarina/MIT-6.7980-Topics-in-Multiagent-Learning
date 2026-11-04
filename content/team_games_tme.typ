@@ -154,12 +154,12 @@ The merged team player sees the clause when it picks the literal, then forgets t
 The reduction proves more than NP-hardness of deciding whether the value is $1$. Write $"OPT"(phi)$ for the largest fraction of the clauses of $phi$ that a single assignment satisfies.
 
 #theorem[Hardness of approximation][
-  The TME and TMECor values of $G_phi$ both equal $"OPT"(phi)$. Consequently, for every $epsilon > 0$ it is NP-hard to approximate the TME or TMECor value of a team game without an adversary to within an additive error of $1\/8 - epsilon$.
+  The TME and TMECor values of $G_phi$ both equal $"OPT"(phi)$. Consequently, for every $0 < epsilon < 1\/16$ it is NP-hard to estimate the TME or TMECor value of a team game without an adversary to within an additive error of $1\/16 - epsilon$.
 ] <thm-team-sat-gap>
 #proof[
   Without an adversary, the team's expected utility is linear in its distribution $vmu$ over joint plans, so it is maximized at a single joint plan. A joint plan is a pair of point masses, which is uncorrelated, so the TME and TMECor values coincide. For a fixed assignment $pi_2$, Player 1 best points to a true literal in every clause that has one. By @lem-team-sat-plans, the plan then wins on exactly the clauses that $pi_2$ satisfies. Maximizing over $pi_2$ gives $"OPT"(phi)$.
 
-  #citet(<Hastad01:Some>) shows that for every $epsilon > 0$ it is NP-hard to distinguish formulas with three literals per clause that are satisfiable ($"OPT"(phi) = 1$) from those with $"OPT"(phi) <= 7\/8 + epsilon$. An approximation of the value to within $1\/8 - epsilon$ would distinguish the two cases.
+  #citet(<Hastad01:Some>) shows that for every $epsilon > 0$ it is NP-hard to distinguish formulas with three literals per clause that are satisfiable ($"OPT"(phi) = 1$) from those with $"OPT"(phi) <= 7\/8 + epsilon$. An estimate within $1\/16 - epsilon$ of the value is at least $15\/16 + epsilon$ in the satisfiable case and at most $15\/16$ in the other case, so it distinguishes them. The error must stay below half the gap $1\/8$, since the estimate may be off in either direction.
 ]
 
 The gap $1\/8$ is the largest this reduction can give. A uniformly random assignment satisfies a clause with three distinct variables with probability $7\/8$, so $"OPT"(phi) >= 7\/8$ for such formulas. The hardness carries over to games with an adversary, by giving the adversary a single action. Hardness for teams is therefore a worst-case statement. The rest of the lecture identifies a parameter of the team's information structure that controls the cost of computing a TMECor.
