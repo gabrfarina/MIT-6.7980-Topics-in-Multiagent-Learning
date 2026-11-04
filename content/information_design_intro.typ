@@ -11,15 +11,15 @@
 
 = Introduction: commitment and recommendations <sec-l11-intro>
 
-We begin with two examples of how commitment and communication can change
-strategic behavior: a leader committing to a strategy, and a mediator
-coordinating players through recommendations. Both illustrate how to choose
-a committed strategy that makes following a recommendation a best response.
+We now turn from analyzing equilibria in a fixed game to designing
+commitments and recommendations that shape play. The following examples
+introduce the central constraint: players who remain free to act must find
+it optimal to follow the intended behavior.
 
 == Stackelberg equilibrium <sec-l11-stackelberg>
 
-Consider the following game, where each entry gives the leader's utility
-first and the follower's utility second.
+Consider the following game, with the leader's payoff listed first in each
+entry.
 
 #align(center)[#block(breakable: false)[
   #table(
@@ -30,56 +30,47 @@ first and the follower's utility second.
   )
 ]]
 
-If the players act simultaneously, $X$ strictly dominates $Y$ for the
-leader, since switching to $X$ increases its payoff by $1$ against either
-follower action. The follower's unique best response to $X$ is also $X$,
-so the unique Nash equilibrium is $(X,X)$, with utilities $(1,1)$.
+With simultaneous play, $X$ strictly dominates $Y$ for the leader by a
+payoff gain of $1$ against either follower action. Since the follower's best
+response to $X$ is also $X$, the unique Nash equilibrium is $(X,X)$ with
+utilities $(1,1)$.
 
-#paragraph-marker() *The effect of commitment.*~~ Suppose instead that the
-leader can publicly and irrevocably commit before the follower responds.
-Committing to $Y$ induces the follower to choose $Y$ as well, raising the
-leader's payoff from $1$ to $10$. Although $Y$ is dominated in the
-simultaneous game, committing to it changes the follower's response.
+#paragraph-marker() *The effect of commitment.*~~ If the leader can publicly
+commit before the follower responds, committing to $Y$ induces $(Y,Y)$ and
+raises its payoff to $10$. The commitment must be binding, since otherwise
+the leader would prefer to switch to $X$ after inducing $Y$.
 
-The leader can do even better by committing to play $X$ with probability
-$p$ and $Y$ with probability $1-p$. The follower observes this distribution
-but must act without seeing the leader's realized action, so its expected
-utilities are
+More generally, let the leader commit to $X$ with probability $p$ and $Y$
+with probability $1-p$. The follower observes the distribution, but not the
+realized action, and receives
 
 $ u_F (p,X)=p, quad u_F (p,Y)=1-p. $
 
-The follower therefore prefers $Y$ when $p<1/2$, prefers $X$ when $p>1/2$,
-and is indifferent at $p=1/2$. Against a follower who chooses $Y$, the
-leader receives
+Thus $Y$ is a best response exactly when $1-p>=p$, or $p<=1/2$. Subject to
+this incentive constraint, the leader seeks to maximize
 
 $ u_L (p,Y)=11p+10(1-p)=10+p. $
 
-Increasing $p$ helps the leader as long as the follower continues to choose
-$Y$. Thus, by taking $p=1/2-epsilon$ for $0<epsilon<1/2$, the leader obtains
-$10.5-epsilon$ with a unique follower best response. Inducing $X$ instead
-gives only $u_L (p,X)=p<=1$, so it cannot improve on this choice.
+The optimum is $10.5$ at $p=1/2$, provided the indifferent follower chooses
+$Y$. Inducing $X$ instead gives only $u_L (p,X)=p<=1$.
 
 #definition[Stackelberg equilibrium][
-  In a Stackelberg equilibrium, the leader chooses a committed strategy to
-  maximize its utility, anticipating a best response from the follower.
-  A _strong Stackelberg equilibrium_ uses favorable tie-breaking: whenever
-  the follower has several best responses, it selects one that gives the
-  leader the greatest utility #citep(<vonStengelZamir2010>).
+  The leader chooses a committed strategy to maximize its utility,
+  anticipating a follower best response. A _strong Stackelberg equilibrium_
+  breaks ties among follower best responses in the leader's favor
+  #citep(<vonStengelZamir2010>).
 ] <def-l11-stackelberg>
 
-With favorable tie-breaking, the leader can take $p=1/2$ and receive
-$10.5$. If the follower chooses $X$ at the tie, this value is only a
-supremum, approached by taking $p$ just below $1/2$. In either case, the
-improvement relies on a binding commitment: without it, the leader would
-prefer to switch to $X$ with certainty after inducing the follower to
-choose $Y$, making the promised mixture unconvincing.
+If the follower instead chooses $X$ at the tie, $10.5$ is only a supremum:
+taking $p=1/2-epsilon$ for $0<epsilon<1/2$ makes $Y$ the unique best response
+and gives the leader $10.5-epsilon$.
 
-#paragraph-marker() *The recommendation view.*~~ The leader can accompany
-its commitment with the recommendation that the follower play $Y$.
-Following this recommendation is the follower's _direct strategy_. In the
-tree below, the follower knows $p$ but cannot distinguish the two decision
-nodes, since the realized leader action is hidden. This is the role of an
-information set in the #lecture-link("efg_intro", <sec-game-trees>)[game-tree representation].
+#paragraph-marker() *The recommendation view.*~~ The leader can recommend
+$Y$, making obedience the follower's _direct strategy_. The constraint
+$p<=1/2$ ensures that this strategy is a best response; the committed leader
+needs no corresponding incentive constraint. In the
+#lecture-link("efg_intro", <sec-game-trees>)[game tree] below, the follower's
+information set captures its uncertainty about the realized leader action.
 
 #figure(
   image("figures/information_design_intro/stackelberg_tree.svg", width: 90%,
@@ -89,16 +80,11 @@ information set in the #lecture-link("efg_intro", <sec-game-trees>)[game-tree re
     obedience to the recommendation $Y$.],
 ) <fig-l11-stackelberg>
 
-The direct strategy is a best response exactly when $1-p>=p$, so this
-incentive constraint limits the leader's choice of $p$. No corresponding
-best-response constraint is needed for the leader, whose behavior is fixed
-by the commitment.
-
 == Optimal correlated equilibria <sec-l11-optimal-ce>
 
-Now suppose a separate mediator commits to a recommendation rule while
-both players remain free to act. Consider two drivers approaching an
-intersection, each of whom can _Stop_ ($S$) or _Go_ ($G$), with utilities
+Now let a separate mediator commit to a recommendation rule, leaving both
+players free to act. Consider two drivers who can _Stop_ ($S$) or _Go_ ($G$)
+at an intersection, with utilities
 
 #align(center)[#block(breakable: false)[
   #table(
@@ -109,38 +95,34 @@ intersection, each of whom can _Stop_ ($S$) or _Go_ ($G$), with utilities
   )
 ]]
 
-Each driver's best response is to go if the other stops and to stop if
-the other goes, so $(S,G)$ and $(G,S)$ are Nash equilibria. There is also
-a symmetric mixed equilibrium: if the other driver goes with probability
-$q$, going earns $1-6q$ while stopping earns $0$. Equating these payoffs
-gives $q=1/6$ and expected utility $0$ for both drivers.
+The pure Nash equilibria are $(S,G)$ and $(G,S)$: each driver prefers to go
+exactly when the other stops. If the other goes with probability $q$,
+going earns $1-6q$ and stopping earns $0$, so indifference gives the
+symmetric mixed equilibrium $q=1/6$, with expected utility $0$ for both.
 
-#paragraph-marker() *A traffic light as mediator.*~~ A traffic light can
-coordinate the drivers by recommending $(S,G)$ with probability $p$ and
-$(G,S)$ with probability $1-p$:
+#block(breakable: false)[
+  #paragraph-marker() *A traffic light as mediator.*~~ Consider the
+  recommendation distribution
 
-$
-  mu_p (S,G)=p, quad mu_p (G,S)=1-p,
-  quad mu_p (S,S)=mu_p (G,G)=0.
-$
+  $
+    mu_p (S,G)=p, quad mu_p (G,S)=1-p,
+    quad mu_p (S,S)=mu_p (G,G)=0.
+  $
+]
 
-At $p=1/2$, each driver is told to go half the time, yet they are never told
-to go together. This correlation matters: independent fair coins would
-recommend $(G,G)$ with probability $1/4$.
+This is a traffic light that always gives opposite signals. At $p=1/2$,
+each driver is told to go half the time, but $(G,G)$ is never recommended,
+whereas independent fair coins would recommend it with probability $1/4$.
 
-To check incentives, suppose the other driver obeys its light. A driver
-who sees red knows the other will go, so stopping gives $0$ while deviating
-gives $-5$. A driver who sees green knows the other will stop, so going
-gives $1$ while deviating gives $0$. Following the recommendation is
-therefore a best response whenever it occurs, which makes $mu_p$ a
-_correlated equilibrium_ for every $p in [0,1]$. This is the conditional
-obedience requirement introduced by Aumann #citep(<Aumann1974Mar>) and
-formalized in #lecture-link("correlated", <def-ce>)[the earlier equilibrium notes].
+If the other driver obeys, stopping at red gives $0$ instead of $-5$ from
+going, while going at green gives $1$ instead of $0$ from stopping.
+Obedience is therefore optimal conditional on every recommendation that
+occurs, so $mu_p$ is a _correlated equilibrium_ for every $p in [0,1]$
+#citep(<Aumann1974Mar>), as in the
+#lecture-link("correlated", <def-ce>)[earlier definition].
 
-The tree below represents the resulting interaction. Since the lights are
-always opposite, each driver's own recommendation reveals the other's
-recommendation in this example, but the other's actual action remains
-unobserved.
+Here, each driver's signal reveals the other's recommendation but not its
+action, a distinction captured by the information sets below.
 
 #figure(
   image("figures/information_design_intro/traffic_light_tree.svg", width: 100%,
@@ -151,22 +133,20 @@ unobserved.
     indicate obedience; all deviations remain available.],
 ) <fig-l11-traffic-light>
 
-#paragraph-marker() *Choosing an optimal equilibrium.*~~ If the mediator
-seeks to maximize total welfare, every $mu_p$ above is optimal, since
+#paragraph-marker() *Choosing an optimal equilibrium.*~~ Every $mu_p$
+maximizes total welfare, because
 
 $ bb(E)[u_1]=1-p, quad bb(E)[u_2]=p, quad bb(E)[u_1+u_2]=1, $
 
-and no outcome in the table has total welfare greater than $1$. Choosing
-$p=1/2$ shares this welfare equally, giving each driver $1/2$ and maximizing
-the smaller expected utility. The pure Nash equilibria attain the same
-total welfare but favor one driver, whereas the fair traffic light gives
-both drivers more than the symmetric mixed Nash equilibrium.
+and no outcome has total welfare above $1$. Choosing $p=1/2$ also maximizes
+the smaller expected utility, giving each driver $1/2$. Thus the fair
+traffic light matches the welfare of the pure Nash equilibria while
+sharing it equally, and improves both drivers' utilities over the symmetric
+mixed equilibrium.
 
-The mediator can choose a different objective, but its recommendation rule
-must still satisfy the correlated equilibrium constraints. These ensure
-that the _direct profile_ in which both drivers obey is a Nash equilibrium
-with the mediator's strategy fixed. Unlike the Stackelberg example,
-obedience must be optimal for both players.
+More generally, the mediator optimizes its objective subject to obedience
+constraints for both players. These make the _direct profile_, in which
+both obey, a Nash equilibrium of the game with the recommendation rule fixed.
 
 = Bibliography for this lecture
 #lec_bibliography("meta/refs.bib", title: none)
