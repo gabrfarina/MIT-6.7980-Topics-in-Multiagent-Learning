@@ -28,6 +28,9 @@
     let (y0, y1, y2, y3, yl) = (0, -1.4, -3.0, -4.8, -6.4)
     let hy = .42 // half-height of an information-set band
     let node-r = .3
+    // A triangle's visual middle is .09 above (▲) or below (▼) its node point, so
+    // the bands are centred there rather than on the node point.
+    let (b2, b3) = (y2 + .09, y3 - .09)
 
     let lab(p, body) = content(p, box(fill: panel, inset: 1.2pt, text(9pt, body)))
     // Arrow from a to b. It leaves a at distance ra and stops at distance rb from b,
@@ -77,20 +80,20 @@
     let p2 = ((0, "L", lx(2)), (1, "L", lx(5)), (0, "R", lx(8)), (1, "R", lx(11)))
 
     // Information sets, under everything else.
-    band(lx(2), lx(5), y2, mate-color, [sees left])
-    band(lx(8), lx(11), y2, mate-color, [sees right])
-    band((lx(1) + lx(2)) / 2, (lx(5) + lx(6)) / 2, y3, adv-color, [sees left])
-    band((lx(7) + lx(8)) / 2, (lx(11) + lx(12)) / 2, y3, adv-color, [sees right])
+    band(lx(2), lx(5), b2, mate-color, [sees left])
+    band(lx(8), lx(11), b2, mate-color, [sees right])
+    band((lx(1) + lx(2)) / 2, (lx(5) + lx(6)) / 2, b3, adv-color, [sees left])
+    band((lx(7) + lx(8)) / 2, (lx(11) + lx(12)) / 2, b3, adv-color, [sees right])
 
     // Chance and Player 1.
     arrow(root, p1.at(0), .27, node-r, label: $1\/2$)
     arrow(root, p1.at(1), .27, node-r, label: $1\/2$)
     content((p1.at(0).at(0) - .8, y1 + .05), text(9pt, luma(30%), [bit 0]))
     content((p1.at(1).at(0) + .8, y1 + .05), text(9pt, luma(30%), [bit 1]))
-    arrow(p1.at(0), (lx(2), y2), node-r, 0, label: $a$, t: .45, stop-y: y2 + hy)
+    arrow(p1.at(0), (lx(2), y2), node-r, 0, label: $a$, t: .45, stop-y: b2 + hy)
     arrow(p1.at(0), (lx(8), y2), node-r, 0, label: bar($a$), t: .22, stop-x: lx(8) - .55)
     arrow(p1.at(1), (lx(5), y2), node-r, 0, label: $b$, t: .22, stop-x: lx(5) + .55)
-    arrow(p1.at(1), (lx(11), y2), node-r, 0, label: bar($b$), t: .45, stop-y: y2 + hy)
+    arrow(p1.at(1), (lx(11), y2), node-r, 0, label: bar($b$), t: .45, stop-y: b2 + hy)
 
     // Player 2, Player 3, and leaves. A right guess by Player 2 leads to Player 3,
     // and a wrong one ends the game with payoff 0.
@@ -102,7 +105,7 @@
         if guess == bit {
           // Player 3 sits above the two leaves that follow.
           let q = ((lx(k) + lx(k + 1)) / 2, y3)
-          arrow((x, y2), q, node-r, 0, label: glabel, t: .5, stop-y: y3 + hy)
+          arrow((x, y2), q, node-r, 0, label: glabel, t: .5, stop-y: b3 + hy)
           for (pg, hlabel) in ((0, h0), (1, h1)) {
             let z = (lx(k), yl)
             arrow(q, z, .2, .12, label: hlabel, t: .45)

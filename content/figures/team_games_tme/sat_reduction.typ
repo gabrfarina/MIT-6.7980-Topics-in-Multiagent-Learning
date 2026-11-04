@@ -71,7 +71,8 @@
     // Information sets: one band per variable, spanning its nodes.
     for (v, paint) in ((1, x1-color), (2, x2-color)) {
       let xs = p2.filter(n => n.at(1) == v).map(n => n.at(0))
-      let y = yv.at(v - 1)
+      // Centre the band on the triangles' visual middle, .09 above the node point.
+      let y = yv.at(v - 1) + .09
       rect((xs.first() - .55, y - hy), (xs.last() + .55, y + hy), radius: hy,
         fill: paint.lighten(84%).transparentize(25%), stroke: .3mm + paint.lighten(30%))
       content((xs.last() + 1.05, y), text(9pt, paint.darken(15%), [sees $x_#v$]))
