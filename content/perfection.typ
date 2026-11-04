@@ -80,6 +80,24 @@ Collecting all sequence-form trembling constraints (#ref(label("eq:efpe constrai
   $cases(max_vx min_vy vx^top U_1 vy, upright("s.t.") upright("①") thin F_2 vy = vf_2, upright("") upright("②") thin M_2 \( epsilon.alt \) vy >= vm_2 \( epsilon.alt \), upright("") upright("③") thin F_1 vx = vf_1, upright("") upright("④") thin M_1 \( epsilon.alt \) vx >= vm_1 \( epsilon.alt \) .)$.body,
 ) <eq:efpe>
 
+#remark[Selten's definition allows non-uniform trembles][
+  The perturbed game above imposes the same lower bound $epsilon.alt$ on every action. The original definition #citep(<Selten75:Reexamination>) is more general. A _perturbation_ $eta$ assigns to every action $a in A_j$ at every decision point $j$ its own lower bound $eta(a) > 0$, with $sum_(a in A_j) eta(a) < 1$, and the perturbed game $(Gamma, eta)$ restricts each player to behavioral strategies that pick every action $a$ with probability at least $eta(a)$. A strategy profile $pi^*$ is an EFPE if _there exist_ perturbations $eta^((1)), eta^((2)), ...$, with all entries converging to $0$, and Nash equilibria $pi^((k))$ of $(Gamma, eta^((k)))$ such that $pi^((k)) -> pi^*$. One supporting sequence suffices, and the lower bounds of different actions may vanish at different rates. (Selten phrases the equilibrium condition on the agent normal form; under perfect recall, the two coincide.) The construction above fixes $eta(a) = epsilon.alt$ for every action, so its limit points form a subset of the EFPEs, and the inclusion can be strict.
+
+  For example, let Player~$1$ choose $L$ or $R$ and Player~$2$, without observing that choice, choose $X$, $Y$, or $Z$, with the payoffs (Player~$1$, Player~$2$) below. Player~$2$ strictly prefers $X$, so in every perturbed game they play $Y$ and $Z$ with exactly their lower bounds, and whether Player~$1$ prefers $L$ depends on the ratio of these two trembles. Let $0 < epsilon.alt < 1\/5$.
+
+  #align(center, table(
+    columns: 4,
+    [], [$X$], [$Y$], [$Z$],
+    [$L$], [$0, 1$], [$1, 0$], [$-2, 0$],
+    [$R$], [$0, 1$], [$0, 0$], [$0, 0$],
+  ))
+
+  - _Uniform trembles_, $eta(a) = epsilon.alt$ for every action: Player~$2$ plays $Y$ and $Z$ with probability $epsilon.alt$ each, so the expected utilities of Player~$1$ are $u_1 (L) = epsilon.alt - 2 epsilon.alt = -epsilon.alt$ and $u_1 (R) = 0$. Player~$1$ plays $L$ with the minimum probability $epsilon.alt$, and the perturbed equilibria converge to $(R, X)$.
+  - _Non-uniform trembles_, $eta(Y) = 3 epsilon.alt$ and $eta(a) = epsilon.alt$ for every other action: now $u_1 (L) = 3 epsilon.alt - 2 epsilon.alt = epsilon.alt > 0 = u_1 (R)$, so the perturbed equilibria converge to $(L, X)$.
+
+  Both $(R, X)$ and $(L, X)$ are EFPEs, but uniform trembles recover only $(R, X)$, even though the two perturbations differ by a constant factor rather than a power of $epsilon.alt$. For computation, this restriction is harmless: every limit point of the uniform construction, and hence of (@eq:efpe), is an EFPE, so uniform trembles find one, though not necessarily every one.
+] <rem:efpe-selten>
+
 We will look into how to compute a limit point of solutions to @eq:efpe as $epsilon.alt -> 0^(+)$ in @sec:trembling-lp.
 
 == Quasi-perfect equilibrium (QPE)
