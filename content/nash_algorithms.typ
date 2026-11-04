@@ -457,6 +457,14 @@ We make some final remarks about the Lemke-Howson algorithm.
 - The number of steps really can be exponential. Savani and von Stengel~#citep(<SavaniVS06>) construct $d times d$ games in which the length of _every_ main path is at least proportional to $phi^(3 d \/ 4) approx 1.43^d$, where $phi approx 1.618$ is the golden ratio. The only freedom the algorithm has is the choice of the special action, since the pivoting rule itself is forced once that choice is made; the lower bound holds no matter which action is chosen.
 - There are generalizations of the Lemke-Howson algorithm for multi-player games working with manifolds instead of polytopes. See Rosenmüller~#citep(<Rosenmuller71>) and Wilson~#citep(<Wilson71>).
 
+The special action $n$ in @algo-lemke-howson is an arbitrary choice: any action $k$ can play its role. The following exercise shows that this choice matters.
+
+#exercise[
+  Consider the symmetric game with $R = mat(3, 1; 1, 2)$, whose symmetric equilibria are $\( 1 \, 0 \)$, $\( 0 \, 1 \)$, and $\( 1\/3 \, 2\/3 \)$.
+  + Run the Lemke-Howson algorithm with special action $1$, and then with special action $2$. Show that the two runs end at different symmetric equilibria.
+  + As in the proof of Theorem~#ref(label("thm:Lemke-Howson's correctness"), supplement: none), for a fixed special action the democracies are the endpoints of paths, which pair them up. Starting at a non-zero democracy and un-tightening the tight inequality of the special action follows such a path. For each special action, find the pairing of the four democracies. Does it depend on the special action?
+] <ex-lh-pairing>
+
 = Further reading: approximate equilibria and $n$-player games <sec-lit-approx-nplayer>
 
 The algorithms in this lecture compute exact equilibria and take exponential time in the worst case. This section briefly summarizes the main known results when we relax the goal to approximate equilibria, and when the game has $n >= 3$ players. Payoffs lie in $[0, 1]$, and $eps$ always bounds a gain in payoff, not a distance between strategies: in an _$eps$-approximate Nash equilibrium_ (#lecture-link("correlated", <def-eps-nash>)[]), no player can increase their expected payoff by more than $eps$ through a unilateral deviation. Such a profile need not be close to any exact Nash equilibrium. We write $s$ for the encoding size of the game.
@@ -702,5 +710,16 @@ Then for any Nash equilibrium $(bold(x)_1,...,bold(x)_n)$, by definition,
   $ p_T (epsilon) := sum_(i in S) mu_i (1 + epsilon^i) = 0 . $
 
   This holds for every dependence of $T$, so it suffices to fix one dependence per set; the fixed dependence does not depend on $epsilon$, since the perturbation only changes the right-hand sides. As the coefficient of $epsilon^i$ in $p_T$ is $mu_i$, each $p_T$ is a non-zero polynomial. Hence the finitely many polynomials $p_T$ have finitely many roots, and any $epsilon > 0$ below all of their positive roots makes $P_epsilon$ non-degenerate. The distinct powers $epsilon^i$ are essential: the common shift $1 + epsilon$ merely rescales $P$ and preserves its degeneracies. How small $epsilon$ must be, and how to recover an equilibrium of the original game, is the subject of #ref(<ex-lh-perturbation>).
+  ]
+]
+
+== Solution to #ref(<ex-lh-pairing>)
+
+#toggle[Reveal Solution to #ref(<ex-lh-pairing>)][
+  #proof[
+  The polytope is $P = { vz : 3 z_1 + z_2 <= 1 \, z_1 + 2 z_2 <= 1 \, vz >= 0 }$. Its non-zero democracies are $\( 1\/3 \, 0 \)$, $\( 0 \, 1\/2 \)$, and $\( 1\/5 \, 2\/5 \)$, which give the symmetric equilibria $\( 1 \, 0 \)$, $\( 0 \, 1 \)$, and $\( 1\/3 \, 2\/3 \)$ after normalization.
+
+  + With special action $1$, the algorithm starts at $vv_0 = \( 0 \, 0 \)$ and un-tightens $z_1 >= 0$, moving along $z_2 = 0$. The first inequality to become tight is $3 z_1 + z_2 <= 1$, at $vv_1 = \( 1\/3 \, 0 \)$. There, action $1$ is represented by $ve_1^T R vz = 1$ and action $2$ by $z_2 = 0$, so $vv_1$ is a democracy, and the algorithm returns the equilibrium $\( 1 \, 0 \)$ after one step. With special action $2$, it un-tightens $z_2 >= 0$, moving along $z_1 = 0$. Now $z_1 + 2 z_2 <= 1$ becomes tight first, at $z_2 = 1\/2$, and $vv_1 = \( 0 \, 1\/2 \)$ is a democracy, which gives the equilibrium $\( 0 \, 1 \)$.
+  + Write $D_0 = \( 0 \, 0 \)$, $D_1 = \( 1\/3 \, 0 \)$, $D_2 = \( 0 \, 1\/2 \)$, and $D_3 = \( 1\/5 \, 2\/5 \)$. By the first part, special action $1$ pairs $D_0$ with $D_1$. Starting at $D_2$ with special action $1$, the tight inequality of action $1$ is $z_1 >= 0$. Un-tightening it, we move along $z_1 + 2 z_2 = 1$ until $3 z_1 + z_2 <= 1$ becomes tight at $D_3$, a democracy. So special action $1$ induces the pairing ${ D_0 \, D_1 } \, { D_2 \, D_3 }$. Symmetrically, special action $2$ pairs $D_0$ with $D_2$. Starting at $D_1$, it un-tightens $z_2 >= 0$ and moves along $3 z_1 + z_2 = 1$ until $z_1 + 2 z_2 <= 1$ becomes tight at $D_3$, giving the pairing ${ D_0 \, D_2 } \, { D_1 \, D_3 }$. Hence the pairing depends on the special action.
   ]
 ]
