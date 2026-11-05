@@ -276,13 +276,13 @@ The project is the central component of the course and accounts for #course.grad
   lecture(
     "alignment-1",
     [Alignment (part I)],
-    description: [Reinforcement learning from human feedback (RLHF) and alignment.],
+    description: [Human-AI agreement protocols. Conversation calibration. Bayesian persuasion and market alignment.],
     instructor: [Natalie Collina],
   ),
   lecture(
     "alignment-2",
     [Alignment (part II)],
-    description: [Regularized RLHF and direct preference optimization (DPO).],
+    description: [Human-AI agreement protocols. Conversation calibration. Bayesian persuasion and market alignment.],
     instructor: [Natalie Collina],
   ),
 

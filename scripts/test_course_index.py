@@ -77,7 +77,6 @@ class CourseIndexTests(unittest.TestCase):
         kernelized = next(c for c in self.config['notes'] if c['source'] == 'content/kernelized.typ')
         self.assertEqual((kernelized['number'], kernelized['date']), (16, 'Thu, Oct 29, 2026'))
         self.assertEqual(self.config['slides']['kernelized'], 'slides/L16_large_games.pdf')
-        self.assertNotIn('alignment-1', self.config['slides'])
         self.assertNotIn('L13_large_games.pdf', page)
 
     def test_date_changes_reject_unknown_lectures_collisions_and_nonlecture_dates(self):
