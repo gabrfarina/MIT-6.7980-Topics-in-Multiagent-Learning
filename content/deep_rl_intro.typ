@@ -10,6 +10,7 @@
 
 = Overview (Deepify-ing Game Theory)
 
+In this section, we discuss techniques focused on more exact game-solving and use these as a precedent for scalable learning.
 
 We begin with the concept of #lecture-link("nfgs_nash", <sec-normal-form>)[normal-form games] and utilizing a #lecture-link("nfgs_nash", <def-nash-equilibrium>)[Nash equilibria] to model expected reward achieved by a set of two players. This concept naturally ties in with #lecture-link("correlated", <sec-zero-sum>)[linear programming formulations] for normal-form games (#lecture-link("correlated", <def-ce>)[correlated equilibrium] and #lecture-link("correlated", <def-cce>)[coarse correlated equilibrium]). With #lecture-link("learning_intro", <sec-external-regret>)[regret minimization], we understand how average regret approaches 0 over $T$ iterations in a game, creating a #lecture-link("learning_intro", <sec-learning-zero-sum>)[convex-concave saddle point] where the average strategies converge toward the Nash equilibrium set. 
 
@@ -32,7 +33,7 @@ $ vx^((t+1)) = argmax_(vx in X) \[ ip(vg^((t)), vx) - (1 / eta) D_psi (vx parall
 $ D_psi (vx parallel vy) = psi(vx) - psi(vy) - ip(nabla psi(vy), vx - vy). $
 $ vx^((t+1)) = Pi_X (vx^((t)) + eta vg^((t))). $
 
-However, these strategies depend on simulating and gathering information from many game states, creating a need for sample efficiency. With #lecture-link("bandit")[bandit feedback], we can turn limited observations into utility estimates, allowing us to optimize for sample efficiency. 
+However, these strategies depend on simulating and gathering information from many game states, creating a need for sample efficiency to solve a larger scaling problem. With #lecture-link("bandit")[bandit feedback], we can turn limited observations into utility estimates, allowing us to optimize for sample efficiency. 
 
 (1) Importance Sampling Estimator -- we feed utilities into information learning algorithms
 $ hat(vg)^((t)) = (u^((t)) / p^((t))_(a_t)) e_(a_t). $
@@ -55,9 +56,8 @@ $ O(sqrt(K T log(K T / delta)) + log(K T / delta)). $
 
 
 
-However, these strategies depend on simulating and gathering information from many game states, creating a need for sample efficiency. In this way, #lecture-link("efg_intro", <sec-game-trees>)[extensive form games] become crucial, as they allow us to model sequential interactions with hidden information. This topic naturally leads us into the next section of the introduction, where we discuss reinforcement learning.
+However, these strategies depend on simulating and gathering information from many game states, creating a need for sample efficiency. In this way, #lecture-link("efg_intro", <sec-game-trees>)[extensive form games] become crucial, as they allow us to model sequential interactions with hidden information. This topic naturally leads us into the next section, where we discuss reinforcement learning.
 
-= Overview (Game Theory-ifying RL)
 
 
 We can model these games as trees (corresponding decision nodes, observation nodes, and transition functions). While Kuhn's theorem allows us to state mixed normal-form and behavioral strategies as realization-equivalent, sequence-form strategies have convex representations that are amenable to linear optimization.
@@ -70,5 +70,25 @@ Additionally, with CFR, we can convert global regret-minimization to manageable 
 (2) Reduction of saddle-point gap
 $ gamma(overline(vx), overline(vy)) <= ("Reg"_1 (T) + "Reg"_2 (T)) / T. $
 
+= Overview (Game Theory-ifying RL)
 
-The Stratego and Ataraxos systems can be used to demonstrate modern deep multiagent RL systems. With these techniques, we can scale strategic learning to games that are too large for tabular methods (offline Q-learning), despite convergence being a key concern.
+Extensive-form games are tractable in theory using convex sequence-form strategies. However, in cases where games are incredibly large, we must utilize deep learning to approximate these strategies. A select few are listed below:
+
+(1) Parametrized behavioral policies -- we generalize across information states while keeping optimization noncondex
+$ pi_theta (a mid(|) I). $
+
+(2) Policy gradients and REINFORCE -- we increase the probability of actions that are related to favorable returns
+$ J(theta) = EE_(tau ~ p_theta) [R(tau)], $
+$ nabla_theta J = EE_tau [R(tau) (sum_((I, a) in tau) nabla_theta log pi_theta (a mid(|) I))]. $
+
+(3) Actor-critic and advantage estimation -- we can express the policy gradient in terms of advantages 
+$ Q_theta (I, a) = EE[R(tau) mid(|) I "reached", a "chosen"]. $
+$ V_theta (I) = sum_b pi_theta (b mid(|) I) Q_theta (I, b). $
+$ A_theta (I, a) = Q_theta (I, a) - V_theta (I). $
+$ nabla_theta J = EE_tau [sum_((I, a) in tau) A_theta (I, a) nabla_theta log pi_theta (a mid(|) I)]. $
+
+(4) Variance reduction and policy averaging -- we can stabilize a neural network
+$ overline(theta)_t = beta overline(theta)_(t - 1) + (1 - beta) theta_t. $
+
+We can additionally leverage lessons from Strategy with the Ataraxos system to model deep multiagent RL. This system combines hidden-state belief modeling and decision-time planning, increasing computation at inference time. With these techniques, we can there scale strategic learning to games that are too large for traditional tabular methods, despite convergence being a main concern.
+
