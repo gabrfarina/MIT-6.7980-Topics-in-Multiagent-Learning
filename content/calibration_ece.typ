@@ -139,22 +139,30 @@ The idea is to choose the outcome on the opposite side of the forecast: after a 
 
 Thus normalized ECE cannot vanish, and cumulative calibration error cannot be $o(T)$. The distinction matters: normalized ECE is always at most one, so merely calling it _sublinear_ would not express the intended goal. Randomizing does not defeat this adversary if Nature still sees each sampled $p_t$ before responding. For a deterministic forecasting rule, knowing the rule and history already determines that round's forecast.
 
-#block(breakable: false)[
 = Private randomized forecasts <sec-ece-randomization>
 
-To escape @clm-ece-adversary, change the information available to Nature. Let $D_t$ denote the announced distribution over the forecast grid $Q$. @fig-l15-ece-protocol compares the order of events in the two models.
+To escape @clm-ece-adversary, change the information available to Nature. Let $D_t$ denote the announced distribution over the forecast grid $Q$. The six frames in @fig-l15-ece-protocol follow one example from the visible-forecast obstruction to a private draw and its limitations. Read left to right, then down.
 
-#figure(
-  image("figures/calibration_ece/ece_information_flow.svg", width: 100%,
-    alt: "Two timelines compare information flow. In the first, the forecaster reports p and Nature then chooses y after seeing it. In the second, the forecaster announces distribution D, Nature commits to a hidden outcome y, the forecaster privately samples and reports p from D, and only then is y revealed."),
-  caption: [In the lower timeline, Nature commits before seeing the current private draw, while the forecaster does not learn the outcome until after drawing. Nature can still use the history and the announced distribution.],
-) <fig-l15-ece-protocol>
-]
+*Two probabilities play different roles.*
+If $D_t$ puts probability $1/2$ on each of $0.25$ and $0.75$, the coin chooses _which probability to report_. A draw of $p_t=0.75$ reports a 75% event forecast; the chance of choosing that report was 50%. The coin does not generate the event outcome.
+
+*A hidden coin changes what Nature can do.*
+Frames 2--4 have a strict order: announce $D_t$; Nature commits to a hidden $y_t$; privately draw and report $p_t$ without knowing $y_t$; reveal $y_t$ and update the history. Suppose Nature committed to one and the private coin selected $0.75$. The threshold response would require zero, but Nature can no longer switch. Had the coin selected $0.25$, that same committed one would have been the threshold response. The point is that one commitment cannot implement both responses to a draw that has not yet been seen. This removes the preceding impossibility argument while still allowing Nature to react to the history and $D_t$.
 
 Equivalently, the forecast and outcome may be drawn simultaneously, with the appropriate conditional independence. Nature can adapt to the past and observe the current distribution; it cannot condition the outcome on the current realized forecast. A point mass $D_t$ offers no such protection, because it reveals $p_t$ exactly. This protocol is the adaptive-adversary model of #citep(<FosterVohra1998Calibration>, [Section 3]).
 
-*A hidden coin changes what Nature can do.*
-Suppose $D_t$ selects $p_t=0.25$ or $p_t=0.75$, each with probability $1/2$. The threshold adversary would need to choose $y_t=1$ for the first draw and $y_t=0$ for the second. It now has to commit to one outcome without knowing which draw occurred. This removes the preceding impossibility argument while still allowing Nature to react to the history and $D_t$.
+#figure(
+  image("figures/calibration_ece/ece_information_flow.svg", width: 100%,
+    alt: "Six sequential frames. One: if Nature sees forecasts 0.25 or 0.75, it can respond with outcomes 1 or 0, forcing gaps of 0.75. Two: publish a 50-50 distribution over those forecasts and let Nature commit to a hidden outcome first. Three: privately draw forecast 0.75 without learning the outcome. Four: reveal the previously committed outcome 1; Nature cannot now switch to 0. Five: on one four-round trace each bucket receives outcomes 1 and 0, so ECE is 0.25. Six: the unchanged lottery still has expected ECE 0.5 against all-one outcomes; a suitable strategy must use the history."),
+  caption: [Why privacy matters, in six frames. The gray diagonals mark agreement between the horizontal and vertical coordinates. Frames 2--3 plot _draw probabilities_; frames 1 and 4 plot outcomes; frames 5--6 plot _bucket frequencies_. Nature may use the announced distribution and history, but commits before seeing the current draw. The four-round record in frame 5 is an illustration, not a calibration guarantee.],
+) <fig-l15-ece-protocol>
+
+#block(breakable: false)[
+*Watch what can enter each bucket.*
+For frame 5, consider the possible four-round recording
+$ (p_t,y_t): quad (0.75,1), (0.25,1), (0.75,0), (0.25,0). $
+]
+Nature can commit to the outcome sequence $(1,1,0,0)$ without seeing the private draws. Each bucket then contains one zero and one one, with frequency $1/2$ and gap $0.25$. The recorded ECE is $0.5 times 0.25+0.5 times 0.25=0.25$. If Nature instead saw each draw and used the threshold response, every $0.25$ forecast would receive one and every $0.75$ forecast zero, giving ECE $0.75$. The private protocol prevents that round-by-round targeting; it does not promise that this balanced record will occur.
 
 *Randomization alone is not enough.*
 Keep that same 50--50 distribution forever, and let Nature always choose $y_t=1$. Every nonempty bucket then underpredicts, so
