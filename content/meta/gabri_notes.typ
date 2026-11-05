@@ -8,7 +8,7 @@
 #import "lovelace.typ": *
 #import "notation.typ": *
 #import "markers.typ": paragraph-marker
-#import "lecture-links.typ": lecture-link, lecture-title
+#import "lecture-links.typ": interactive-link, lecture-link, lecture-title
 #import "typography.typ": course-sans-font
 
 #let lecnum = state("lecnum", none)
