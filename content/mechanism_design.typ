@@ -3,7 +3,8 @@
   lec_num: 11,
   date: [Thu, Oct 22, 2026],
   title: "Information and mechanism design",
-  instructor: [Prof. Brian Hu Zhang],
+  instructor: [Brian Hu Zhang],
+  
 )
 
 The revelation principle lets us replace an arbitrary communication protocol by a
