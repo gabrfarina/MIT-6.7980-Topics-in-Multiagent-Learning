@@ -44,18 +44,18 @@ For $N_q>0$, the second expression follows from $sum_(t in I_q)(y_t-q)=N_q (over
 *Why weight by bucket size?*
 Suppose 90 forecasts report 0.5 and have 45 positive outcomes, while ten forecasts report 1 and have no positive outcomes. The two gaps are 0 and 1, but their weights are 0.9 and 0.1. ECE is $0.9 times 0+0.1 times 1=0.1$, rather than the unweighted average $(0+1)/2=0.5$. A uniformly chosen round belongs to the bad bucket only 10% of the time. This also explains why a small ECE can conceal a large gap in a rarely used bucket.
 
-@fig-l15-ece-weighting makes the weighting visible: the bar gives each bucket space in proportion to its number of rounds.
+@fig-l15-ece-weighting turns the same 100 rounds into an area picture. Give a bucket width equal to its fraction of rounds and height equal to its absolute gap. Its area is its contribution to ECE; the total shaded area is ECE.
 #figure(
   image("figures/calibration_ece/ece_weighting.svg", width: 100%,
-    alt: "Two buckets contain 90 and 10 rounds. Their calibration gaps are zero and one. A bar allocates 90 percent of its width to the first bucket and 10 percent to the second. The weighted ECE is 0.1, whereas giving the two buckets equal weight would give 0.5."),
-  caption: [Bucket weights are proportions of rounds. The bar's widths encode those proportions, giving ECE 0.1 even though the rarely used bucket has gap 1.],
+    alt: "A population of 100 dots has 90 blue and 10 orange rounds. The blue bucket has 45 positive outcomes and forecast 0.5; the orange bucket has no positive outcomes and forecast 1. In a unit-area picture the blue bucket has width 0.9 and height zero; the orange bucket has width 0.1 and height one. Their total shaded area, ECE, is 0.1."),
+  caption: [From counts to area. Each dot is one round; filled dots are positive outcomes. In the unit square, width is bucket weight and height is absolute gap, so the shaded area is ECE 0.1.],
 ) <fig-l15-ece-weighting>
 
 #remark[What is being averaged?][
   Despite its name, @def-l15-ece is a statistic of the realized data. No additional expectation over a forecaster's randomization is taken here. Also distinguish the normalized error $"ECE"_T$ from the cumulative error $T "ECE"_T$; an $o(T)$ bound on the latter is an $o(1)$ bound on the former.
 ]
 
-#block(breakable: false)[
+#block[
 == Worked example: opposite errors do not cancel <sec-l15-ece-example>
 
 Now consider ten forecasts on $Q={0.2,0.8}$. One possible recording is
@@ -111,11 +111,11 @@ $
 $
 Using a bin midpoint instead of its mean forecast is a different statistic. Moreover, merging exact buckets can only decrease, or leave unchanged, this mean-forecast statistic: apply $abs(a+b)<=abs(a)+abs(b)$ to their residual sums. In the worked example, merging both buckets gives mean forecast and mean outcome 0.5, and hence zero error for the single aggregate bin. A reported empirical ECE therefore needs its grouping convention. It is also a finite-sample diagnostic, not by itself a certificate of population calibration.
 
-@fig-l15-ece-aggregation compares the three summaries of the same ten rounds. Taking a signed sum and merging buckets both hide information about the original bucket gaps.
+@fig-l15-ece-aggregation compares three summaries of the same ten rounds. Signed gaps give areas above and below zero. Taking an absolute value reflects the negative area upward, so the two areas add rather than cancel. Merging first instead averages away their heights and hides the original gaps.
 #figure(
   image("figures/calibration_ece/ece_cancellation.svg", width: 100%,
-    alt: "The two forecast buckets contribute plus 0.1 and minus 0.1 to mean signed error. The signed sum is zero, the sum of absolute contributions is ECE 0.2, and one merged bin has gap zero because both pooled means equal 0.5."),
-  caption: [The exact-bucket ECE remains 0.2. The signed bias and the coarse-bin gap are different summaries and are both zero here; coarsening the grouping does not change the original forecasts.],
+    alt: "Three geometric stages use bucket widths one half and signed gap heights plus 0.2 and minus 0.2. Their signed areas cancel. Reflecting the orange negative area above zero gives two positive areas of 0.1, totaling ECE 0.2. Merging both buckets instead produces mean gap zero, while the original exact-bucket ECE is still 0.2."),
+  caption: [Absolute value as a reflection. Each original bucket has width 1/2 and gap magnitude 0.2, hence area 0.1. ECE adds both areas. Merging before measuring changes the statistic: its gap is zero here, while exact-bucket ECE remains 0.2.],
 ) <fig-l15-ece-aggregation>
 
 = When Nature sees the forecast <sec-ece-impossibility>

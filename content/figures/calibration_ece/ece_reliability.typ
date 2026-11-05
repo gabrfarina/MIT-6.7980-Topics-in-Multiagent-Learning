@@ -15,8 +15,6 @@
 
   content((3.6, 5.4), [1. Group individual outcomes])
   for (q, positives, rate, row-y) in ((0.2, 2, 0.4, 3.7), (0.8, 3, 0.6, 1.2)) {
-    rect((0, row-y - 0.9), (7.2, row-y + 1.05),
-      stroke: .5pt + luma(80%), fill: white, radius: 1.5mm)
     content((0.25, row-y + 0.72), anchor: "west", [Same forecast: #str(q) on all 5 rounds])
     for i in range(5) {
       let positive = i < positives

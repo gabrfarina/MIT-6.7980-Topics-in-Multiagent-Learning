@@ -35,8 +35,6 @@
   content((9.65, 2.3), anchor: "west", box(fill: white, inset: 1pt)[A: $(0,0)$])
   content((13.95, 4.78), anchor: "east", box(fill: white, inset: 1pt)[B: $(1,1)$])
   for (x, loss) in ((0, [$1/4$]), (8.2, [$0$])) {
-    rect((x, -0.35), (x + 7.2, .65), radius: 1.5mm,
-      fill: luma(98%), stroke: .5pt + luma(78%))
     content((x + 3.6, .4), text(fill: blue)[$"ECE"=0$])
     content((x + 3.6, 0), [Mean squared prediction loss: #loss])
   }
