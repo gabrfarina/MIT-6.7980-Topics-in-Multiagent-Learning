@@ -44,6 +44,13 @@ For $N_q>0$, the second expression follows from $sum_(t in I_q)(y_t-q)=N_q (over
 *Why weight by bucket size?*
 Suppose 90 forecasts report 0.5 and have 45 positive outcomes, while ten forecasts report 1 and have no positive outcomes. The two gaps are 0 and 1, but their weights are 0.9 and 0.1. ECE is $0.9 times 0+0.1 times 1=0.1$, rather than the unweighted average $(0+1)/2=0.5$. A uniformly chosen round belongs to the bad bucket only 10% of the time. This also explains why a small ECE can conceal a large gap in a rarely used bucket.
 
+@fig-l15-ece-weighting makes the weighting visible: the bar gives each bucket space in proportion to its number of rounds.
+#figure(
+  image("figures/calibration_ece/ece_weighting.svg", width: 100%,
+    alt: "Two buckets contain 90 and 10 rounds. Their calibration gaps are zero and one. A bar allocates 90 percent of its width to the first bucket and 10 percent to the second. The weighted ECE is 0.1, whereas giving the two buckets equal weight would give 0.5."),
+  caption: [Bucket weights are proportions of rounds. The bar's widths encode those proportions, giving ECE 0.1 even though the rarely used bucket has gap 1.],
+) <fig-l15-ece-weighting>
+
 #remark[What is being averaged?][
   Despite its name, @def-l15-ece is a statistic of the realized data. No additional expectation over a forecaster's randomization is taken here. Also distinguish the normalized error $"ECE"_T$ from the cumulative error $T "ECE"_T$; an $o(T)$ bound on the latter is an $o(1)$ bound on the former.
 ]
@@ -104,6 +111,13 @@ $
 $
 Using a bin midpoint instead of its mean forecast is a different statistic. Moreover, merging exact buckets can only decrease, or leave unchanged, this mean-forecast statistic: apply $abs(a+b)<=abs(a)+abs(b)$ to their residual sums. In the worked example, merging both buckets gives mean forecast and mean outcome 0.5, and hence zero error for the single aggregate bin. A reported empirical ECE therefore needs its grouping convention. It is also a finite-sample diagnostic, not by itself a certificate of population calibration.
 
+@fig-l15-ece-aggregation compares the three summaries of the same ten rounds. Taking a signed sum and merging buckets both hide information about the original bucket gaps.
+#figure(
+  image("figures/calibration_ece/ece_cancellation.svg", width: 100%,
+    alt: "The two forecast buckets contribute plus 0.1 and minus 0.1 to mean signed error. The signed sum is zero, the sum of absolute contributions is ECE 0.2, and one merged bin has gap zero because both pooled means equal 0.5."),
+  caption: [The exact-bucket ECE remains 0.2. The signed bias and the coarse-bin gap are different summaries and are both zero here; coarsening the grouping does not change the original forecasts.],
+) <fig-l15-ece-aggregation>
+
 = When Nature sees the forecast <sec-ece-impossibility>
 
 An adversarial process can invalidate calibration if it observes the _actual_ forecast before choosing the outcome. This is the classical impossibility obstruction #citep(<Oakes1985SelfCalibrating>, <Dawid1985CalibrationComment>). The following threshold version is used in the lecture and in #citep(<FosterVohra1998Calibration>, [Section 3]).
@@ -128,28 +142,12 @@ Thus normalized ECE cannot vanish, and cumulative calibration error cannot be $o
 #block(breakable: false)[
 = Private randomized forecasts <sec-ece-randomization>
 
-To escape @clm-ece-adversary, change the information available to Nature. The difference is the order of events:
+To escape @clm-ece-adversary, change the information available to Nature. Let $D_t$ denote the announced distribution over the forecast grid $Q$. @fig-l15-ece-protocol compares the order of events in the two models.
 
 #figure(
-  table(
-    columns: (1fr, 1fr),
-    inset: 7pt,
-    align: left,
-    stroke: .4pt + luma(80%),
-    table.header([*Nature sees the actual forecast*], [*Nature sees only its distribution*]),
-    [
-      + The forecaster reports $p_t$.
-      + Nature sees $p_t$ and chooses $y_t$ in response.
-      + The outcome is revealed.
-    ],
-    [
-      + The forecaster announces $D_t$ over $Q$.
-      + Nature commits to $y_t$ without seeing the private draw.
-      + The forecaster privately draws $p_t ~ D_t$ and reports it.
-      + Nature reveals $y_t$; the forecaster updates.
-    ],
-  ),
-  caption: [The information flow in one round. On the right, the committed outcome remains hidden from the forecaster until after its draw. Nature can use the history and the announced distribution in choosing that outcome.],
+  image("figures/calibration_ece/ece_information_flow.svg", width: 100%,
+    alt: "Two timelines compare information flow. In the first, the forecaster reports p and Nature then chooses y after seeing it. In the second, the forecaster announces distribution D, Nature commits to a hidden outcome y, the forecaster privately samples and reports p from D, and only then is y revealed."),
+  caption: [In the lower timeline, Nature commits before seeing the current private draw, while the forecaster does not learn the outcome until after drawing. Nature can still use the history and the announced distribution.],
 ) <fig-l15-ece-protocol>
 ]
 
@@ -190,7 +188,14 @@ Thus small squared calibration score also controls the absolute-error score, wit
 
 There are three useful interpretations. First, the outcome process need not be stationary or follow a weather model: Nature may adapt to the history, provided the private draw remains hidden. Second, the target precision is chosen in advance and requires a suitable grid. The theorem does not promise zero ECE on an arbitrarily coarse fixed grid; @exr-ece-grid shows why this qualification matters. Third, calibration alone does not ensure informative forecasts or small prediction loss; @exr-l15-ece-informativeness gives an example. Nor is an asymptotic statement a guarantee of good performance after a small specified number of rounds.
 
-In cumulative units, the displayed result says
+@fig-l15-ece-informativeness illustrates the third point. A constant forecast can match the overall event frequency while ignoring information that would make prediction easier.
+#figure(
+  image("figures/calibration_ece/ece_informativeness.svg", width: 100%,
+    alt: "Equally common contexts A and B always produce zero and one respectively. A constant forecast 0.5 has one reliability point at (0.5,0.5), ECE zero, and mean squared prediction loss one quarter. A context-aware forecast has points at (0,0) and (1,1), ECE zero, and mean squared loss zero."),
+  caption: [Both rules are calibrated on the recorded sequence. Contexts A and B occur equally often, with outcomes always 0 in A and 1 in B. Using the context improves squared prediction loss from $1/4$ to $0$, although ECE is zero for both rules.],
+) <fig-l15-ece-informativeness>
+
+In cumulative units, @thm-ece-foster-vohra gives
 $ EE[T max("ECE"_T-epsilon,0)]=o(T). $
 For a fixed positive tolerance it is this _excess_ error that is sublinear; one should not silently delete the grid/tolerance term. Choosing arbitrarily small target tolerances is the sense in which long-run calibration can be made arbitrarily accurate.
 
