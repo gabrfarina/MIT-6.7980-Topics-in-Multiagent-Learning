@@ -4,7 +4,7 @@
   date: [Thu, Nov 5, 2026],
   title: "Forecasting and calibration",
   instructor: [Prof. Gabriele Farina (`gfarina@mit.edu`)],
-  extrathanks: [Expected calibration error section prepared by Ziyue Qiu (`ziyueqiu@mit.edu`). Codex assisted with source research, drafting, typesetting, figures, and computational checks.],
+  extrathanks: [Expected calibration error section prepared by Ziyue Qiu (`ziyueqiu@mit.edu`).],
 )
 
 How can we check whether probability forecasts agree with what happens? We first measure agreement on a recorded sequence, then ask whether a forecaster can achieve it against an adversarial outcome process. This section follows #citep(<Farina2026CalibrationSlides>, [slides 5--8]).
