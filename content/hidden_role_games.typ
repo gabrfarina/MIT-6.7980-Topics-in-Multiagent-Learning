@@ -21,7 +21,7 @@ We use the paper's notation: *MAX* is the uninformed team (usually *Good* team),
 
   + *Initial assignment by chance.* At the root, only chance has a nontrivial action set. Chance draws a team-assignment vector
 
-    $ cal(D) in Delta({"MAX", "MIN"}^n), quad t = (t_1, dots, t_n) "sim" cal(D). $
+    $ cal(D) in Delta({"MAX", "MIN"}^n), quad t = (t_1, dots, t_n) tilde cal(D). $
 
     Here $t_i$ denotes the team of player $i$.
 
@@ -66,7 +66,7 @@ Thus neither ordinary Nash equilibrium nor a conventional correlated team equili
 
 = The split-personality construction <sec-split-personality>
 
-The idea is to introduce two _role-specific personalities_ for every physical player. We first describe the *uncoordinated split-personality form*, which is the $2n$-player transformation illustrated on slide 26.
+The idea is to introduce two _role-specific personalities_ for every physical player. We first describe the *uncoordinated split-personality form*, which is the $2n$-player transformation of the $n$-player hidden-role game.
 
 #definition[
   Given an $n$-player hidden-role game $Gamma$, the _uncoordinated split-personality game_ $"USplit"(Gamma)$ replaces every original player $i$ with two players $i^+$ and $i^-$, controlling $i$'s actions when their realized team is MAX and MIN respectively. The resulting adversarial team game has $2n$ players:
@@ -118,7 +118,7 @@ $ max_(vx) min_(vy) u(vx, vy) = min_(vy) max_(vx) u(vx, vy). $
 
 Accordingly, hidden-role equilibrium is *inherently asymmetric*: the MAX-first commitment interpretation is part of the concept, rather than an arbitrary reordering of a saddle-point problem.
 
-The slides give a striking intuition for this asymmetry: reversing commitment order would let MAX coordinate on a secret, sufficiently long random passphrase that MIN has not learned, which can reveal who is on which team. This motivates why MIN is allowed to know MAX's committed strategy, not conversely. We state this observation as motivation; slides 24--26 do not contain its proof (see Section 6.2 of the paper).
+In fact, reversing commitment order would let MAX coordinate on a secret, sufficiently long random passphrase that MIN has not learned, which can reveal who is on which team. This motivates why MIN is allowed to know MAX's committed strategy first, not conversely. We state this observation as motivation (see Section 6.2 of #cite(<Carminati24:HiddenRole>) for details).
 
 = Discussion <sec-hidden-role-discussion>
 
