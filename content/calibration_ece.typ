@@ -7,11 +7,16 @@
   extrathanks: [Expected calibration error section prepared by Ziyue Qiu (`ziyueqiu@mit.edu`). Codex assisted with source research, drafting, typesetting, figures, and computational checks.],
 )
 
-These companion notes cover Task 2 (MD), _Expected calibration error_: its definition, the forecast-observing adversary, the role of private randomization, and the Foster--Vohra result. They follow #citep(<Farina2026CalibrationSlides>, [slides 5--8]) and are intended to be combined with the other lecture sections.
+How can we check whether probability forecasts agree with what happens? We first measure agreement on a recorded sequence, then ask whether a forecaster can achieve it against an adversarial outcome process. This section follows #citep(<Farina2026CalibrationSlides>, [slides 5--8]).
 
 = Expected calibration error on a finite grid <sec-l15-ece-definition>
 
-At round $t$, the forecaster reports $p_t$ before observing $y_t in {0,1}$. Calibration compares the reported probability with the event frequency among rounds sharing that forecast. We evaluate a realized sequence $(p_t,y_t)_(t=1)^T$, with $T>=1$ and forecasts in a finite set $Q subset.eq [0,1]$. For $q in Q$, define
+A binary event either occurs ($y=1$) or does not ($y=0$). A forecast $p=0.7$ assigns the event probability 70%; it does not assert that the next outcome must be one. _Calibration_ asks whether, among repeated forecasts of 0.7, the event occurs about 70% of the time. A single outcome cannot settle that question.
+
+*Warm-up.*
+Suppose ten forecasts all report 0.7. If seven outcomes are one, their observed frequency is $7/10=0.7$ and the empirical calibration gap is zero. If nine are one, the frequency is 0.9 and the absolute gap is $abs(0.9-0.7)=0.2$, or _20 percentage points_. These are descriptions of the observed sample: even a correct probability model can have a nonzero empirical gap in a small sample.
+
+At round $t$, the forecaster reports $p_t$ before observing $y_t in {0,1}$. We evaluate a realized sequence $(p_t,y_t)_(t=1)^T$, with $T>=1$ and forecasts in a finite set $Q subset.eq [0,1]$. A _bucket_ collects all rounds with the same reported probability. For $q in Q$, define
 $
   I_q := {t in {1,...,T}: p_t=q}, quad N_q := |I_q|.
 $
@@ -28,15 +33,27 @@ For a nonempty bucket, let $overline(y)_q := (1/N_q) sum_(t in I_q) y_t$. This i
 ] <def-l15-ece>
 ]
 
-For $N_q>0$, the identity follows from $sum_(t in I_q)(y_t-q)=N_q (overline(y)_q-q)$. The weight $N_q/T$ is the fraction of forecasts in that bucket. Thus ECE is the average bucket gap seen by a uniformly chosen round, not an unweighted average over distinct forecast values. In particular, $0<="ECE"_T<=1$, and ECE is zero exactly when every nonempty bucket has $overline(y)_q=q$. A small ECE need not imply a small gap in a rarely used bucket.
+The formula is a four-step recipe:
++ *Group* the rounds by their reported probability $q$.
++ *Count* the fraction of outcomes equal to one in each bucket, $overline(y)_q$.
++ *Compare* that frequency with $q$, using the absolute gap $abs(overline(y)_q-q)$.
++ *Average* the gaps, weighting each bucket by its share $N_q/T$ of the rounds.
+
+For $N_q>0$, the second expression follows from $sum_(t in I_q)(y_t-q)=N_q (overline(y)_q-q)$. In particular, $0<="ECE"_T<=1$, and ECE is zero exactly when every nonempty bucket has $overline(y)_q=q$.
+
+*Why weight by bucket size?*
+Suppose 90 forecasts report 0.5 and have 45 positive outcomes, while ten forecasts report 1 and have no positive outcomes. The two gaps are 0 and 1, but their weights are 0.9 and 0.1. ECE is $0.9 times 0+0.1 times 1=0.1$, rather than the unweighted average $(0+1)/2=0.5$. A uniformly chosen round belongs to the bad bucket only 10% of the time. This also explains why a small ECE can conceal a large gap in a rarely used bucket.
 
 #remark[What is being averaged?][
   Despite its name, @def-l15-ece is a statistic of the realized data. No additional expectation over a forecaster's randomization is taken here. Also distinguish the normalized error $"ECE"_T$ from the cumulative error $T "ECE"_T$; an $o(T)$ bound on the latter is an $o(1)$ bound on the former.
 ]
 
+#block(breakable: false)[
 == Worked example: opposite errors do not cancel <sec-l15-ece-example>
 
-Consider ten forecasts on $Q={0.2,0.8}$. The first bucket contains two positive outcomes out of five, and the second contains three out of five. Their order within each bucket does not affect ECE.
+Now consider ten forecasts on $Q={0.2,0.8}$. One possible recording is
+$ p=0.2: quad (1,1,0,0,0), quad p=0.8: quad (1,1,1,0,0). $
+Each bucket contains five rounds; their order within a bucket does not affect ECE.
 
 #figure(
   table(
@@ -60,10 +77,13 @@ $ "ECE"_T=frac(5,10)abs(0.4-0.2)+frac(5,10)abs(0.6-0.8)=0.2. $
 The forecasts and outcomes have the same overall mean, 0.5, but disagree within both buckets. Moving the absolute value outside the sum would conceal these errors.
 
 #figure(
-  image("figures/calibration_ece/ece_reliability.svg", width: 50%,
-    alt: "Reliability diagram with forecast probability on the horizontal axis and observed event frequency on the vertical axis. The identity diagonal represents zero bucket error. Two equally weighted points at (0.2, 0.4) and (0.8, 0.6) each have vertical calibration gap 0.2."),
-  caption: [Both buckets have weight $1/2$ and vertical gap $0.2$ from the diagonal $overline(y)_q=q$, giving ECE $0.2$. Segments are calibration gaps, not confidence intervals.],
+  image("figures/calibration_ece/ece_reliability.svg", width: 100%,
+    alt: "Two panels connect the observations to a reliability diagram. The 0.2 forecast bucket contains outcomes 1,1,0,0,0, giving frequency 0.4; the 0.8 bucket contains 1,1,1,0,0, giving frequency 0.6. The diagram plots (0.2,0.4) and (0.8,0.6); each has weight one half and vertical gap 0.2 from the identity diagonal."),
+  caption: [From individual outcomes to bucket gaps. In the left panel, each circle is one round; its label is the binary outcome. Both buckets have weight $1/2$ and vertical gap $0.2$ from the diagonal $overline(y)_q=q$, giving ECE $0.2$. Segments are calibration gaps, not confidence intervals.],
 ) <fig-l15-ece-reliability>
+]
+
+To read the diagram, locate a forecast on the horizontal axis and its observed event frequency on the vertical axis. A point _above_ the diagonal means underprediction: the event happened more often than forecast. A point _below_ means overprediction. ECE averages the _vertical_ gaps, with bucket weights; it does not average geometric distances to the line.
 
 #block(breakable: false)[
 For any sequence, the triangle inequality gives
@@ -88,6 +108,8 @@ Using a bin midpoint instead of its mean forecast is a different statistic. More
 
 An adversarial process can invalidate calibration if it observes the _actual_ forecast before choosing the outcome. This is the classical impossibility obstruction #citep(<Oakes1985SelfCalibrating>, <Dawid1985CalibrationComment>). The following threshold version is used in the lecture and in #citep(<FosterVohra1998Calibration>, [Section 3]).
 
+The idea is to choose the outcome on the opposite side of the forecast: after a report of 0.2, choose one; after a report of 0.8, choose zero. Repeating a particular forecast then always produces the same contrary outcome, so each bucket stays far from its claimed frequency. The next claim makes this precise for _every_ possible forecast value.
+
 #block(breakable: false)[
 #claim[Forecast-observing adversary][
   Suppose Nature observes $p_t$ and then chooses
@@ -103,20 +125,47 @@ An adversarial process can invalidate calibration if it observes the _actual_ fo
 
 Thus normalized ECE cannot vanish, and cumulative calibration error cannot be $o(T)$. The distinction matters: normalized ECE is always at most one, so merely calling it _sublinear_ would not express the intended goal. Randomizing does not defeat this adversary if Nature still sees each sampled $p_t$ before responding. For a deterministic forecasting rule, knowing the rule and history already determines that round's forecast.
 
+#block(breakable: false)[
 = Private randomized forecasts <sec-ece-randomization>
 
-To escape @clm-ece-adversary, change the information available to Nature. At each round:
+To escape @clm-ece-adversary, change the information available to Nature. The difference is the order of events:
 
-+ The forecaster announces a distribution $D_t$ over a forecast grid $Q$.
-+ Nature commits to $y_t$, using the history and $D_t$, but without seeing this round's private draw.
-+ The forecaster samples $p_t ~ D_t$ with private randomness and reports it.
-+ The outcome is revealed, and the forecaster updates.
+#figure(
+  table(
+    columns: (1fr, 1fr),
+    inset: 7pt,
+    align: left,
+    stroke: .4pt + luma(80%),
+    table.header([*Nature sees the actual forecast*], [*Nature sees only its distribution*]),
+    [
+      + The forecaster reports $p_t$.
+      + Nature sees $p_t$ and chooses $y_t$ in response.
+      + The outcome is revealed.
+    ],
+    [
+      + The forecaster announces $D_t$ over $Q$.
+      + Nature commits to $y_t$ without seeing the private draw.
+      + The forecaster privately draws $p_t ~ D_t$ and reports it.
+      + Nature reveals $y_t$; the forecaster updates.
+    ],
+  ),
+  caption: [The information flow in one round. On the right, the committed outcome remains hidden from the forecaster until after its draw. Nature can use the history and the announced distribution in choosing that outcome.],
+) <fig-l15-ece-protocol>
+]
 
 Equivalently, the forecast and outcome may be drawn simultaneously, with the appropriate conditional independence. Nature can adapt to the past and observe the current distribution; it cannot condition the outcome on the current realized forecast. A point mass $D_t$ offers no such protection, because it reveals $p_t$ exactly. This protocol is the adaptive-adversary model of #citep(<FosterVohra1998Calibration>, [Section 3]).
 
-For example, if $D_t$ puts mass on a forecast below $1/2$ and another above $1/2$, the threshold response in @clm-ece-adversary would require different outcomes for the same announced distribution. Nature cannot choose its response according to the hidden draw. This removes that impossibility argument, but it does not imply that every randomized forecasting rule is calibrated.
+*A hidden coin changes what Nature can do.*
+Suppose $D_t$ selects $p_t=0.25$ or $p_t=0.75$, each with probability $1/2$. The threshold adversary would need to choose $y_t=1$ for the first draw and $y_t=0$ for the second. It now has to commit to one outcome without knowing which draw occurred. This removes the preceding impossibility argument while still allowing Nature to react to the history and $D_t$.
+
+*Randomization alone is not enough.*
+Keep that same 50--50 distribution forever, and let Nature always choose $y_t=1$. Every nonempty bucket then underpredicts, so
+$ "ECE"_T=frac(1,T)sum_(t=1)^T (1-p_t), quad EE["ECE"_T]=1/2. $
+The randomized rule is still poorly calibrated. A calibration theorem must provide a suitably designed forecasting strategy, rather than merely permission to toss a coin.
 
 = Foster--Vohra's positive result <sec-ece-foster-vohra>
+
+The positive result allows us to choose a target precision first and then use a suitable grid and randomized strategy. The expected error _above that precision_ vanishes in the long run.
 
 #block(breakable: false)[
 #theorem[Randomized approximate calibration][
@@ -127,6 +176,9 @@ For example, if $D_t$ puts mass on a forecast below $1/2$ and another above $1/2
 ]
 
 This states the Foster--Vohra existence result in the finite-resolution $ell_1$ language used here #citep(<FosterVohra1998Calibration>). For this precise excess-error formulation, see #citep(<GuptaRamdas2022Calibration>, [Section 1]). The expectation is over the forecaster's private draws and any randomness of Nature. The theorem is stated here; the later lecture sections develop the no-regret reductions, rather than this section reproducing their algorithms.
+
+*Reading the tolerance term.*
+Take $epsilon=0.05$. A run with ECE 0.08 has excess $max(0.08-0.05,0)=0.03$; a run with ECE 0.02 has excess zero. The theorem says the _expectation of this excess_ tends to zero as more rounds are played. It does not claim that every finite run has ECE at most 0.05, or that 95% of individual outcomes are predicted correctly. ECE 0.05 describes a weighted average calibration gap of five percentage points.
 
 The original paper uses the weighted squared calibration score
 $ C_(2,T):=sum_(q in Q_+) frac(N_q,T)(overline(y)_q-q)^2. $
@@ -142,6 +194,7 @@ In cumulative units, the displayed result says
 $ EE[T max("ECE"_T-epsilon,0)]=o(T). $
 For a fixed positive tolerance it is this _excess_ error that is sublinear; one should not silently delete the grid/tolerance term. Choosing arbitrarily small target tolerances is the sense in which long-run calibration can be made arbitrarily accurate.
 
+#block(breakable: false)[
 = Exercises and reference solutions <sec-l15-ece-exercises>
 
 #exercise[Small signed bias can hide maximal ECE][
@@ -150,6 +203,7 @@ For a fixed positive tolerance it is this _excess_ error that is sublinear; one 
   + Now let $y_t=1$ for odd $t$ and $y_t=0$ for even $t$. Compute $"ECE"_T$ for every $T>=1$ using $Q={0,1}$.
   + Explain why this forecasting rule solves the simplified signed-error objective on slide 8 but does not ensure calibration.
 ] <exr-l15-ece-telescoping>
+]
 
 #block(breakable: false)[
 #solution[
@@ -159,12 +213,14 @@ For a fixed positive tolerance it is this _excess_ error that is sublinear; one 
 ]
 ]
 
+#block(breakable: false)[
 #exercise[Calibration does not imply informativeness][
   There are $2m$ rounds, with $m>=1$. A context $c_t in {A,B}$ is observed before the forecast; each context occurs $m$ times. The outcome is always zero in context $A$ and always one in context $B$.
   + Compute ECE for a forecaster that always reports $p_t=1/2$.
   + Compare with the context-aware rule $p_t=0$ in context $A$ and $p_t=1$ in context $B$. Does ECE distinguish the two rules?
   + Compare their average squared prediction losses, $(1/(2m))sum_(t=1)^(2m) (y_t-p_t)^2$.
 ] <exr-l15-ece-informativeness>
+]
 
 #block(breakable: false)[
 #solution[
