@@ -67,3 +67,18 @@
     }
   }
 }
+
+// Link to a standalone interactive page published at interactive/<page>.html
+// (configured under `interactive_pages` in html-export.json). Web pages link
+// relatively; PDFs link to the course website, like standalone lecture links.
+#let interactive-link(page, body) = context {
+  assert(page.match(regex("^[a-z][a-z0-9_]*$")) != none,
+    message: "Expected the basename of an interactive/*.html page.")
+  let relative = "interactive/" + page + ".html"
+  if target() == "html" {
+    link(relative, body)
+  } else {
+    let base = sys.inputs.at("course-url", default: "https://www.mit.edu/~6.7980/")
+    link(base + relative, text(fill: blue.darken(40%), body))
+  }
+}
