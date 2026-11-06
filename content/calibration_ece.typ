@@ -244,12 +244,86 @@ Another zero made the higher forecast overpredict more, so the next lottery shif
   caption: [From past errors to the next lottery. Panels 1--3 use spacing 0.25 and the table's initial history. Panel 4 uses a fresh run with spacing 0.05, PCG64 seed 20261105, and Nature choosing one exactly when the public mean forecast is below 0.65, before the private draw. The curve shows sampled checkpoints; the full run has 1,958 upward ECE steps and ends at 0.0050375. This single trajectory illustrates the rule; it is not the convergence proof.],
 ) <fig-l15-ece-adaptive>
 
-*Why this is more than cancellation.*
-The mixture satisfies $EE_(p~D_t)[e_p]=0$. For the midpoint $z=(a+b)/2$, conditional on the history and any committed outcome $y$,
-$ EE[e_p(y-p)]=EE[e_p(z-p)] <= (h/2) EE[abs(e_p)]. $
-The first equality removes Nature's unknown outcome; the inequality uses $abs(z-p)<=h/2$. In the zero-error case both sides are zero. This is the forecast-hedging condition: it controls how new errors interact with past bucket errors, rather than redefining ECE as a signed sum. The cited theorem yields, against every Nature obeying the private-draw protocol,
+=== Four possible next records <sec-l15-ece-four-cases>
+
+Balancing the signed errors chooses the next lottery; it does not erase the absolute errors already recorded. To see what actually changes, keep the full initial history above. Write each bucket's _cumulative residual_ as $C_q:=R_q-N_q q=N_q e_q$. Then
+$ "ECE"_T=frac(1,T)sum_(q in Q)abs(C_q). $
+The selected buckets have $C_(0.25)=2$ and $C_(0.50)=-1$. The other three buckets contribute $1+0.75+1=2.75$ to the absolute sum. Thus the current score is
+$ "ECE"_11=frac(abs(2)+abs(-1)+2.75,11)=frac(23,44) approx 0.5227. $
+Solving $w(0.5)+(1-w)(-0.25)=0$ gives $w=1/3$; this is why the next-draw probabilities are $1/3$ and $2/3$. They are not the historical weights in ECE.
+
+Nature commits either zero or one before the private draw. For each possible committed outcome, there are two possible draws. Only the drawn bucket changes, by $C_p^+=C_p+(y-p)$; the total count becomes 12 in all four cases.
+#figure(
+  table(
+    columns: (auto,auto,auto,auto,auto), align: center, inset: 5pt,
+    table.header([Outcome $y$], [Draw $p$], [Draw chance], [New $C_p$], [New $"ECE"_12$]),
+    [$0$],[$0.25$],[$1/3$],[$7/4$],[$11/24 approx 0.4583$],
+    [$0$],[$0.50$],[$2/3$],[$-3/2$],[$25/48 approx 0.5208$],
+    [$1$],[$0.25$],[$1/3$],[$11/4$],[$13/24 approx 0.5417$],
+    [$1$],[$0.50$],[$2/3$],[$-1/2$],[$7/16 approx 0.4375$],
+  ),
+  caption: [All four next records from the same initial history. Draw chances are conditional on the committed outcome; no probability distribution for Nature's outcome is assumed.],
+) <tab-l15-ece-four-cases>
+For example, with $p=0.50$ and $y=0$, the residual changes from $-1$ to $-1+(0-0.50)=-1.50$. The new score is $(abs(2)+abs(-1.50)+2.75)/12=25/48$. The absolute-error numerator grew, but the average fell because it is now divided by 12.
+
+For either committed outcome, average over the draw probabilities _after_ computing each branch's ECE:
+$ EE["ECE"_12 | y=0]=frac(1,3)frac(11,24)+frac(2,3)frac(25,48)=frac(1,2), $
+$ EE["ECE"_12 | y=1]=frac(1,3)frac(13,24)+frac(2,3)frac(7,16)=frac(17,36). $
+Both are below the current $23/44$. These are averages over alternative random records; each record still takes absolute values bucket by bucket. Nature cannot choose a different outcome after learning which branch was drawn. One branch, $p=0.25$ with $y=1$, increases ECE. This table establishes a one-step expectation decrease for _this history_; it is not a proof that every history has such a decrease. The distribution must be recomputed after every observed outcome.
+
+#figure(
+  image("figures/calibration_ece/ece_bridge.svg", width: 100%,
+    alt: "Top: the two possible forecast draws for each committed outcome give four ECE values. One branch rises above the old ECE 0.5227, while the conditional means 0.5000 and 0.4722 are lower. Bottom: five bucket widths match counts 1,4,4,1,1 and positive heights are absolute mean errors 1,0.5,0.25,0.75,1. The mean absolute gap 0.5227 lies below the weighted root mean square 0.5887."),
+  caption: [Two different averages. The upper panel averages complete next-record ECE values using the draw chances $1/3$ and $2/3$. The lower panel uses historical frequency weights $N_q/11$ to compare the mean absolute bucket gap with its root mean square. All four next-record values and both geometric reference levels use the same initial history.],
+) <fig-l15-ece-bridge>
+
+=== From squared calibration error to ECE <sec-l15-ece-square-bridge>
+
+The long-run argument tracks squared _bucket mean errors_. Set $w_q=N_q/T$ and recall the squared calibration score $C_(2,T)=sum_q w_q e_q^2$. Define its cumulative form by
+$ V_T:=sum_(q in Q)N_q e_q^2=T C_(2,T). $
+An empty bucket contributes zero. This is different from the individual prediction loss $T^(-1)sum_t (y_t-p_t)^2$: outcomes are averaged within a bucket _before_ its calibration error is squared.
+
+#block(breakable: false)[
+ECE is the weighted mean of the nonnegative gaps $abs(e_q)$; $sqrt(C_(2,T))$ is their weighted root mean square. The latter always bounds the former. One way to see this without allowing signed cancellation is to expand a sum of squares:
+$ 0<=sum_(q in Q)w_q (abs(e_q)-"ECE"_T)^2=C_(2,T)-"ECE"_T^2. $
+Therefore
+$ "ECE"_T^2<=C_(2,T)=V_T/T, quad "ECE"_T<=sqrt(V_T/T). $
+Every term on the left of the first display is nonnegative. Large positive and negative bucket errors both contribute positively after squaring.
+
+]
+
+In the same initial history, $V_11=61/16$, so
+$ C_(2,11)=61/176 approx 0.3466, quad "ECE"_11=23/44 approx 0.5227 <= sqrt(61/176) approx 0.5887. $
+The square root matters: the numerical squared score $0.3466$ is not itself an upper bound on ECE. @fig-l15-ece-bridge connects the four possible records to this geometric bound.
+
+=== Why the update controls this square <sec-l15-ece-square-drift>
+
+Here is the mathematical link behind the guarantee of #citep(<FosterHart2021Hedging>, [Section V, Theorem 12]). In this paragraph, counts and errors refer to the history before one new round. Expectations condition on that history and any committed outcome $y$, and average only over the private draw $p$. Expanding the selected bucket's new square gives
+$ Delta V=2 e_p (y-p)-e_p^2+rho, quad rho:=frac((y-p-e_p)^2,N_p+1). $
+For a used bucket, $y-p-e_p=y-R_p/N_p$ lies between minus one and one. For an unused bucket, $e_p=0$ and $abs(y-p)<=1$. Hence $0<=rho<=1/(N_p+1)$ in both cases.
+
+The draw weights were chosen so that $EE[e_p]=0$. Consequently,
+$ EE[e_p (y-p)]=y EE[e_p]-EE[e_p p]=-EE[e_p p]. $
+The unknown outcome has disappeared from this term. In our numerical example, both possible outcomes give the same value:
+$ frac(1,3)(0.5)(y-0.25)+frac(2,3)(-0.25)(y-0.50)=1/24. $
+It is this _influence on the new squared total_ that is hedged; the historical absolute gaps are still measured separately.
+
+Adjacency controls what remains. Let $z=(a+b)/2$ for the two-point mixture, or $z=p$ when selecting a zero-error bucket. Since $abs(z-p)<=h/2$,
+$ EE[e_p (y-p)]=EE[e_p (z-p)] <= (h/2) EE[abs(e_p)]. $
+#block(breakable: false)[
+Combining this with the square update and the elementary bound $h abs(e)-e^2<=h^2/4$ yields
+$ EE[Delta V]<=h^2/4+EE[rho]. $
+]
+
+The remainder is small _after averaging over time_. Each selection of a bucket contributes at most the next term of its harmonic sum, $1+1/2+1/3+...$. For $K=abs(Q)$ buckets, their combined remainder through $T$ total records is at most $K(1+log T)$, where the logarithm is natural. Keep the grid fixed as $T$ grows.
+
+Allow a finite initial history of size $T_0$ (11 in our example). There are $T-T_0$ new rounds. Summing the conditional bounds gives the convenient estimate
+$ EE[V_T/T]<=h^2/4+frac(V_(T_0)+K(1+log T),T). $
+The second term vanishes. Finally, applying the ECE bound and then the concavity of the square root,
+$ EE["ECE"_T]<=EE[sqrt(V_T/T)]<=sqrt(EE[V_T/T]), $
+so
 $ limsup_(T -> infinity) EE["ECE"_T] <= h/2. $
-Spacing $h=0.05$ therefore gives an asymptotic expected ceiling of $0.025$. Finer grids give smaller target errors. Neither this statement nor the example promises that empirical ECE decreases on every round.
+Spacing $h=0.05$ gives an asymptotic expected ceiling of $0.025$. A finer grid permits a smaller target error, with more buckets to learn. Neither a single branch nor the expected score after every individual round is guaranteed to improve. The guarantee uses private draws, adjacent grid points, and probabilities recomputed from the current history.
 
 #block(breakable: false)[
 = Exercises and reference solutions <sec-l15-ece-exercises>
