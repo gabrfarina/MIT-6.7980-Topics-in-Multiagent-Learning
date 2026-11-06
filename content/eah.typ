@@ -477,7 +477,7 @@ If you are curious to read more, the following papers contain extensions and ref
       sum_(a'_i) nu_(i,a'_i) bb(E)_(a ~ vmu)[u_(i)(a'_i,a_(-i)) - u_(i)(a)] = s_i (bb(E)_(a'_i ~ vmu_i \, a_(-i) ~ vmu_(-i))[u_(i)(a'_i,a_(-i))] - bb(E)_(a ~ vmu)[u_(i)(a)]) .
     $
 
-    The first expectation is the payoff from a deviation drawn from $vmu_i$ independently of the opponents, and the second is the actual payoff under $vmu$. If $vmu$ is a product distribution, the two are equal, so the gain is zero. If $vmu$ is replaced by a joint distribution with the same marginals, the first expectation stays the same, but the second can change, because the players' actions may now be correlated.
+    The first expectation is the payoff from a deviation drawn from $vmu_i$ independently of the opponents, and the second is the actual payoff under $vmu$. If $vmu$ is a product distribution, the two are equal, so the gain is zero. In a two-player game, if $vmu$ is replaced by a joint distribution with the same marginals, the first expectation stays the same, but the second can change, because the players' actions may now be correlated.
 
     One possible counterexample uses the matching pennies game from #ref(<ex:matching-pennies>), but with a different choice of deviation weights. Let $nu_(1,H) = nu_(1,T) = 1/2$, with all other deviation weights equal to zero. Then $s_1 = 1$ and $s_2 = 0$. The construction in #ref(<sec-hart-schmeidler-proof>, supplement: [Appendix]) gives $mu_1 (H) = mu_1 (T) = 1/2$. Since $s_2 = 0$, we are free to choose $vmu_2$. Let $mu_2 (H) = mu_2 (T) = 1/2$.
 
