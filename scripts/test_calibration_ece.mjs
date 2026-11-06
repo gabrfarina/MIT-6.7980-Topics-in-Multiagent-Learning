@@ -65,3 +65,42 @@ test('snapshot objects cannot modify internal counts',enabled,()=>{
 test('nonfinite branch previews are rejected without changing the record',enabled,()=>{
  const m=worked(()=>.5);assert.throws(()=>m.preview(Number.NaN,0),/grid|finite/i);assert.equal(m.snapshot().total,11);
 });
+
+test('paired comparison begins with equal histories and separately computed scores',()=>{
+ assert.equal(typeof api.createComparison,'function','Missing paired comparison model');
+ const s=api.createComparison().snapshot();assert.equal(s.seed,20261105);assert.equal(s.policy,'ones');assert.equal(s.newRounds,0);
+ assert.deepEqual(plain(s.fixed.N),plain(s.adaptive.N));close(s.fixed.metrics.ece,23/44);close(s.adaptive.metrics.ece,23/44);
+});
+test('comparison reuses the same uniform stream and commits before each model draws',()=>{
+ let pair,factories=0,calls=[0,0];
+ pair=api.createComparison({randomFactory:()=>{const k=factories++;return ()=>{const s=pair.snapshot();assert.equal((k===0?s.fixed:s.adaptive).phase,'committed');return [.1,.8,.4,.9][calls[k]++%4];};}});
+ const s=pair.run(20);assert.deepEqual(calls,[20,20]);assert.deepEqual(plain(s.fixed.history.map(p=>p.y)),plain(s.adaptive.history.map(p=>p.y)));
+ close(s.fixed.history[1].p,s.adaptive.history[1].p);assert.equal(s.fixed.total,31);assert.equal(s.adaptive.total,31);
+});
+for(const policy of ['ones','zeros','alternating'])test(`comparison ${policy} is reproducible across odd batch boundaries`,()=>{
+ const a=api.createComparison({seed:42,policy}),b=api.createComparison({seed:42,policy});
+ a.run(1);a.run(99);const x=a.run(100),y=b.run(200);assert.deepEqual(plain(x),plain(y));
+ for(const key of ['fixed','adaptive']){
+  assert.ok(x[key].history.slice(1).every((p,i)=>p.y===(policy==='ones'?1:policy==='zeros'?0:i%2)));
+  const direct=x[key].N.reduce((sum,n,i)=>sum+Math.abs(x[key].R[i]-n*i/4),0)/x[key].total;close(x[key].metrics.ece,direct);
+  assert.ok(x[key].metrics.ece<=x[key].metrics.rms+1e-12);
+ }
+});
+test('comparison reset replays the seed and returned snapshots are detached',()=>{
+ const p=api.createComparison({seed:0});const first=p.run(100);p.reset();const second=p.run(100);assert.deepEqual(plain(first),plain(second));
+ second.fixed.N[0]=999;second.adaptive.history[0].ece=999;assert.equal(p.snapshot().fixed.N[0],1);close(p.snapshot().adaptive.history[0].ece,23/44);
+});
+test('comparison rejects invalid settings and over-cap batches without partial advancement',()=>{
+ for(const seed of [-1,2**32,1.5,NaN,'42'])assert.throws(()=>api.createComparison({seed}),/seed/i);
+ assert.throws(()=>api.createComparison({policy:'mean'}),/policy|outcome/i);
+ const p=api.createComparison();for(const n of [0,-1,1.5,10001])assert.throws(()=>p.run(n),/round|limit|10000/i);
+ assert.equal(p.snapshot().newRounds,0);const end=p.run(10000);assert.equal(end.fixed.total,10011);assert.equal(end.adaptive.total,10011);
+ assert.throws(()=>p.run(1),/round|limit|10000/i);assert.equal(p.snapshot().newRounds,10000);
+});
+test('committed print checkpoints reproduce the actual comparison model',()=>{
+ const data=JSON.parse(readFileSync(new URL('../content/figures/calibration_ece/ece_comparison.json',import.meta.url),'utf8'));
+ const s=api.createComparison({seed:data.seed,policy:data.policy}).run(data.new_rounds);
+ assert.equal(data.initial_rounds,11);assert.equal(data.series.length,1001);
+ data.series.forEach(([round,fixed,adaptive],i)=>{assert.equal(round,i);close(fixed,s.fixed.history[i].ece);close(adaptive,s.adaptive.history[i].ece);});
+ for(const key of ['fixed','adaptive']){assert.deepEqual(data[key].N,plain(s[key].N));assert.deepEqual(data[key].R,plain(s[key].R));close(data[key].ece,s[key].metrics.ece);}
+});
