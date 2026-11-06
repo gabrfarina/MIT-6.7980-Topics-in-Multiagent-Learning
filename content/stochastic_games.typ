@@ -170,6 +170,8 @@ If we are content with non-Markovian strategies, a finite-horizon stochastic gam
 
 Finally, we remark that in finite-horizon games, there typically do not exist Nash equilibria in stationary and Markovian policies, because the best response of a player to the policies of the other players, even if all other players use stationary and Markovian policies, typically depends on the number of interaction steps that remain. In infinite-horizon games, however, equilibria in stationary and Markovian policies do exist, as we show in the next section.
 
+@ex-finite-horizon-stationarity gives a two-stage example and explains how including time in the state changes the stationary-policy restriction.
+
 == The infinite-horizon case
 
 #theorem[#citep(<takahashi1964equilibrium>)#citep(<fink1964equilibrium>)][
@@ -475,6 +477,22 @@ The computational comparisons should therefore be made with their models specifi
 - General-sum two-player normal-form Nash computation is PPAD-complete #citep(<chen2009settling>). For more players, exact algebraic solutions and approximate equilibria must be distinguished #citep(<etessami2010fixedpoints>).
 
 Simple stochastic games, studied by #citet(<condon1992stochastic>), form a different model: a turn-based reachability game with maximizing, minimizing, and random vertices. The decision problem belongs to NP intersect coNP. This result is not a claim about strongly polynomial algorithms for arbitrary simultaneous-move discounted Markov games. Here, “polynomial time” counts the binary encoding of numerical data, whereas “strongly polynomial” imposes a stricter arithmetic-operation requirement.
+
+= Problems <sec-stochastic-games-problems>
+
+#exercise[Finite horizons and stationary policies][
+  Construct a finite-horizon stochastic game with no Nash equilibrium in stationary Markov policies, even allowing randomized policies. A Markov decision process for Player 1 and a second player with a single action suffice. Explain why including the stage index in the state resolves the issue.
+] <ex-finite-horizon-stationarity>
+
+#solution[
+  Let $S = {s,z}$, $H=2$ and $gamma=1$, with initial state $s$. Player 2 has the single action $d$ and always receives $0$. In $s$, Player 1 can _continue_ ($c$: reward $1$, stay in $s$) or _exit_ ($e$: reward $2$, move to $z$). The state $z$ is absorbing with reward $0$.
+
+  *No stationary equilibrium.* A stationary policy exits from $s$ with the same probability $p := pi_1(e \| s)$ at both stages. Each visit to $s$ gives expected reward $2p + (1-p) = 1+p$, and the second visit happens with probability $1-p$. Hence, for every $p in [0,1]$,
+  $ u_1(pi_1,pi_2) = (1+p) + (1-p)(1+p) = frac(9,4) - (p-frac(1,2))^2 <= frac(9,4). $
+  The policy that continues at stage $0$ and exits at stage $1$ earns $1+2=3 > 9/4$. It is an admissible deviation in the lecture's Nash equilibrium definition, because the length of the history gives the stage. So every stationary profile admits a strictly profitable deviation by Player 1. Every trajectory earns at most $3$, so this time-dependent policy is a best response among all history-dependent policies and forms a Nash equilibrium in Markov policies.
+
+  *Including time in the state.* Use the states $S times {0,1}$, start in $(s,0)$, keep the rewards, and let $(x,0)$ move to $(y,1)$ with probability $ℙ(y \| x,a)$. Transitions out of stage $1$ are never used and can be chosen arbitrarily. The two visits to $s$ are now the distinct states $(s,0)$ and $(s,1)$, so the stationary policy that continues at $(s,0)$ and exits at $(s,1)$ is available. It earns $3$, and by the same trajectory bound it is a Nash equilibrium of the expanded game. In general, a Markov policy $pi_i (x,t)$ is a stationary policy on the expanded states, and the stage index adds no information that a history-dependent policy did not already have.
+] <sol-finite-horizon-stationarity>
 
 = Bibliography for this lecture
 
