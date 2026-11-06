@@ -237,7 +237,9 @@ In cumulative units, @thm-ece-foster-vohra gives
 $ EE[T max("ECE"_T-epsilon,0)]=o(T). $
 For a fixed positive tolerance it is this _excess_ error that is sublinear; one should not silently delete the grid/tolerance term. Choosing arbitrarily small target tolerances is the sense in which long-run calibration can be made arbitrarily accurate.
 
-== A concrete update from the history <sec-l15-ece-adaptive>
+== Supplement: a binary update for the ECE experiment <sec-l15-ece-adaptive>
+
+This supplementary binary example supplies the forecaster used in the ECE experiments. The general multicalibration algorithm is developed in the later lecture sections. The complete long-run proof for this example is in #ref(<sec-l15-ece-square-drift>, supplement: [Appendix]); its worked examples and interactive comparisons remain here.
 
 Here is the binary forecast-hedging procedure of #citep(<FosterHart2021Hedging>, [Section V, Theorem 12]). Fix an integer $m>=1$ and grid $Q={0,1/m,...,1}$ with spacing $h=1/m$. Before round $t$, store the past count $N_q$ and positive-outcome count $R_q$ for each bucket. Its _mean error_ is
 $ e_q := cases(R_q/N_q-q & "if" N_q>0, 0 & "if" N_q=0). $
@@ -395,37 +397,7 @@ The square root matters: the numerical squared score $0.3466$ is not itself an u
 
 #ece-check([Quick check: take the square root], [Suppose the squared bucket calibration score is $C_(2,T)=0.04$. What upper bound follows for ECE? Must ECE equal that bound?], [We obtain $"ECE"_T<=sqrt(0.04)=0.20$. Equality is not required. The score $0.04$ itself is not the bound supplied by this inequality.]) <check-l15-ece-root>
 
-=== Why the update controls this square <sec-l15-ece-square-drift>
-
-Here is the mathematical link behind the guarantee of #citep(<FosterHart2021Hedging>, [Section V, Theorem 12]). In this paragraph, counts and errors refer to the history before one new round. Expectations condition on that history and any committed outcome $y$, and average only over the private draw $p$. Expanding the selected bucket's new square gives
-$ Delta V=2 e_p (y-p)-e_p^2+rho, quad rho:=frac((y-p-e_p)^2,N_p+1). $
-For a used bucket, $y-p-e_p=y-R_p/N_p$ lies between minus one and one. For an unused bucket, $e_p=0$ and $abs(y-p)<=1$. Hence $0<=rho<=1/(N_p+1)$ in both cases.
-
-The draw weights were chosen so that $EE[e_p]=0$. Consequently,
-$ EE[e_p (y-p)]=y EE[e_p]-EE[e_p p]=-EE[e_p p]. $
-The unknown outcome has disappeared from this term. In our numerical example, both possible outcomes give the same value:
-$ frac(1,3)(0.5)(y-0.25)+frac(2,3)(-0.25)(y-0.50)=1/24. $
-It is this _influence on the new squared total_ that is hedged; the historical absolute gaps are still measured separately.
-
-#block(breakable: false)[
-Adjacency controls what remains. Let $z=(a+b)/2$ for the two-point mixture, or $z=p$ when selecting a zero-error bucket. Since $abs(z-p)<=h/2$,
-$ EE[e_p (y-p)]=EE[e_p (z-p)] <= (h/2) EE[abs(e_p)]. $
-]
-
-#block(breakable: false)[
-Combining this with the square update and the elementary bound $h abs(e)-e^2<=h^2/4$ yields
-$ EE[Delta V]<=h^2/4+EE[rho]. $
-]
-
-The remainder is small _after averaging over time_. Each selection of a bucket contributes at most the next term of its harmonic sum, $1+1/2+1/3+...$. For $K=abs(Q)$ buckets, their combined remainder through $T$ total records is at most $K(1+log T)$, where the logarithm is natural. Keep the grid fixed as $T$ grows.
-
-Allow a finite initial history of size $T_0$ (11 in our example). There are $T-T_0$ new rounds. Summing the conditional bounds gives the convenient estimate
-$ EE[V_T/T]<=h^2/4+frac(V_(T_0)+K(1+log T),T). $
-The second term vanishes. Finally, applying the ECE bound and then the concavity of the square root,
-$ EE["ECE"_T]<=EE[sqrt(V_T/T)]<=sqrt(EE[V_T/T]), $
-so
-$ limsup_(T -> infinity) EE["ECE"_T] <= h/2. $
-Spacing $h=0.05$ gives an asymptotic expected ceiling of $0.025$. A finer grid permits a smaller target error, with more buckets to learn. Neither a single branch nor the expected score after every individual round is guaranteed to improve. The guarantee uses private draws, adjacent grid points, and probabilities recomputed from the current history.
+The complete long-run argument for this supplementary binary rule is collected in #ref(<sec-l15-ece-square-drift>, supplement: [Appendix]). The bound and worked example above explain how controlling squared bucket errors controls ECE.
 
 #block(breakable: false)[
 = Exercises and reference solutions <sec-l15-ece-exercises>
@@ -480,4 +452,42 @@ Spacing $h=0.05$ gives an asymptotic expected ceiling of $0.025$. A finer grid p
 = References
 
 #lec_bibliography("meta/refs.bib", title: none)
+]
+
+#appendix[
+= Appendix: long-run guarantee for the supplementary binary rule <sec-l15-ece-square-drift>
+
+This optional appendix supplies the full proof for the supplementary binary update in @sec-l15-ece-adaptive. It concerns that concrete ECE example; the lecture develops its general multicalibration and no-regret construction separately.
+
+Here is the mathematical link behind the guarantee of #citep(<FosterHart2021Hedging>, [Section V, Theorem 12]). In this paragraph, counts and errors refer to the history before one new round. Expectations condition on that history and any committed outcome $y$, and average only over the private draw $p$. Expanding the selected bucket's new square gives
+$ Delta V=2 e_p (y-p)-e_p^2+rho, quad rho:=frac((y-p-e_p)^2,N_p+1). $
+For a used bucket, $y-p-e_p=y-R_p/N_p$ lies between minus one and one. For an unused bucket, $e_p=0$ and $abs(y-p)<=1$. Hence $0<=rho<=1/(N_p+1)$ in both cases.
+
+The draw weights were chosen so that $EE[e_p]=0$. Consequently,
+$ EE[e_p (y-p)]=y EE[e_p]-EE[e_p p]=-EE[e_p p]. $
+#block(breakable: false)[
+The unknown outcome has disappeared from this term. In our numerical example, both possible outcomes give the same value:
+$ frac(1,3)(0.5)(y-0.25)+frac(2,3)(-0.25)(y-0.50)=1/24. $
+]
+It is this _influence on the new squared total_ that is hedged; the historical absolute gaps are still measured separately.
+
+#block(breakable: false)[
+Adjacency controls what remains. Let $z=(a+b)/2$ for the two-point mixture, or $z=p$ when selecting a zero-error bucket. Since $abs(z-p)<=h/2$,
+$ EE[e_p (y-p)]=EE[e_p (z-p)] <= (h/2) EE[abs(e_p)]. $
+]
+
+#block(breakable: false)[
+Combining this with the square update and the elementary bound $h abs(e)-e^2<=h^2/4$ yields
+$ EE[Delta V]<=h^2/4+EE[rho]. $
+]
+
+The remainder is small _after averaging over time_. Each selection of a bucket contributes at most the next term of its harmonic sum, $1+1/2+1/3+...$. For $K=abs(Q)$ buckets, their combined remainder through $T$ total records is at most $K(1+log T)$, where the logarithm is natural. Keep the grid fixed as $T$ grows.
+
+Allow a finite initial history of size $T_0$ (11 in our example). There are $T-T_0$ new rounds. Summing the conditional bounds gives the convenient estimate
+$ EE[V_T/T]<=h^2/4+frac(V_(T_0)+K(1+log T),T). $
+The second term vanishes. Finally, applying the ECE bound and then the concavity of the square root,
+$ EE["ECE"_T]<=EE[sqrt(V_T/T)]<=sqrt(EE[V_T/T]), $
+so
+$ limsup_(T -> infinity) EE["ECE"_T] <= h/2. $
+Spacing $h=0.05$ gives an asymptotic expected ceiling of $0.025$. A finer grid permits a smaller target error, with more buckets to learn. Neither a single branch nor the expected score after every individual round is guaranteed to improve. The guarantee uses private draws, adjacent grid points, and probabilities recomputed from the current history.
 ]
