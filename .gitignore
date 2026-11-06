@@ -13,6 +13,7 @@
 !/website/
 !/docs/
 !/slides/
+!/interactive/
 !/.vscode/
 !/.github/
 # Publish configured course slides, while keeping editable deck sources private.
