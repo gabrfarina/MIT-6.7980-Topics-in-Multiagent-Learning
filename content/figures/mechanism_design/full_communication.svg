@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="430" viewBox="0 0 900 430" role="img" aria-labelledby="title desc">
+  <title id="title">Unrestricted communication game</title>
+  <desc id="desc">The physical history is followed by repeated mediator recommendations, player actions, and reports. Each exchange contributes to the transcript remembered by the state.</desc>
+  <style>
+    text { font-family: "New Computer Modern", serif; fill: #202020; }
+    .small { font-size: 18px; fill: #666; }
+    .label { font-size: 22px; }
+    .line { stroke: #777; stroke-width: 2.4; fill: none; }
+    .blue-box { fill: #4779a8; fill-opacity: .12; stroke: #4779a8; stroke-width: 2; }
+    .orange-box { fill: #b36a2c; fill-opacity: .12; stroke: #b36a2c; stroke-width: 2; }
+    .arrowhead { fill: #777; stroke: none; }
+  </style>
+
+  <text x="20" y="28" class="small">unrestricted communication state</text>
+
+  <rect x="330" y="42" width="240" height="50" rx="5" class="blue-box" />
+  <text x="450" y="67" text-anchor="middle" class="label">physical history s</text>
+
+  <line x1="450" y1="92" x2="450" y2="130" class="line" />
+  <path d="M 439 118 L 450 134 L 461 118 Z" class="arrowhead" />
+  <rect x="330" y="136" width="240" height="50" rx="5" class="blue-box" />
+  <text x="450" y="161" text-anchor="middle" class="label">recommend a₁</text>
+
+  <line x1="450" y1="186" x2="450" y2="224" class="line" />
+  <path d="M 439 212 L 450 228 L 461 212 Z" class="arrowhead" />
+  <rect x="330" y="230" width="240" height="50" rx="5" class="blue-box" />
+  <text x="450" y="255" text-anchor="middle" class="label">Player 1 acts</text>
+
+  <line x1="450" y1="280" x2="450" y2="318" class="line" />
+  <path d="M 439 306 L 450 322 L 461 306 Z" class="arrowhead" />
+  <rect x="330" y="324" width="240" height="50" rx="5" class="orange-box" />
+  <text x="450" y="349" text-anchor="middle" class="label">report r₂, recommend a₂</text>
+
+  <text x="450" y="410" text-anchor="middle" class="small">state remembers the growing transcript (s, τ₁, τ₂, …)</text>
+</svg>
