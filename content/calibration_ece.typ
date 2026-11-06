@@ -7,6 +7,34 @@
   extrathanks: [Expected calibration error section prepared by Ziyue Qiu (`ziyueqiu@mit.edu`).],
 )
 
+
+// The short checks use native disclosure controls in HTML and complete answers in PDF.
+#let ece-check(title, question, answer) = context {
+  if target() == "html" {
+    html.elem("aside", attrs:(class:"ece-check", style:"padding:16px;margin-block:24px;border:1px solid #d7d0c6;border-radius:8px;"))[
+      #html.elem("p")[*#title* #question]
+      #html.elem("details")[
+        #html.elem("summary",attrs:(style:"cursor:pointer;padding:8px 0;font-weight:700;"))[Check your reasoning]
+        #answer
+      ]
+    ]
+  } else {
+    block(breakable:false,above:6pt,below:6pt,inset:7pt,stroke:.4pt+luma(80%))[
+      *#title* #question
+
+      _Answer._ #answer
+    ]
+  }
+}
+#let ece-static(body) = context {
+  if target() == "html" {
+    html.elem("details",attrs:(class:"ece-static"))[
+      #html.elem("summary",attrs:(style:"cursor:pointer;padding:12px 0;font-weight:700;"))[Static companion for the PDF]
+      #body
+    ]
+  } else { body }
+}
+
 How can we check whether probability forecasts agree with what happens? We first measure agreement on a recorded sequence, then ask whether a forecaster can achieve it against an adversarial outcome process. This section follows #citep(<Farina2026CalibrationSlides>, [slides 5--8]).
 
 = Expected calibration error on a finite grid <sec-l15-ece-definition>
@@ -101,6 +129,8 @@ $
 $
 ]
 Consequently, low ECE controls the overall signed bias, while low overall bias alone does not control ECE. @exr-l15-ece-telescoping gives an extreme separation.
+
+#ece-check([Quick check: zero signed bias], [Two equally frequent forecasts are $0.25$ and $0.75$; both buckets have observed frequency $0.50$. The signed bias is zero. What is ECE?], [The two absolute gaps are both $0.25$, so $"ECE"=0.25$. Signed errors cancel; absolute bucket gaps add.]) <check-l15-ece-signed>
 
 == Exact buckets and aggregated bins <sec-l15-ece-binning>
 
@@ -215,7 +245,7 @@ Positive means underprediction; negative means overprediction. Use the mean erro
 
 + If some $e_q=0$, choose such a forecast with probability one. This also lets the procedure try unused buckets.
 + Otherwise $e_0>0$ and $e_1<0$, so there are adjacent $a<b$ with $e_a>0>e_b$. Put all next-round mass on these two forecasts:
-  $ D_t(a)=frac(-e_b,e_a-e_b), quad D_t(b)=frac(e_a,e_a-e_b). $
+  $ D_(t)(a)=frac(-e_b,e_a-e_b), quad D_(t)(b)=frac(e_a,e_a-e_b). $
 + Nature commits without seeing the current draw. Privately sample $p_t~D_t$, then observe $y_t$. Update only its bucket: $N_(p_t) <- N_(p_t)+1$ and $R_(p_t) <- R_(p_t)+y_t$. Recompute the errors and distribution next round.
 
 These probabilities choose the _next report_. Historical ECE still uses $N_q/T$ and absolute gaps; changing $D_t$ does not change the recorded data or make ECE zero.
@@ -234,7 +264,20 @@ Consider this finite initial history on a coarse grid:
   ),
   caption: [A finite initial history; the adjacent 0.25 and 0.50 buckets bracket zero mean error.],
 )
-The rule gives $D_t(0.25)=1/3$ and $D_t(0.50)=2/3$, since $(1/3)(0.5)+(2/3)(-0.25)=0$. Suppose the private draw is $0.50$ and the revealed outcome is zero. That bucket now has one positive in five rounds, so its error is $1/5-0.5=-0.3$. The other error remains $0.5$. Thus
+#figure(
+  table(columns:(auto,1fr,auto),inset:5pt,align:left,
+    table.header([Symbol], [What it describes], [At forecast $0.50$]),
+    [$q$, $p_t$], [A bucket's forecast value; the value actually reported this round.], [$0.50$],
+    [$y_t$], [This round's binary outcome, chosen before the private draw.], [$0$ or $1$],
+    [$overline(y)_q=R_q/N_q$], [The observed event frequency in that bucket's history.], [$1/4=0.25$],
+    [$D_(t)(q)$], [The chance of selecting this forecast for the next report.], [$2/3$],
+    [$N_q/T$], [The bucket's historical share, used to weight ECE.], [$4/11$],
+    [$e_q$], [Observed bucket frequency minus its forecast value.], [$0.25-0.50=-0.25$],
+  ),
+  caption:[Keep the forecast, the draw chance, the observed rate and the historical weight separate. Numerical entries use the initial history immediately above.],
+) <tab-l15-ece-symbols>
+
+The rule gives $D_(t)(0.25)=1/3$ and $D_(t)(0.50)=2/3$, since $(1/3)(0.5)+(2/3)(-0.25)=0$. Suppose the private draw is $0.50$ and the revealed outcome is zero. That bucket now has one positive in five rounds, so its error is $1/5-0.5=-0.3$. The other error remains $0.5$. Thus
 $ D_(t+1)(0.25)=frac(0.3,0.5+0.3)=3/8, quad D_(t+1)(0.50)=5/8. $
 Another zero made the higher forecast overpredict more, so the next lottery shifts toward the lower forecast. @fig-l15-ece-adaptive shows the update and a longer run.
 
@@ -243,6 +286,27 @@ Another zero made the higher forecast overpredict more, so the next lottery shif
     alt: "Four panels: normalized errors plus 0.5 and minus 0.25 at adjacent forecasts 0.25 and 0.50; next-draw weights one third and two thirds; after outcome zero at forecast 0.50, its error becomes minus 0.3 and the weights become three eighths and five eighths; sampled checkpoints from a seeded 4000-round run on a finer grid show ECE becoming small with fluctuations."),
   caption: [From past errors to the next lottery. Panels 1--3 use spacing 0.25 and the table's initial history. Panel 4 uses a fresh run with spacing 0.05, PCG64 seed 20261105, and Nature choosing one exactly when the public mean forecast is below 0.65, before the private draw. The curve shows sampled checkpoints; the full run has 1,958 upward ECE steps and ends at 0.0050375. This single trajectory illustrates the rule; it is not the convergence proof.],
 ) <fig-l15-ece-adaptive>
+
+=== Try the interactive experiment <sec-l15-ece-experiment>
+
+In the #interactive-link("calibration_ece")[interactive experiment], commit an outcome before drawing the next forecast. The learner can see the committed outcome for teaching purposes, but the forecasting rule reads only the history and its frozen lottery. A commitment alone adds no data. A draw updates exactly one bucket.
+
+#context if target() == "html" {
+  html.elem("div",attrs:(class:"ece-experiment-embed"))[
+    #html.elem("iframe",attrs:(src:"interactive/calibration_ece.html",title:"Interactive ECE experiment: commit, draw and update",loading:"lazy",style:"display:block;width:100%;height:1150px;border:0;",onload:"const f=this;const fit=()=>f.style.height=(f.contentDocument.body.getBoundingClientRect().height+2)+'px';new ResizeObserver(fit).observe(f.contentDocument.body);fit();"))[]
+  ]
+}
+
+Start with the worked history and inspect the possible next records without changing it. Then choose zero, commit, and draw. @fig-l15-ece-experiment follows one possible draw; the private coin can choose the other forecast instead. The display distinguishes next-draw chances from historical bucket frequencies, and plots ECE together with the root mean square of bucket errors.
+
+#ece-static[
+#figure(
+  image("figures/calibration_ece/ece_experiment.svg",width:100%,alt:"Two matching experiment states. Before drawing: committed outcome zero, eleven records, ECE0.5227 and next-draw chances one third at0.25 and two thirds at0.50. After one possible draw0.50 with outcome zero: twelve records, ECE0.5208, and new chances three eighths and five eighths; only the0.50 bucket count changes from4 to5."),
+  caption:[A static companion to the browser experiment. Committing zero leaves history and ECE unchanged. One possible private draw at $0.50$ then changes its count from four to five, gives $"ECE"_12=25/48$, and recomputes the next lottery to $3/8$, $5/8$. The root mean square is a separate upper bound on the same recorded ECE.],
+) <fig-l15-ece-experiment>
+]
+
+For a longer experiment, choose an automatic outcome rule and run batches of 100 rounds. Each outcome is decided from public information before a fresh draw. Compare the history update rule with keeping the original lottery fixed, and try always choosing one. Changing the starting history or forecasting rule resets the experiment. The empty-history preset uses spacing $0.05$; the worked preset uses spacing $0.25$. An empty history is displayed as having no observed score. The curves illustrate actual runs, while the theorem supplies the asymptotic expected guarantee.
 
 === Four possible next records <sec-l15-ece-four-cases>
 
@@ -271,6 +335,8 @@ $ EE["ECE"_12 | y=0]=frac(1,3)frac(11,24)+frac(2,3)frac(25,48)=frac(1,2), $
 $ EE["ECE"_12 | y=1]=frac(1,3)frac(13,24)+frac(2,3)frac(7,16)=frac(17,36). $
 Both are below the current $23/44$. These are averages over alternative random records; each record still takes absolute values bucket by bucket. Nature cannot choose a different outcome after learning which branch was drawn. One branch, $p=0.25$ with $y=1$, increases ECE. This table establishes a one-step expectation decrease for _this history_; it is not a proof that every history has such a decrease. The distribution must be recomputed after every observed outcome.
 
+#ece-check([Quick check: a rising branch], [One private draw gives $"ECE"_12=13/24>23/44$. Does this disprove the long-run theorem?], [No. A single branch can increase ECE. The theorem bounds a long-run expectation under the stated protocol; it does not promise improvement after every draw.]) <check-l15-ece-branch>
+
 #figure(
   image("figures/calibration_ece/ece_bridge.svg", width: 100%,
     alt: "Top: the two possible forecast draws for each committed outcome give four ECE values. One branch rises above the old ECE 0.5227, while the conditional means 0.5000 and 0.4722 are lower. Bottom: five bucket widths match counts 1,4,4,1,1 and positive heights are absolute mean errors 1,0.5,0.25,0.75,1. The mean absolute gap 0.5227 lies below the weighted root mean square 0.5887."),
@@ -296,6 +362,8 @@ In the same initial history, $V_11=61/16$, so
 $ C_(2,11)=61/176 approx 0.3466, quad "ECE"_11=23/44 approx 0.5227 <= sqrt(61/176) approx 0.5887. $
 The square root matters: the numerical squared score $0.3466$ is not itself an upper bound on ECE. @fig-l15-ece-bridge connects the four possible records to this geometric bound.
 
+#ece-check([Quick check: take the square root], [Suppose the squared bucket calibration score is $C_(2,T)=0.04$. What upper bound follows for ECE? Must ECE equal that bound?], [We obtain $"ECE"_T<=sqrt(0.04)=0.20$. Equality is not required. The score $0.04$ itself is not the bound supplied by this inequality.]) <check-l15-ece-root>
+
 === Why the update controls this square <sec-l15-ece-square-drift>
 
 Here is the mathematical link behind the guarantee of #citep(<FosterHart2021Hedging>, [Section V, Theorem 12]). In this paragraph, counts and errors refer to the history before one new round. Expectations condition on that history and any committed outcome $y$, and average only over the private draw $p$. Expanding the selected bucket's new square gives
@@ -308,8 +376,11 @@ The unknown outcome has disappeared from this term. In our numerical example, bo
 $ frac(1,3)(0.5)(y-0.25)+frac(2,3)(-0.25)(y-0.50)=1/24. $
 It is this _influence on the new squared total_ that is hedged; the historical absolute gaps are still measured separately.
 
+#block(breakable: false)[
 Adjacency controls what remains. Let $z=(a+b)/2$ for the two-point mixture, or $z=p$ when selecting a zero-error bucket. Since $abs(z-p)<=h/2$,
 $ EE[e_p (y-p)]=EE[e_p (z-p)] <= (h/2) EE[abs(e_p)]. $
+]
+
 #block(breakable: false)[
 Combining this with the square update and the elementary bound $h abs(e)-e^2<=h^2/4$ yields
 $ EE[Delta V]<=h^2/4+EE[rho]. $
