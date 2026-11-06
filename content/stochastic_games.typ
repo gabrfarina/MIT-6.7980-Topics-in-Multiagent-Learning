@@ -60,7 +60,7 @@ When further restrictions are imposed on how the policy can depend on the histor
 Given a collection of policies $pi_1 \, ... \, pi_m$ for the players of a stochastic game, the expected utility of each player is naturally defined as follows:
 
 $
-  u_i \( pi_1 \, ... \, pi_m \) = EE_(s_0 ~ vmu \;\
+  u_i \( pi_1 \, ... \, pi_m \) = EE_(s^((0)) ~ vmu \;\
   forall t > 0 : s^(\( t \)) ~ ℙ (dot.op \| med s^(\( t - 1 \)) \, a^(\( t - 1 \)))\
   forall t >= 0 \, i : med a_i^(\( t \)) ~ pi_i (s^(\( t \)) \, \( s^(\( tau \)) \, a^(\( tau \)) \)_(tau < t))) [sum_(t >= 0) gamma^t r_i \( s^(\( t \)) \, a^(\( t \)) \)] .
 $
@@ -70,7 +70,7 @@ For the finite-horizon version, truncate the sum at $t=H-1$ and restrict the tra
 In particular, $u_i \( pi_1 \, ... \, pi_m \)$ is the expected discounted utility of player $i$ under the random trajectory which starts at $s^(\( 0 \)) ~ vmu$ and is sampled by having each player sampling an action from their policy at each state, and having the environment transition according to its dynamics. In terms of these utilities, Nash equilibrium is defined in the natural way as follows. Notice that this  definition generalizes the concept of Nash equilibrium in normal-form games.
 
 #definition[Nash equilibrium][
-  A collection of policies $pi = \( pi_1 \, ... \, pi_m \)$ is a _Nash equilibrium_ of a stochastic game iff for all players $i$, for all policies $pi' : S times (S times A)^(*) -> Delta (A_i)$ it holds that
+  A collection of policies $pi = \( pi_1 \, ... \, pi_m \)$ is a _Nash equilibrium_ of a stochastic game iff for all players $i$, for all policies $pi'_i : S times (S times A)^(*) -> Delta (A_i)$ it holds that
 
   $ u_i \( pi_i med \; med pi_(- i) \) >= u_i \( pi'_i med \; med pi_(- i) \) . $
 
@@ -326,6 +326,10 @@ $
   At the fixed point, choose a saddle pair in each local matrix game. Fixing either player's policy gives the other player a discounted MDP. Its optimal Bellman operator fixes $vV^*$ because the chosen local strategies are a saddle pair. Uniqueness of the MDP value therefore shows that these stationary policies secure $vV^*$ against arbitrary history-dependent opponents. This proves the value and equilibrium assertions, as well as the contraction claim.
 ]
 
+#remark[
+  A unique $vV^*$ does not imply a unique equilibrium, since several equilibria can achieve the same values. For instance, suppose Player 1 has two actions at some state that yield the same rewards and transitions, and some equilibrium plays them with total probability $p > 0$ at that state. Then any way of splitting $p$ between the two actions gives an equilibrium with the same values.
+] <rem-nonunique-equilibria>
+
 === Computation: value iteration and a stopping certificate
 
 Value iteration starts from $vV_0=0$ and computes $vV_(t+1)=cal(T)vV_t$. Each step solves one matrix game per state. To extract policies with a specified equilibrium error, we need to relate the Bellman residual to deviation gains.
@@ -351,6 +355,12 @@ A concrete algorithm is therefore:
 4. Otherwise set $vV=vW$ and repeat.
 
 The returned policies are those computed from the same $vV$ whose residual was tested. The proof also handles $gamma=0$ without dividing by $gamma$. If the stage games are solved numerically, their optimization errors must be included in the residual and best-response bounds; the displayed certificate assumes exact local solutions.
+
+#remark[
+  Convergence of $vV_t$ to $vV^*$ does not imply that the selected policies converge. For example, in the situation of @rem-nonunique-equilibria, a solver may alternate between different ways of splitting $p$ between the two actions.
+]
+
+The companion notebook `content/notebooks/stochastic_games/value_iteration.ipynb` implements this algorithm on the two-state attacker–defender game, plots the residual for several discount factors, and verifies the returned policies by solving each player's best-response MDP.
 
 === Discount dependence and computational complexity
 
