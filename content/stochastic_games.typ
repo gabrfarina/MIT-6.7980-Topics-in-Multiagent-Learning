@@ -321,7 +321,7 @@ The returned policies are those computed from the same $vV$ whose residual was t
   Convergence of $vV_t$ to $vV^*$ does not imply that the selected policies converge. For example, in the situation of @rem-nonunique-equilibria, a solver may alternate between different ways of splitting $p$ between the two actions.
 ]
 
-The companion notebook `content/notebooks/stochastic_games/value_iteration.ipynb` implements this algorithm on the two-state attacker–defender game, plots the residual for several discount factors, and verifies the returned policies by solving each player's best-response MDP.
+The companion notebook `value_iteration.ipynb` (in the course repository, under `content/notebooks/stochastic_games`) implements this algorithm on the two-state attacker–defender game, plots the residual for several discount factors, and verifies the returned policies by solving each player's best-response MDP.
 
 === Discount dependence and computational complexity
 
