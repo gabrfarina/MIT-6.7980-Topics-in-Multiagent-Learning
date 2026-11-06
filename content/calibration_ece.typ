@@ -181,7 +181,7 @@ The positive result allows us to choose a target precision first and then use a 
 ] <thm-ece-foster-vohra>
 ]
 
-This states the Foster--Vohra existence result in the finite-resolution $ell_1$ language used here #citep(<FosterVohra1998Calibration>). For this precise excess-error formulation, see #citep(<GuptaRamdas2022Calibration>, [Section 1]). The expectation is over the forecaster's private draws and any randomness of Nature. The theorem is stated here; the later lecture sections develop the no-regret reductions, rather than this section reproducing their algorithms.
+This states the Foster--Vohra existence result in the finite-resolution $ell_1$ language used here #citep(<FosterVohra1998Calibration>). For this precise excess-error formulation, see #citep(<GuptaRamdas2022Calibration>, [Section 1]). The expectation is over the forecaster's private draws and any randomness of Nature. The later lecture sections develop the general no-regret reductions; the binary example below supplies a separate explicit update rule.
 
 *Reading the tolerance term.*
 Take $epsilon=0.05$. A run with ECE 0.08 has excess $max(0.08-0.05,0)=0.03$; a run with ECE 0.02 has excess zero. The theorem says the _expectation of this excess_ tends to zero as more rounds are played. It does not claim that every finite run has ECE at most 0.05, or that 95% of individual outcomes are predicted correctly. ECE 0.05 describes a weighted average calibration gap of five percentage points.
@@ -206,6 +206,50 @@ There are three useful interpretations. First, the outcome process need not be s
 In cumulative units, @thm-ece-foster-vohra gives
 $ EE[T max("ECE"_T-epsilon,0)]=o(T). $
 For a fixed positive tolerance it is this _excess_ error that is sublinear; one should not silently delete the grid/tolerance term. Choosing arbitrarily small target tolerances is the sense in which long-run calibration can be made arbitrarily accurate.
+
+== A concrete update from the history <sec-l15-ece-adaptive>
+
+Here is the binary forecast-hedging procedure of #citep(<FosterHart2021Hedging>, [Section V, Theorem 12]). Fix an integer $m>=1$ and grid $Q={0,1/m,...,1}$ with spacing $h=1/m$. Before round $t$, store the past count $N_q$ and positive-outcome count $R_q$ for each bucket. Its _mean error_ is
+$ e_q := cases(R_q/N_q-q & "if" N_q>0, 0 & "if" N_q=0). $
+Positive means underprediction; negative means overprediction. Use the mean error here, rather than the cumulative residual $N_q e_q$.
+
++ If some $e_q=0$, choose such a forecast with probability one. This also lets the procedure try unused buckets.
++ Otherwise $e_0>0$ and $e_1<0$, so there are adjacent $a<b$ with $e_a>0>e_b$. Put all next-round mass on these two forecasts:
+  $ D_t(a)=frac(-e_b,e_a-e_b), quad D_t(b)=frac(e_a,e_a-e_b). $
++ Nature commits without seeing the current draw. Privately sample $p_t~D_t$, then observe $y_t$. Update only its bucket: $N_(p_t) <- N_(p_t)+1$ and $R_(p_t) <- R_(p_t)+y_t$. Recompute the errors and distribution next round.
+
+These probabilities choose the _next report_. Historical ECE still uses $N_q/T$ and absolute gaps; changing $D_t$ does not change the recorded data or make ECE zero.
+
+*An update you can calculate by hand.*
+Consider this finite initial history on a coarse grid:
+#figure(
+  table(
+    columns: (auto,auto,auto,auto), align: center, inset: 4pt,
+    table.header([$q$], [$N_q$], [$R_q$], [$e_q$]),
+    [$0$],[$1$],[$1$],[$1$],
+    [$0.25$],[$4$],[$3$],[$0.5$],
+    [$0.50$],[$4$],[$1$],[$-0.25$],
+    [$0.75$],[$1$],[$0$],[$-0.75$],
+    [$1$],[$1$],[$0$],[$-1$],
+  ),
+  caption: [A finite initial history; the adjacent 0.25 and 0.50 buckets bracket zero mean error.],
+)
+The rule gives $D_t(0.25)=1/3$ and $D_t(0.50)=2/3$, since $(1/3)(0.5)+(2/3)(-0.25)=0$. Suppose the private draw is $0.50$ and the revealed outcome is zero. That bucket now has one positive in five rounds, so its error is $1/5-0.5=-0.3$. The other error remains $0.5$. Thus
+$ D_(t+1)(0.25)=frac(0.3,0.5+0.3)=3/8, quad D_(t+1)(0.50)=5/8. $
+Another zero made the higher forecast overpredict more, so the next lottery shifts toward the lower forecast. @fig-l15-ece-adaptive shows the update and a longer run.
+
+#figure(
+  image("figures/calibration_ece/ece_adaptive.svg", width: 100%,
+    alt: "Four panels: normalized errors plus 0.5 and minus 0.25 at adjacent forecasts 0.25 and 0.50; next-draw weights one third and two thirds; after outcome zero at forecast 0.50, its error becomes minus 0.3 and the weights become three eighths and five eighths; sampled checkpoints from a seeded 4000-round run on a finer grid show ECE becoming small with fluctuations."),
+  caption: [From past errors to the next lottery. Panels 1--3 use spacing 0.25 and the table's initial history. Panel 4 uses a fresh run with spacing 0.05, PCG64 seed 20261105, and Nature choosing one exactly when the public mean forecast is below 0.65, before the private draw. The curve shows sampled checkpoints; the full run has 1,958 upward ECE steps and ends at 0.0050375. This single trajectory illustrates the rule; it is not the convergence proof.],
+) <fig-l15-ece-adaptive>
+
+*Why this is more than cancellation.*
+The mixture satisfies $EE_(p~D_t)[e_p]=0$. For the midpoint $z=(a+b)/2$, conditional on the history and any committed outcome $y$,
+$ EE[e_p(y-p)]=EE[e_p(z-p)] <= (h/2) EE[abs(e_p)]. $
+The first equality removes Nature's unknown outcome; the inequality uses $abs(z-p)<=h/2$. In the zero-error case both sides are zero. This is the forecast-hedging condition: it controls how new errors interact with past bucket errors, rather than redefining ECE as a signed sum. The cited theorem yields, against every Nature obeying the private-draw protocol,
+$ limsup_(T -> infinity) EE["ECE"_T] <= h/2. $
+Spacing $h=0.05$ therefore gives an asymptotic expected ceiling of $0.025$. Finer grids give smaller target errors. Neither this statement nor the example promises that empirical ECE decreases on every round.
 
 #block(breakable: false)[
 = Exercises and reference solutions <sec-l15-ece-exercises>
