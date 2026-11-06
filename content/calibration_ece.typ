@@ -8,32 +8,24 @@
 )
 
 
-// The short checks use native disclosure controls in HTML and complete answers in PDF.
-#let ece-check(title, question, answer) = context {
-  if target() == "html" {
-    html.elem("aside", attrs:(class:"ece-check", style:"padding:16px;margin-block:24px;border:1px solid #d7d0c6;border-radius:8px;"))[
-      #html.elem("p")[*#title* #question]
-      #html.elem("details")[
-        #html.elem("summary",attrs:(style:"cursor:pointer;padding:8px 0;font-weight:700;"))[Check your reasoning]
-        #answer
-      ]
-    ]
-  } else {
-    block(breakable:false,above:6pt,below:6pt,inset:7pt,stroke:.4pt+luma(80%))[
-      *#title* #question
+// Questions stay in the reading flow; answers are printed in Appendix L15.C.
+#let ece-check(title, question, answer-target) = context {
+  let body = [*#title* #question
 
-      _Answer._ #answer
-    ]
+    #link(answer-target)[Answer in Appendix L15.C]]
+  if target() == "html" {
+    html.elem("aside", attrs:(class:"ece-check"))[#body]
+  } else {
+    block(breakable:false,above:6pt,below:6pt,inset:7pt,stroke:.4pt+luma(80%),body)
   }
 }
-#let ece-static(body) = context {
+// Reference solutions in the appendix are visible without a reveal control.
+#let ece-solution(body) = context {
   if target() == "html" {
-    html.elem("details",attrs:(class:"ece-static"))[
-      #html.elem("summary",attrs:(style:"cursor:pointer;padding:12px 0;font-weight:700;"))[Static companion for the PDF]
-      #body
-    ]
-  } else { body }
+    html.elem("section", attrs:(class:"ece-reference-solution"))[#body]
+  } else { solution(body) }
 }
+
 
 How can we check whether probability forecasts agree with what happens? We first measure agreement on a recorded sequence, then ask whether a forecaster can achieve it against an adversarial outcome process. This section follows #citep(<Farina2026CalibrationSlides>, [slides 5--8]).
 
@@ -130,7 +122,7 @@ $
 ]
 Consequently, low ECE controls the overall signed bias, while low overall bias alone does not control ECE. @exr-l15-ece-telescoping gives an extreme separation.
 
-#ece-check([Quick check: zero signed bias], [Two equally frequent forecasts are $0.25$ and $0.75$; both buckets have observed frequency $0.50$. The signed bias is zero. What is ECE?], [The two absolute gaps are both $0.25$, so $"ECE"=0.25$. Signed errors cancel; absolute bucket gaps add.]) <check-l15-ece-signed>
+#ece-check([Quick check: zero signed bias], [Two equally frequent forecasts are $0.25$ and $0.75$; both buckets have observed frequency $0.50$. The signed bias is zero. What is ECE?], <ece-quick-answer-1>) <check-l15-ece-signed>
 
 == Exact buckets and aggregated bins <sec-l15-ece-binning>
 
@@ -301,12 +293,7 @@ In the #interactive-link("calibration_ece")[interactive experiment], commit an o
 
 Start with the worked history and inspect the possible next records without changing it. Then choose zero, commit, and draw. @fig-l15-ece-experiment follows one possible draw; the private coin can choose the other forecast instead. The display distinguishes next-draw chances from historical bucket frequencies, and plots ECE together with the root mean square of bucket errors.
 
-#ece-static[
-#figure(
-  image("figures/calibration_ece/ece_experiment.svg",width:100%,alt:"Two matching experiment states. Before drawing: committed outcome zero, eleven records, ECE0.5227 and next-draw chances one third at0.25 and two thirds at0.50. After one possible draw0.50 with outcome zero: twelve records, ECE0.5208, and new chances three eighths and five eighths; only the0.50 bucket count changes from4 to5."),
-  caption:[A static companion to the browser experiment. Committing zero leaves history and ECE unchanged. One possible private draw at $0.50$ then changes its count from four to five, gives $"ECE"_12=25/48$, and recomputes the next lottery to $3/8$, $5/8$. The root mean square is a separate upper bound on the same recorded ECE.],
-) <fig-l15-ece-experiment>
-]
+#link(<ece-static-1>)[Static companion in Appendix L15.B]
 
 For a longer experiment, choose an automatic outcome rule and run batches of 100 rounds. Each outcome is decided from public information before a fresh draw. Compare the history update rule with keeping the original lottery fixed, and try always choosing one. Changing the starting history or forecasting rule resets the experiment. The empty-history preset uses spacing $0.05$; the worked preset uses spacing $0.25$. An empty history is displayed as having no observed score. The curves illustrate actual runs, while the theorem supplies the asymptotic expected guarantee.
 
@@ -332,12 +319,7 @@ The history update rule can move its support to higher forecasts, eventually pla
  ),caption:[Checkpoints from the default reproducible comparison. Each score also includes the original eleven records.],
 ) <tab-l15-ece-comparison>
 
-#ece-static[
-#figure(
- image("figures/calibration_ece/ece_comparison.svg",width:100%,alt:"Two ECE curves use the same eleven initial records, one thousand all-one outcomes, and seed20261105. The fixed lottery remains near0.5833 and ends at0.5814. The history update ends at0.0208 and puts99.5percent of the next-draw probability at forecast1. All labels are English."),
- caption:[Randomness needs feedback. The orange dashed and blue solid lines are both empirical ECE, on the same axes. The right panel shows the next lottery, not historical bucket weights. The editable figure data are generated by the same model as the browser comparison; the all-one limit describes the fixed lottery with independent draws.],
-) <fig-l15-ece-comparison>
-]
+#link(<ece-static-2>)[Static companion in Appendix L15.B]
 
 Try _Always 0_ or _Alternate 0, 1_, or change the seed and restart both histories. These are shared outcome sequences; a rule based on each strategy's own mean forecast would generally produce different outcomes and would answer a different comparison question.
 
@@ -368,7 +350,7 @@ $ EE["ECE"_12 | y=0]=frac(1,3)frac(11,24)+frac(2,3)frac(25,48)=frac(1,2), $
 $ EE["ECE"_12 | y=1]=frac(1,3)frac(13,24)+frac(2,3)frac(7,16)=frac(17,36). $
 Both are below the current $23/44$. These are averages over alternative random records; each record still takes absolute values bucket by bucket. Nature cannot choose a different outcome after learning which branch was drawn. One branch, $p=0.25$ with $y=1$, increases ECE. This table establishes a one-step expectation decrease for _this history_; it is not a proof that every history has such a decrease. The distribution must be recomputed after every observed outcome.
 
-#ece-check([Quick check: a rising branch], [One private draw gives $"ECE"_12=13/24>23/44$. Does this disprove the long-run theorem?], [No. A single branch can increase ECE. The theorem bounds a long-run expectation under the stated protocol; it does not promise improvement after every draw.]) <check-l15-ece-branch>
+#ece-check([Quick check: a rising branch], [One private draw gives $"ECE"_12=13/24>23/44$. Does this disprove the long-run theorem?], <ece-quick-answer-2>) <check-l15-ece-branch>
 
 #figure(
   image("figures/calibration_ece/ece_bridge.svg", width: 100%,
@@ -395,12 +377,12 @@ In the same initial history, $V_11=61/16$, so
 $ C_(2,11)=61/176 approx 0.3466, quad "ECE"_11=23/44 approx 0.5227 <= sqrt(61/176) approx 0.5887. $
 The square root matters: the numerical squared score $0.3466$ is not itself an upper bound on ECE. @fig-l15-ece-bridge connects the four possible records to this geometric bound.
 
-#ece-check([Quick check: take the square root], [Suppose the squared bucket calibration score is $C_(2,T)=0.04$. What upper bound follows for ECE? Must ECE equal that bound?], [We obtain $"ECE"_T<=sqrt(0.04)=0.20$. Equality is not required. The score $0.04$ itself is not the bound supplied by this inequality.]) <check-l15-ece-root>
+#ece-check([Quick check: take the square root], [Suppose the squared bucket calibration score is $C_(2,T)=0.04$. What upper bound follows for ECE? Must ECE equal that bound?], <ece-quick-answer-3>) <check-l15-ece-root>
 
 The complete long-run argument for this supplementary binary rule is collected in #ref(<sec-l15-ece-square-drift>, supplement: [Appendix]). The bound and worked example above explain how controlling squared bucket errors controls ECE.
 
 #block(breakable: false)[
-= Exercises and reference solutions <sec-l15-ece-exercises>
+= Exercises <sec-l15-ece-exercises>
 
 #exercise[Small signed bias can hide maximal ECE][
   Set $y_0=0$ and forecast the previous outcome, $p_t=y_(t-1)$.
@@ -408,14 +390,8 @@ The complete long-run argument for this supplementary binary rule is collected i
   + Now let $y_t=1$ for odd $t$ and $y_t=0$ for even $t$. Compute $"ECE"_T$ for every $T>=1$ using $Q={0,1}$.
   + Explain why this forecasting rule solves the simplified signed-error objective on slide 8 but does not ensure calibration.
 ] <exr-l15-ece-telescoping>
-]
 
-#block(breakable: false)[
-#solution[
-  The signed residual telescopes:
-  $ frac(1,T)sum_(t=1)^T (y_t-p_t)=frac(1,T)sum_(t=1)^T (y_t-y_(t-1))=frac(y_T-y_0,T)=frac(y_T,T). $
-  Its absolute value is at most $1/T$. On the alternating sequence, every $p_t=0$ is followed by $y_t=1$, while every $p_t=1$ is followed by $y_t=0$. Each nonempty bucket has gap one. Their weights sum to one, so $"ECE"_T=1$, including when $T=1$ and only one bucket is nonempty. For even $T$, the signed error is exactly zero. The global signed objective allows systematic underprediction and overprediction to cancel, whereas ECE tests each forecast bucket separately.
-]
+#link(<ece-reference-solution-1>)[Reference solution in Appendix L15.C]
 ]
 
 #block(breakable: false)[
@@ -425,12 +401,8 @@ The complete long-run argument for this supplementary binary rule is collected i
   + Compare with the context-aware rule $p_t=0$ in context $A$ and $p_t=1$ in context $B$. Does ECE distinguish the two rules?
   + Compare their average squared prediction losses, $(1/(2m))sum_(t=1)^(2m) (y_t-p_t)^2$.
 ] <exr-l15-ece-informativeness>
-]
 
-#block(breakable: false)[
-#solution[
-  The constant forecaster has one bucket with mean outcome $m/(2m)=1/2$, so its ECE is zero. The context-aware rule has buckets $(q,overline(y)_q)=(0,0)$ and $(1,1)$, so its ECE is also zero. The first rule has squared loss $(0-1/2)^2=(1-1/2)^2=1/4$ on every round; the second has zero loss on every round. Both are calibrated, but the second uses information that the first discards. Calibration assesses agreement with frequencies, not every aspect of forecast quality.
-]
+#link(<ece-reference-solution-2>)[Reference solution in Appendix L15.C]
 ]
 
 #block(breakable: false)[
@@ -440,12 +412,8 @@ The complete long-run argument for this supplementary binary rule is collected i
   + Show that $EE["ECE"_T]=1/2$ for every forecasting strategy in this model and every $T>=1$.
   + Explain why this does not contradict @thm-ece-foster-vohra.
 ] <exr-ece-grid>
-]
 
-#block(breakable: false)[
-#solution[
-  At forecast zero, the absolute residual sum is the number of outcomes equal to one. At forecast one, it is the number of outcomes equal to zero. Their sum counts exactly the mistakes, so $"ECE"_T=T^(-1)sum_(t=1)^T bb(1)_(p_t!=y_t)$. Conditional on the history and the chosen $p_t in {0,1}$, a fair next outcome differs from $p_t$ with probability $1/2$. Linearity of expectation gives $EE["ECE"_T]=1/2$. This remains true for randomized, history-dependent forecasts under the stated independence assumption. @thm-ece-foster-vohra allows a grid chosen for the desired tolerance, rather than requiring a guarantee on this two-point grid.
-]
+#link(<ece-reference-solution-3>)[Reference solution in Appendix L15.C]
 ]
 
 #block(breakable: false)[
@@ -490,4 +458,95 @@ $ EE["ECE"_T]<=EE[sqrt(V_T/T)]<=sqrt(EE[V_T/T]), $
 so
 $ limsup_(T -> infinity) EE["ECE"_T] <= h/2. $
 Spacing $h=0.05$ gives an asymptotic expected ceiling of $0.025$. A finer grid permits a smaller target error, with more buckets to learn. Neither a single branch nor the expected score after every individual round is guaranteed to improve. The guarantee uses private draws, adjacent grid points, and probabilities recomputed from the current history.
+
+= Static companions <sec-l15-ece-static-companions>
+
+== Experiment storyboard <ece-static-1>
+
+#figure(
+  image("figures/calibration_ece/ece_experiment.svg",width:100%,alt:"Two matching experiment states. Before drawing: committed outcome zero, eleven records, ECE0.5227 and next-draw chances one third at0.25 and two thirds at0.50. After one possible draw0.50 with outcome zero: twelve records, ECE0.5208, and new chances three eighths and five eighths; only the0.50 bucket count changes from4 to5."),
+  caption:[A static companion to the browser experiment. Committing zero leaves history and ECE unchanged. One possible private draw at $0.50$ then changes its count from four to five, gives $"ECE"_12=25/48$, and recomputes the next lottery to $3/8$, $5/8$. The root mean square is a separate upper bound on the same recorded ECE.],
+) <fig-l15-ece-experiment>
+
+#link(<sec-l15-ece-experiment>)[Return to the experiment]
+
+== Fixed and adaptive ECE <ece-static-2>
+
+#figure(
+ image("figures/calibration_ece/ece_comparison.svg",width:100%,alt:"Two ECE curves use the same eleven initial records, one thousand all-one outcomes, and seed20261105. The fixed lottery remains near0.5833 and ends at0.5814. The history update ends at0.0208 and puts99.5percent of the next-draw probability at forecast1. All labels are English."),
+ caption:[Randomness needs feedback. The orange dashed and blue solid lines are both empirical ECE, on the same axes. The right panel shows the next lottery, not historical bucket weights. The editable figure data are generated by the same model as the browser comparison; the all-one limit describes the fixed lottery with independent draws.],
+) <fig-l15-ece-comparison>
+
+#link(<sec-l15-ece-comparison>)[Return to the experiment]
+
+= Answers and reference solutions <sec-l15-ece-answers>
+
+== Quick check: zero signed bias <ece-quick-answer-1>
+
+The two absolute gaps are both $0.25$, so $"ECE"=0.25$. Signed errors cancel; absolute bucket gaps add.
+
+#link(<check-l15-ece-signed>)[Return to the quick check]
+
+== Quick check: a rising branch <ece-quick-answer-2>
+
+No. A single branch can increase ECE. The theorem bounds a long-run expectation under the stated protocol; it does not promise improvement after every draw.
+
+#link(<check-l15-ece-branch>)[Return to the quick check]
+
+== Quick check: take the square root <ece-quick-answer-3>
+
+We obtain $"ECE"_T<=sqrt(0.04)=0.20$. Equality is not required. The score $0.04$ itself is not the bound supplied by this inequality.
+
+#link(<check-l15-ece-root>)[Return to the quick check]
+
+#block(breakable:false)[
+== Exercise L15.5 <ece-reference-solution-1>
+
+#ece-solution[
+  The signed residual telescopes:
+  $ frac(1,T)sum_(t=1)^T (y_t-p_t)=frac(1,T)sum_(t=1)^T (y_t-y_(t-1))=frac(y_T-y_0,T)=frac(y_T,T). $
+  Its absolute value is at most $1/T$. On the alternating sequence, every $p_t=0$ is followed by $y_t=1$, while every $p_t=1$ is followed by $y_t=0$. Each nonempty bucket has gap one. Their weights sum to one, so $"ECE"_T=1$, including when $T=1$ and only one bucket is nonempty. For even $T$, the signed error is exactly zero. The global signed objective allows systematic underprediction and overprediction to cancel, whereas ECE tests each forecast bucket separately.
+]
+
+#link(<exr-l15-ece-telescoping>)[Return to the exercise]
+]
+
+#block(breakable:false)[
+== Exercise L15.6 <ece-reference-solution-2>
+
+#ece-solution[
+  The constant forecaster has one bucket with mean outcome $m/(2m)=1/2$, so its ECE is zero. The context-aware rule has buckets $(q,overline(y)_q)=(0,0)$ and $(1,1)$, so its ECE is also zero. The first rule has squared loss $(0-1/2)^2=(1-1/2)^2=1/4$ on every round; the second has zero loss on every round. Both are calibrated, but the second uses information that the first discards. Calibration assesses agreement with frequencies, not every aspect of forecast quality.
+]
+
+#link(<exr-l15-ece-informativeness>)[Return to the exercise]
+]
+
+#block(breakable:false)[
+== Exercise L15.7 <ece-reference-solution-3>
+
+#ece-solution[
+  At forecast zero, the absolute residual sum is the number of outcomes equal to one. At forecast one, it is the number of outcomes equal to zero. Their sum counts exactly the mistakes, so $"ECE"_T=T^(-1)sum_(t=1)^T bb(1)_(p_t!=y_t)$. Conditional on the history and the chosen $p_t in {0,1}$, a fair next outcome differs from $p_t$ with probability $1/2$. Linearity of expectation gives $EE["ECE"_T]=1/2$. This remains true for randomized, history-dependent forecasts under the stated independence assumption. @thm-ece-foster-vohra allows a grid chosen for the desired tolerance, rather than requiring a guarantee on this two-point grid.
+]
+
+#link(<exr-ece-grid>)[Return to the exercise]
+]
+
+#block(breakable:false)[
+= Citation and review information <sec-l15-ece-review-info>
+
+== Citation format
+
+Gabriele Farina. _Forecasting and calibration._ MIT 6.7980, Lecture 15, November 5, 2026. Expected calibration error section prepared by Ziyue Qiu.
+
+== Review snapshot
+
+This Task 2 section is a draft for staff and group review. It preserves the required ECE narrative and labels the binary example as supplementary. The official course version requires staff review and merge.
+
+#link("https://github.com/gabrfarina/MIT-6.7980-Topics-in-Multiagent-Learning/pull/181")[Draft PR 181] · #link("https://ziyue-l15-ece-preview.qiuzy-william2019.chatgpt.site/calibration_ece")[Live review preview]
+
+== Other course notes
+
+#link("https://www.mit.edu/~6.7980/")[Course website and lecture notes]
+
+]
 ]
