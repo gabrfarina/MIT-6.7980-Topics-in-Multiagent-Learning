@@ -311,7 +311,7 @@
   lecture(
     "calibration",
     [Forecasting and calibration],
-    description: [Calibrated prediction and its connections to learning in games.],
+    description: [Calibration and expected calibration error: geometric examples, quick checks and fixed/adaptive forecasting experiments; a supplementary binary rule; full proof, static companions and answers in end appendices; calibrated prediction in games.],
     instructor: [Gabriele Farina],
   ),
   lecture(
