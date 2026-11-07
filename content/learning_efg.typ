@@ -45,9 +45,9 @@ It can be shown that the regret cumulated by the CFR algorithm satisfies the fol
   Let $upright("Reg")_j^(\( T \))$, for $j in cal(J)$, denote the regret cumulated up to time $T$ by each of the regret minimizers $R_j$. Then, the regret $upright("Reg")^(\( T \))$ cumulated by @algo:cfr up to time $T$ satisfies
 
   $ upright("Reg")^(\( T \)) <= sum_(j in cal(J)) max {0 \, upright("Reg")_j^(\( T \))} . $
-]
+] <thm:cfr-regret>
 
-It is then immediate to see that if each $upright("Reg")_j^(\( T \))$ grows sublinearly in $T$, then so does $upright("Reg")^(\( T \))$.
+It is then immediate to see that if each $upright("Reg")_j^(\( T \))$ grows sublinearly in $T$, then so does $upright("Reg")^(\( T \))$. We will see why this is true on a small example in @sec-cfr-proof-small.
 
 In order to formally introduce counterfactual utility, we recall a bit of notation to deal with tree-form decision processes.
 
@@ -71,7 +71,7 @@ In order to formally introduce counterfactual utility, we recall a bit of notati
   $
     rho (k_3 \, sans("check")) & = rho (j_2 \, sans("raise")) = tack.t \, #h(2em) & rho (k_1 \, sans("king")) & = j_3 \, #h(2em) rho (j_2 \, sans("check")) = k_3 .
   $
-]
+] <ex:cfr-kuhn-notation>
 
 *Notation for the components of vectors*  Any vector $vx in bb(R)^Sigma$ has, by definition, as many components as sequences $Sigma$. The component corresponding to a specific sequence $j a in Sigma$ is denoted as $vx [j a]$. Similarly, given any decision point $j in cal(J)$, any vector $vx in bb(R)^(A_j)$ has as many components as the number of actions at $j$. The component corresponding to a specific action $a in A_j$ is denoted $vx \[ a \]$.
 
@@ -193,6 +193,66 @@ Pseudocode for CFR is given in @algo:cfr. Note that the implementation is parame
       + $R_j$.`ObserveUtility`$(vg_j^((t)))$
 ] <algo:cfr>
 
+== Why the regret bound holds: a small example <sec-cfr-proof-small>
+
+#set math.equation(numbering: "(1)")
+
+Each $R_j$ minimizes its own regret without knowing what the other regret minimizers are doing, so it is worth seeing why their regrets add up to a bound for the whole tree. Let us do this on the smallest example where something interesting happens: one decision point sitting below another. We take the Jack branch of the TFDP of Player~1 in Kuhn poker (@ex:cfr-kuhn), using the names from @ex:cfr-kuhn-notation. The player first acts at $j_1$, choosing between $sans("check")$ and $sans("raise")$. Raising ends the branch. Checking leads to the observation point $k_2$, where the opponent either checks (the hand ends) or raises; in the latter case the player acts again at $j_4$, choosing between $sans("fold")$ and $sans("call")$. So $p_(j_4) = (j_1 \, sans("check"))$, and the branch has four sequences in total. We can ignore the Queen and King branches: the root observation point $k_1$ just adds up the values of its three children, so whatever we prove for one branch holds for the others, and the regret bounds add.
+
+Two local regret minimizers are at work, $R_(j_1)$ and $R_(j_4)$. At time $t$ they output $vb_(j_1)^((t))$ and $vb_(j_4)^((t))$, and @algo:cfr turns these into a sequence-form strategy in the obvious way, the probability of a sequence being the product of the probabilities of the actions along it:
+$
+  vx^((t))[j_1 a] = vb_(j_1)^((t))[a] \, quad
+  vx^((t))[j_4 a] = vb_(j_1)^((t))[sans("check")] thin vb_(j_4)^((t))[a] .
+$ <eq:small-sf>
+
+What does each regret minimizer get to see? Write $vg^((t))[j]$ for the two entries of the utility vector $vg^((t))$ at decision point $j$. Nothing happens after $j_4$, so $R_(j_4)$ simply sees those two entries, $vg_(j_4)^((t)) = vg^((t))[j_4]$, and its expected value is $V^((t))[j_4] = ip(vg^((t))[j_4], vb_(j_4)^((t)))$. (The observation point $k_2$ passes this value up unchanged, since its other child is $bot$.) $R_(j_1)$ sees something richer. For $sans("raise")$ it sees the utility of that sequence. For $sans("check")$ it sees the utility of that sequence _plus_ the value $V^((t))[j_4]$ the player expects to collect further down:
+$
+  vg_(j_1)^((t)) = vec(
+    vg^((t))[j_1 sans("check")] + V^((t))[j_4],
+    vg^((t))[j_1 sans("raise")]
+  ) .
+$ <eq:small-cf>
+This is what makes the utility _counterfactual_: the entry for $sans("check")$ is computed as if the player had checked for sure. The probability $vb_(j_1)^((t))[sans("check")]$ with which they actually check does not appear.
+
+Why does this lead to small regret on the whole branch? Two facts do the work. The first is that the value $V^((t))[j_1]$ computed at the root is exactly the utility that the sequence-form strategy earned. Indeed, multiplying out (@eq:small-cf) against $vb_(j_1)^((t))$ and comparing with (@eq:small-sf),
+$
+  V^((t))[j_1]
+  = vb_(j_1)^((t))[sans("check")] (vg^((t))[j_1 sans("check")] + V^((t))[j_4]) + vb_(j_1)^((t))[sans("raise")] thin vg^((t))[j_1 sans("raise")]
+  = ip(vg^((t)), vx^((t))) .
+$ <eq:small-root>
+The second is what each local regret minimizer guarantees: its regret $upright("Reg")_j^((T)) = max_(vb_j^*) sum_t ip(vg_j^((t)), vb_j^* - vb_j^((t)))$ is small. Rearranged, this says that against any fixed $vb_j^* in Delta(A_j)$,
+$
+  sum_(t=1)^T V^((t))[j] >= sum_(t=1)^T ip(vg_j^((t)), vb_j^*) - upright("Reg")_j^((T)) .
+$ <eq:small-local>
+
+Now pick any strategy $vx^* in cal(Q)$ to compare against, and let $vb^*$ be a behavioral strategy that induces it. (If $vx^*$ never checks, $vb_(j_4)^*$ can be anything; it will get multiplied by zero.) Start at the root. Summing (@eq:small-root) over $t$ and using the guarantee (@eq:small-local) of $R_(j_1)$ with comparator $vb_(j_1)^*$, then expanding $vg_(j_1)^((t))$ with (@eq:small-cf),
+$
+  sum_(t=1)^T ip(vg^((t)), vx^((t)))
+  >= sum_(t=1)^T ip(vg^((t))[j_1], vb_(j_1)^*)
+  + vb_(j_1)^*[sans("check")] sum_(t=1)^T V^((t))[j_4]
+  - upright("Reg")_(j_1)^((T)) .
+$ <eq:small-step1>
+The sum of the values at $j_4$ has shown up, multiplied by $vb_(j_1)^*[sans("check")]$. This is the comparator's probability of checking, a fixed number between $0$ and $1$, not the probability $vb_(j_1)^((t))[sans("check")]$ that CFR plays at time $t$; this is where the counterfactual utility pays off. A fixed nonnegative multiplier can be pulled through an inequality, so we can use the guarantee (@eq:small-local) of $R_(j_4)$ as well, with comparator $vb_(j_4)^*$. Since $vb_(j_1)^*[sans("check")] thin vb_(j_4)^*[a] = vx^*[j_4 a]$ by (@eq:small-sf), this reads
+$
+  vb_(j_1)^*[sans("check")] sum_(t=1)^T V^((t))[j_4]
+  >= sum_(t=1)^T ip(vg^((t))[j_4], vx^*[j_4]) - vx^*[j_1 sans("check")] thin upright("Reg")_(j_4)^((T)) .
+$ <eq:small-step2>
+Put (@eq:small-step2) into (@eq:small-step1). The two inner products that remain, $ip(vg^((t))[j_1], vx^*[j_1])$ and $ip(vg^((t))[j_4], vx^*[j_4])$, are the two halves of $ip(vg^((t)), vx^*)$, so
+$
+  sum_(t=1)^T ip(vg^((t)), vx^((t)))
+  >= sum_(t=1)^T ip(vg^((t)), vx^*)
+  - upright("Reg")_(j_1)^((T)) - vx^*[p_(j_4)] thin upright("Reg")_(j_4)^((T)) .
+$
+In words: compared to any fixed strategy, CFR lost at most the regret of $R_(j_1)$ plus the regret of $R_(j_4)$ scaled by how often the comparator reaches $j_4$. That scaling factor is in $[0 \, 1]$, so $vx^*[p_(j_4)] thin upright("Reg")_(j_4)^((T)) <= max{0 \, upright("Reg")_(j_4)^((T))}$. (The $max$ is needed: a local regret can be negative, and scaling a negative number down by a factor in $[0 \, 1]$ makes it larger.) Maximizing over $vx^*$,
+$
+  upright("Reg")^((T)) <= max{0 \, upright("Reg")_(j_1)^((T))} + max{0 \, upright("Reg")_(j_4)^((T))} ,
+$
+which is @thm:cfr-regret for this branch.
+
+Nothing in this computation is special to the example. If several decision points hang below the same observation point, all of their values show up in (@eq:small-step1) with the same multiplier and are handled like (@eq:small-step2). If the tree is deeper, we repeat the step one level at a time, and the multiplier in front of $upright("Reg")_j^((T))$ ends up being $vx^*[p_j]$, again a number in $[0 \, 1]$. One thing to keep in mind: since $vg_(j_1)^((t))$ contains $V^((t))[j_4]$, the utilities seen near the root have a larger range than the entries of $vg^((t))$, and the $O(sqrt(T))$ regret of regret matching comes with a constant that grows with the size of the subtree.
+
+#set math.equation(numbering: none)
+
 == Learning using self-play
 
 The CFR algorithm can be used to learn a Nash equilibrium in a two-player zero-sum game by letting two regret minimizers play against each other. The two regret minimizers exchange their sequence-form strategies at every iteration according to the #lecture-link("learning_intro", <sec-learning-zero-sum>)[canonical self-play setup].
@@ -204,4 +264,5 @@ The CFR algorithm can be used to learn a Nash equilibrium in a two-player zero-s
 #changelog[
   - 2025-10-09: Fixed typos (thanks Josh Rountree!).
   - 2026-09-21: Fixed notation and typos (thanks Hannah Friedman!).
+  - 2026-10-23: Added a proof of the CFR regret bound on a small example.
 ]
