@@ -6,7 +6,7 @@
   instructor: [Brian Hu Zhang],
 )
 
-// L11 Task 10. Draft prepared by Eli Park with assistance from ChatGPT.
+// L11 Task 10.
 // Standalone contribution for later integration with the other L11 sections.
 
 = An alternative Lagrangian: thresholding and binary search <sec-l11-binary-search>
