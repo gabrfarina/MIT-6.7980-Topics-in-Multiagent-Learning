@@ -86,13 +86,6 @@
       ]
     },
     {
-      "source": "content/team_games_tmecor.typ",
-      "supplementary": false,
-      "syllabus_ids": [
-        "team-games"
-      ]
-    },
-    {
       "source": "content/kernelized.typ",
       "supplementary": false,
       "syllabus_ids": [
