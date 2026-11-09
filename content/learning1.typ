@@ -39,9 +39,38 @@ Our goal is to make sure that the regret grows sublinearly in $T$ no matter the 
   The natural question is: _how to prioritize?_
 ]
 
+#example[Utility and regret vectors in a two-player game][
+  Consider a two-player zero-sum game with payoff matrices
+  $
+    U_1 = mat(2, 1; 0, 2), quad U_2 = -U_1.
+  $
+  Player 1 chooses a row and player 2 chooses a column.
+  $
+    vx^((1)) = vec(1/2, 1/2), quad vy^((1)) = vec(1/4, 3/4).
+  $
+  Each player's utility vector $vg$ lists the expected payoff of each action against the other player's current mixed strategy:
+  $
+  
+  vg_1^((1)) = U_1 vy^((1)) = vec(5/4, 3/2),
+  qquad vg_2^((1)) = U_2^top vx^((1)) = vec(-1, -3/2).
+
+  $
+  Their expected utilities are therefore
+  $
+    ip(vg_1^((1)), vx^((1))) = 11/8,
+    quad ip(vg_2^((1)), vy^((1))) = -11/8.
+  $
+  Starting from $vr_1^((0)) = vr_2^((0)) = 0$, the cumulative action regret vectors after this round are
+  $
+    vr_1^((1)) &= vg_1^((1)) - 11/8 vone = vec(-1/8, 1/8), qquad
+    vr_2^((1)) &= vg_2^((1)) - (-11/8) vone = vec(3/8, -1/8).
+  $
+  Player 1 would have gained $1/8$ more expected utility by always choosing the second row, while player 2 would have gained $3/8$ more by always choosing the first column. In later rounds, we add up across all rounds to get our regret vectors.
+]
+
 == Follow-the-leader
 
-Perhaps the most natural idea would be to always play the action with the highest cumulated regret (breaking ties, say, lexicograpsically). After all, this is the action we wish the most we had played in the past. This algorithm is called _follow-the-leader (FTL)_. Unfortunately, this idea is known not to work. To see that, consider the following sequence of gradient vectors:
+Perhaps the most natural idea would be to always play the action with the highest cumulated regret (breaking ties, say, lexicographically). After all, this is the action we wish the most we had played in the past. This algorithm is called _follow-the-leader (FTL)_. Unfortunately, this idea is known not to work. To see that, consider the following sequence of gradient vectors:
 
 $
   vg^((1)) = vec(0, 1\/2), quad vg^((2)) = vec(1, 0), quad vg^((3)) = vec(0, 1), quad vg^((4)) = vec(1, 0), quad vg^((
@@ -58,12 +87,26 @@ $vr^((3)) = (1, 3\/2)$
 and so on...
 Overall, it's easy to see that in all this jumping around, the regrets grow linearly.
 
-Where to go from here? A few ideas seem natural:
-- We can replace picking the action with the highest regret with picking actions _proportionally_ to their regret; this leads to the algorithm called _Regret Matching_, which we will discuss in @sec-rm.
-- We can _smooth out_ the maximum operator by using the _softmax_ function. This leads to the _multiplicative weights update_ algorithm, which we will discuss in @sec-mwu.
-- We can _regularize_ the maximum operator by adding a term that penalizes large jumps in the strategy space. This leads to a very flexible algorithm called _follow-the-regularized-leader_ algorithm, which we will discuss in @sec-ftrl as well as in the supplementary reading on #lecture-link("learning2", <sec-predictivity>)[predictive learning algorithms].
+How do we fix this? The cumulative regret idea is right, but the problem is that it treats the current leader as the only action worth playing. When two actions are nearly tied, a tiny change in their regrets can make FTL switch all of its probability mass from one to the other. This is exactly the jumping around that caused regret to grow linearly in our example.
 
-All these ideas work. Before we move on, though, it is worth knowing that---while flawed---the follow-the-leader algorithm is not completely hopeless.
+There are several natural ways to soften this winner-take-all reaction:
+- We can replace picking the action with the highest regret with picking actions _proportionally_ to their positive regret. This leads to the algorithm called _Regret Matching_, which we will discuss in @sec-rm.
+- We can _smooth out_ the maximum operator by using the _softmax_ function. This leads to the _multiplicative weights update_ algorithm, which we will discuss in @sec-mwu.
+- We can _regularize_ the maximum operator by adding a term that penalizes overly concentrated strategies. This leads to a very flexible algorithm called _follow-the-regularized-leader_ algorithm, which we will discuss in @sec-ftrl as well as in the supplementary reading on #lecture-link("learning2", <sec-predictivity>)[predictive learning algorithms].
+
+The common idea in all these is smoothing the leader choice in FTL. The following two-action slice makes the contrast concrete.
+
+#figure(
+  caption: [Each curve shows how likely an update is to play action 1 as its cumulative regret gets larger or smaller than action 2's. To keep the comparison simple, we hold $r_1+r_2=2$ and vary $r_1-r_2$. At the center, the regrets are tied, so RM, MWU, and quadratic FTRL put probability $1/2$ on each action. FTL instead needs a tie-breaking rule. The MWU curve uses $eta=2$, and quadratic FTRL uses $eta=0.65$; these choices control how quickly their probabilities change.],
+)[
+  #image(
+    "figures/learning1/smoothed_ftl.svg",
+    width: 100%,
+    alt: "Probability assigned to one of two actions as its cumulative-regret advantage changes. FTL jumps at zero, while regret matching, multiplicative weights, and quadratic FTRL change more gradually.",
+  )
+] <fig-smoothed-ftl>
+
+Before we move on, though, it is worth knowing that---while flawed---the follow-the-leader algorithm is not completely hopeless.
 
 #remark[Fictitious play][
   In the #lecture-link("learning_intro", <def-canonical-learning>)[canonical learning setup], the use of follow-the-leader by all players goes under the name of _fictitious play_ #citep(<brown1949some>) #citep(<brown1951iterative>). In certain classes of games, including two-player zero-sum games, fictitious play is able to recover a Nash equilibrium, albeit with a potentially exponentially slow convergence rate #citep(<Robinson1951>).
@@ -115,7 +158,7 @@ The algorithm is presented in pseudocode in @algo-rm.
   The Regret Matching algorithm (@algo-rm) is an external regret minimizer, and satisfies the regret bound $"Reg"^((T)) <= Omega sqrt(T)$, where $Omega$ is the maximum norm of $norm(vg^((t)) - ip(vg^((t)), vx^((t))) vone)_2$ up to time $T$.
 
   In particular, if all the gradient vectors satisfy $norm(vg^((t)))_oo <= 1$ at all times $t$ then the regret satisfies $ "Reg"^((T)) <= 2 sqrt(T dot |A|). $
-]
+] <thm-rm-regret>
 #proof[
   We start by observing that, at all times $t$,
   $
@@ -166,7 +209,7 @@ As of today, Regret Matching and its variants are still often some of the most p
 
 == The Regret Matching#super[+] (RM#super[+]) algorithm <sec-rmp>
 
-The Regret Matching#super[+] algorithm #citep(<Tammelin14:Solving>)#citep(<Tammelin15:Solving>) is given in @algo-rmp. It differs from RM only on the last line, where a further thresholding is added. That small change has the effect that actions with negative cumulated regret (that is, "bad" actions) are treated as actions with $0$ regret. Hence, intuitively, if a bad action were to become good over time, it would take less time for RM#super[+] to notice and act on that change.
+The Regret Matching#super[+] algorithm #citep(<Tammelin14:Solving>)#citep(<Tammelin15:Solving>) is given in @algo-rmp. It differs from RM only on the last line, where a further thresholding is added. That small change has the effect that actions with negative cumulated regret (that is, "bad" actions) are treated as actions with $0$ regret. Hence, intuitively, if a bad action were to become good over time, it would take less time for RM#super[+] to notice and act on that change (see @ex-rm-vs-rmp).
 Because of that, Regret Matching#super[+] has stronger practical performance and is often preferred over Regret Matching in the game solving literature.
 
 With a simple modification to the analysis of RM, the same bound as RM can be proven.
@@ -176,6 +219,25 @@ With a simple modification to the analysis of RM, the same bound as RM can be pr
   So again, if all the gradient vectors satisfy $norm(vg^((t)))_oo <= 1$ at all times $t$ then the regret satisfies $ "Reg"^((T)) <= 2 sqrt(T dot |A|). $
 
 ]
+
+#example[A bad action that becomes good][
+  Consider two actions and the following sequence of gradient vectors, in which the first action is bad for the first $T_0$ rounds and then becomes the best one:
+  $
+    vg^((t)) = vec(0, 1) quad "for" t <= T_0, qquad vg^((t)) = vec(1, 0) quad "for" t > T_0.
+  $
+  Both algorithms play the uniform strategy at time $1$ and only the second action from time $2$ to time $T_0$.
+  Under RM, each of these rounds decreases the cumulated regret of the first action by $1$, so that $r^((T_0))_1 = 1\/2 - T_0$. After the switch, the regret of the first action grows by $1$ per round, but RM keeps playing the second action until that regret becomes positive: it plays the first action with probability $1\/2$ at time $2T_0 + 1$, and with probability $1$ only from time $2T_0 + 2$ on.
+  RM#super[+] instead keeps the regret of the first action at $0$ throughout the first phase. It plays the first action with probability $2\/3$ at time $T_0 + 2$ and with probability $1$ from time $T_0 + 3$ on, no matter how long the first action was bad.
+
+  #figure(
+    image(
+      "figures/learning1/rm_vs_rmp.svg",
+      width: 100%,
+      alt: "Probability of the first action and its cumulated regret over time under RM and RM+; RM+ switches to the first action right after the switch, while RM waits until its negative regret is worked off.",
+    ),
+    caption: [Probability $x^((t))_1$ of the first action (left) and its cumulated regret $r^((t))_1$ (right) under RM and RM#super[+], with $T_0 = 50$ (dashed line).],
+  )
+] <ex-rm-vs-rmp>
 
 == Multiplicative weights update (MWU) <sec-mwu>
 
@@ -204,6 +266,13 @@ With a simple modification to the analysis of RM, the same bound as RM can be pr
   text-width: 47%,
 )
 
+@fig-mwu-ftl shows that as $eta -> oo$ (zero temperature), MWU approaches follow-the-leader on the counterexample above.
+
+#figure(
+  image("figures/learning1/mwu_ftl.svg", width: 100%),
+  caption: [Left: probability $x^((t))_1$ of the first action under MWU with $eta in {1, 4, 16}$ and under follow-the-leader (dashed). Right: probability that MWU puts on the action played by follow-the-leader at time $t = 10$, as a function of $eta$.],
+) <fig-mwu-ftl>
+
 Compared to RM, MWU has a different flavor: it uses _softmax_ instead of ReLU. This change in prioritization function has a pretty significant impact on the regret bound that multiplicative weights guarantees. In particular, the following can be shown:
 
 #theorem[Regret bound for MWU][
@@ -220,6 +289,219 @@ Compared to RM, MWU has a different flavor: it uses _softmax_ instead of ReLU. T
 The general FTRL/OMD bound in @ftrl-omd-regret-bound implies @mwu-regret-bound; @sec-omd-mwu gives the entropy specialization.
 
 For now, we remark a crucial aspect of MWU. Compared with the regret bound of RM and RM#super[+], the regret bound of MWU has only a _logarithmic_ dependence on the number of actions $|A|$. Despite in practice RM/RM#super[+] tend to outperform MWU (all while getting rid of any hyperparameter tuning), this property has profound _theoretical_ implications, especially in combinatorial games where the effective number of actions is exponential. The gist of it is that several important classes of games can be converted into _exponentially large_ normal-form games (this is the case of sequential games, for example). Since MWU only has logarithmic dependence on the number of actions of the resulting normal-form games, this shows that---at least ignoring computation---external regret minimization is possible with polynomial dependence on the game size even in these classes of complex, structured games.
+
+#exercise[Asymptotic optimality of MWU][
+  Let $n = |A| >= 2$ and suppose $norm(vg^((t)))_oo <= 1$. With learning rate $eta = sqrt((log n) / T)$, MWU guarantees
+  $ "Reg"^((T)) <= 2 sqrt(T log n). $
+
+  Show that this rate is asymptotically optimal up to constant factors: there is a universal constant $c > 0$ such that, for each fixed $n$ and all sufficiently large $T$, every online learning algorithm has some bounded utility sequence for which
+  $ EE["Reg"^((T))] >= c sqrt(T log n). $
+  The expectation is over the learner's randomness; "sufficiently large" may depend on $n$.
+
+  _Hint:_ This is via anticoncentration of Gaussians/Sudakov minorization.
+] <ex-mwu-optimality>
+
+#solution[
+  We construct random bounded utilities under which every learner has zero expected cumulative utility, while the best fixed action in hindsight has expected cumulative utility of order $sqrt(T log n)$. Averaging over the construction will then give a hard fixed utility sequence.
+
+  *1. Construct independent random-sign utilities.*
+
+  For every action $i$ and round $t$, independently choose
+  $
+    g_i^((t)) = cases(+1 &"with probability " 1/2, -1 &"with probability " 1/2).
+  $
+  Every resulting sequence satisfies $norm(vg^((t)))_oo = 1$. We are choosing a particular family of allowed sequences to establish a lower bound; we do not assume that utilities in the original problem must be random.
+
+  The learner chooses $vx^((t))$ before observing the fresh utilities. Since each coordinate has conditional mean zero,
+  $
+    EE[ip(vg^((t)), vx^((t))) | "past observations", vx^((t))] = 0.
+  $
+  Thus the learner's expected cumulative utility is zero, regardless of its algorithm. Consequently,
+  #math.equation(block: true, numbering: "(1)", $
+    EE["Reg"^((T))] = EE[max_(i <= n) sum_(t=1)^T g_i^((t))].
+  $) <eq-mwu-lower-expectation>
+  Here the expectation includes both the random utilities and any randomness used by the learner.
+
+  *2. Pass to a Gaussian limit.*
+
+  Define the normalized cumulative utilities
+  $ Y_(T,i) = 1/sqrt(T) sum_(t=1)^T g_i^((t)). $
+  The summands have mean zero and variance one. For fixed $n$, the multivariate central limit theorem gives
+  $
+    (Y_(T,1), ..., Y_(T,n)) limits(->)^d_(T -> infinity) (Z_1, ..., Z_n),
+  $
+  where $Z_1, ..., Z_n$ are independent standard Gaussians.
+
+  Because taking the maximum is continuous,
+  $ M_T := max_(i <= n) Y_(T,i) limits(->)^d M := max_(i <= n) Z_i. $
+
+  To pass from convergence in distribution to convergence of expectations, we must also control the contribution of rare, large values. Since $EE[Y_(T,i)^2] = 1$,
+  $ EE[M_T^2] <= sum_(i=1)^n EE[Y_(T,i)^2] = n. $
+  Therefore, for any $K > 0$,
+  $
+    EE[abs(M_T) bb(1)_(lr({abs(M_T) > K}))] <= EE[M_T^2]/K <= n/K.
+  $
+  For fixed $n$, this tends to zero uniformly in $T$. This property is called _uniform integrability_.
+
+  To see why it is sufficient, clip the variables to $[-K, K]$. The clipped expectations converge because clipping is bounded and continuous. The tail estimate shows that clipping changes the expectations by arbitrarily little when $K$ is large; the same estimate holds for $M$. Hence
+  $ EE[M_T] -> EE[M]. $
+  Using (@eq-mwu-lower-expectation), we obtain
+  #math.equation(block: true, numbering: "(1)", $
+    lim_(T -> infinity) EE["Reg"^((T))]/sqrt(T) = EE[max_(i <= n) Z_i].
+  $) <eq-mwu-gaussian-limit>
+
+  The actual utilities remain bounded throughout: Gaussians appear only as the limiting distribution of their normalized sums.
+
+  *3. Apply Sudakov's minoration.*
+
+  #link("https://tropp.caltech.edu/notes/Tro21-Probability-High-LN-corr.pdf#page=100")[Sudakov's minoration] lower-bounds the expected maximum of a centered Gaussian family whose members are sufficiently separated. A finite-family form states that if
+  $ sqrt(EE[(X_i - X_j)^2]) >= delta quad "for every " i != j, $
+  then
+  $ EE[max_(i <= n) X_i] >= c_"S" delta sqrt(log n), $
+  where $c_"S" > 0$ is universal. See Theorem 11.12 in the linked notes.
+
+  For independent standard Gaussians,
+  $ EE[(Z_i - Z_j)^2] = 2. $
+  Applying Sudakov with $delta = sqrt(2)$ therefore gives a universal constant $c_1 > 0$ such that
+  #math.equation(block: true, numbering: "(1)", $
+    EE[max_(i <= n) Z_i] >= c_1 sqrt(log n).
+  $) <eq-mwu-sudakov>
+
+  *4. Extract a hard fixed sequence.*
+
+  Combining (@eq-mwu-gaussian-limit) and (@eq-mwu-sudakov), for each fixed $n$ and all sufficiently large $T$,
+  $ EE["Reg"^((T))] >= c_1/2 sqrt(T log n). $
+
+  This is an average over our randomly generated utility sequences. At least one fixed sequence must therefore give expected regret at least this large, with the remaining expectation taken only over the learner's randomness.
+
+  Setting $c = c_1/2$ proves the claim. MWU guarantees at most $2 sqrt(T log n)$, while every algorithm sometimes incurs at least $c sqrt(T log n)$, for each fixed $n$ and sufficiently large $T$. Thus the rate is asymptotically optimal up to constant factors.
+]
+
+== Worked example: three rounds of RM and MWU by hand <sec-rm-mwu-walkthrough>
+
+The pseudocode of @algo-rm and @algo-mwu is short, but it is easy to lose track of which quantity is computed when. Here we run both algorithms by hand for three rounds on the same utility vectors and record every intermediate quantity, using follow-the-leader as a baseline.
+
+*Setup.* The learner plays rock-paper-scissors, with actions $A = {upright(R), upright(P), upright(S)}$ listed in this order, and receives utility $+1$ for a win, $-1$ for a loss, and $0$ for a tie. The opponent plays Rock, then Paper, then Scissors. Entry $a$ of the utility vector $vg^((t))$ is the payoff that action $a$ would have earned against the opponent's move at time $t$, so
+$
+  vg^((1)) = (0, 1, -1), quad vg^((2)) = (-1, 0, 1), quad vg^((3)) = (1, -1, 0).
+$
+All three have $norm(vg^((t)))_oo <= 1$, as assumed in the simplified bounds of @thm-rm-regret and @mwu-regret-bound. Since $vg^((1)) + vg^((2)) + vg^((3)) = vzero$, every fixed action earns exactly $0$ in hindsight. The regret after the three rounds is therefore minus the total utility the learner collected:
+$
+  "Reg"^((3)) = max_(a in A) sum_(t=1)^3 g_a^((t)) - sum_(t=1)^3 ip(vg^((t)), vx^((t))) = -sum_(t=1)^3 ip(vg^((t)), vx^((t))).
+$
+
+*What happens in a round.* Each round $t$ of either algorithm performs the same four steps:
++ `NextStrategy()` turns the cumulated regrets $vr^((t-1))$ into a strategy $vx^((t))$. This is the only step in which RM and MWU differ.
++ The environment reveals $vg^((t))$, and the learner earns the expected utility $ip(vg^((t)), vx^((t)))$.
++ The _instantaneous regret_ $vg^((t)) - ip(vg^((t)), vx^((t))) vone$ records, for every action, how much better (or worse) it would have done than $vx^((t))$ in this round.
++ `ObserveUtility` adds it to the running total: $vr^((t)) = vr^((t-1)) + vg^((t)) - ip(vg^((t)), vx^((t))) vone$.
+
+#example[Regret Matching, step by step][
+  Both algorithms start from $vr^((0)) = vzero$. Since $[vr^((0))]^+ = vzero$, RM may play any strategy at $t = 1$; we pick the uniform one, as in the initialization of @algo-rm. Each column of the table is one round, and its last row determines the strategy of the next round.
+
+  #align(center, table(
+    columns: 4,
+    align: (left + horizon, center + horizon, center + horizon, center + horizon),
+    inset: (x: 2.2mm, y: 1.8mm),
+    stroke: (x, y) => (
+      top: if y == 0 { black + .4mm } else if y == 1 { black + .25mm } else { none },
+      bottom: if y == 6 { black + .4mm } else { none },
+    ),
+    table.header([], [$t = 1$], [$t = 2$], [$t = 3$]),
+    [strategy \ $vx^((t))$], $1/3 vec(1, 1, 1)$, $vec(0, 1, 0)$, $vec(0, 1, 0)$,
+    [utility vector \ $vg^((t))$], $vec(0, 1, -1)$, $vec(-1, 0, 1)$, $vec(1, -1, 0)$,
+    [expected utility \ $ip(vg^((t)), vx^((t)))$], $0$, $0$, $-1$,
+    [instantaneous regret \ $vg^((t)) - ip(vg^((t)), vx^((t))) vone$], $vec(0, 1, -1)$, $vec(-1, 0, 1)$, $vec(2, 0, 1)$,
+    [cumulated regret \ $vr^((t))$], $vec(0, 1, -1)$, $vec(-1, 1, 0)$, $vec(1, 1, 1)$,
+    [positive part \ $[vr^((t))]^+$], $vec(0, 1, 0)$, $vec(0, 1, 0)$, $vec(1, 1, 1)$,
+  ))
+
+  - *Round 1.* The uniform strategy earns $0$. Only Paper would have done better, so $[vr^((1))]^+ = (0, 1, 0)$ and RM puts all its probability on Paper. Whenever exactly one action has positive regret, RM plays the same action as follow-the-leader.
+  - *Round 2.* Paper ties against Paper. The regret of Scissors rises from $-1$ to $0$, but RM only reacts to _positive_ regrets, so it plays Paper again.
+  - *Round 3.* Scissors beats Paper and RM loses $1$. Now every action has cumulated regret $1$, so $vx^((4)) = (1\/3, 1\/3, 1\/3)$.
+
+  The total utility is $-1$, so $"Reg"^((3)) = 1 = max_(a in A) r_a^((3))$. Follow-the-leader (ties broken lexicographically) plays Rock, Paper, Paper and also ends with regret $1$; see @fig-rm-mwu-walkthrough.
+
+  The run also shows the two steps of the proof of @thm-rm-regret at work. First, each new instantaneous regret is orthogonal to the positive part of the previous cumulated regret, as in (@eqx): from the table, $ip((-1, 0, 1), (0, 1, 0)) = 0$ at $t = 2$ and $ip((2, 0, 1), (0, 1, 0)) = 0$ at $t = 3$.
+  Second, the potential $norm([vr^((t))]^+)_2^2$ therefore grows each round by at most the squared norm of the instantaneous regret. It takes the values $1, 1, 3$, and indeed $1 <= 0 + 2$, $1 <= 1 + 2$, and $3 <= 1 + 5$. With $Omega = norm((2, 0, 1))_2 = sqrt(5)$, the theorem guarantees $"Reg"^((3)) <= sqrt(5) dot sqrt(3) approx 3.87$.
+] <ex-rm-walkthrough>
+
+For MWU, one observation simplifies the arithmetic. Let $vG^((t)) := sum_(tau=1)^t vg^((tau))$ be the cumulated utility vector. The cumulated regret differs from it only by a multiple of $vone$:
+$
+  vr^((t)) = vG^((t)) - (sum_(tau=1)^t ip(vg^((tau)), vx^((tau)))) vone.
+$
+Adding the same constant $c$ to every entry does not change a softmax, because the factor $exp(eta c)$ cancels between numerator and denominator. Therefore
+$
+  vx^((t+1)) = "softmax"(eta vr^((t))) = "softmax"(eta vG^((t))), quad "that is," quad x_a^((t+1)) prop exp(eta G_a^((t))).
+$
+In other words, MWU's strategy depends only on the utilities the environment revealed, not on what the learner played. RM is different: its threshold $[dot]^+$ compares each action with the learner's own realized utility. We take $eta = log 2 approx 0.69$, which turns the weights into powers of two, $exp(eta G_a^((t))) = 2^(G_a^((t)))$, so every number below is an exact fraction. This is close to the value $sqrt(log 3 \/ 3) approx 0.61$ that @mwu-regret-bound prescribes for $T = 3$ and $|A| = 3$.
+
+#example[MWU, step by step][
+  The table has the same layout, with two changes: the first row holds the unnormalized weights $2^(vG^((t-1)))$ (taken entrywise), and the last row the cumulated utility $vG^((t))$.
+
+  #align(center, table(
+    columns: 4,
+    align: (left + horizon, center + horizon, center + horizon, center + horizon),
+    inset: (x: 2.2mm, y: 1.8mm),
+    stroke: (x, y) => (
+      top: if y == 0 { black + .4mm } else if y == 1 { black + .25mm } else { none },
+      bottom: if y == 7 { black + .4mm } else { none },
+    ),
+    table.header([], [$t = 1$], [$t = 2$], [$t = 3$]),
+    [weights \ $2^(vG^((t-1)))$], $vec(1, 1, 1)$, $vec(1, 2, 1\/2)$, $vec(1\/2, 2, 1)$,
+    [strategy \ $vx^((t))$], $1/3 vec(1, 1, 1)$, $1/7 vec(2, 4, 1)$, $1/7 vec(1, 4, 2)$,
+    [utility vector \ $vg^((t))$], $vec(0, 1, -1)$, $vec(-1, 0, 1)$, $vec(1, -1, 0)$,
+    [expected utility \ $ip(vg^((t)), vx^((t)))$], $0$, $-1\/7$, $-3\/7$,
+    [instantaneous regret \ $vg^((t)) - ip(vg^((t)), vx^((t))) vone$], $vec(0, 1, -1)$, $1/7 vec(-6, 1, 8)$, $1/7 vec(10, -4, 3)$,
+    [cumulated regret \ $vr^((t))$], $vec(0, 1, -1)$, $1/7 vec(-6, 8, 1)$, $1/7 vec(4, 4, 4)$,
+    [cumulated utility \ $vG^((t))$], $vec(0, 1, -1)$, $vec(-1, 1, 0)$, $vec(0, 0, 0)$,
+  ))
+
+  - *Round 1.* As for RM, the uniform strategy earns $0$.
+  - *Round 2.* The weights are $(2^0, 2^1, 2^(-1)) = (1, 2, 1\/2)$, which normalize to $(2\/7, 4\/7, 1\/7)$. MWU favors Paper, as RM did, but keeps some probability on Rock and Scissors. Against Paper, this hedge costs $1\/7$: the $2\/7$ on Rock loses and the $1\/7$ on Scissors wins.
+  - *Round 3.* The weights are $(1\/2, 2, 1)$, so $vx^((3)) = (1\/7, 4\/7, 2\/7)$. Mass moves from Rock (which just lost) to Scissors (which just won). Against Scissors, MWU loses $3\/7$, much less than RM's $1$: the $4\/7$ on Paper loses, but the $1\/7$ on Rock wins.
+
+  Since $vG^((3)) = vzero$, MWU also returns to the uniform strategy at $t = 4$. Its total utility is $-4\/7$, so $"Reg"^((3)) = 4\/7 = max_(a in A) r_a^((3))$. With $eta = log 2$, the bound of @mwu-regret-bound gives
+  $
+    "Reg"^((3)) & <= (log 3) / (log 2) + 3 log 2 - 1 / (8 log 2) (norm(vx^((2)) - vx^((1)))_1^2 + norm(vx^((3)) - vx^((2)))_1^2) \
+    & = (log 3) / (log 2) + 3 log 2 - 1 / (8 log 2) dot 136 / 441 approx 3.61,
+  $
+  where $norm(vx^((2)) - vx^((1)))_1 = 10\/21$ and $norm(vx^((3)) - vx^((2)))_1 = 2\/7$.
+] <ex-mwu-walkthrough>
+
+#figure(
+  image(
+    "figures/learning1/rm_mwu_walkthrough.svg",
+    width: 100%,
+    alt: "Strategies of follow-the-leader, Regret Matching, and MWU over four rounds of rock-paper-scissors, drawn on the probability simplex. Follow-the-leader jumps between the Rock and Paper corners, Regret Matching jumps from the center to the Paper corner and back, and MWU circles near the center.",
+  ),
+  caption: [The strategies $vx^((1)), dots, vx^((4))$ of @ex-rm-walkthrough and @ex-mwu-walkthrough, drawn on the simplex $Delta(A)$; corners are pure strategies and the center is the uniform strategy. Follow-the-leader jumps between corners, RM between the center and a corner, and MWU stays near the center.],
+) <fig-rm-mwu-walkthrough>
+
+The two runs illustrate four differences between RM and MWU.
+- *Sparsity versus full support.* RM gives zero probability to every action whose cumulated regret is not positive (as long as some action has positive regret), so it can commit to a pure strategy. MWU gives every action positive probability, proportional to $exp(eta G_a^((t)))$. Here, committing was costly: the cycling opponent punished RM's pure strategy in round 3, just as it punished follow-the-leader.
+- *How far the strategies move.* RM jumped from the center to a corner and back, moves of $ell_1$ length $norm((0, 1, 0) - (1\/3, 1\/3, 1\/3))_1 = 4\/3$. MWU never moved more than $10\/21$ in a single round (@fig-rm-mwu-walkthrough). This follows from MWU being FTRL with the entropy regularizer (@sec-omd-mwu): FTRL's strategies move by at most $eta norm(vg^((t)))_oo$ in $ell_1$ norm per round (@sec-ftrl), which is $log 2 approx 0.69$ here. This stability is what prevents the oscillations of follow-the-leader.
+- *Hyperparameters.* RM has no parameters. MWU depends on $eta$: as $eta -> 0$ it stays at the uniform strategy, and as $eta -> oo$ it puts all its mass on the actions with the largest cumulated utility, which is follow-the-leader.
+- *Worst-case bounds are loose on a single run.* The observed regrets ($1$ and $4\/7$) are far below the guarantees ($approx 3.87$ and $approx 3.61$), because the theorems must hold for _every_ sequence of utility vectors, including far more adversarial ones.
+
+The accompanying #link("https://colab.research.google.com/github/gabrfarina/MIT-6.7980-Topics-in-Multiagent-Learning/blob/main/content/notebooks/learning1/rm_mwu_walkthrough.ipynb")[notebook] reproduces both tables in exact arithmetic, runs the algorithms for many more rounds, and lets you vary $eta$ and watch the strategies of RM and MWU move on the simplex.
+#exercise[No-regret learning in graphical games][
+  Consider a graphical game played over a $d$-regular graph, where each of the $n$ nodes is a player with $m$ actions and payoffs in $[-1, 1]$. Each player's utility $u_i$ depends on their own action $a_i$ and the actions $a_(N(i))$ of their $d$ neighbors $N(i)$.
+  + How many numbers are needed to write down the game as a generic normal-form game? How many when exploiting the graph structure?
+  + How many variables does the natural LP formulation of a #lecture-link("correlated", <def-cce>)[coarse correlated equilibrium] have?
+  + Suppose all players run MWU in the #lecture-link("learning_intro", <def-canonical-learning>)[canonical learning setup]. How many rounds $T$ suffice to guarantee an $epsilon$-approximate coarse correlated equilibrium, that is, a correlated strategy that satisfies the constraints of a coarse correlated equilibrium up to an additive $epsilon$?
+  + What is the overall runtime?
+] <ex-graphical-game>
+
+#solution[
+  *Part 1.* Each $u_i$ only depends on $a_i$ and $a_(N(i))$, so it is a table with $m^(d+1)$ entries, and the game needs $n dot m^(d+1)$ numbers. A generic $n$-player game would need $n dot m^n$.
+
+  *Part 2.* The LP has one variable $mu_(a_1, ..., a_n)$ for each action profile, so $m^n$ variables. This is exponential in $n$, even though the game itself only takes $n dot m^(d+1)$ numbers. #lecture-link("eah")[] shows how to get around this.
+
+  *Part 3.* The payoffs are in $[-1, 1]$, so $norm(vg_i^((t)))_oo <= 1$ and @mwu-regret-bound gives each player regret at most $2 sqrt(T log m)$. By #lecture-link("learning_intro", <thmce-formal>)[], the average distribution of play is then an $epsilon$-approximate CCE with $epsilon <= 2 sqrt(log m \/ T)$. So we need $T = ceil(4 log m \/ epsilon^2)$ rounds, which does not depend on $n$ or $d$.
+
+  *Part 4.* In each round, player $i$ computes the expected utility of each of its $m$ actions. Each one is a sum over the $m^d$ action profiles of its neighbors, so this takes $O(d dot m^(d+1))$ time per player and $O(n d dot m^(d+1))$ per round. Over $T$ rounds, the total is $O(n d dot m^(d+1) log m \/ epsilon^2)$, polynomial in the size of the game and in $1\/epsilon$.
+]
 
 = More general approaches: FTRL and OMD <sec-ftrl>
 
@@ -238,12 +520,34 @@ Finally, we turn our attention to the third way of obtaining no-regret algorithm
   The follow-the-_regularized_-leader algorithm (FTRL; sometimes also called "regularized follow-the-leader") defines the choice of strategy#footnote[In particular, $vx^((1)) := argmin_(xhat in Delta(A)) psi(xhat)$ since the regrets of all actions are $0$ at the beginning.]
   $
     vx^((t)) & := argmax_(xhat in Delta(A)) {ip(vr^((t-1)), xhat) - 1 / eta psi(xhat)}.
-  $]
+  $] <def-ftrl-simplex>
+The role of the regularizer is to _limit variation between consecutive strategies_. FTL can change its strategy abruptly when a small change in cumulative utilities changes which action is best. FTRL controls this sensitivity by subtracting $psi(vx)/eta$ from the cumulative utility of each candidate strategy $vx$. This creates a preference for strategies with smaller values of $psi(vx)$: choosing a strategy with a larger value must be justified by a sufficient improvement in cumulative utility.
+
+The learning rate $eta$ controls the strength of this preference. For fixed cumulative utilities, as $eta -> 0$, the regularizer dominates and the selected strategy approaches $argmin_(vx in Delta(A)) psi(vx)$, regardless of which action has performed best. As $eta -> oo$, the regularization becomes negligible and the strategy approaches a cumulative-utility maximizer, recovering FTL up to tie-breaking.
+
+What does preferring smaller $psi(vx)$ actually encourage? This depends on the function we choose. For example, consider the _negative entropy_ regularizer
+$ psi(vx) = sum_(a in A) x_a log x_a. $
+This function is minimized at the uniform distribution $vu$. More precisely,
+$
+  psi(vx) + log |A| = op("D")_("KL")(vx mid(||) vu),
+  quad op("D")_("KL")(vx mid(||) vu) = sum_(a in A) x_a log frac(x_a, u_a).
+$
+Since adding a constant to the regularizer does not change the maximizing strategy, entropy-regularized FTRL can be viewed as maximizing cumulative utility while penalizing departure from the uniform distribution. This encourages spreading probability across actions, while allowing actions with higher cumulative utility to receive more weight.
+
+Notice that this penalty is relative to a _fixed reference distribution_, not the previous strategy. How does it nevertheless limit changes between steps? Consider two actions and write the strategy as $vx = (p, 1-p)$. Let $d$ be the difference between their cumulative utilities, equivalently the difference between their cumulative regrets. FTL chooses $p=1$ whenever $d>0$, and $p=0$ whenever $d<0$. Thus, an arbitrarily small change across $d=0$ can move all the probability from one action to the other. With negative entropy, the regularized optimization instead gives
+$ p = 1 / (1 + exp(-eta d)). $
+Near a tie, the strategy is close to uniform; as the utility advantage grows, probability shifts smoothly toward the better action. Each new round changes $d$, and the regularizer makes the maximizing strategy respond gradually to that change.
+
+Different regularizers produce different responses. For example, the _squared Euclidean norm_ $psi(vx)=1/2 norm(vx)_2^2$ gives
+$ p = op("clip")_([0,1]) (1/2 + (eta d)/2), $
+where clipping restricts the value to $[0,1]$. Here probability changes linearly with $d$ until it reaches a pure strategy. Negative entropy instead produces the logistic response above and remains strictly mixed for finite $d$ and $eta$. Therefore, regularization doesn't necessarily prevent pure strategies. Instead, a small increase in an action’s utility advantage only justifies a small additional shift of probability toward it, since the regularizer adds a cost for moving even further in that direction.
+
+In fact, there's a bound on how much consecutive FTRL strategies can differ:
 The regularization term $-psi(xhat)$ _limits the amount of variation between consecutive strategies_. This makes intuitive sense: if $eta -> 0$, $vx^((t))$ is constant (and equal to $argmin_(xhat in Delta(A)) psi(xhat)$). When $eta = oo$, we recover the follow-the-leader algorithm, where strategies can jump arbitrarily. For intermediate $eta$, as you might expect, the amount of variation between strategies at consecutive times is bounded above by a quantity proportional to $eta$:
 $
   norm(vx^((t+1)) - vx^((t))) <= eta norm(vg^((t)))_*,
 $
-where $norm(dot.c)_*$ is the _dual_ norm of $norm(dot.c)$.
+where $norm(dot.c)_*$ is the dual norm of the norm with respect to which $psi$ is $1$-strongly convex. This explains how the fixed regularization term controls strategy change even though the objective contains no explicit penalty for departing from the previous strategy.
 
 We will see the regret bound for FTRL in the general case in @ftrl-omd-general-case.
 
@@ -263,10 +567,22 @@ The last general method that we mention today is the _online mirror descent (OMD
   is called the _Bregman divergence_ associated with $psi$.
 ]
 
+OMD uses the distance-generating function to construct an explicit penalty for moving away from the previous strategy. The Bregman divergence $div(vx, vy, dgf: psi)$ measures how far $psi(vx)$ lies above the tangent-plane approximation to $psi$ at $vy$. Subtracting this approximation makes the penalty zero at $vx=vy$, and convexity makes it nonnegative elsewhere. Strong convexity further guarantees
+$ div(vx, vy, dgf: psi) >= 1/2 norm(vx-vy)^2, $
+so substantial movement incurs a substantial penalty.
+
+Choosing $psi$ therefore determines _which movements are expensive_. The squared Euclidean regularizer gives
+$ div(vx, vy, dgf: psi) = 1/2 norm(vx-vy)_2^2, $
+which penalizes absolute changes in probabilities equally wherever we start. Negative entropy gives
+$ div(vx, vy, dgf: psi) = op("D")_("KL")(vx mid(||) vy); $
+locally, the same small absolute change costs more in a coordinate whose starting probability is small. These choices lead to different update rules: Euclidean OMD takes an additive gradient step followed by projection, while entropy OMD reweights probabilities multiplicatively.
+
+Thus FTRL obtains stability by regularizing the cumulative-utility objective with a fixed function $psi$, while OMD directly balances the latest utility against a movement penalty generated by that function.
+
 Two choices of regularizer are standard for the probability simplex:
 - The _negative entropy_ function $H(vx) := sum_(a in A) x_a log x_a$. This is 1-strongly convex with respect to the $ell_1$ norm $norm(dot.c)_1$ (and therefore also with respect to $norm(dot.c)_2$). OMD instantiated with this regularizer leads to the multiplicative weights update algorithm seen in @sec-mwu; see also @sec-omd-mwu.
 
-- The _squared Euclidean norm_ $psi(vx) := 1/2 norm(vx)_2^2$, which is 1-strongly convex with respect to the $ell_2$ norm $norm(dot.c)_2$. OMD instantiated with this regularizer leads to the online projected gradient descent algorithm, which we will discuss in @sec-ogd.
+- The _squared Euclidean norm_ $psi(vx) := 1/2 norm(vx)_2^2$, which is 1-strongly convex with respect to the $ell_2$ norm $norm(dot.c)_2$. OMD instantiated with this regularizer leads to the online projected gradient ascent algorithm, which we will discuss in @sec-ogd.
 
 == The general case <ftrl-omd-general-case>
 
@@ -289,16 +605,84 @@ We mention the following regret bound for the general case. The supplementary re
 #theorem[Regret bound for FTRL and OMD][
   The regret cumulated by the FTRL and OMD algorithms is upper bounded by
   $
-    "Reg"^((
-      T
-    )) <= B / eta + eta sum_(t=1)^T norm(vg^((t)))_*^2 - 1 / (8 eta) sum_(t=2)^T norm(vx^((t)) - vx^((t-1)))^2,
+    "Reg"^((T)) <= B / eta + eta sum_(t=1)^T norm(vg^((t)))_*^2 - 1 / (4 eta) sum_(t=1)^T norm(vx^((t)) - vx^((t+1)))^2,
   $
   where $B=max_(vx in cX) psi(vx)-min_(vx in cX) psi(vx)$ for FTRL, and $B=max_(vx in cX) div(vx, vx^((1)), dgf: psi)$ for OMD. The latter reduces to the former when the initial minimizer lies in the relative interior. We assume these quantities are finite. As above, $norm(dot.c)_*$ is the dual norm.
   In particular, if the norm of the gradient vectors is bounded, then by picking learning rate $eta = 1/sqrt(T)$, we obtain that $"Reg"^((T))$ is bounded as roughly $sqrt(T)$ (a sublinear function!) at all times $T$.
 ] <ftrl-omd-regret-bound>
 
+#proof[
+  We first prove the bound for FTRL.
+  Recall that the regret is defined as
+  $
+    "Reg"^((T)) := max_(xhat in cX) sum_(t=1)^T ip(vg^((t)), xhat -vx^((t))) .
+  $
+  Define $F_t (vx):= eta  sum_(tau=1)^t ip( vg^((tau)), vx) - psi(vx)$, so that FTRL plays $vx^((t)) = arg max_(vx in cX) F_(t-1) (vx)$.
+  Note that $F_t (vx)$ is $1$-strongly concave, so because $vx^((t))$ maximizes $F_(t-1)$, we have
+  $
+  F_(t-1) (vx^((t)))-F_(t-1) (vx^((t+1))) >= 1/2 norm(vx^((t)) - vx^((t+1)))^2.
+  $
+  Thus, write
+  $
+    F_(t-1) (vx^((t))) - F_(t) (vx^((t+1))) &= F_(t-1) (vx^((t))) - F_(t-1) (vx^((t+1))) - eta ip(vg^((t)), vx^((t+1)))\ &>= 1/2 norm(vx^((t)) - vx^((t+1)))^2 -  eta ip(vg^((t)), vx^((t+1))).
+  $
+  Summing over $t=1,...,T$, we have
+  $
+    F_0 (vx^((1))) - F_T (vx^((T+1))) >= 1/2 sum_(t=1)^T norm(vx^((t)) - vx^((t+1)))^2 - eta sum_(t=1)^T ip(vg^((t)), vx^((t+1))).
+  $
+  Let $xhat$ be any point in $cX$. Then, we have $F_T (vx^((T+1)))>= F_T (xhat) = eta sum_(t=1)^T ip(vg^((t)), xhat) - psi(xhat)$ while $F_0 (vx^((1))) = -min_(vx in cX) psi(vx)$.
+  Substituting, we have
+  $
+    sum_(t=1)^T ip(vg^((t)), xhat - vx^((t+1))) <= B/eta -1/(2eta) sum_(t=1)^T norm(vx^((t))-vx^((t+1)))^2.
+  $
+  This is close to the desired expression, but we have a $vx^((t+1))$ instead of $vx^((t))$. We can fix this by using the inequality
+  $
+    ip(vg^((t)), vx^((t+1)) - vx^((t))) <= norm(vg^((t)))_* norm(vx^((t+1)) - vx^((t))) <= eta norm(vg^((t)))_*^2 + 1/(4eta) norm(vx^((t)) - vx^((t+1)))^2.
+  $
+  Now, we have
+  $
+    & sum_(t=1)^T ip(vg^((t)), xhat - vx^((t))) \
+    & qquad = sum_(t=1)^T ip(vg^((t)), xhat - vx^((t+1))) + sum_(t=1)^T ip(vg^((t)), vx^((t+1)) - vx^((t))) \
+    & qquad <= (B/eta - 1/(2eta) sum_(t=1)^T norm(vx^((t)) - vx^((t+1)))^2) \
+    & qquad quad + (eta sum_(t=1)^T norm(vg^((t)))_*^2 + 1/(4eta) sum_(t=1)^T norm(vx^((t)) - vx^((t+1)))^2) \
+    & qquad = B/eta + eta sum_(t=1)^T norm(vg^((t)))_*^2 - 1/(4eta) sum_(t=1)^T norm(vx^((t)) - vx^((t+1)))^2.
+  $
+  Because this is true for all $xhat in cX$, the same bound holds for $"Reg"^((T))$, as desired.
+
+  For OMD, the proof is similar but slightly more involved.
+  Let
+  $
+    Phi^((t))(vx) & := - eta ip(vg^((t)), vx) + div(vx, vx^((t)), dgf: psi) \
+    & = psi(vx) - psi(vx^((t))) - eta ip(vg^((t)), vx) - ip(nabla psi(vx^((t))), vx - vx^((t))).
+  $
+  Then, $Phi^((t))(vx)$ has the same curvature as $psi(vx)$ since $Phi^((t))-psi$ is affine, so $div(vx, vy, dgf: Phi^((t))) = div(vx, vy, dgf: psi)$ for all $t$.
+  Note that $vx^((t+1))$ minimizes $Phi^((t))(vx)$ over $cX$ by definition, so we can write
+  $
+    & Phi^((t))(xhat) - Phi^((t))(vx^((t+1))) \
+    & qquad = ip(nabla Phi^((t))(vx^((t+1))), xhat - vx^((t+1))) + div(xhat, vx^((t+1)), dgf: Phi^((t))) \
+    & qquad >= div(xhat, vx^((t+1)), dgf: psi),
+  $
+  since $ip(nabla Phi^((t))(vx^((t+1))), xhat - vx^((t+1))) >= 0$ by the first-order optimality condition for $vx^((t+1))$.
+  Expanding the definition of $Phi^((t))$ and rearranging, we have
+  $
+    eta ip(vg^((t)), xhat - vx^((t+1))) <= div(xhat, vx^((t)), dgf: psi) - div(xhat, vx^((t+1)), dgf: psi) - div(vx^((t+1)), vx^((t)), dgf: psi).
+  $
+  We can sum over $t=1,...,T$ and telescope to obtain
+  $
+     sum_(t=1)^T ip(vg^((t)), xhat - vx^((t+1))) &<= 1/eta [div(xhat, vx^((1)), dgf: psi) - div(xhat, vx^((T+1)), dgf: psi) - sum_(t=1)^T div(vx^((t+1)), vx^((t)), dgf: psi)] \
+    &<= B/eta - 1/eta sum_(t=1)^T div(vx^((t+1)), vx^((t)), dgf: psi).
+  $
+  By $1$-strong convexity, we have $div(vx^((t+1)), vx^((t)), dgf: psi) >= 1/2 norm(vx^((t+1)) - vx^((t)))^2$, which gives
+  $
+    sum_(t=1)^T ip(vg^((t)), xhat - vx^((t+1))) <= B/eta - 1/(2 eta) sum_(t=1)^T norm(vx^((t+1)) - vx^((t)))^2,
+  $
+  exactly as in the FTRL case. The rest of the proof is identical to the FTRL case, so we omit it.
+
+]
+
 == Multiplicative weights update (MWU) as a special case <sec-omd-mwu>
 
+#block(breakable: false)[
 #wrapped-figure(
   [
     Multiplicative weights update is the special case of _both FTRL and OMD_ in which the regularizer $psi$ is set to the _negative entropy_ function
@@ -318,6 +702,7 @@ We mention the following regret bound for the general case. The supplementary re
   side: right,
   text-width: 65%,
 )
+]
 
 The negative entropy function has the following properties:
 - it is $1$-strongly convex with respect to the $ell_1$ norm $norm(dot.c)_1$;
@@ -326,6 +711,47 @@ The negative entropy function has the following properties:
   at which $H(overline(vx)) = m dot 1/m log 1/m = -log m$.
 
 Plugging the bound above into the general analysis of FTRL and OMD algorithms (@ftrl-omd-regret-bound) yields @mwu-regret-bound.
+
+#exercise[Smooth fictitious play is FTRL][
+  Consider a player with action simplex $Delta(A)$ in a two-player normal-form game. Let $vg^((tau))$ be that player's payoff vector at round $tau$, and write $overline(vg)^((0)) := 0$ and $overline(vg)^((t-1)) := 1/(t-1) sum_(tau=1)^(t-1) vg^((tau))$ for $t >= 2$. Thus, $overline(vg)^((t-1))$ is the payoff vector against the opponent's empirical strategy before round $t$. Classical fictitious play chooses a best response to $overline(vg)^((t-1))$.
+
+  Let $psi$ be a distance-generating function and let $beta > 0$. Smooth fictitious play instead chooses a regularized best response
+  $
+    vx^((t)) in argmax_(xhat in Delta(A)) {ip(overline(vg)^((t-1)), xhat) - 1 / beta psi(xhat)}.
+  $
+  To connect this update to FTRL:
+
+  (a) Multiply the objective by $t-1$ and substitute the definition of $overline(vg)^((t-1))$.
+
+  (b) Compare the result with the FTRL update above and identify the learning rate for $t >= 2$.
+
+  (c) Specialize to negative entropy, $psi(vx) = sum_(a in A) x_a log x_a$. Use the MWU update in @sec-mwu to derive the resulting probability assigned to an action $a$.
+
+  (d) The FTRL learning rate you found decreases with $t$. Does that mean that smooth fictitious play becomes less smooth over time? Explain using the quantity that appears in the softmax exponent.
+]
+
+#solution[
+  (a) Multiplying by $t-1$ does not change the best response, so we can write the update as
+  $
+    vx^((t)) in argmax_(xhat in Delta(A)) {ip(sum_(tau=1)^(t-1) vg^((tau)), xhat) - (t-1) / beta psi(xhat)}.
+  $
+
+  (b) For $t >= 2$, this is FTRL with learning rate $eta_t := beta/(t-1)$. Let $c^((t-1)) := sum_(tau=1)^(t-1) ip(vg^((tau)), vx^((tau)))$ be the payoff the player actually collected. Cumulative action regret subtracts this same quantity from every action's cumulative payoff:
+  $
+    r_a^((t-1)) = sum_(tau=1)^(t-1) g_a^((tau)) - c^((t-1)).
+  $
+  Therefore, for any candidate strategy $xhat in Delta(A)$,
+  $
+    ip(vr^((t-1)), xhat) = ip(sum_(tau=1)^(t-1) vg^((tau)), xhat) - c^((t-1)) sum_(a in A) xhat_a = ip(sum_(tau=1)^(t-1) vg^((tau)), xhat) - c^((t-1)).
+  $
+  The final term is the same for every candidate strategy, so the maximizer is unchanged.
+
+  (c) With negative entropy, FTRL becomes MWU. Applying the softmax update from @sec-mwu to the cumulative payoff vector gives
+  $
+    x_a^((t)) = frac(exp(beta overline(vg)_a^((t-1))), sum_(b in A) exp(beta overline(vg)_b^((t-1)))) = frac(exp(eta_t sum_(tau=1)^(t-1) vg_a^((tau))), sum_(b in A) exp(eta_t sum_(tau=1)^(t-1) vg_b^((tau)))).
+  $
+  (d) Although $eta_t$ decreases with $t$, the exponent is $eta_t sum_(tau=1)^(t-1) vg_a^((tau)) = beta overline(vg)_a^((t-1))$. The smaller learning rate exactly offsets the growing cumulative-payoff vector. Thus, with fixed $beta$, the amount of smoothing stays the same: increasing $beta$ makes the response closer to a pure best response, while decreasing it makes the response more diffuse.
+]
 
 == Online Projected Gradient Ascent <sec-ogd>
 
@@ -339,6 +765,28 @@ In the special case in which $psi(vx) := 1/2 norm(vx)_2^2$, then the OMD algorit
     } = #text(size: 14pt, $Pi$) _(cX)(vx^((t-1)) + eta vg^((t-1))).
   $
 ] <def-online-gradient-ascent>
+
+#example[Projecting a gradient step onto the simplex][
+  Suppose there are two actions, with
+  $
+    vx^((t)) = (0.6, 0.4), quad vg^((t)) = (1, 0), quad eta = 0.5.
+  $
+  The unconstrained gradient step gives
+  $
+    vz := vx^((t)) + eta vg^((t)) = (1.1, 0.4).
+  $
+  But this is not a probability distribution. Projected gradient ascent chooses the closest point on the simplex in Euclidean distance:
+  $
+    vx^((t+1)) = Pi_(Delta(A))(vz)
+    = argmin_(vx in Delta(A)) norm(vx - vz)_2^2.
+  $
+  Any point $(p, 1-p)$ has squared distance to $vz$ equal to
+  $
+    (p - 1.1)^2 + (1-p - 0.4)^2
+    = 2(p - 0.85)^2 + 0.125.
+  $
+  This is minimized at $p = 0.85$, giving $vx^((t+1)) = (0.85, 0.15)$. Geometrically, we subtract $0.25$ from each coordinate: this removes the excess mass of $0.5$ by moving perpendicular to the line $x_1 + x_2 = 1$. 
+]
 
 Since the squared Euclidean norm is $1$-strongly convex with respect to the $ell_2$ norm, the regret bound for OGD can be derived from the general bound for OMD (@ftrl-omd-regret-bound) and is as follows.
 
@@ -374,6 +822,39 @@ The next plots illustrate the behavior of OGD and MWU in a simple $2 times 2$ ga
     text-width: 36%,
   )
 ]
+
+= Problems <sec-learning1-problems>
+
+#exercise[Proving MWU is a case of FTRL][
+  In @sec-omd-mwu, we claimed that multiplicative weights update is a special case of #link(<def-ftrl-simplex>)[FTRL] with regularizer equal to the negative entropy function $H(vx) := sum_(a in A) x_a log x_a$. Prove this claim, letting $eta > 0$ and using the convention $0 log 0 := 0$. Show that
+  $
+    argmax_(vx in Delta(A)) {ip(vr^((t-1)), vx) - 1/eta sum_(a in A) x_a log x_a}
+    = "softmax"(eta vr^((t-1))).
+  $
+
+
+  #solution[
+    Multiplying the objective by $eta > 0$ does not change its maximizer, so we wish to maximize
+    $
+      F(vx) := eta ip(vr^((t-1)), vx) - sum_(a in A) x_a log x_a.
+    $
+    We proceed with the method of lagrange multipliers. For a candidate with positive coordinates, the Lagrangian for the sum constraint $sum_(a in A) x_a = 1$ is
+    $
+      L(vx, lambda) := F(vx) + lambda (1 - sum_(a in A) x_a).
+    $
+    Setting its partial derivatives to zero gives for each $a$
+    $
+      eta r_a - log x_a - 1 - lambda = 0
+      quad => quad x_a = exp(eta r_a - 1 - lambda).
+    $
+    Normalizing the coordinates to sum to one therefore yields
+    $
+      x_a^* = (exp(eta r_a)exp(-1-lambda)) / (sum_(b in A) exp(eta r_b)exp(-1-lambda))=exp(eta r_a) / (sum_(b in A) exp(eta r_b)) .
+    $
+    Since $F$ is strictly concave and $x_a^*$ has positive coordinates while satisfying the Lagrange conditions, it is the unique maximizer. Thus FTRL recovers exactly the softmax strategy in @algo-mwu.
+  ]
+]
+
 
 #lec_bibliography("meta/refs.bib")
 
