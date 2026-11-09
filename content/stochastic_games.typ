@@ -131,9 +131,11 @@ If we are content with non-Markovian strategies, a finite-horizon stochastic gam
   The induction step is showing that under the induction hypothesis, $pi_i^(>= t)$ is optimal for continuing the game with against the policies of the other players if the player finds himself at some state $s$ at  time $t$. This can be done by supposing that player $i$ contemplates an alternative policy $pi'_i$, consisting of an alternative action distribution $pi'_i (dot.op | s, t)$ for the current step, and an arbitrary continuation strategy $(pi'_i) ^(>=t+1)$ for the future. The expected total utility of this deviated policy against opponents' fixed policies is:
 
   $
-    U' &= sum_(a_i, a_(- i)) pi'_i (a_i | s, t) pi_(- i) (a_(- i) | s, t) [r_i (s, a_i ) + gamma sum_(s') ℙ (s' | s, a_i) dot u_(i,t+1)((pi'_i)^(>=t+1), pi_(- i)^(>=t+1) | s')] \
-    &<= sum_(a_i, a_(- i)) pi'_i (a_i | s, t) pi_(- i) (a_(- i) | s, t) [r_i (s, a_i ) + gamma sum_(s') ℙ (s' | s, a_i) dot u_(i,t+1)(pi_i^(>=t+1), pi_(- i)^(>=t+1) | s')] \
-    &= sum_(a_i, a_(- i)) pi'_i (a_i | s, t) pi_(- i) (a_(- i) | s, t) [r_i (s, a_i ) + gamma sum_(s') ℙ (s' | s, a_i) dot V_(i,t+1)(s')] 
+    U' &= sum_(a_i, a_(- i)) pi'_i (a_i med \| med s, t) pi_(- i) (a_(- i) med \| med s, t) [r_i (s, a_i ) + gamma sum_(s') ℙ (s' med \| med s, a) dot u_(i,t+1)((pi'_i)^(>=t+1), pi_(- i)^(>=t+1) med \| med s')] \
+
+    &<= sum_(a_i, a_(- i)) pi'_i (a_i med \| med s, t) pi_(- i) (a_(- i) med \| med s, t) [r_i (s, a_i ) + gamma sum_(s') ℙ (s' med \| med s, a) dot u_(i,t+1)(pi_i^(>=t+1), pi_(- i)^(>=t+1) med \| med s')] \
+
+    &= sum_(a_i, a_(- i)) pi'_i (a_i med \| med s, t) pi_(- i) (a_(- i) med \| med s, t) [r_i (s, a_i ) + gamma sum_(s') ℙ (s' med \| med s, a) dot V_(i,t+1)(s')]
   $
   where we have used the inductive hypothesis (on the optimality of $pi_i^(>=t+1)$) in obtaining the inequality, and used the definition of $V_(i,t+1)$ in the last line. Then, according to Step~#link(label("algorithm step: game definition"))[2.2.1] of the algorithm, the bracketed expression is exactly the formula used to define the payoff $U_(i,t,s)(a)$ of the hypothetical local normal-form game at state $s$ and time $t$. Therefore, 
 
