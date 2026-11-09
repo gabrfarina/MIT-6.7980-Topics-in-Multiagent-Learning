@@ -35,7 +35,7 @@
       text(font: course-sans-font, fill: descriptor_text_color)[*#title*])
   }
 
-  // Shared bottom band, inset within both panels
+  // Shared bottom band
   rect((left-x - 0.15, bot-y.at(0) - 0.2), (right-x + w + 0.15, bot-y.at(1) + 0.2),
     radius: exterior_radius, fill: orange_background.transparentize(exterior_opacity), stroke: exterior_border)
 
