@@ -64,7 +64,7 @@ for the probability that the action profile $a = (a_1, ..., a_m)$, respectively 
 Given a collection of policies $pi_1 \, ... \, pi_m$ for the players of a stochastic game, the expected utility of each player is naturally defined as follows:
 
 $
-  u_i \( pi_1 \, ... \, pi_m \) = EE_(s_0 ~ vmu \;\
+  u_i \( pi_1 \, ... \, pi_m \) = EE_(s^((0)) ~ vmu \;\
   forall t > 0 : s^(\( t \)) ~ ℙ (dot.op \| med s^(\( t - 1 \)) \, a^(\( t - 1 \)))\
   forall t >= 0 \, i : med a_i^(\( t \)) ~ pi_i (s^(\( t \)) \, \( s^(\( tau \)) \, a^(\( tau \)) \)_(tau < t))) [sum_(t >= 0) gamma^t r_i \( s^(\( t \)) \, a^(\( t \)) \)] .
 $
@@ -434,6 +434,10 @@ $
   At the fixed point, choose a saddle pair in each local matrix game. Fixing either player's policy gives the other player a discounted MDP. Its optimal Bellman operator fixes $vV^*$ because the chosen local strategies are a saddle pair. Uniqueness of the MDP value therefore shows that these stationary policies secure $vV^*$ against arbitrary history-dependent opponents. This proves the value and equilibrium assertions, as well as the contraction claim.
 ]
 
+#remark[
+  A unique $vV^*$ does not imply a unique equilibrium, since several equilibria can achieve the same values. For instance, suppose Player 1 has two actions at some state that yield the same rewards and transitions, and some equilibrium plays them with total probability $p > 0$ at that state. Then any way of splitting $p$ between the two actions gives an equilibrium with the same values.
+] <rem-nonunique-equilibria>
+
 === Computation: value iteration and a stopping certificate
 
 Value iteration starts from $vV_0=0$ and computes $vV_(t+1)=cal(T)vV_t$. Each step solves one matrix game per state. To extract policies with a specified equilibrium error, we need to relate the Bellman residual to deviation gains.
@@ -459,6 +463,12 @@ A concrete algorithm is therefore:
 4. Otherwise set $vV=vW$ and repeat.
 
 The returned policies are those computed from the same $vV$ whose residual was tested. The proof also handles $gamma=0$ without dividing by $gamma$. If the stage games are solved numerically, their optimization errors must be included in the residual and best-response bounds; the displayed certificate assumes exact local solutions.
+
+#remark[
+  Convergence of $vV_t$ to $vV^*$ does not imply that the selected policies converge. For example, in the situation of @rem-nonunique-equilibria, a solver may alternate between different ways of splitting $p$ between the two actions.
+]
+
+The companion notebook `value_iteration.ipynb` (in the course repository, under `content/notebooks/stochastic_games`) implements this algorithm on the two-state attacker–defender game, plots the residual for several discount factors, and verifies the returned policies by solving each player's best-response MDP.
 
 === Discount dependence and computational complexity
 
