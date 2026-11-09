@@ -16,10 +16,11 @@ Recall that a decision point contains a belief $B$, a set of possible game-tree 
 
 == Branching factor and last-infosets
 
-Write $N$ for the number of nodes in the original game tree and $b$ for its maximum branching factor. Thus every information set has at most $b$ available actions. Assume that individual teammates have perfect recall, as in the preceding team-game construction.
+Work in a finite, timeable, two-team zero-sum game with individual perfect recall. Timeability assigns equal times within each information set and increasing times along paths. Let $N$ be the tree size and $b$ its maximum branching factor; every information set then has at most $b$ actions.
 
 To identify the information still relevant at a public state, consider the team as one merged player. An information set $J$ _remembers_ $I$ when every history in $J$ passes through $I$ and takes the same action there. At a history $h$, retain the information sets visited along $h$ that no later visited information set remembers; call these $"LI"(h)$, the _last-infosets_. They include the current information set when the team acts at $h$.
 
+#block(breakable: false)[
 #definition[Information asymmetry][
   For a public state $P$, let
   $
@@ -29,19 +30,20 @@ To identify the information still relevant at a public state, consider the team 
   $
   The parameter $k$ is the team's _information asymmetry_ (also called information complexity). For two teams, take the maximum over both teams' public states.
 ] <def-team-information-asymmetry>
+]
 
-This definition follows #citet(<Carminati26:Representations>). The union over histories matters: $k$ is not the number of teammates, nor the number of last-infosets on one realized path. One teammate can have many possible private observations within the same public state, each giving a different last-infoset. Perfect recall removes older information sets remembered by that teammate's latest information set, but it does not make their private information public to the team.
+This definition follows Carminati et al. #citep(<Carminati26:Representations>). The union over histories matters: $k$ is not the number of teammates, nor the number of last-infosets on one realized path. One teammate can have many possible private observations within the same public state, each giving a different last-infoset. Perfect recall removes older information sets remembered by that teammate's latest information set, but it does not make their private information public to the team.
 
 At the symmetric-information extreme $k=1$, the team can be represented by a single perfect-recall player. There is then no collection of distinct private information sets on which a coordinator must simultaneously prescribe actions. Larger $k$ allows more such contingencies, even if the number of teammates stays fixed.
 
 == Counting observation points
 
-Fix a public state $P$. For each $J in cal(L)(P)$, record one of the following:
+Fix a public state $P$ and a pure joint team plan $pi$. For each $J in cal(L)(P)$, record one of the following:
 
-- $⊥$: the player's own choices prevent it from reaching $J$;
-- $a in A_J$: the player can reach $J$ and its pure plan selects action $a$ there.
+- $⊥$: no history in $J$ is consistent with $pi$;
+- $a in A_J$: $pi$ is consistent with some history in $J$ and prescribes action $a$ there.
 
-Here reachability is determined by the player's own plan: choices of the other players and chance are allowed to vary. It does not mean that $J$ occurs in every play, or with positive probability against one particular opponent strategy.
+Here all teammates' actions are fixed by $pi$; opponent and chance choices may vary over the game tree. Thus reachability is with respect to the merged team player, not one teammate in isolation. It does not mean that $J$ occurs in every play or against every opponent strategy.
 
 The resulting vector is a _signature_ of the plan at $P$. Each coordinate has at most $b+1$ possibilities, so
 $
@@ -54,7 +56,7 @@ $
 Why does this count help? The reachability entries retain which histories are compatible with the team's choices. The action entries also specify the current prescription. Information sets omitted from the list are remembered by retained ones, so their relevant past actions need not be encoded again. Thus we count the decision-point/prescription possibilities together, instead of independently counting beliefs and then multiplying by all possible prescriptions.
 
 #example[
-  Suppose a public state has three last-infosets and each has actions $L$ and $R$. There are at most $3^3=27$ signatures. For example, $(⊥,L,R)$ says that the first information set is excluded by its player's plan, while the other two prescribe $L$ and $R$. This is an upper bound: some signatures may violate the game's reachability constraints, and different signatures need not create different DAG nodes. If all three information sets must be reachable under every plan, only the $2^3=8$ action-only signatures remain.
+  Suppose a public state has three last-infosets and each has actions $L$ and $R$. There are at most $3^3=27$ signatures. For example, $(⊥,L,R)$ says that the first information set is excluded by the joint team plan, while the other two prescribe $L$ and $R$. This is an upper bound: some signatures may violate the game's reachability constraints, and different signatures need not create different DAG nodes. If all three information sets must be reachable under every plan, only the $2^3=8$ action-only signatures remain.
 ]
 
 #figure(
@@ -67,7 +69,7 @@ $
   E <= N (b+1)^(k+1)
       = (b+1)^k dot N(b+1),
 $
-where $E$ is the number of TB-DAG edges; see Theorem 6.2 of #citet(<Carminati26:Representations>). In either convention, the exponential dependence is on $k$, with only a polynomial factor in the original tree size.
+where $E$ is the number of TB-DAG edges; see Theorem 6.2 of Carminati et al. #citep(<Carminati26:Representations>). In either convention, the exponential dependence is on $k$, with only a polynomial factor in the original tree size.
 
 == Consequences for regret minimization
 
@@ -93,6 +95,6 @@ $
 $
 This is much smaller than the slide's naive normal-form estimate of roughly $2^(2^200)$, even after allowing polynomial overhead in $N$. Both quantities remain enormous. The comparison demonstrates the benefit of organizing computation around private-information contingencies; it is not a practical running-time prediction for solving bridge.
 
-Finally, could we replace the dependence on $b$ and $k$ by $2^(O(k)) "poly"(N)$ in general? The lecture rules this out assuming $"FPT" != "W[1]"$, a standard parameterized-complexity assumption weaker than the Exponential Time Hypothesis. The general imperfect-recall value problem admits no $f(k) "poly"(N)$ algorithm under that assumption #citep(<Carminati26:Representations>). There is no contradiction with the constant-$k$ guarantee: in $N(b+1)^(k+1)$ the exponent of $N$ may grow with $k$, whereas the exponent in $f(k) "poly"(N)$ must be independent of $k$. Extra structure can still make particular game families easier.
+Finally, could we replace the dependence on $b$ and $k$ by $2^(O(k)) "poly"(N)$ in general? The lecture rules this out assuming $"FPT" != "W[1]"$, a standard parameterized-complexity assumption weaker than the Exponential Time Hypothesis. Even the exact mixed-strategy value problem for one imperfect-recall player admits no $f(k) "poly"(N)$ algorithm under that assumption #citep(<Carminati26:Representations>). There is no contradiction with the constant-$k$ guarantee: in $N(b+1)^(k+1)$ the exponent of $N$ may grow with $k$, whereas the exponent in $f(k) "poly"(N)$ must be independent of $k$. Extra structure can still make particular game families easier.
 
 #lec_bibliography("meta/refs.bib", title: none)
