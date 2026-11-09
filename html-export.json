@@ -19,7 +19,8 @@
     "learning-foundations": "slides/L04_learning_in_games.pdf",
     "learning-algorithms": "slides/L05_learning_in_games.pdf",
     "bandit": "slides/L06_bandit.pdf",
-    "efg-modeling": "slides/L07_efgs.pdf"
+    "efg-modeling": "slides/L07_efgs.pdf",
+    "information-design": "slides/L11_mechanism_design.pdf"
   },
   "interactive_slides": {
     "learning-foundations": "slides/L04_learning_in_games.html",
@@ -83,6 +84,13 @@
       "supplementary": false,
       "syllabus_ids": [
         "efg-learning"
+      ]
+    },
+    {
+      "source": "content/information_design_intro.typ",
+      "supplementary": false,
+      "syllabus_ids": [
+        "information-design"
       ]
     },
     {
