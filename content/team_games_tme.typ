@@ -164,6 +164,16 @@ The reduction proves more than NP-hardness of deciding whether the value is $1$.
 
 The gap $1\/8$ is the largest this reduction can give. A uniformly random assignment satisfies a clause with three distinct variables with probability $7\/8$, so $"OPT"(phi) >= 7\/8$ for such formulas. The hardness carries over to games with an adversary, by giving the adversary a single action. Hardness for teams is therefore a worst-case statement. The rest of the lecture identifies a parameter of the team's information structure that controls the cost of computing a TMECor.
 
+== Teams against teams <sec-team-vs-team>
+
+So far team ▼ has been a single adversary. When team ▼ is also a team of several players, the problem becomes harder than NP, in a precise sense. Recall that $Delta_2^P$ is the class of decision problems that a polynomial-time algorithm can solve with access to a SAT oracle, which answers any satisfiability question in one step. It contains both NP and coNP, and it is believed to be strictly larger than both.
+
+#theorem[Teams against teams #citep(<Zhang23:Team>)][
+  Deciding whether the TMECor value of a team game is at least a given threshold is $Delta_2^P$-complete when both teams have several players. When team ▼ is a single player, as in @sec-team-sat, the same problem is NP-complete #citep(<Koller92:Complexity>).
+] <thm-team-delta2>
+
+Both directions explain where the extra power of the SAT oracle goes. For membership, the TMECor value is the value of a linear program over distributions of joint plans. The ellipsoid method solves it with polynomially many calls to a separation oracle, and each call asks for a best response of team ▼. When team ▼ is itself a team, computing that best response is NP-hard by @thm-team-sat, so the SAT oracle, combined with binary search on the best-response value, answers it. For hardness, #citet(<Zhang23:Team>) reduce from a $Delta_2^P$-complete variant of satisfiability. Without correlation the problem is harder still. Deciding the TME value of a team-vs-team game is $Sigma_2^P$-complete #citep(<Zhang23:Team>), another sign that the TME lacks the structure that correlation brings.
+
 = Problems <sec-team-tme-problems>
 
 #exercise[Nash equilibria of the miscoordination game][
