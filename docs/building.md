@@ -244,6 +244,37 @@ The source repository explicitly includes the configured lecture 0 PDF in
 slide PDF, also make sure its source is included in version control so clean
 checkouts can build it.
 
+## Interactive pages embedded in a note
+
+A note can embed one of the course's interactive pages, such as the Sperner
+adversary game in the Brouwer lecture. Interactive pages are standalone HTML
+documents in `interactive/`, listed under `interactive_pages` in `html-export.json`
+under a lowercase, hyphenated ID, and published unchanged as `interactive/<name>.html`.
+Give the file a lowercase basename of letters, digits, and underscores, which is
+what `interactive-link` and `interactive-demo` accept:
+
+```json
+"interactive_pages": {"sperner-adversary": "interactive/sperner_adversary.html"}
+```
+
+They must embed all of their assets. Every `src`, `<link href>`, and CSS `url()`
+must be a `data:` URI, except the two shared course fonts
+`../assets/fonts/SourceSans3-Regular-web.woff` and `../assets/fonts/SourceSans3-Bold-web.woff`;
+`scripts/public_files.py` checks this at build time. Ordinary links to other pages
+are fine. `interactive-link` links to such a page from a note. To embed the page
+instead, call `interactive-demo`, which both note styles (`content/meta/gabri_notes.typ`
+and `content/meta/gabri_notes_html.typ`) re-export:
+
+```typst
+#interactive-demo("sperner_adversary", title: "Find the rainbow triangle", height: 720)
+```
+
+The HTML edition embeds the page in an `<iframe>` of the given height (taller on
+narrow screens), loading it with `?embed=1` so that the page can hide everything
+except the demo itself. The PDF edition shows a box linking to the public page at
+`course-url`, the same base as other PDF links. Check the embedded layout at
+desktop and phone widths after changing the page or its height.
+
 ## Permalinks
 
 Lecture HTML exposes anchor icons on sections (including unnumbered
