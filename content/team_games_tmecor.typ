@@ -12,6 +12,8 @@
 // Parts 2 and 3 of the team-games lecture (correlation and imperfect recall, and the realization form).
 // Parts 1 and 4 (the game, the TME, and hardness) are in team_games_tme.typ. This file stays
 // standalone. Comments starting with "Merge:" say what to change when the two are combined.
+// Merge: this note is not registered in html-export.json, so the course checks don't probe links to
+// files that are not on main yet. Register the combined note under the syllabus entry "team-games".
 
 In the communication game of @fig-team-communication-game, the team maxmin equilibrium (TME) has value $1\/4$, while swapping max and min gives $1\/2$. The team's utility contains products such as $a dot c$ of the two teammates' variables, so the maxmin problem is nonconvex (@exr-team-bilinear shows that the utility is not even quasiconcave).
 // Merge: part 1 proves these values and makes the same point about products. Drop this paragraph
@@ -235,7 +237,9 @@ Convexifying helps only against an adversary. Without one, the team's payoff is 
 
 The problem of @thm-team-bspp looks like the sequence-form problem, but we have not yet said how to describe $cX$ efficiently. Products of the two teammates' sequence-form entries give only $tcX$, and optimizing over $tcX$ is the TME problem again (@thm-team-convexification). In the #lecture-link("efg_intro", <sec-sequence-form>)[sequence form], each information set has exactly one parent sequence, and its flow constraint splits the mass of that sequence among the actions at the information set. In the communication game, viewed as one player, each information set of Player 2 has two parent sequences, one through each node of Player 1.
 
-A natural guess is to keep the flow constraints of a team that does not forget, as if Player 2 saw the bit. In the communication game this gives a polytope $R$ that strictly contains $cX$, and four extra inequalities cut it down to $cX$ (@sec-team-flow). The companion notebook #link("https://github.com/gabrfarina/MIT-6.7980-Topics-in-Multiagent-Learning/blob/main/content/notebooks/team_games_tmecor/communication_game.ipynb")[`communication_game.ipynb`] checks the realization vectors, the game values, and the flow relaxation with exact arithmetic.
+// Merge: once the notebook is on main, link its name to
+// https://github.com/gabrfarina/MIT-6.7980-Topics-in-Multiagent-Learning/blob/main/content/notebooks/team_games_tmecor/communication_game.ipynb
+A natural guess is to keep the flow constraints of a team that does not forget, as if Player 2 saw the bit. In the communication game this gives a polytope $R$ that strictly contains $cX$, and four extra inequalities cut it down to $cX$ (@sec-team-flow). The companion notebook `content/notebooks/team_games_tmecor/communication_game.ipynb` checks the realization vectors, the game values, and the flow relaxation with exact arithmetic.
 
 In general we should not expect a repair like these four inequalities. A polynomial-time procedure giving a polynomial-size linear description of $cX$ would, together with the sequence form for Player 3, let linear programming solve the saddle-point problem of @thm-team-bspp in polynomial time. Computing a TMECor is NP-hard #citep(<Celli18:Computational>), so unless $"P" = "NP"$ no such procedure exists.
 // Merge: part 4 proves a stronger result (thm-team-sat). Point there instead of citing.
