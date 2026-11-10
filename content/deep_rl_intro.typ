@@ -10,19 +10,19 @@
 
 = Overview (Deepify-ing Game Theory)
 
-In this section, we discuss techniques focused on more exact game-solving and use these as a precedent for scalable learning.
+In this lecture, we move from exact game-solving to scalable learning.
 
-We begin with the concept of #lecture-link("nfgs_nash", <sec-normal-form>)[normal-form games] and utilizing a #lecture-link("nfgs_nash", <def-nash-equilibrium>)[Nash equilibria] to model expected reward achieved by a set of two players. This concept naturally ties in with #lecture-link("correlated", <sec-zero-sum>)[linear programming formulations] for normal-form games (#lecture-link("correlated", <def-ce>)[correlated equilibrium] and #lecture-link("correlated", <def-cce>)[coarse correlated equilibrium]). With #lecture-link("learning_intro", <sec-external-regret>)[regret minimization], we understand how average regret approaches 0 over $T$ iterations in a game, creating a #lecture-link("learning_intro", <sec-learning-zero-sum>)[convex-concave saddle point] where the average strategies converge toward the Nash equilibrium set. 
+We begin with the concept of #lecture-link("nfgs_nash", <sec-normal-form>)[normal-form games] and utilizing a #lecture-link("nfgs_nash", <def-nash-equilibrium>)[Nash equilibrium] to model expected reward achieved by a set of two players. This concept naturally ties in with #lecture-link("correlated", <sec-zero-sum>)[linear programming formulations] for normal-form games (#lecture-link("correlated", <def-ce>)[correlated equilibrium] and #lecture-link("correlated", <def-cce>)[coarse correlated equilibrium]). With #lecture-link("learning_intro", <sec-external-regret>)[regret minimization], we understand how average regret approaches 0 over $T$ iterations in a game, in the #lecture-link("learning_intro", <sec-learning-zero-sum>)[convex-concave saddle point] given by the zero-sum game, so the average strategies converge towards the Nash equilibrium set.
 
 
-To this extent, the #lecture-link("learning_intro", <thm-regret-gap>)[saddle point gap] becomes important to analyze. With the #lecture-link("learning_intro", <thm-regret-gap>)[self-play theorem], we inherently bound this gap by the sum of the players' cumulative regrets divided by T. In this way, regret minimization essentially drives equilibrium.
+In this sense, the #lecture-link("learning_intro", <thm-regret-gap>)[saddle point gap] becomes important to analyze. With the #lecture-link("learning_intro", <thm-regret-gap>)[self-play theorem], we inherently bound this gap by the sum of the players' cumulative regrets divided by T. In this way, regret minimization essentially drives equilibrium.
 
 #lecture-link("learning1")[No-regret algorithms] focus on balancing exploitation of good actions against stability. Below is a quick recap of a select few:
 
-(1) Follow-the-Leader -- we choose the action with the highest cumulative historical utility in order to smooth strategy selection.
+(1) Follow-the-Leader -- we choose the action with the highest cumulative historical utility.
 $ vx^((t+1)) in argmax_(vx in Delta(A)) ip(sum_(tau=1)^t vg^((tau)), vx). $
 
-(2) Regret Matching -- we choose probabilities proportional to positive cumulative regret in order to assign higher probabilities to more likely actions.
+(2) Regret Matching -- we choose higher probabilities proportional to actions with positive cumulative regret.
 $ x_a^((t+1)) = (\[r_a^((t))\]^+) / (sum_b \[r_b^((t))\]^+). $
 
 (3) Multiplicative Weights Update -- we apply a softmax across regret. Larger eta values lead to a greater preference for high-regret actions, while a smaller eta designates a smoother update.
@@ -56,7 +56,7 @@ $ O(sqrt(K T log(K T / delta)) + log(K T / delta)). $
 
 
 
-However, these strategies depend on simulating and gathering information from many game states, creating a need for sample efficiency. In this way, #lecture-link("efg_intro", <sec-game-trees>)[extensive form games] become crucial, as they allow us to model sequential interactions with hidden information. This topic naturally leads us into the next section, where we discuss reinforcement learning.
+A sequence-form strategy has a weight for every information state and action, and in a game the size of Stratego that object is too large to store. In this way, #lecture-link("efg_intro", <sec-game-trees>)[extensive form games] become crucial, as they allow us to model sequential interactions with hidden information.
 
 
 
@@ -70,25 +70,31 @@ Additionally, with CFR, we can convert global regret-minimization to manageable 
 (2) Reduction of saddle-point gap
 $ gamma(overline(vx), overline(vy)) <= ("Reg"_1 (T) + "Reg"_2 (T)) / T. $
 
+This topic naturally leads us into the next section, where we discuss reinforcement learning.
+
 = Overview (Game Theory-ifying RL)
+
 
 Extensive-form games are tractable in theory using convex sequence-form strategies. However, in cases where games are incredibly large, we must utilize deep learning to approximate these strategies. A select few are listed below:
 
-(1) Parametrized behavioral policies -- we generalize across information states while keeping optimization noncondex
+(1) Parametrized behavioral policies -- we generalize across information states while keeping optimization nonconvex.
 $ pi_theta (a mid(|) I). $
 
-(2) Policy gradients and REINFORCE -- we increase the probability of actions that are related to favorable returns
+(2) Policy gradients and REINFORCE -- we increase the probability of actions that are related to favorable returns.
 $ J(theta) = EE_(tau ~ p_theta) [R(tau)], $
 $ nabla_theta J = EE_tau [R(tau) (sum_((I, a) in tau) nabla_theta log pi_theta (a mid(|) I))]. $
 
-(3) Actor-critic and advantage estimation -- we can express the policy gradient in terms of advantages 
+(3) Actor-critic and advantage estimation -- we can express the policy gradient in terms of advantages.
 $ Q_theta (I, a) = EE[R(tau) mid(|) I "reached", a "chosen"]. $
 $ V_theta (I) = sum_b pi_theta (b mid(|) I) Q_theta (I, b). $
 $ A_theta (I, a) = Q_theta (I, a) - V_theta (I). $
 $ nabla_theta J = EE_tau [sum_((I, a) in tau) A_theta (I, a) nabla_theta log pi_theta (a mid(|) I)]. $
 
-(4) Variance reduction and policy averaging -- we can stabilize a neural network
+(4) Regularized policy updates and convergence -- with regularization, exploration, and alternating updates, tabular behavioral-policy methods can approximate a Nash equilibrium with polynomial complexity.
+
+(5) Variance reduction and policy averaging -- we can stabilize a neural network.
 $ overline(theta)_t = beta overline(theta)_(t - 1) + (1 - beta) theta_t. $
 
-We can additionally leverage lessons from Strategy with the Ataraxos system to model deep multiagent RL. This system combines hidden-state belief modeling and decision-time planning, increasing computation at inference time. With these techniques, we can there scale strategic learning to games that are too large for traditional tabular methods, despite convergence being a main concern.
+We can additionally leverage lessons from Stratego with the Ataraxos system to model deep multiagent RL. This system combines hidden-state belief modeling and decision-time planning, increasing computation at inference time by spending extra search.
+With these techniques, we can then scale strategic learning to games that are too large for traditional tabular methods, despite convergence being a main concern.
 
