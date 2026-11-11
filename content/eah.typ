@@ -449,6 +449,79 @@ Thus, after computing $vq_i$, we obtain the deviation gain of every action of pl
 
 Computing $matM^(i j) vx_j$ takes time proportional to the size of the payoff matrix on edge $(i,j)$. Repeating this calculation over all edges takes time polynomial in the $O(|E| m^2)$-size polymatrix representation, rather than in the $m^n$ joint action profiles. Finally, deviation gains are linear in the underlying distribution. If Ellipsoid-Against-Hope returns $macron(vmu) = sum_t alpha_t vmu_t$, where every $vmu_t$ is a product distribution, then the deviation gain under $macron(vmu)$ is the same convex combination of the gains computed under the $vmu_t$.
 
+= Expected solutions beyond equilibrium computation <sec-expected-solutions>
+
+The defense-to-offense framework also applies to expected variational inequalities and expected
+fixed points; see Sections 6–7 of
+#link("https://www.mit.edu/~gfarina/2026/sigecom26_turning_defense_into_offense/sigecom26_turning_defense_into_offense.pdf")[Farina's
+note].
+
+#exercise("Expected variational inequalities and expected fixed points")[
+  Let $K subset.eq RR^d$ be nonempty, compact, and convex, let $F: K -> RR^d$ be bounded, and let
+  $f: K -> K$ be any map. Fix $epsilon.alt > 0$. All distributions $mu$ below have finite support in
+  $K$. The tester minimizes the payoff; a defense response gives payoff at least zero against the
+  given test.
+
+  + *Expected variational inequality (EVI).* For a fixed comparison point $vx in K$, set
+    $ U(vx, mu) = EE_(vz ~ mu)[F(vz)^top (vx - vz)]. $
+    Find a defense response to each $vx$ and show that one distribution satisfies $U(vx, mu) >=
+    -epsilon.alt$ for every $vx in K$.
+  + *Expected fixed point (EFP).* Set $B_2^d = {vq in RR^d : parallel vq parallel_2 <= 1}$ and
+    $ V(vq, mu) = EE_(vz ~ mu)[vq^top (f(vz) - vz)]. $
+    Find a defense response to each $vq in B_2^d$ using linear optimization over $K$. Show that one
+    distribution satisfies
+    $ parallel EE_(vz ~ mu)[f(vz) - vz] parallel_2 <= epsilon.alt. $
+    On $K = [0,1]$, take $f(z) = 1$ for $z <= 1/2$ and $f(z) = 0$ otherwise. Find an exact EFP and
+    explain why it does not give a pointwise fixed point.
+  + *Connection to Ellipsoid-Against-Hope.* For each payoff, describe the set of tests giving payoff
+    at most $-epsilon.alt$ against every pure response. Explain how a defense response cuts off a
+    candidate test, and state how to check whether weights on a given finite list of responses
+    certify an EVI or EFP.
+] <ex-expected-solutions>
+
+#solution[
+  *EVI.* Against $vx$, choose the point mass $delta_vx$ at $vx$. This gives $U(vx, delta_vx) = 0$.
+  The payoff is affine in $vx$, with the response at $vz$ represented by the moment pair
+  $ (F(vz), -F(vz)^top vz). $
+  These pairs are bounded since $F$ is bounded and $K$ is compact.
+
+  *EFP.* Given $vq$, choose
+  $ vz_(vq) in argmin_(vz in K) vq^top vz. $
+  The minimum exists by compactness. Because $f(vz_(vq)) in K$, we have $vq^top (f(vz_(vq)) -
+  vz_(vq)) >= 0$. Minimizing $vq^top vz$ gives this lower bound; maximizing would
+  give the opposite inequality. Here the response vectors $f(vz) - vz$ are bounded because both
+  terms lie in $K$.
+
+  *From defense to a finite mixture.* In both cases, write the payoff as $vx^top va + b$ for a
+  bounded response pair $(va,b)$, using $(f(vz)-vz,0)$ and test $vq$ for EFP. Take the closed convex
+  hull of the response pairs. It is compact, and the payoff is bilinear after lifting the test to
+  $(vx,1)$. Since each test has a response with payoff at least zero, minimax gives a pair in this
+  hull with payoff at least zero against all tests. Approximate that pair by a finite convex
+  combination of actual response pairs. The payoff error is uniform: it is bounded by the
+  approximation error in Euclidean norm times the maximum norm of the lifted test, which is finite.
+  Thus one finitely supported $mu$ guarantees payoff at least $-epsilon.alt$ against every test.
+
+  This is the desired EVI guarantee. For EFP, put $vr = EE_(vz ~ mu)[f(vz)-vz]$. By Cauchy–Schwarz,
+  $min_(vq in B_2^d) vq^top vr = -parallel vr parallel_2$, attained at $vq = -frac(vr, parallel vr parallel_2)$ if $vr != 0$; if $vr = 0$, all directions give zero. Hence the uniform payoff bound
+  gives $parallel vr parallel_2 <= epsilon.alt$. In the example, $mu = (delta_0 + delta_1)/2$ has
+  expected residual zero because the residuals at $0$ and $1$ are $1$ and $-1$. Neither sampled
+  point is fixed, nor is the mean $1/2$, since $f(1/2)=1$. In fact, neither branch of $f$ contains a
+  fixed point.
+
+  *Cuts and certificates.* In the EVI case the bad tests are points $vx in K$ satisfying
+  $F(vz)^top(vx-vz) <= -epsilon.alt$ for every $vz in K$. For EFP they are directions $vq in B_2^d$
+  satisfying $vq^top(f(vz)-vz) <= -epsilon.alt$ for every $vz in K$. Both sets are empty: the
+  defense response at a candidate test supplies an affine inequality that the candidate violates.
+
+  Given responses $vz_1, ..., vz_T$, use weights $vp in Delta_T$, the probability simplex, and let
+  $mu = sum_t p_t delta_(vz_t)$. For EVI, minimize the affine payoff $U(vx,mu)$ over $K$ by linear
+  optimization and check that its minimum is at least $-epsilon.alt$. For EFP, check
+  $ parallel sum_t p_t (f(vz_t)-vz_t) parallel_2 <= epsilon.alt. $
+  Arbitrary response lists need not admit such weights: in the example, using only $z=0$ gives
+  residual $1$. The cuts and certificates describe the reduction; an efficient implementation needs
+  suitable oracles and quantitative bounds.
+]
+
 = Bibliographic remarks
 
 If you are curious to read more, the following papers contain extensions and refinements of the idea of Ellipsoid-Against-Hope.
