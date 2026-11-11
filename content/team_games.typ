@@ -722,16 +722,22 @@ In team belief DAG terms, the null signal leads to a belief containing all four 
 
 The team belief DAG (TB-DAG) represents a team's coordinated strategies without listing all of its pure joint plans. Its usefulness depends on how large this representation becomes. Following slides 18--21 #citep(<Zhang26:TeamGames>), we bound its size by counting the possibilities within each public state. The key parameter is the amount of information that individual teammates possess but that is not common knowledge within the team.
 
-Recall that a decision point contains a belief $B$, a set of possible game-tree nodes. A prescription specifies an action at each information set intersecting $B$. Applying that prescription produces an observation point; a subsequent public observation determines the next decision point. A public state groups histories that cannot be separated using the team's common knowledge. In particular, a public state may contain several beliefs, because past prescriptions can rule out different histories.
+Recall that a decision point contains a belief $B$, a set of possible game-tree nodes. A prescription specifies an action at each information set intersecting $B$. Applying that prescription produces an observation point; a subsequent public observation determines the next decision point. A public state groups histories that cannot be separated using the team's common knowledge. In particular, a public state may contain several beliefs, because past prescriptions can rule out different histories. Formally, public states are defined through a graph on the nodes of the game tree.
+
+#definition[Public state #citep(<Zhang23:Team>, [Defs.~4.1 and~6.1])][
+  The _connectivity graph_ $cal(G)$ of team ▲ has the nodes (histories) of the game tree as its vertices. Two distinct nodes $h$ and $h'$ at the same depth are adjacent in $cal(G)$ if some information set of a member of team ▲ contains both a node at or below $h$ and a node at or below $h'$. A _public state_ of team ▲ is a connected component of $cal(G)$. The public states of team ▼ are defined in the same way from its own information sets.
+] <def-team-public-state>
+
+If $h$ and $h'$ are adjacent, a teammate acting at such an information set cannot tell which of them occurred, so the distinction between them never becomes common knowledge of the team. In terms of $cal(G)$, the splitting rule of @sec-team-belief-dag splits an observation point $O$ into the connected components of the subgraph $cal(G)[O]$ induced by $O$, and each component becomes a decision point #citep(<Zhang23:Team>, [Sec.~4]). Such a component is connected in $cal(G)$, so every belief lies inside a single public state.
 
 == Branching factor and last-infosets
 
-Work in a finite, timeable, two-team zero-sum game with individual perfect recall. Timeability assigns equal times within each information set and increasing times along paths. Let $N$ be the tree size and $b$ its maximum branching factor; every information set then has at most $b$ actions.
+Work in a finite, timeable, two-team zero-sum game with individual perfect recall. Timeability assigns equal times within each information set and increasing times along paths. Following #citet(<Carminati26:Representations>, supplement: [Def.~2.3]), we take the time of a node to be its depth, so all nodes of an information set lie at the same depth. Let $N$ be the tree size and $b$ its maximum branching factor; every information set then has at most $b$ actions.
 
 To identify the information still relevant at a public state, consider the team as one merged player. An information set $J$ _remembers_ $I$ when every history in $J$ passes through $I$ and takes the same action there. At a history $h$, retain the information sets visited along $h$ that no later visited information set remembers; call these $"LI"(h)$, the _last-infosets_. They include the current information set when the team acts at $h$.
 
 #block(breakable: false)[
-#definition[Information asymmetry][
+#definition[Information asymmetry #citep(<Carminati26:Representations>, [Sec.~4.1])][
   For a public state $P$, let
   $
     cal(L)(P) := union_(h in P) "LI"(h), quad
@@ -742,7 +748,7 @@ To identify the information still relevant at a public state, consider the team 
 ] <def-team-information-asymmetry>
 ]
 
-This definition follows Carminati et al. #citep(<Carminati26:Representations>). The union over histories matters: $k$ is not the number of teammates, nor the number of last-infosets on one realized path. One teammate can have many possible private observations within the same public state, each giving a different last-infoset. Perfect recall removes older information sets remembered by that teammate's latest information set, but it does not make their private information public to the team.
+This definition follows Carminati et al. #citep(<Carminati26:Representations>). The parameter goes back to #citet(<Zhang23:Team>, supplement: [Def.~B.2]), who call a team game _$k$-private_ when every public state contains at most $k$ distinct latest information sets of individual teammates. Every last-infoset is the latest information set of some teammate, since by perfect recall a teammate's latest information set remembers its earlier ones #citep(<Carminati26:Representations>, [fn.~7]). So a $k$-private game has information asymmetry at most $k$. The union over histories matters: $k$ is not the number of teammates, nor the number of last-infosets on one realized path. One teammate can have many possible private observations within the same public state, each giving a different last-infoset. Perfect recall removes older information sets remembered by that teammate's latest information set, but it does not make their private information public to the team.
 
 At the symmetric-information extreme $k=1$, the team can be represented by a single perfect-recall player. There is then no collection of distinct private information sets on which a coordinator must simultaneously prescribe actions. Larger $k$ allows more such contingencies, even if the number of teammates stays fixed.
 
@@ -766,7 +772,7 @@ $
 Why does this count help? The reachability entries retain which histories are compatible with the team's choices. The action entries also specify the current prescription. Information sets omitted from the list are remembered by retained ones, so their relevant past actions need not be encoded again. Thus we count the decision-point/prescription possibilities together, instead of independently counting beliefs and then multiplying by all possible prescriptions.
 
 #example[
-  Suppose a public state has three last-infosets and each has actions $L$ and $R$. There are at most $3^3=27$ signatures. For example, $(⊥,L,R)$ says that the first information set is excluded by the joint team plan, while the other two prescribe $L$ and $R$. This is an upper bound: some signatures may violate the game's reachability constraints, and different signatures need not create different DAG nodes. If all three information sets must be reachable under every plan, only the $2^3=8$ action-only signatures remain.
+  Suppose a public state has three last-infosets and each has actions $ell$ and $r$. There are at most $3^3=27$ signatures. For example, $(⊥, ell, r)$ says that the first information set is excluded by the joint team plan, while the other two prescribe $ell$ and $r$. This is an upper bound: some signatures may violate the game's reachability constraints, and different signatures need not create different DAG nodes. If all three information sets must be reachable under every plan, only the $2^3=8$ action-only signatures remain.
 ]
 
 #figure(
@@ -774,16 +780,35 @@ Why does this count help? The reachability entries retain which histories are co
   caption: [Encoding a plan at a public state with $k_P=3$ and $b=2$. Each last-infoset contributes $⊥$, $ell$, or $r$; the highlighted choices give $(⊥, ell, r)$. These are encoding choices, not branches of a game tree. Some combinations may be infeasible, so $27$ is an upper bound.],
 ) <fig-team-last-infoset-signature>
 
-The lecture's $(b+1)^k$ bound captures this combinatorial part of the observation-point count. In a construction that further separates compatible histories into public-observation components, one signature may generate several disjoint components. Accounting for their incident edges gives the more explicit bound
+To make this precise, recall that a node is consistent with $pi$ when $pi$ prescribes every action of team ▲ on the path to it, and let $P^pi subset.eq P$ be the set of nodes of $P$ consistent with $pi$. The _prescription of $pi$_ at a decision point consists of the actions that $pi$ prescribes at the information sets meeting it. We say that $pi$ _leads to_ a decision point if some path from the root to it takes the prescription of $pi$ at every decision point on the way, and that $pi$ leads to the observation points that its prescriptions produce at these decision points. Every observation point is led to by some plan. Indeed, a path in the TB-DAG visits one decision point per depth, and each information set lies at a single depth, so the prescriptions along a path to an observation point never assign two actions to one information set, and they extend to a joint plan that leads to it.
+
+#lemma[Signatures determine observation points #citep(<Carminati26:Representations>, [proof of Thm.~6.2])][
+  Fix a public state $P$ and a pure joint plan $pi$.
+  + Whether $pi$ is consistent with a node of $P$ depends only on the signature of $pi$ at $P$. In particular, the signature determines $P^pi$.
+  + The decision points inside $P$ that $pi$ leads to are the connected components of $cal(G)[P^pi]$.
+  + At each of these decision points, the prescription of $pi$ consists of the entries of the signature at the information sets meeting it.
+  Hence the signature of $pi$ at $P$ determines the observation points that $pi$ leads to from decision points inside $P$, at most one per connected component of $cal(G)[P^pi]$.
+] <lem-team-signature>
+#proofsketch[
+  _Part 1._ Let $h in P$. Every information set $I$ visited along $h$ that is not in $"LI"(h)$ is remembered by a later visited one. Remembering is transitive, so the latest visited information set $J$ that remembers $I$ lies in $"LI"(h)$. Every node of $J$ passes through $I$ and takes there the action that the path to $h$ takes, so if $pi$ is consistent with some node of $J$, it prescribes that action at $I$. Hence $pi$ is consistent with $h$ if and only if, for each $J in "LI"(h)$, the signature at $J$ is not $⊥$ and, unless $h in J$, it equals the action taken at $J$ on the path to $h$. Since $"LI"(h) subset.eq cal(L)(P)$, this condition depends only on the signature.
+
+  _Part 2._ Let $S_t$ be the set of nodes at depth $t$ consistent with $pi$. We show by induction on $t$ that the decision points at depth $t$ that $pi$ leads to are the connected components of $cal(G)[S_t]$. At depth $0$ the only decision point is the root. If an information set contains a node at or below $h$, it contains a node at or below the parent of $h$, so the parents of two adjacent nodes coincide or are adjacent. Hence, if $h, h' in S_(t+1)$ are adjacent, the induction hypothesis puts their parents in one decision point $B'$ that $pi$ leads to. Then $h$ and $h'$ both lie in the observation point produced by the prescription of $pi$ at $B'$, and the splitting rule keeps them in one decision point. Every node of $S_(t+1)$ lies in the observation point produced at the decision point containing its parent, and these observation points are disjoint subsets of $S_(t+1)$. So the decision points at depth $t+1$ that $pi$ leads to are connected, disjoint, and cover $S_(t+1)$, and adjacent nodes share one. They are therefore the components of $cal(G)[S_(t+1)]$. Finally, the edges of $cal(G)$ join nodes of equal depth, so $P$ lies at a single depth $t$, and since $P$ is a connected component of $cal(G)$, the components of $cal(G)[S_t]$ that meet $P$ are those of $cal(G)[P^pi]$.
+
+  _Part 3._ If team ▲ acts at a node $h$ of such a decision point, the information set of $h$ lies in $"LI"(h) subset.eq cal(L)(P)$, and $pi$ is consistent with $h$ by part 2, so the signature records the action of $pi$ there.
+]
+
+By @lem-team-signature, the observation points whose decision points lie in $P$ number at most $abs(P) (b+1)^(k_P)$: there are at most $(b+1)^(k_P)$ signatures, and $cal(G)[P^pi]$ has at most $abs(P)$ components.
+
+The lecture's $(b+1)^k$ bound captures this combinatorial part of the observation-point count. The TB-DAG of @sec-team-belief-dag further separates compatible histories into public-observation components, so one signature may generate several disjoint components. Accounting for their incident edges gives the more explicit bound
 $
   E <= N (b+1)^(k+1)
       = (b+1)^k dot N(b+1),
 $
-where $E$ is the number of TB-DAG edges; see Theorem 6.2 of Carminati et al. #citep(<Carminati26:Representations>). In either convention, the exponential dependence is on $k$, with only a polynomial factor in the original tree size.
+where $E$ is the number of TB-DAG edges; see Theorem 6.2 of Carminati et al. #citep(<Carminati26:Representations>). In either convention, the exponential dependence is on $k$, with only a polynomial factor in the original tree size. For $k$-private games, #citet(<Zhang23:Team>, supplement: [Thm.~B.3]) state the bound as $O^*((b+1)^k)$, where $O^*$ hides factors polynomial in the size of the game.
 
 == Consequences for regret minimization
 
-The TB-DAG supports regret minimization directly #citep(<Zhang23:Team>). A CFR iteration propagates values through the DAG and updates local regrets, with work proportional to its representation size. Consequently, the size bound gives
+The TB-DAG supports regret minimization directly #citep(<Zhang23:Team>, [Thm.~4.3]); see @sec-team-tbdag-regret. A CFR iteration propagates values through the DAG and updates local regrets, with work proportional to its representation size. Consequently, the size bound gives
 $
   "time per CFR iteration"
     = O(N(b+1)^(k+1))
@@ -797,6 +822,8 @@ Second, *the representation may still be large*. Even with binary actions, the c
 
 Third, *this is a per-iteration bound*. Running $T$ CFR iterations costs $O(T N(b+1)^(k+1))$, apart from constructing the representation. The accuracy of the averaged strategies depends on the regret accumulated over those iterations. The size bound alone does not specify how many iterations achieve a requested approximation error, and one iteration does not compute an exact equilibrium.
 
+The regret bound of CFR also bounds the number of iterations. Suppose that the payoffs lie in $[-1, 1]$ and that both teams run CFR on their TB-DAGs with #lecture-link("learning1", <sec-mwu>)[multiplicative weights] as the local regret minimizer. After $T$ iterations, the average strategies form an $O(epsilon_T)$-approximate equilibrium, where $epsilon_T := N sqrt(k log(b) \/ T)$ #citep(<Carminati26:Representations>, [Thms.~4.13 and~6.3]). So the team's average strategy guarantees the TMECor value up to $O(epsilon_T)$, and $T = O(N^2 k log(b) \/ epsilon^2)$ iterations, or $O(N^3 (b+1)^(k+1) k log(b) \/ epsilon^2)$ total time, suffice for accuracy $epsilon$. The iteration count is polynomial because a single plan leads to at most $N$ decision points, which are disjoint by @lem-team-signature, so the regret bound of CFR adds up at most $N$ local regrets. Moreover, multiplicative weights pays only $log(b^k) = k log b$ for the at most $b^k$ prescriptions at a decision point, whose information sets are among the last-infosets of its public state #citep(<Carminati26:Representations>, [Sec.~4.5]).
+
 == How much improvement should we expect?
 
 Slide 21 uses bridge to illustrate the scale of the savings. Its rough estimates are $N approx 2^200$, $b < 2^6$, and $k approx binom(52,13) < 2^40$. Plugging these estimates into the counting term yields
@@ -805,7 +832,7 @@ $
 $
 This is much smaller than the slide's naive normal-form estimate of roughly $2^(2^200)$, even after allowing polynomial overhead in $N$. Both quantities remain enormous. The comparison demonstrates the benefit of organizing computation around private-information contingencies; it is not a practical running-time prediction for solving bridge.
 
-Finally, could we replace the dependence on $b$ and $k$ by $2^(O(k)) "poly"(N)$ in general? The lecture rules this out assuming $"FPT" != "W[1]"$, a standard parameterized-complexity assumption weaker than the Exponential Time Hypothesis. Even the exact mixed-strategy value problem for one imperfect-recall player admits no $f(k) "poly"(N)$ algorithm under that assumption #citep(<Carminati26:Representations>). There is no contradiction with the constant-$k$ guarantee: in $N(b+1)^(k+1)$ the exponent of $N$ may grow with $k$, whereas the exponent in $f(k) "poly"(N)$ must be independent of $k$. Extra structure can still make particular game families easier.
+Finally, could we replace the dependence on $b$ and $k$ by $2^(O(k)) "poly"(N)$ in general? The lecture rules this out assuming $"FPT" != "W[1]"$, a standard parameterized-complexity assumption weaker than the Exponential Time Hypothesis. Even the exact mixed-strategy value problem for one imperfect-recall player admits no $f(k) "poly"(N)$ algorithm under that assumption #citep(<Carminati26:Representations>, [Thm.~6.5]). The exponential dependence on $k$ is also necessary: assuming the Exponential Time Hypothesis, no algorithm finds an optimal strategy for such a player in time $2^(o(k)) "poly"(N)$ #citep(<Carminati26:Representations>, [Cor.~7.2]). There is no contradiction with the constant-$k$ guarantee: in $N(b+1)^(k+1)$ the exponent of $N$ may grow with $k$, whereas the exponent in $f(k) "poly"(N)$ must be independent of $k$. Extra structure can still make particular game families easier.
 
 = Hidden-role games <sec-hidden-role-games>
 
