@@ -421,16 +421,17 @@ Each game tree (left) is converted into its TB-DAG (right):
 
 #figure(
   image("figures/team_belief_dag/construction.svg", width: 100%),
-  caption: [A team game tree (left) and its team belief DAG (right).],
+  caption: [A team game (left) and its team belief DAG (right). Member 1 of team ▲ acts at $A$ and $B$; member 2 acts at $C$, $D$, $E$, and $F$, but cannot tell $C$ from $D$ (shaded). In the TB-DAG, as for the tree-form decision processes of Lecture 7, filled squares are decision points, labeled by their beliefs, crossed squares are observation points, and hollow squares end the process. Solid edges are prescriptions, and dashed edges are public observations.],
 ) <fig-tbdag-construction>
 
 - *Left: the team game tree.* Chance moves first. The first team member acts
   at $A$ or $B$ and knows which (separate infosets). The second member acts at
-  $C, D, E, F$ but cannot tell $C$ and $D$ apart (see dotted line to represent
-  this).
-- *Right: the TB-DAG.* The blue boxes represent decision points of the team,
-  while the white boxes represent observation points. The root is labeled
-  $A B$. After chance moves, only the acting team member knows whether play is
+  $C, D, E, F$ but cannot tell $C$ and $D$ apart (see the shaded band representing
+  this). Each player chooses left ($ell$) or right ($r$).
+- *Right: the TB-DAG.* The filled squares represent decision points of the team,
+  while the crossed squares represent observation points; hollow squares are
+  terminal beliefs, and dashed edges are public observations. The root is
+  labeled ${A, B}$. After chance moves, only the acting team member knows whether play is
   at $A$ or $B$ --- the other members do not see anything. The DAG tracks the
   team instead of the individual player. For each decision-point level, an
   observation point level is added below it, alternating between the two.
@@ -451,8 +452,10 @@ situation it might be in:
 
 #figure(
   image("figures/team_belief_dag/prescription.svg", width: 100%),
-  caption: [Each edge out of ${A, B}$ is one answer sheet. Two infosets, two
-    actions each $==>$ four sheets $==>$ four edges.],
+  caption: [The four prescriptions at the root belief ${A, B}$ (highlighted).
+    A prescription picks one action at each of the two information sets $A$
+    and $B$, so there are $2 times 2 = 4$. The label $ell r$, for instance,
+    means left at $A$ and right at $B$.],
 ) <fig-tbdag-prescription>
 
 #bpar[Prescriptions: the edges out of a belief node.] A prescription, as
@@ -460,7 +463,7 @@ shown above, is a pre-determined singular action for each infoset that meets
 the belief. Ex: ${A, B}$ meets two infosets with two actions each $==>$
 $2 times 2 = 4$ prescriptions $==>$ $4$ edges. Each edge has a different
 representation corresponding to the original game tree: the edge to $C D$
-says "left at $A$, left at $B$," while the edge to $C F$ says "left at $A$,
+(labeled $ell ell$) says "left at $A$, left at $B$," while the edge to $C F$ (labeled $ell r$) says "left at $A$,
 right at $B$." etc. The child's label is just where those deterministic
 choices can lead.
 
@@ -469,13 +472,15 @@ choices can lead.
 After the team commits to its answer sheet, others respond. An _observation
 point_ is simply "where could we be now?" For example, if a team starts at
 ${A, B}$, with the sheet ($A -> C$, $B -> D$), play could be at $C$ or $D$,
-which we denote in white with the observation point ${C, D}$.
+which we denote with the observation point ${C, D}$.
 
 #figure(
   image("figures/team_belief_dag/public_observation.svg", width: 100%),
-  caption: [After ($A -> C$, $B -> D$): the mover cannot tell $C$ from $D$
-    $==>$ ${C, D}$ stays one belief. After ($A -> C$, $B -> F$): everyone can
-    tell $C$ from $F$ $==>$ split into ${C}$ and ${F}$.],
+  caption: [Public observations after the prescriptions $ell ell$ and $ell r$
+    (highlighted). After $ell ell$, play is at $C$ or $D$, which member 2 cannot
+    tell apart, so the observation point $C D$ has the single child ${C, D}$.
+    After $ell r$, play is at $C$ or $F$, and no information set contains both,
+    so $C F$ splits into ${C}$ and ${F}$.],
 ) <fig-tbdag-public-observation>
 
 #bpar[The splitting rule (public observations):]
@@ -626,7 +631,7 @@ Why does this count help? The reachability entries retain which histories are co
 
 #figure(
   image("figures/team_games/last_infoset_signature.svg", width: 100%),
-  caption: [Encoding a plan at a public state with $k_P=3$ and $b=2$. Each last-infoset contributes $⊥$, $L$, or $R$; the highlighted choices give $(⊥,L,R)$. These are encoding choices, not branches of a game tree. Some combinations may be infeasible, so $27$ is an upper bound.],
+  caption: [Encoding a plan at a public state with $k_P=3$ and $b=2$. Each last-infoset contributes $⊥$, $ell$, or $r$; the highlighted choices give $(⊥, ell, r)$. These are encoding choices, not branches of a game tree. Some combinations may be infeasible, so $27$ is an upper bound.],
 ) <fig-team-last-infoset-signature>
 
 The lecture's $(b+1)^k$ bound captures this combinatorial part of the observation-point count. In a construction that further separates compatible histories into public-observation components, one signature may generate several disjoint components. Accounting for their incident edges gives the more explicit bound
@@ -896,41 +901,24 @@ Given three reasonable and common assumptions, it becomes possible to compute hi
 
 Assuming no collapse of computational complexity classes, private communication and coordination are both necessary for efficient computation. Whether "Bad" team minority is required is still open. As found in #cite(<CarminatiZFGS24>), here is a table of the state of the art knowledge of computational complexity in hidden-role equilibria:
 #figure(
-table(
-  columns: 4,
-  stroke: 0.5pt,
-  align: center + horizon,
-
-  // Header
-  [*Adversary Team Assumptions*],
-  table.cell(colspan: 3)[*Communication Type*],
-
-  [],
-  [*None*],
-  [*Public*],
-  [*Private*],
-
-  // Coordinated rows
-  [*Coordinated, Minority*],
-  table.cell(rowspan: 2)[NP-complete],
-  table.cell(rowspan: 2)[NP-hard],
-  [P],
-
-  [*Coordinated*],
-  [_open_],
-
-  // Uncoordinated rows
-  [*Minority*],
-  table.cell(rowspan: 2)[$Sigma_2^P$-complete],
-  table.cell(rowspan: 2)[$Sigma_2^P$-hard],
-  table.cell(rowspan: 2)[coNP-hard],
-
-  [*None*],
-),
-caption: [
+  kind: table,
+  supplement: [Table],
+  caption: [
     Complexity results for computing hidden-role value with a constant number of players, for various assumptions about the adversary team and notions of communication.
-  ]
-)
+  ],
+)[
+  #table(
+    stroke: none,
+    columns: 4,
+    align: left + top,
+    inset: .7em,
+    table.header([*Bad team*], [*No communication*], [*Public*], [*Private*]),
+    [coordinated, minority], [NP-complete], [NP-hard], [P],
+    [coordinated], [NP-complete], [NP-hard], [_open_],
+    [minority], [$Sigma_2^P$-complete], [$Sigma_2^P$-hard], [coNP-hard],
+    [neither], [$Sigma_2^P$-complete], [$Sigma_2^P$-hard], [coNP-hard],
+  )
+] <tab-hidden-role-complexity>
 
 Let us now sketch a proof of this theorem, more directly stated as follows:
 #custom-thm(
@@ -1026,43 +1014,27 @@ This $f'$ computed with MPC is correct with high probability and thus has expect
 The famous game _Avalon_ becomes solvable with $<7$ players, as the bad team can be treated as if they are coordinated #cite(<CarminatiZFGS24>). Using the optimal zero sum game from Key Idea 2 with some (lossless) computational simplification, #cite(<CarminatiZFGS24>) calculated optimum values with PCFR+ that are detailed in the table below:
 
 #figure(
-  table(
-    columns: (auto, auto, auto),
-    align: (left, right, right),
-    stroke: none,
-    inset: (x: 0.7em, y: 0.18em),
-
-    // top rule
-    table.hline(stroke: 0.6pt),
-    [*Variant*], [*5 Players*], [*6 Players*],
-    // rule below header
-    table.hline(stroke: 0.6pt),
-
-    [No special roles (_Resistance_)],
-      val([3], [=], [10], [0.3000], marked: true),
-      val([1], [$approx$], [3], [0.3333], marked: true),
-    [Merlin],
-      val([2], [$approx$], [3], [0.6667], marked: true),
-      val([3], [=], [4], [0.7500], marked: true),
-    [Merlin & Mordred],
-      val([731], [$approx$], [1782], [0.4102]),
-      val([6543], [$approx$], [12464], [0.5250]),
-    [Merlin & 2 Mordreds],
-      val([5], [$approx$], [18], [0.2778]),
-      val([99], [$approx$], [340], [0.2912]),
-    [Merlin, Mordred, Percival, Morgana],
-      val([67], [$approx$], [120], [0.5583]),
-      [$—$], // em dash: too large to solve
-
-    // bottom rule
-    table.hline(stroke: 0.6pt),
-  ),
+  kind: table,
+  supplement: [Table],
   caption: [
     Exact equilibrium values for 5- and 6-player _Avalon_. The values marked
     $""^ast$ were also manually derived
-    by Christiano #cite(<Christiano2018Avalon>).
+    by Christiano #citep(<Christiano2018Avalon>).
   ],
-)
+)[
+  #table(
+    stroke: none,
+    columns: 3,
+    align: (left + top, right + top, right + top),
+    inset: .7em,
+    table.header([*Variant*], [*5 players*], [*6 players*]),
+    [no special roles (_Resistance_)], [$3\/10 = 0.3000^*$], [$1\/3 approx 0.3333^*$],
+    [Merlin], [$2\/3 approx 0.6667^*$], [$3\/4 = 0.7500^*$],
+    [Merlin and Mordred], [$731\/1782 approx 0.4102$], [$6543\/12464 approx 0.5250$],
+    [Merlin and two Mordreds], [$5\/18 approx 0.2778$], [$99\/340 approx 0.2912$],
+    [Merlin, Mordred, Percival, and Morgana], [$67\/120 approx 0.5583$], [too large to solve],
+  )
+] <tab-hidden-role-avalon>
 
 This demonstrates the feasibility of this poly-time equilibrium EV finding algorithm on real-world games, as equilibrium EVs for Avalon were previously computationally intractable.
 
