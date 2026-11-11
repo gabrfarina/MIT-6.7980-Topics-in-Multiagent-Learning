@@ -31,6 +31,13 @@
   },
   "notes": [
     {
+      "source": "content/team_games.typ",
+      "supplementary": false,
+      "syllabus_ids": [
+        "team-games"
+      ]
+    },
+    {
       "source": "content/nfgs_nash.typ",
       "supplementary": false,
       "syllabus_ids": [
