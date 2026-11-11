@@ -47,9 +47,13 @@ The team can meet the bound on *every* input. Choose a row of @tbl-parity-plans 
 
 = When the bit is revealed
 
-For either strategy class, Alice can choose $a=0$ and Bob can choose $b=s y$, winning surely whenever $s$ reveals $x$. The hidden-branch upper bound is witnessed by some input pair, and the reveal probability is the same for every input pair. Thus the adversary can hold the team to at most $r$ plus $(1-r)$ times the hidden-branch bound. The strategies above attain this upper bound on every input pair, proving the formulas. At $r=1$ only the revealed branch is reached, so both values are $1$.
+On reveal, $a=0$ and $b=s y$ win surely. Since every input has the same reveal probability, the input witnessing the hidden-branch upper bound gives an overall upper bound of $r$ plus $(1-r)$ times that bound. The stated strategies attain it on every input. At $r=1$, both values are $1$ directly.
 
 In team belief DAG terms, the null signal leads to a belief containing all four input pairs. A revealed bit leads to a belief containing the two pairs with that first bit. The team's prescription then maps Bob's private input $y$ to $s y$. Shared randomness instead selects a joint prescription without narrowing the set of possible inputs. The resulting value gap is $(1-r)/4$.
+
+#pagebreak(weak: true)
+
+= Exercises
 
 #exercise[
   With no reveal, allow arbitrary finite input sets and specify a target bit $c_(x y)$ for each allowed pair $(x,y)$. Form a bipartite graph with these pairs as edges labeled by their target bits. Prove that the team can win surely exactly when the labels XOR to zero on every cycle. What if one input pair is removed from the original four-input game?
@@ -57,4 +61,12 @@ In team belief DAG terms, the null signal leads to a belief containing all four 
 
 #solution[
   A sure win requires a deterministic plan that wins on every edge, since any plan used with positive probability must win on each edge. A plan assigns bits to vertices whose endpoint XOR must equal each edge label. XORing around any cycle cancels every vertex bit. Conversely, in each component fix a root bit and propagate along a spanning tree. Each remaining edge closes a cycle, so its label agrees with the assigned bits. Removing any edge from the four-input game leaves a tree. The row in @tbl-parity-plans that loses on the removed input gives a sure win.
+]
+
+#exercise[
+  With probability $r$, let the public signal reveal $s=x xor y$ instead of $x$. With probability $1-r$ it is still $bot$. Does either value change?
+]
+
+#solution[
+  Bob recovers $x=s xor y$, so $a=0$ and $b=(s xor y)y$ win on every revealed input. The parity alone leaves two possible pairs. Each teammate can recover the other bit using their own. The reveal probability and hidden-branch game are unchanged, so both values stay the same.
 ]
