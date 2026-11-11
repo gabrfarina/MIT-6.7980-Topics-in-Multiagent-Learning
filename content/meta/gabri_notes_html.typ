@@ -24,7 +24,7 @@
 #import "notation.typ": html-vmu as vmu, html-vnu as vnu, html-vlambda as vlambda, html-vrho as vrho
 #import "notation.typ": html-vpi as vpi
 #import "notation.typ": html-vU as vU, html-vV as vV, html-vW as vW, html-vone as vone
-#import "notation.typ": html-vA as vA, html-vR as vR
+#import "notation.typ": html-vA as vA, html-vR as vR, html-vG as vG, html-vzero as vzero
 #import "notation.typ": html-xhat as xhat, html-yhat as yhat, html-mU as mU, html-upsans as upsans
 #import "markers.typ": paragraph-marker
 #import "lecture-links.typ": interactive-link, lecture-link, lecture-title
@@ -378,7 +378,6 @@
     } else { it }
   }
 
-  // A solution's authored label belongs to its outer toggle wrapper.
   show html.elem.where(tag: "div"): it => {
     if it.attrs.at("class", default: "").split().contains("solution-wrapper") and it.has("label") and not "data-label" in it.attrs {
       html.elem(it.tag, attrs: (..it.attrs, "data-label": str(it.label)), it.body)

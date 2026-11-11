@@ -13,23 +13,24 @@ Imperfect-information extensive-form games  model tree-form strategic interactio
 The standard representation of an imperfect-information extensive-form game is through its _game tree_, which formalizes the interaction of the players as a directed tree. In the game tree, each non-terminal node belongs to exactly one player, who acts at the node by picking one of the outgoing edges (each labeled with an action name). Imperfect information is captured in this representation by partitioning the nodes of each player into sets (called information sets) of nodes that are indistinguishable to that player given his or her observations.
 
 #example[
-  As a running example, we will illustrate the representation by analyzing the game tree of a simplified two-player variant of poker (perhaps the archetype of imperfect-information extensive-form games), known as _Kuhn poker_ #citep(<Kuhn50:Simplified>). As noted by Kuhn himself, even the previous small game already captures central aspects of deceptive behavior such as _bluffing_ and _underbidding_.
+  As a running example, we use _Kuhn poker_, a two-player poker variant played with a deck of only three cards: Jack, Queen, and King #citep(<Kuhn50:Simplified>). Despite its simplicity, the game already captures central aspects of deceptive behavior such as _bluffing_ and _underbidding_.
+
+  #paragraph-marker(shape: "triangle-up") *The rules of Kuhn poker*~~ At the beginning of the game, each player contributes a \$1 ante to the pot. The deck is shuffled, each player is privately dealt one card, and the third card is set aside. Each of the six possible deals is equally likely. We abbreviate the cards as $upsans("J")$, $upsans("Q")$, and $upsans("K")$; for example, $upsans("JK")$ means that Player 1 receives a Jack and Player 2 receives a King.
+
+  After the cards are dealt, a single betting round takes place:
+
+  - Player 1 acts first and chooses either to check (continue without betting) or to bet \$1.
+  - If Player 1 checks, Player 2 may either check, which leads directly to a showdown, or bet \$1. After a bet by Player 2, Player 1 may fold or call by contributing another \$1 to the pot.
+  - If Player 1 bets, Player 2 may fold or call by contributing another \$1 to the pot.
+
+  When a player folds, the other player wins the pot. When neither player folds, the players reveal their cards in a _showdown_, and the player with the higher card wins the pot. The King is the highest card, followed by the Queen and then the Jack.
+
+  The diagram below summarizes the six possible deals and every possible betting sequence. The number at each endpoint gives Player 1's net winnings.
 
   #align(center)[
     #image("figures/efg_intro/kuhn.svg", width: 100.0%)
   ]
 ] <ex:kuhn>
-
-#paragraph-marker(shape: "triangle-up") *The rules of Kuhn poker*~~ In the game tree of Kuhn poker, the root history of the tree (the first move in the game) belongs to the _nature player_ $c$. It models a dealer that privately deals one card to each player from a shuffled deck containing cards Jack, Queen, King. The actions of the nature player correspond to the six possible assignments of two cards from the deck, which are annotated on the edges; for example, the leftmost edge $upsans("JK")$ corresponds to the case in which Player 1 is dealt a Jack and Player 2 is dealt a King. Since the deck is shuffled, each of the six actions are selected with probability 1/6 by the nature player. No matter the action selected by the dealer, the game transitions to a history of Player 1, which marks the beginning of what in poker is called a “betting round”. First, Player 1 decides to either check (continue without betting any money) or bet \$1. Then,
-
-- If Player 1 checks, Player 2 can either check, or bet \$1.
-  - If Player 2 checks, the game terminates with a showdown: the player with the higher card receives from the other player whatever amount the other player bet, plus an ante amount of \$1.
-  - If, instead, Player 2 bets the additional \$1, then Player 1 can either fold his hand or call, that is, raise his bet by \$1.
-    - If Player 1 folds, he has to give Player 2 only the \$1 ante;
-    - if Player 1 calls, a showdown with the same dynamics as before.
-- If Player 1 bets the \$1, Player 2 can either fold her hand or call.
-  - If Player 2 folds her hand, Player 2 gives Player 1 the \$1 ante.
-  - If, instead, Player 2 calls the bet, she increases her bet by \$1 and a showdown occurs, with the same dynamics as before.
 
 == Histories, actions, and payoffs
 
@@ -87,6 +88,17 @@ In some cases, like in @fig:kuhn-tfdp, it is straightforward to compile the tree
 
 The set of decision nodes $cal(J)_i$ of the player's TFDP coincides with the set of his or her information sets, that is, $cal(J)_i = cal(I)_i$. This is consistent with the fact that the player cannot condition their behavior on anything other than their information set, given that they cannot distinguish between histories in the same information set. Furthermore, the set of actions available at any decision node $j = I in cal(J)_i$ coincides with the set of actions $A_I$ available at any history in information set $I$.
 
+Where each decision node sits in the TFDP is determined by its _trace_: the information sets Player~$i$ passed through, and the actions taken there, on the way to it.
+
+#definition[Trace][
+  Fix a player $i in \[ n \]$, an information set $I in cal(I)_i$, and a history $h in I$. Let $h_1, ..., h_m$ ($m >= 0$) be the histories of Player~$i$ that lie strictly before $h$ on the path from the root of the game tree to $h$, listed in the order in which they are encountered. For each $k = 1, ..., m$, let $I_k in cal(I)_i$ be the information set containing $h_k$, and $a_k in A_(I_k)$ be the action taken at $h_k$ on the path to $h$. The _trace_ of $h$ (for Player~$i$) is the sequence
+  $
+    (I_1, a_1, ..., I_m, a_m, I).
+  $
+] <def:trace>
+
+Histories of other players and of chance do not appear in the trace. Under perfect recall (@def:perfect-recall), Player~$i$ remembers both the actions they took and the information sets where they took them, so all histories in $I$ have the same trace, which we call the _trace of_ $I$.
+
 #example[
   Consider Kuhn poker from the point of view of Player~1 (@fig:kuhn-tfdp).
 
@@ -116,7 +128,7 @@ Traces implicitly encode a notion of partial chronological ordering between info
 
   - The set of decision nodes $cal(J)_i$ of the TFDP is equal to the set $cal(I)_i$ of information sets.
   - The set of actions available at each decision node $j = I in cal(I)_i$ (_i.e._, the set of outgoing edges from the decision node) is equal to the set of actions $A_I$ available at any history $h in I$ in the game tree.
-  - Given any decision node $j = I in cal(I)_i$, the sequence of decision nodes and actions encountered from the root of the TFDP to $j$ is equal to the trace of any history $h in I$.
+  - Given any decision node $j = I in cal(I)_i$, the sequence of decision nodes and actions encountered from the root of the TFDP to $j$ is equal to the trace of $I$ (@def:trace).
 ] <def:tfdp>
 
 As a remark, @def:tfdp leaves the labeling and structure of observation nodes unspecified. In fact, a player might have multiple TFDPs that satisfy the definition, and differ in how the observation nodes are placed. We illustrate this in the next example.
@@ -136,6 +148,36 @@ As a remark, @def:tfdp leaves the labeling and structure of observation nodes un
     #image("figures/efg_intro/small_tfdp.png")
   ]
 ]
+
+#paragraph-marker() *An explicit construction*~~ @algo:efg-to-tfdp builds a TFDP for Player~$i$ directly from the game tree. A first pass records, for every sequence $sigma$ (a pair $(I, a)$ with $I in cal(I)_i$ and $a in A_I$, or the empty sequence $∅$), the set $C[sigma]$ of information sets where Player~$i$ can make their next decision after $sigma$, and whether the game can end after $sigma$ without Player~$i$ acting again. A second pass assembles the TFDP top-down, inserting an observation node only where more than one outcome can follow $sigma$.
+
+#pseudocode-list(numbered-title: [Converting a game tree into a TFDP for Player $i$])[
+  - _Pass 1: record what can follow each sequence._
+  + $C[sigma] <- emptyset$ and $"end"[sigma] <- "false"$ for every sequence $sigma$
+  + *function* `Collect`($h$, $sigma$)
+    + *if* $h in Z$:
+      + $"end"[sigma] <- "true"$
+    + *else if* $h$ belongs to Player~$i$:
+      + Let $I in cal(I)_i$ be the information set containing $h$
+      + $C[sigma] <- C[sigma] union {I}$
+      + *for each* $a in A_I$: `Collect`(child of $h$ via $a$, $(I, a)$)
+    + *else*:
+      + *for each* action $a$ at $h$: `Collect`(child of $h$ via $a$, $sigma$)
+  + `Collect`(root of the game tree, $∅$)
+  - _Pass 2: build the TFDP top-down._
+  + *function* `Build`($sigma$)
+    + *if* $C[sigma] = emptyset$: *return* a new terminal node
+    + *if* $C[sigma] = {I}$ *and* $"end"[sigma] = "false"$: *return* `Decision`($I$)
+    + Create an observation node $k$ with one signal per $I in C[sigma]$, leading to `Decision`($I$)
+    + *if* $"end"[sigma] = "true"$: add a signal at $k$ leading to a new terminal node
+    + *return* $k$
+  + *function* `Decision`($I$)
+    + Create decision node $j = I$ with actions $A_I$; for each $a in A_I$, connect $a$ to `Build`($(I, a)$)
+    + *return* $j$
+  + *return* `Build`($∅$)
+] <algo:efg-to-tfdp>
+
+Since all histories in an information set have the same trace, each $I$ lands in exactly one set $C[sigma]$, so the output is a tree, and the path from its root to $I$ is the trace of $I$. (The sets $C[sigma]$ are the sets $C_sigma$ of @sec-tfdp-notation.) For example, in Kuhn poker $C[∅] = {upsans(A), upsans(B), upsans(C)}$, giving the root observation node of @fig:kuhn-tfdp; after $(upsans(A), upsans("check"))$ the game can end or reach $upsans(D)$, giving the observation node below $upsans(A)$; and after $(upsans(A), upsans("bet"))$ the process ends.
 
 == Some notation <sec-tfdp-notation>
 
@@ -182,23 +224,43 @@ By considering the normal-form game in which each player's strategy space is the
 
 A different conceptualization of a strategy for a player is as a choice of (independent) distributions over the set of actions $A_j$ at each decision node $j in cal(J)$. This is called a _behavioral strategy_. We can represent it accordingly as a vector $vx in bb(R)_(>= 0)^Sigma$ indexed over sequences. Each entry $x_(j a)$ assigns to action $a$ at decision node $j$ the probability of picking that action at that decision node. The set of all possible behavioral strategies is clearly convex, as it is the Cartesian product of probability simplexes---one per each decision node.
 
-*Cons*  However, this representation has a major drawback: the probability of reaching a particular terminal state in the decision process is the product of all actions on the path from the root to the terminal state. This makes many expressions of interest that depend on the probability of reaching terminal states (including crucially the expected utility in the game) non-convex.
+*Cons*  However, this representation has a major drawback: a terminal history's probability includes a product of the player's action probabilities along its path, together with the probabilities of chance and opponent actions. Even with the opponents' strategies fixed, expected utility can therefore be neither convex nor concave in the player's behavioral strategy, despite the strategy set itself being convex.
 
 #example[
-  Consider the game of Kuhn poker, and let $vx \, vy$ be behavioral strategies for both players. The expected utility function for Player 1 is given by
+  Consider Kuhn poker. Each of the six initial card deals has probability $1/6$, so every terminal-history contribution to expected utility must include this factor.
 
+  Fix Player 2's behavioral strategy as follows: with any card, bet after Player 1 checks, and fold after Player 1 bets. Consider the following family of behavioral strategies for Player 1:
+
+  - With a Queen or King, always bet initially.
+  - With a Jack, check with probability $p$ and bet with probability $1-p$. After checking and facing a bet, call with probability $q$ and fold with probability $1-q$.
+
+  Fix Player 1's behavior at the other, unreachable decision nodes arbitrarily. The parameters $(p, q) in [0, 1]^2$ describe a convex subset of behavioral strategies: averaging two parameter pairs averages all their behavioral probabilities.
+
+  In the four deals where Player 1 holds a Queen or King, Player 2 folds to the initial bet, giving Player 1 payoff $1$. In the two deals where Player 1 holds a Jack, betting gives payoff $1$, while checking leads to payoff $-1$ upon folding and $-2$ upon calling. Thus, the expected utility on this family is
   $
-    u_1 (vx \, vy) & := (- 1) dot.op x_(upsans(A \, c h k)) dot.op y_(upsans(P \, c h k)) + (- 1) dot.op x_(upsans(A \, c h k)) dot.op y_(upsans(P \, b e t)) dot.op x_(upsans(D \, f o l d))\
-    & #h(2em) + (- 2) dot.op x_(upsans(A \, c h k)) dot.op y_(upsans(P \, b e t)) dot.op x_(upsans(D \, c a l l)) + dots.h.c .
+    f(p, q) &:= 4/6 dot.op 1 + 2/6 ((1-p) dot.op 1 + p ((1-q) dot.op (-1) + q dot.op (-2))) \
+            &= 1 - (2p + p q)/3.
   $
 
-  This is not a convex function of $vx$, as it contains products of entries of $vx$.
+  This function is neither convex nor concave on the relevant domain. At the midpoint of $(0,0)$ and $(1,1)$,
+  $
+    f(1/2, 1/2) = 7/12 > (f(0,0) + f(1,1))/2 = 1/2,
+  $
+  which violates convexity. At the midpoint of $(0,1)$ and $(1,0)$,
+  $
+    f(1/2, 1/2) = 7/12 < (f(0,1) + f(1,0))/2 = 2/3,
+  $
+  which violates concavity. Since the opponent's strategy is fixed and all these points are valid behavioral strategies, the expected utility is neither convex nor concave in Player 1's behavioral strategy in general.
 ]
 
-*Pros*  One might wonder whether behavioral strategies have the same representational power as normal-form strategies. After all, a normal-form strategy is an object in a much larger space, so it is conceivable that "more might be possible" in the strategic form. A positive answer equating the powers of normal-form and behavioral strategies is given by Kuhn's theorem, which requires that the game is perfect recall.
+*Pros*  One might wonder whether behavioral strategies have the same representational power as normal-form strategies. After all, a normal-form strategy is an object in a much larger space, so it is conceivable that "more might be possible" in the strategic form. The relationship is characterized by Kuhn's theorem.
 
-#theorem[Kuhn's theorem][
-  In a perfect recall extensive-form game, any distribution over terminal nodes that can be induced via normal-form strategies can be induced via behavioral strategies, and _vice versa_.
+#definition[Realization equivalence][
+  Two strategies of a player are _realization-equivalent_ if, for every strategy profile of the other players, they induce the same probability distribution over terminal histories.
+] <def:realization-equivalence>
+
+#theorem[Kuhn's theorem #citep(<Kuhn53:Extensive>)][
+  In a perfect-recall extensive-form game, every normal-form strategy of a player is realization-equivalent to a behavioral strategy, and vice versa.
 ]
 
 == Sequence form <sec-sequence-form>
@@ -216,7 +278,7 @@ The _sequence-form representation_ #citep(<Romanovskii62:Reduction>, <Koller96:E
 Conversely, it is easy to see that any $vx$ that satisfies the above constraints is the sequence-form representation of at least one behavioral strategy.
 
 #example[
-  Consider the tree-form decision process faced by Player 1 in the small game of @ex:small-efg. The decision process has four decision nodes $J = {upsans(A) \, upsans(B) \, upsans(C) \, upsans(D)}$ and nine sequences including the empty sequence $∅$. For decision node D, the parent sequence is $p_(upsans(D)) = upsans(A 2)$; for $upsans(B)$ and $upsans(C)$ it is $p_(upsans(B)) = p_(upsans(C)) = upsans(A 1)$; for $upsans(A)$ it is the empty sequence $p_(upsans(A)) = ∅$. The constraints that define the sequence-form polytope @def:sf, besides nonnegativity, are
+  Consider the tree-form decision process faced by Player 1 in the small game of @ex:small-efg. The decision process has four decision nodes $J = {upsans(A) \, upsans(B) \, upsans(C) \, upsans(D)}$ and ten sequences including the empty sequence $∅$. For decision node D, the parent sequence is $p_(upsans(D)) = upsans(A 2)$; for $upsans(B)$ and $upsans(C)$ it is $p_(upsans(B)) = p_(upsans(C)) = upsans(A 1)$; for $upsans(A)$ it is the empty sequence $p_(upsans(A)) = ∅$. The constraints that define the sequence-form polytope @def:sf, besides nonnegativity, are
 
   #wrapped-figure(
     [
@@ -228,9 +290,39 @@ Conversely, it is easy to see that any $vx$ that satisfies the above constraints
     side: right,
     text-width: 65%,
   )
+
+  For a numerical example, write $b_(j a)$ for the behavioral probability of choosing action $a$ at decision node $j$, and retain $x_(j a)$ for the sequence-form coordinate. Choose the following behavioral probabilities, with actions ordered as indicated:
+
+  #table(
+    columns: (auto, auto, 1fr, 1fr),
+    align: center,
+    table.header([Node], [Actions], [Behavioral probabilities], [Sequence-form coordinates]),
+    $upsans(A)$, $(1,2)$, $(0.6,0.4)$, $(0.6,0.4)$,
+    $upsans(B)$, $(3,4)$, $(0.25,0.75)$, $(0.15,0.45)$,
+    $upsans(C)$, $(5,6)$, $(0.5,0.5)$, $(0.3,0.3)$,
+    $upsans(D)$, $(7,8,9)$, $(0.2,0.3,0.5)$, $(0.08,0.12,0.20)$,
+  )
+
+  Set $x_∅ = 1$ and recursively compute $x_(j a) = x_(p_j) b_(j a)$. For example,
+  $
+    x_(upsans(B 3)) &= x_(upsans(A 1)) b_(upsans(B 3)) = 0.6 dot.op 0.25 = 0.15, \
+    x_(upsans(D 9)) &= x_(upsans(A 2)) b_(upsans(D 9)) = 0.4 dot.op 0.5 = 0.20.
+  $
+  The resulting coordinates satisfy all the flow constraints:
+  $
+    0.6 + 0.4 &= 1, \
+    0.15 + 0.45 &= 0.6, \
+    0.3 + 0.3 &= 0.6, \
+    0.08 + 0.12 + 0.20 &= 0.4.
+  $
+
+  Both $upsans(B)$ and $upsans(C)$ have parent sequence $upsans(A 1)$, so each node's outgoing coordinates sum to $0.6$. We do not split this weight between the two nodes: sequence form records products of this player's own action probabilities, excluding the opponent's probabilities of selecting which node is reached. More generally, chance probabilities are also excluded. Thus, these coordinates need not equal the actual probabilities of reaching the corresponding actions in the game.
+
+  Conversely, whenever $x_(p_j) > 0$, recover the behavioral probabilities by $b_(j a) = x_(j a)/x_(p_j)$. For instance, $b_(upsans(B 3)) = 0.15/0.6 = 0.25$. If $x_(p_j) = 0$, nonnegativity and the flow constraint force every outgoing coordinate at $j$ to be zero. Any probability distribution over $A_j$ then gives the same sequence-form coordinates. For example, if Player 1 always chooses action $2$ at $upsans(A)$, the behavioral choices at $upsans(B)$ and $upsans(C)$ can be arbitrary.
+
 ]
 
-*Pros*  This representation of extensive-form games is convex. Hence, we can use all the convex optimization tools we have seen so far.
+*Pros*  The sequence-form strategy set is convex. With the opponents' strategies fixed, expected utility is linear in these coordinates, so we can apply the convex optimization tools we have seen so far.
 
 = Bibliography for this lecture
 
