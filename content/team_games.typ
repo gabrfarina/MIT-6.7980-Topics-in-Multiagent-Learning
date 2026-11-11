@@ -1024,6 +1024,8 @@ Bad has no useful announcement: saying Good elects Good', saying Good' elects Go
 
 = Computation of hidden-role equilibria <sec-hidden-role-computation>
 
+A hidden-role equilibrium is a team maxmin equilibrium of the split-personality game (@def-hidden-role-equilibrium), and team maxmin equilibria are NP-hard to compute even without an adversary (@thm-team-sat). Hidden roles add a further difficulty because the communication parameters $M$ and $R$ are part of the optimization. The value is a supremum over all of them, so a priori it may only be approached by ever longer communication, and it is not clear that it can be computed at all. Throughout, we call team MAX _Good_ and team MIN _Bad_, as in @sec-l12-election-example, and write $k$ for the number of Bad players.
+
 == Results overview <sec-hidden-role-overview>
 
 Given three reasonable and common assumptions, it becomes possible to compute hidden-role equilibria efficiently! The criteria are:
@@ -1058,6 +1060,8 @@ Let us now sketch a proof of this theorem, more directly stated as follows:
   Consider a hidden-role game $Gamma$ with $n$ players, $k$ of which are on the bad team. All players can communicate pairwise privately and all the bad players can be coordinated as if they were a single player. If $k < n\/2$, then the value of $Gamma$ equals the value of a two-player zero-sum game of size $abs(H)^(O(k))$, and so it can be computed in time $abs(H)^(O(k))$, where $abs(H)$ is the number of histories of $Gamma$, and the good players can compute and play an $epsilon$-approximation of the hidden-role equilibrium in time $"poly"(abs(H)^k, log(1\/epsilon))$, with messages of $"poly"(abs(H)^k, log(1\/epsilon))$ bits and as many rounds of communication per move.
 ] <thm-hidden-role-efficient>
 
+The running time is polynomial in the size of the game for every fixed number $k$ of Bad players, but the degree of the polynomial grows with $k$. This mirrors the team belief DAG, whose size is polynomial for every fixed information asymmetry but has an exponent that grows with it (@sec-team-information-asymmetry). The accuracy $epsilon$ enters only through the length and number of messages, as $log(1\/epsilon)$. In Avalon with at most six players, $k = 2$, so the bound is a fixed polynomial in $abs(H)$.
+
 
 == Proof sketch using a mediated hidden-role game <sec-hidden-role-mediator>
 
@@ -1076,7 +1080,7 @@ In other words, there remain three more pieces to this proof that we will provid
   + All good players execute actions as issued by the mediator
 ] <clm-hidden-role-interface>
 
-With this interface, only the mediator makes any decisions; the "good" players simply report their observations to the mediator and follow its instructions. In other words, this is our "reduction" of the mediated hidden-role game into a two-player zero-sum game, as all good player strategic decision-making is subsumed into the mediator and all bad player decision-making was coordinated to begin with and thus can also be subsumed into the decisions of one actor.
+With this interface, only the mediator makes any decisions; the "good" players simply report their observations to the mediator and follow its instructions. In other words, this is our "reduction" of the mediated hidden-role game into a two-player zero-sum game, as all good player strategic decision-making is subsumed into the mediator and all bad player decision-making was coordinated to begin with and thus can also be subsumed into the decisions of one actor. The mediator plays the role of the correlation device in a #lecture-link("correlated", <def-ce>)[correlated equilibrium], which recommends an action to each player; the differences are that the mediator also collects reports, and that some of the players it advises may be Bad.
 
 An extension: bad players can (and in a sense "should", to be as "confusing" as possible) send observations to the mediator, they just aren't obligated to be truthful. Moreover, they receive actions from the mediator, as the mediator may not know if they are bad. In other words; bad players send potentially misleading info in step 1, receive potentially useful info in step 3.
 #theorem[Key idea 2: mediator optimality (revelation principle) #citep(<CarminatiZFGS24>, [Thm.~4.1])][
@@ -1094,6 +1098,21 @@ For each bad player in $y^*$ simulate your "bad" best-response _actor_ $y'$ and 
 #figure(image("figures/mediator-hidden-role/6.7980_L12_P9_F2.svg", width:100%), caption: [Anatomy of $y^*$ response to $x$. Note that internal functionality is exactly the same as in @fig-team-mediator-simulation, so the distribution over the outcomes in $Gamma$ is the same, so the expected utility is the same as well.]) <fig-team-mediator-unrolled>
 
 As the utility from $(x',y')$ is the same as the utility from $(x, y^*)$, if we base $x'$ off of $x_"OPT" $ then we create an $(x',y')$ that is equal to $(x_"OPT" , y^*)$, which is in turn at least as good as $(x_"OPT" , y_"OPT")$, which must be optimal. Hence $(x', y')$ is in this case always an equilibrium. Because $(x', y')$ are also a Nash equilibrium of a two-player zero-sum game, they can be computed efficiently.
+
+How efficiently depends on the size of that zero-sum game. The conditions of Key idea 2 provide one round of communication for the reports and one for the recommendations, and messages that can encode any observation or action.
+
+#theorem[Mediated games are zero-sum games #citep(<CarminatiZFGS24>, [Thm.~4.2])][
+  Let $Gamma'$ be a mediated hidden-role game with a coordinated Bad team of $k$ players, at least two communication rounds, and messages of at least $log abs(H)$ bits. A hidden-role equilibrium of $Gamma'$ with private communication can be computed by solving a two-player zero-sum extensive-form game $Gamma_0$ with at most $abs(H)^(k+1)$ nodes.
+] <thm-hidden-role-zero-sum>
+#proofsketch[
+  The players of $Gamma_0$ are the mediator, for the Good team, and the adversary, for the Bad team. A state of $Gamma_0$ consists of a history $h$ of $Gamma$ and, for each player $i$, a _record_ $s_i$ of the observations reported for $i$ and the actions recommended to $i$ so far. Each move of $Gamma$ becomes three moves of $Gamma_0$.
+  + Every Good player reports its true observation. For every Bad player $i$, the adversary, which sees the true observations of all Bad players, chooses a report among the observations that a Good player with record $s_i$ could receive next, or the empty report $⊥$. The reports are appended to the records.
+  + The mediator sees the reports, but not who is Bad, and chooses an action to recommend to each player. The recommendations are appended to the records.
+  + Every Good player plays its recommendation. The adversary sees the recommendations to the Bad players and chooses their actions, and the history $h$ advances.
+  Reports that no Good player could have sent are left out: such a report identifies its sender as Bad, so it is dominated #citep(<CarminatiZFGS24>, [Sec.~4.1]). A Good player's record is determined by $h$, since that player reports truthfully and obeys. A Bad player's record is a prefix of that player's sequence of observations and actions along some path of $Gamma$, so each Bad player has at most $abs(H)$ possible records. Up to the bookkeeping within a move, a node of $Gamma_0$ is therefore determined by $h$ and the records of the $k$ Bad players, which gives the bound $abs(H)^(k+1)$ #citep(<CarminatiZFGS24>, [App.~A.2]).
+]
+
+Both players of $Gamma_0$ remember everything they have observed, since the records only grow, so $Gamma_0$ has perfect recall. Like any two-player zero-sum extensive-form game with perfect recall, it can be solved by a linear program of polynomial size in the #lecture-link("efg_intro", <sec-sequence-form>)[sequence form]. This gives the running time $abs(H)^(O(k))$ of @thm-hidden-role-efficient. The exponent $k$ comes from the records of the $k$ Bad players, which the mediator must keep apart because it does not know who is Bad.
 
 #claim[Key idea 3: MPC simulation of mediator behavior][
   We can simulate any such mediator strategy using secure multiparty computation.
@@ -1124,6 +1143,28 @@ This $f'$ computed with MPC is correct with high probability and thus has expect
 + Taking $lambda arrow.r infinity$ means that $"OPT"(Gamma) >= "OPT"(Gamma') - epsilon$ for all $epsilon$, which coupled with the fact that $"OPT"(Gamma') >= "OPT"(Gamma)$ means $"OPT"(Gamma) = "OPT"(Gamma')$. Because a hidden-role equilibrium for $Gamma'$ is computable, so too is a hidden-role equilibrium EV for $Gamma$.
 + Moreover, such a simulated strategy is in fact playable in polynomial time, as long as you're willing to accept error $epsilon$ with extra polynomial terms in $log(1\/epsilon) = lambda + O(1)$.
 
+More precisely, a play of $Gamma$ has at most $abs(H)$ moves, so the Bad players can break the privacy of the simulation or make it fail with probability at most $O(abs(H) 2^(-lambda))$ #citep(<CarminatiZFGS24>, [App.~B.3]). Choosing $lambda = log_2 (abs(H)\/epsilon) + O(1)$ makes this at most $epsilon$. The mediator's strategy in $Gamma_0$ is a circuit of size $"poly"(abs(H)^k)$, so the protocol uses messages of $"poly"(abs(H)^k, log(1\/epsilon))$ bits and as many rounds per move #citep(<CarminatiZFGS24>, [Thm.~B.3]).
+
+#corollary[Rational values][
+  If the payoffs and chance probabilities of $Gamma$ are rational, $k < n\/2$, and Bad is coordinated, then $"CVal"_"priv" (Gamma)$ is a rational number.
+]
+
+#proof[
+  By @thm-hidden-role-efficient, $"CVal"_"priv" (Gamma)$ is the value of a finite two-player zero-sum game with rational payoffs and chance probabilities. That value is the optimal value of the sequence-form linear program, which has rational data, so it is rational.
+]
+
+Without the theorem this is not obvious, since the value is a supremum over ever longer communication.
+
+== Where assumptions are needed <sec-hidden-role-hardness>
+
+#theorem[Hardness without the assumptions #citep(<CarminatiZFGS24>, [Thms.~4.5 and~4.6])][
+  Even with a constant number of players and a minority Bad team:
+  + computing the value is NP-hard with public communication only, even with two Good players and one Bad player;
+  + with an uncoordinated Bad team, computing the value is coNP-hard with private communication and $Sigma_2^P$-hard with public or no communication.
+]
+
+These results are consistent with what we saw for team games. Without private channels, the Good players form a team that cannot pool its information, the source of hardness in @sec-team-hardness. Without coordination, the Bad players form a team as well, and computing a team's best response is itself NP-hard (@thm-team-sat). This adds a level of the polynomial hierarchy, from P to coNP with private communication and from NP to $Sigma_2^P$ without it, much as for teams against teams in @sec-team-vs-team.
+
 == An application of efficient hidden-role equilibria <sec-hidden-role-avalon>
 
 The famous game _Avalon_ becomes solvable with $<7$ players, as the bad team can be treated as if they are coordinated #citep(<CarminatiZFGS24>). Using the optimal zero sum game from Key Idea 2 with some (lossless) computational simplification, #citet(<CarminatiZFGS24>) calculated optimum values exactly with a rational-arithmetic simplex method, and approximately with PCFR+, a variant of #lecture-link("learning_efg", <sec-cfr>)[CFR]; they are detailed in the table below:
@@ -1153,6 +1194,8 @@ The famous game _Avalon_ becomes solvable with $<7$ players, as the bad team can
 
 
 This demonstrates the feasibility of this poly-time equilibrium EV finding algorithm on real-world games.
+
+The row with Merlin and two Mordreds illustrates the implicit correlation of @sec-l12-election-example. Merlin sees the Bad players except Mordred, so with two Mordreds Merlin sees no one and has no extra information. One might expect the value to be that of Resistance times the probability that the Bad team's final guess of Merlin is wrong: $3\/10 dot 2\/3 = 1\/5$ with five players. The exact value $5\/18$ is larger. As with the Good and Good' cards in the election, the distinguishable Merlin card is itself correlated randomness for the Good team.
 
 // AI acknowledgement from #173 (Ethan Liu): DeepSeek-V4.1-Flash-1017 was used to generate table, theorem box, and figure code, and for a surface-level proofread.
 
