@@ -870,7 +870,7 @@ Recall that a Nash equilibrium is a strategy profile in which no player can incr
 
 $ u_i (x_i^*, vx_(-i)^*) >= u_i (x_i', vx_(-i)^*) quad "for all" i, x_i'. $
 
-This condition is *individual*: it compares the status quo with a change by just one player, holding everyone else fixed. In a team game, however, two teammates may need to change their behavior together to achieve a higher common payoff, even if neither has an individually profitable deviation. Hence, Nash equilibria can be poor outcomes for the team, as in the communication-game example earlier in this lecture.
+This condition is *individual*: it compares the status quo with a change by just one player, holding everyone else fixed. In a team game, however, two teammates may need to change their behavior together to achieve a higher common payoff, even if neither has an individually profitable deviation. Hence, Nash equilibria can be poor outcomes for the team, as in the communication-game example earlier in this lecture (@thm-team-losing-nash).
 
 The problem becomes especially pronounced if there is just one team: we would like a solution concept to identify a *jointly optimal* team strategy, not merely a profile immune to unilateral changes.
 
