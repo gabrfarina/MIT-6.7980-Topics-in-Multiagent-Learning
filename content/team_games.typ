@@ -429,8 +429,13 @@ Since different players do not have access to the private observations of
 teammates (communication is only allowed before play begins), treating
 teammates as one merged player removes the notion of perfect recall. I.e.,
 Player 1 does not have the same infoset as teammate player 2 at a given
-decision point. Computing a TMECor is also hard, so we convert the original
-game tree into a new construction: a *team belief DAG* (TB-DAG).
+decision point. Computing a TMECor is also hard (@thm-team-sat), so we convert the original
+game tree into a new construction: a *team belief DAG* (TB-DAG), whose size
+depends on how much information the teammates do not share
+(@sec-team-information-asymmetry). Once built, the TB-DAG plays the role of the
+sequence form: a TMECor can be computed by a linear program over flows through
+it, or approximated by CFR on it (@sec-team-tbdag-flows and
+@sec-team-tbdag-regret).
 
 #bpar[The idea:] The two assumptions underlying TMECor are key to the TB-DAG
 construction. Recall:
@@ -447,7 +452,7 @@ knowledge_ for the team.
 
 == The construction
 
-Each game tree (left) is converted into its TB-DAG (right):
+Each game tree (left) is converted into its TB-DAG (right), as in @fig-tbdag-construction:
 
 #figure(
   image("figures/team_belief_dag/construction.svg", width: 100%),
@@ -537,11 +542,11 @@ $==>$ ${x, y, z}$ would stay as one belief.
 
 Why a DAG and not a tree? The answer is size constraints. Observe that the
 same belief can be reached along different paths. For example, in the TB-DAG
-above, the belief ${G}$ has two parents:
+above, the belief ${G}$ can be reached from two beliefs:
 
-- Parent 1: belief ${C}$: the answer sheet leads to observation point $G$,
+- From belief ${C}$: the answer sheet leads to observation point $G$,
   which becomes the belief ${G}$;
-- Parent 2: belief ${C, D}$: the answer sheet leads to observation point
+- From belief ${C, D}$: the answer sheet leads to observation point
   ${G, I}$, which splits since $G$ and $I$ are publicly distinguishable.
 
 A full tree of histories would have two separate copies of ${G}$ as leaves,
@@ -557,12 +562,117 @@ As such, the TB-DAG enables:
 - *Solving the team game as a single-player problem:* the constructed
   player's memory is common knowledge that can be accessed by the entire team
   $==>$ there is perfect recall $==>$ the sequence-form machinery that fails
-  on the merged team player applies to the TB-DAG. An optimal distribution
-  over flows through the DAG _is_ a TMECor.
+  on the merged team player applies to the TB-DAG. An optimal DAG-form
+  strategy gives an optimal realization vector, and a TMECor is a distribution
+  over joint plans that induces it (@cor-team-dag-saddle).
 - *Decentralized execution of the joint plan:* Since the plan is agreed in
   advance, each member can privately simulate everything the team as a whole
   can deduce $==>$ during play, every member knows the current belief and
   which prescription applies without any communication during the game.
+
+== Team strategies as flows <sec-team-tbdag-flows>
+
+We now write the TB-DAG in the notation of #lecture-link("efg_intro", <sec-tfdp-notation>)[tree-form decision processes]. The decision points $cal(J)$ are the beliefs, except the beliefs ${z}$ of terminal nodes $z in Z$, where the process ends. The actions $A_j$ at a decision point $j in cal(J)$ are its prescriptions. The observation points $cal(K)$ are the crossed squares, and we identify each of them with its label, the set of game-tree nodes where play may be. Prescription $a$ at $j$ leads to the observation point $rho(j, a) in cal(K)$, and every observation point is reached from exactly one pair $(j, a)$ #citep(<Zhang23:Team>, [Def.~A.1 and Alg.~1]). The set of sequences is $Sigma := {∅} union {j a : j in cal(J), a in A_j}$.
+
+In a tree-form decision process, each decision point $j$ has a single parent sequence $p_j$. In the TB-DAG a belief can be reached along several paths, so we collect its _parent sequences_
+$
+  cal(P)_j := {j' a' in Sigma : j "is a child of" rho(j', a')},
+$
+with $cal(P)_j := {∅}$ if $j$ is the root. The team does not choose the public observation, so an observation point passes its entire probability flow to each of its children, exactly as in the sequence form. The flow into $j$ is therefore the total flow on $cal(P)_j$.
+
+#definition[DAG-form strategies #citep(<Zhang23:Team>, [Sec.~2 and App.~A])][
+  The polytope of _DAG-form strategies_ of team ▲ is the convex polytope
+  $
+    cal(Q) := {vq in RR_(>= 0)^Sigma : #h(2em) vq[∅] = 1, #h(2em) sum_(a in A_j) vq[j a] = sum_(sigma in cal(P)_j) vq[sigma] quad forall j in cal(J)}.
+  $
+] <def-team-dag-form>
+
+If the TB-DAG is a tree, then $cal(P)_j = {p_j}$ for every $j$, and $cal(Q)$ is the #lecture-link("efg_intro", <sec-sequence-form>)[sequence-form polytope]. As there, local distributions $vtheta_j in Delta(A_j)$ at the decision points determine a DAG-form strategy, computed top-down by
+$
+  vq[∅] := 1, quad vq[j a] := vtheta_j [a] dot sum_(sigma in cal(P)_j) vq[sigma] quad "for all" j in cal(J), a in A_j.
+$
+Conversely, every $vq in cal(Q)$ arises in this way, from $vtheta_j [a] := vq[j a] \/ sum_(sigma in cal(P)_j) vq[sigma]$ when the denominator is positive and from any $vtheta_j$ otherwise. A _pure_ strategy picks one prescription at each decision point, so each of its $vtheta_j$ is a point mass.
+
+#example[DAG-form strategies in the TB-DAG of @fig-tbdag-construction][
+  Each sequence leads to its own observation point, so we index the entries of $vq$ by the labels of observation points. For instance, $vq[C F]$ is the flow on the prescription "left at $A$, right at $B$" at the root, and $vq[G I]$ is the flow on the prescription "left" at the belief ${C, D}$. Besides nonnegativity, the constraints of @def-team-dag-form are
+  $
+    cases(
+      vq[∅] = 1,
+      vq[C D] + vq[C F] + vq[D E] + vq[E F] = vq[∅],
+      vq[G] + vq[H] = vq[C F],
+      vq[G I] + vq[H J] = vq[C D],
+      vq[I] + vq[J] = vq[D E],
+      vq[K] + vq[L] = vq[D E] + vq[E F],
+      vq[M] + vq[N] = vq[C F] + vq[E F],
+    )
+  $
+  for the root ${A, B}$ and the beliefs ${C}$, ${C, D}$, ${D}$, ${E}$, and ${F}$. The beliefs ${E}$ and ${F}$ have two parent sequences each, so their right-hand sides have two terms.
+] <ex-team-dag-form>
+
+Which terminal nodes does a DAG-form strategy play to? A terminal node $z$ belongs to the label of every observation point at which play may end at $z$. There $z$ is a public observation on its own, since no teammate acts after $z$, so the next belief is ${z}$. The _realization vector_ of $vq in cal(Q)$ records the flow into each of these beliefs,
+$
+  vx^vq [z] := sum_(j a in Sigma : z in rho(j, a)) vq[j a] quad "for" z in Z.
+$
+In @ex-team-dag-form, $vx^vq [G] = vq[G] + vq[G I]$ and $vx^vq [K] = vq[K]$. The next theorem is the team analogue of the remark after @thm-team-bspp, that $cX$ is a linear image of the sequence-form polytope when the team is a single player with perfect recall.
+
+#theorem[DAG form and realization form #citep(<Zhang23:Team>, [Thm.~4.2 and App.~A])][
+  The linear map $vq |-> vx^vq$ maps $cal(Q)$ onto the realization polytope $cX$ of @def-team-realization. More precisely:
+  + For every joint plan $(pi_1, pi_2)$, the pure strategy that prescribes, at each belief, the actions of $(pi_1, pi_2)$ at the information sets meeting that belief has realization vector $vx^(pi_1, pi_2)$.
+  + For every $vq in cal(Q)$, choose a prescription at each decision point $j$ independently, from the distribution $vtheta_j$ that gives rise to $vq$. Each pure strategy has the realization vector of some joint plan, and the resulting distribution $vmu$ over joint plans satisfies $vx^vmu = vx^vq$.
+] <thm-team-dag-realization>
+#proof[
+  Claim 1 is shown in the first half of the proof of Theorem 4.2 #citep(<Zhang23:Team>, [App.~D.1]). It gives $V subset.eq {vx^vq : vq in cal(Q)}$, and since this set is convex, $cX = conv(V)$ is contained in it.
+
+  For claim 2, say that a pure strategy _reaches_ a node of the TB-DAG if it plays every prescription on some path from the root to that node. Two different paths to the same node last meet at a decision point, which they leave by different prescriptions #citep(<Zhang23:Team>, [Def.~A.1]), so a pure strategy reaches each node along at most one path. We show by induction in top-down order that the sampled strategy reaches each $j in cal(J)$ with probability $sum_(sigma in cal(P)_j) vq[sigma]$. This holds at the root. If it holds at $j$, the strategy reaches $rho(j, a)$ with probability $vtheta_j [a] dot sum_(sigma in cal(P)_j) vq[sigma] = vq[j a]$, since the choice at $j$ is independent of the choices above $j$. A belief is reached through at most one of its parents, so its probability is the sum over its parents, as claimed. By the same argument, the strategy reaches the terminal belief ${z}$ with probability $vx^vq [z]$. Finally, the second half of that proof #citep(<Zhang23:Team>, [App.~D.1]) constructs, for every pure strategy, a joint plan that plays to $z$ exactly when the pure strategy reaches ${z}$. Hence $vx^vmu = vx^vq$, which also shows $vx^vq in cX$.
+]
+
+With @thm-team-bspp, the TMECor problem becomes a saddle-point problem over $cal(Q)$.
+
+#corollary[TMECor over DAG-form strategies][
+  The TMECor value equals
+  $
+    max_(vq in cal(Q)) min_(vy in cY) (vx^vq)^top U vy.
+  $
+  A distribution $vmu in Delta(Pi_1 times Pi_2)$ is a TMECor if and only if $vx^vmu = vx^(vq^*)$ for some maxmin solution $vq^*$ of this problem.
+] <cor-team-dag-saddle>
+#proof[
+  By @thm-team-dag-realization, $vx^vq$ ranges over all of $cX$ as $vq$ ranges over $cal(Q)$. So the problem above has the value of the problem of @thm-team-bspp, and $vq$ is a maxmin solution of the former if and only if $vx^vq$ is one of the latter. @thm-team-bspp then gives both claims.
+]
+
+In particular, the distribution that @thm-team-dag-realization obtains from a maxmin solution $vq^*$ is a TMECor. Like the sequence-form polytope, $cal(Q)$ is described by one linear equality per decision point, so we can compute $vq^*$ by linear programming.
+
+#corollary[TMECor by linear programming][
+  Suppose that team ▼ is a single player with perfect recall. Then the TMECor value and a maxmin solution $vq^*$ of @cor-team-dag-saddle are given by a linear program whose size is linear in the number of edges of the TB-DAG plus the size of the game tree.
+] <cor-team-dag-lp>
+#proof[
+  By @sec-team-bspp, $cY = {vy^vw : vw in cal(Q)_3}$, where $cal(Q)_3$ is the sequence-form polytope of Player 3 and $vy^vw [z]$ is the entry of $vw$ at Player 3's last sequence on the path to $z$. For fixed $vq$, the inner problem $min_(vw in cal(Q)_3) (vx^vq)^top U vy^vw$ is a feasible and bounded linear program whose constraints do not depend on $vq$ and whose objective is linear in $vq$. By linear programming duality, its value equals that of its dual, in which $vq$ appears only in the right-hand sides of the constraints, linearly. Maximizing the dual objective jointly over $vq in cal(Q)$ and the dual variables is therefore a single linear program. Its constraint matrix consists of the constraints of $cal(Q)$, the transposed constraints of $cal(Q)_3$, and a block coupling the two, with at most as many nonzero entries as there are pairs of a sequence $j a$ and a terminal node $z in rho(j, a)$. Each such pair is an edge of the TB-DAG into the belief ${z}$.
+]
+
+If team ▼ is also a team, the same argument applies with its own TB-DAG in place of the sequence form of Player 3. This does not contradict @sec-team-sequence-form, which showed that, unless $"P" = "NP"$, no polynomial-time procedure gives a polynomial-size linear description of $cX$. The description of $cX$ as the linear image of $cal(Q)$ has the size of the TB-DAG, which is not polynomial in general. In the game $G_phi$ of @sec-team-sat, for instance, if every two clauses of $phi$ are linked by a chain of clauses that share variables, the root belief meets all $m$ information sets of Player 1, so it has one prescription for each way of pointing to a literal in every clause, $3^m$ of them when every clause has three literals. @sec-team-information-asymmetry bounds it in terms of the team's information asymmetry.
+
+== Regret minimization on the TB-DAG <sec-team-tbdag-regret>
+
+The TB-DAG also supports #lecture-link("learning_efg", <sec-cfr>)[CFR], with one local regret minimizer for $Delta(A_j)$ at each decision point $j in cal(J)$, which learns a distribution over prescriptions. The CFR pseudocode carries over with two changes, both due to beliefs with several parents #citep(<Zhang23:Team>, [Alg.~2]).
+- `NextStrategy` combines the local strategies $vtheta_j^((t))$ into $vq^((t)) in cal(Q)$ by the top-down rule above, with the total flow on the parent sequences $cal(P)_j$ in place of the entry $vx^((t))[p_j]$ of the parent sequence.
+- `ObserveUtility` computes the value of an observation point as the sum of the values of its children, as before. A belief with several parents is a child of each of them, so its value enters the value of each. The counterfactual utility of prescription $a$ at $j$ is again $vg^((t))[j a]$ plus the value of $rho(j, a)$.
+
+Here $vg^((t)) in RR^Sigma$ is the team's utility vector. Against a strategy $vy^((t)) in cY$ of team ▼, the team's utility $(vx^vq)^top U vy^((t))$ is linear in $vq$, with coefficients
+$
+  vg^((t))[j a] = sum_(z in Z inter rho(j, a)) (U vy^((t)))[z],
+$
+a sum over the terminal nodes at which play may end right after prescription $a$ at $j$.
+
+#theorem[CFR on the TB-DAG #citep(<Zhang23:Team>, [Thm.~4.3 and Cor.~A.4])][
+  Run CFR on the TB-DAG with regret matching at every decision point, against utility vectors whose entries lie in a fixed bounded range. After $T$ iterations, its regret is $O(sqrt(T))$ times the number of nodes of the TB-DAG, and each iteration takes time linear in the number of edges of the TB-DAG.
+] <thm-team-tbdag-cfr>
+
+To approximate a TMECor, team ▲ runs this algorithm and Player 3 runs CFR on its tree-form decision process, in the #lecture-link("learning_intro", <sec-learning-zero-sum>)[self-play setup] for the problem of @cor-team-dag-saddle. If team ▼ is also a team, it runs CFR on its own TB-DAG. Since $vq |-> vx^vq$ is linear and maps $cal(Q)$ onto $cX$ (@thm-team-dag-realization), the team's regret over $cal(Q)$ equals the regret of the realization vectors $vx^(vq^((t)))$ over $cX$. Let $overline(vq)$ and $overline(vy)$ be the averages of the iterates after $T$ iterations, let $overline(vx) := vx^overline(vq)$, and let $v^*$ be the TMECor value. By the #lecture-link("learning_intro", <thm-regret-gap>)[saddle-point gap theorem],
+$
+  min_(vy in cY) overline(vx)^top U vy >= max_(vx in cX) vx^top U overline(vy) - ("Reg"_cX^((T)) + "Reg"_cY^((T)))/T >= v^* - ("Reg"_cX^((T)) + "Reg"_cY^((T)))/T.
+$
+Both regrets are $O(sqrt(T))$, so the guarantee of $overline(vx)$ is within $O(1\/sqrt(T))$ of the TMECor value. @sec-team-information-asymmetry bounds the number of edges of the TB-DAG, and hence the time per iteration, in terms of the team's information asymmetry.
+
+To play, the teammates use randomness shared before play to choose a prescription at every decision point, as in claim 2 of @thm-team-dag-realization for $overline(vq)$. Each teammate then plays its part of the resulting joint plan. The team thus plays a distribution $overline(vmu)$ with $vx^overline(vmu) = overline(vx)$, which by @lem-team-utility guarantees the right-hand side above against every strategy of Player 3. By Carathéodory's theorem, as in @sec-team-realization-form, a distribution on at most $abs(Z) + 1$ joint plans also realizes $overline(vx)$.
 
 = Worked example: public information and shared randomness <sec-team-public-signal>
 
