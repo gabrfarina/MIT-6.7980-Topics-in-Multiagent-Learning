@@ -894,7 +894,7 @@ Given three reasonable and common assumptions, it becomes possible to compute hi
 + "Bad" team is a *minority* (reasonable in many games where e.g. majority voting is involved)
 + "Bad" team can *coordinate* (i.e. know each other's identities, can share randomness, etc.)
 
-Assuming no collapse of computational complexity classes, private communication and coordination are both necessary for efficient computation. Whether "Bad" team minority is required is still open. As found in #cite(<Carminati2023HRG>), here is a table of the state of the art knowledge of computational complexity in hidden-role equilibria:
+Assuming no collapse of computational complexity classes, private communication and coordination are both necessary for efficient computation. Whether "Bad" team minority is required is still open. As found in #cite(<CarminatiZFGS24>), here is a table of the state of the art knowledge of computational complexity in hidden-role equilibria:
 #figure(
 table(
   columns: 4,
@@ -1023,7 +1023,7 @@ This $f'$ computed with MPC is correct with high probability and thus has expect
 
 == An Application of Efficient Hidden-Role Equilibria
 
-The famous game _Avalon_ becomes solvable with $<7$ players, as the bad team can be treated as if they are coordinated #cite(<Carminati2023HRG>). Using the optimal zero sum game from Key Idea 2 with some (lossless) computational simplification, #cite(<Carminati2023HRG>) calculated optimum values with PCFR+ that are detailed in the table below:
+The famous game _Avalon_ becomes solvable with $<7$ players, as the bad team can be treated as if they are coordinated #cite(<CarminatiZFGS24>). Using the optimal zero sum game from Key Idea 2 with some (lossless) computational simplification, #cite(<CarminatiZFGS24>) calculated optimum values with PCFR+ that are detailed in the table below:
 
 #figure(
   table(
