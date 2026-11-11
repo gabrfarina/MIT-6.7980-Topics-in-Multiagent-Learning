@@ -335,7 +335,7 @@ In general we should not expect a repair like these four inequalities. A polynom
 = Computational hardness <sec-team-hardness>
 
 In a two-player zero-sum extensive-form game, the #lecture-link("efg_intro", <sec-sequence-form>)[sequence form] gives a maxmin strategy by a linear program of polynomial size. For teams, finding the value is NP-hard, even without an adversary. The reason is that the team, viewed as one player, can forget (@sec-team-imperfect-recall) what one teammate knew when the other acts.
-The reduction below is due to #citet(<Koller92:Complexity>), who phrased it as a single player with imperfect recall.
+The NP-hardness result is attributed to #citet(<Koller92:Complexity>, supplement: [Prop.~2.6]). In their reduction an adversary chooses a clause, and a single player with imperfect recall is shown its variables one at a time and assigns each without remembering the others. The version below, in which chance chooses the clause and two teammates play, is the proof of #citet(<Zhang23:Team>, supplement: [Thm.~C.1]). When the adversary is itself a team of several players, the TMECor value problem is $Delta_2^P$-complete (@thm-team-delta2).
 
 
 == The satisfiability reduction <sec-team-sat>
@@ -366,7 +366,7 @@ The nodes of Player 2 that see the same variable $x_i$ form one information set,
   Each clause is drawn with probability $1\/m$, and given clause $C_j$ the team gets $1$ exactly when the literal $pi_1 (j)$ is true under $pi_2$.
 ]
 
-#theorem[Team games are hard #citep(<Koller92:Complexity>)][
+#theorem[Team games are hard #citep(<Zhang23:Team>, [Thm.~C.1])][
   The team can win $G_phi$ with probability $1$ if and only if $phi$ is satisfiable. This holds both with and without correlation. Hence deciding whether the TME value, or the TMECor value, of a team game is $1$ is NP-hard, even when both teammates have perfect recall and there is no adversary.
 ] <thm-team-sat>
 #proof[
@@ -396,13 +396,26 @@ The gap $1\/8$ is the largest this reduction can give. A uniformly random assign
 
 == Teams against teams <sec-team-vs-team>
 
-So far team ▼ has been a single adversary. When team ▼ is also a team of several players, the problem becomes harder than NP, in a precise sense. Recall that $Delta_2^P$ is the class of decision problems that a polynomial-time algorithm can solve with access to a SAT oracle, which answers any satisfiability question in one step. It contains both NP and coNP, and it is believed to be strictly larger than both.
+So far team ▼ has been a single adversary. When team ▼ is also a team of several players, the problem becomes harder than NP. Recall that $Delta_2^P$ is the class of decision problems that a polynomial-time algorithm can solve with access to a SAT oracle, which answers any satisfiability question in one step. It contains both NP and coNP, and it is believed to be strictly larger than both. Likewise, $Sigma_2^P$ is the class of decision problems that a _nondeterministic_ polynomial-time algorithm can solve with a SAT oracle. It contains $Delta_2^P$, and it is believed to be strictly larger.
 
-#theorem[Teams against teams #citep(<Zhang23:Team>)][
-  Deciding whether the TMECor value of a team game is at least a given threshold is $Delta_2^P$-complete when both teams have several players. When team ▼ is a single player, as in @sec-team-sat, the same problem is NP-complete #citep(<Koller92:Complexity>).
+With two teams, we define the TME and TMECor values as in @thm-team-convexification, by $max_(vx in tcX) min_(vy in cY) vx^top U vy$ and by the same problem over $cX$, where $cY$ is now the realization polytope of team ▼. Whether team ▼ correlates does not matter, since some joint plan of team ▼ attains the minimum. Exact values raise a difficulty, as a TME may need irrational probabilities even when all payoffs are rational #citep(<Koller92:Complexity>, [Ex.~2.12]). The results are therefore stated for a _value problem_ with an error margin #citep(<Zhang23:Team>, [App.~C]). Its input is a team game, a threshold $v$, and an error $epsilon > 0$, all rational. The answer must be yes if the value is at least $v$ and no if it is less than $v - epsilon$, and the input is promised to fall in one of these two cases. Since $epsilon$ is written in binary, it can be exponentially small.
+
+#theorem[Complexity of the value problems][
+  + If team ▼ is a single player, the TMECor and TME value problems are NP-hard #citep(<Koller92:Complexity>, [Prop.~2.6]) and in NP #citep(<Zhang23:Team>, [Thms.~C.3 and~C.4]), so they are NP-complete.
+  + For games between two teams, each of which may have several players, the TMECor value problem is $Delta_2^P$-complete #citep(<Zhang23:Team>, [Thms.~C.7 and~C.8]), and the TME value problem is $Sigma_2^P$-complete #citep(<Zhang23:Team>, [Thms.~C.4 and~C.5]).
 ] <thm-team-delta2>
 
-Both directions explain where the extra power of the SAT oracle goes. For membership, the TMECor value is the value of a linear program over distributions of joint plans. The ellipsoid method solves it with polynomially many calls to a separation oracle, and each call asks for a best response of team ▼. When team ▼ is itself a team, computing that best response is NP-hard by @thm-team-sat, so the SAT oracle, combined with binary search on the best-response value, answers it. For hardness, #citet(<Zhang23:Team>) reduce from a $Delta_2^P$-complete variant of satisfiability. Without correlation the problem is harder still. Deciding the TME value of a team-vs-team game is $Sigma_2^P$-complete #citep(<Zhang23:Team>), another sign that the TME lacks the structure that correlation brings.
+NP-hardness holds even without an adversary. By @thm-team-sat-gap, the game $G_phi$ of @sec-team-sat has value $1$ if $phi$ is satisfiable and at most $1 - 1\/m$ otherwise, so the value problem with $v = 1$ and $epsilon = 1\/(2m)$ decides satisfiability. #citet(<Koller92:Complexity>) state hardness for an exact threshold, but their reduction has the same gap. They prove membership in NP only for pure strategies #citep(<Koller92:Complexity>, [Prop.~2.7]).
+
+Both directions of the second item explain where the extra power of the SAT oracle goes. For membership, the TMECor value is at least $v$ if and only if the convex set
+$
+  {vx in cX : vx^top U vy >= v "for all" vy in cY}
+$
+is nonempty. Up to the error that the promise allows, the ellipsoid method decides this with polynomially many calls to a separation oracle, which, given a point $vx$, either asserts that $vx$ lies in the set or returns a hyperplane that separates $vx$ from it. The oracle needs best responses of _both_ teams #citep(<Zhang23:Team>, [Thm.~C.7]). If $vx in.not cX$, a separating hyperplane can be computed by maximizing linear functions over $cX$, by the equivalence of separation and optimization, and each such maximization is a best response of team ▲, attained at a joint plan in $V$. If instead $vx^top U vy < v$ for some $vy in cY$, a minimizing $vy$ is a best response of team ▼. A best response of a team is NP-hard to compute in general (@thm-team-sat), but whether some joint plan has value at least $t$ is a question in NP. Binary search on $t$, followed by fixing the plan one action at a time, therefore finds a best response with polynomially many calls to a SAT oracle.
+
+With a single adversary, the best response of team ▼ is a linear program over its sequence form, but that of team ▲ is still NP-hard, so this argument gives only $Delta_2^P$. Membership in NP rests on a certificate instead #citep(<Zhang23:Team>, [Thm.~C.3]). By Carathéodory's theorem (@sec-team-realization-form), a TMECor can be taken to mix at most $abs(Z) + 1$ joint plans. These plans and their probabilities form a certificate of polynomial size, and a verifier computes the adversary's best response to it in polynomial time. For the TME, the certificate is an uncorrelated strategy whose probabilities are rounded to a precision that depends on $epsilon$ and on the size of the game #citep(<Zhang23:Team>, [Thm.~C.4]). The error $epsilon$ absorbs the loss from rounding.
+
+For hardness of the TMECor value problem between two teams, the reduction starts from a $Delta_2^P$-complete variant of satisfiability, which asks whether the last variable is true in the lexicographically last satisfying assignment of a formula, and gives each team one player per variable #citep(<Zhang23:Team>, [Thm.~C.8]). Without correlation the problem is harder still, unless the polynomial hierarchy collapses. For pure team strategies, the corresponding problem was already known to be $Sigma_2^P$-complete #citep(<Koller92:Complexity>, [Prop.~2.10]). The TME hardness proof #citep(<Zhang23:Team>, [Thm.~C.5]) gives team ▲ two players for each of its variables and penalizes them when their answers differ. Without shared randomness they can avoid the penalty only by playing nearly pure strategies, another sign that the TME lacks the structure that correlation brings.
 
 = The team belief DAG <sec-team-belief-dag>
 
