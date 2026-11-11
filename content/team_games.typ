@@ -86,14 +86,31 @@ For a two-player zero-sum game, the #lecture-link("learning_intro", <sec-learnin
   _Min-max._ If Player 3 guesses uniformly ($e = f = 1\/2$), it is wrong with probability $1\/2$ whatever the team does, so the team gets at most $1\/2$. Conversely, fix any $(e, f)$. The plan in which Player 1 sends the bit in the clear and Player 2 reads it ($a = c = 1$, $b = d = 0$) gets $1/2 (overline(e) + f)$, and the plan that sends the flipped bit ($a = c = 0$, $b = d = 1$) gets $1/2 (e + overline(f))$. The two values sum to $1$, so one of them is at least $1\/2$.
 ]
 
-The two orders of play explain the gap. In the min-max problem the adversary commits first, and the team then tailors its message to the adversary's known guesses. In the max-min problem the team commits first. A message that tells Player 2 anything about the bit then tells Player 3 the same thing, so the team can do no better than having Player 2 guess blindly. For instance, if Player 1 sends the bit in the clear, Player 3 copies Player 2's guess and the team gets $0$. The team's utility is not concave in $(a, b; c, d)$, so the minimax theorem does not apply (see @exr-team-bilinear). @sec-team-correlation shows that shared randomness closes the gap.
+The two orders of play explain the gap. In the min-max problem the adversary commits first, and the team then tailors its message to the adversary's known guesses. In the max-min problem the team commits first. A message that tells Player 2 anything about the bit then tells Player 3 the same thing, so the team can do no better than having Player 2 guess blindly. For instance, if Player 1 sends the bit in the clear, Player 3 reads the bit from the message, as Player 2 can, and the team gets $0$. The team's utility is not concave in $(a, b; c, d)$, so the minimax theorem does not apply (see @exr-team-bilinear). @sec-team-correlation shows that shared randomness closes the gap.
 
 
 == Why not Nash equilibrium? <sec-team-nash>
 
 We could instead treat the teammates as separate players and look for a #lecture-link("nfgs_nash", <def-nash-equilibrium>)[Nash equilibrium] of the three-player game. A Nash equilibrium is never better for the team than a TME. In a Nash equilibrium the adversary best-responds to the teammates' strategies $(vmu_1, vmu_2)$, so the team gets $min_vy EE[u(pi_1, pi_2, vy)]$, which is at most the TME value by @def-team-tme. #citet(<Stengel97:Team>) show that a TME, together with a suitable strategy of the adversary, is itself a Nash equilibrium. So the TME is the Nash equilibrium that the team likes best.
 
-Other Nash equilibria can be much worse for the team. A Nash equilibrium rules out only _unilateral_ deviations, and a team may be stuck where only a joint deviation helps.
+Other Nash equilibria can be much worse for the team. In the communication game, the team can even lose surely.
+
+#theorem[A losing Nash equilibrium][
+  In the communication game, the profile $(a, b; c, d; e, f) = (1, 0; 1, 0; 1, 0)$ is a Nash equilibrium of the three-player game, and under it the team gets $0$.
+] <thm-team-losing-nash>
+#proof[
+  Under this profile Player 1 sends the bit in the clear, left for $0$ and right for $1$, and after each message Players 2 and 3 both guess the bit that the message stands for. Both are always right, so the team gets $u(1, 0; 1, 0; 1, 0) = 0$. We check that no player gains by deviating alone.
+
+  _Player 3._ It gets $-u$, and $u >= 0$ for every profile, so no deviation gives Player 3 more than $0$.
+
+  _Player 1._ Fix $(c, d; e, f) = (1, 0; 1, 0)$. Players 2 and 3 then make the same guess after each message, so Player 3 is right whenever Player 2 is: each of the four terms of $u$ contains one of the factors $overline(c), d, overline(e), f$, which are all $0$. Hence $u(a, b; 1, 0; 1, 0) = 0$ for every $(a, b)$.
+
+  _Player 2._ Fix $(a, b; e, f) = (1, 0; 1, 0)$. Player 1 then reveals the bit, and Player 3 guesses it correctly after either message: each term of $u$ contains one of the factors $overline(a), b, overline(e), f$, which are all $0$. Hence $u(1, 0; c, d; 1, 0) = 0$ for every $(c, d)$.
+]
+
+The team gets $0$, although it can guarantee $1\/4$ (@thm-team-tme-values). A Nash equilibrium rules out only _unilateral_ deviations, and a team may be stuck where only a joint deviation helps. Against the same strategy of Player 3, the teammates would win surely by switching together to the flipped code $(a, b; c, d) = (0, 1; 0, 1)$, in which Player 1 sends right for $0$ and Player 2 guesses $0$ after right: $u(0, 1; 0, 1; 1, 0) = 1$. By the proof above, neither half of this switch gains anything on its own.
+
+In @thm-team-losing-nash each teammate is indifferent among all of its strategies. The next example shows that a bad equilibrium can also be strict, and that it needs no adversary.
 
 #example[Miscoordination][
   Two teammates each choose $L$ or $R$, and the adversary has no move. The team gets $1$ if both choose $L$, $epsilon in (0, 1)$ if both choose $R$, and $0$ otherwise. The TME value is $1$, attained at $(L, L)$. The profile $(R, R)$ is a Nash equilibrium, since a teammate that switches alone lowers the payoff from $epsilon$ to $0$. Its value $epsilon$ is arbitrarily far below the TME value.
