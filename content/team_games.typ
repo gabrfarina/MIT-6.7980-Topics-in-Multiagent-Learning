@@ -677,7 +677,7 @@ Finally, could we replace the dependence on $b$ and $k$ by $2^(O(k)) "poly"(N)$ 
 
   + *Team-dependent, opposing utilities.* There exists a common terminal payoff function $u: Z arrow RR$ such that, at every terminal history $z in Z$,
 
-    $ u_i(z) = cases(u(z) & "if" t_i = "MAX", -u(z) & "if" t_i = "MIN".) $
+    $ u_i (z) = cases(u(z) & "if" t_i = "MAX", -u(z) & "if" t_i = "MIN".) $
 ] <def-hidden-role-games>
 
 The game is _zero-sum between teams_: the teams have opposed objectives. If their sizes differ, the sum of all *individual* payoffs need not be zero and a suitable rescaling would need to be applied.
@@ -696,7 +696,7 @@ Our goal is to identify an appropriate notion of optimal play for team MAX. The 
 
 Recall that a Nash equilibrium is a strategy profile in which no player can increase their expected utility by changing their strategy unilaterally. If $vx^* = (x_1^*, dots, x_n^*)$ is a Nash equilibrium, then
 
-$ u_i(x_i^*, vx_(-i)^*) >= u_i(x_i', vx_(-i)^*) quad "for all" i, x_i'. $
+$ u_i (x_i^*, vx_(-i)^*) >= u_i (x_i', vx_(-i)^*) quad "for all" i, x_i'. $
 
 This condition is *individual*: it compares the status quo with a change by just one player, holding everyone else fixed. In a team game, however, two teammates may need to change their behavior together to achieve a higher common payoff, even if neither has an individually profitable deviation. Hence, Nash equilibria can be poor outcomes for the team, as in the communication-game example earlier in this lecture.
 
