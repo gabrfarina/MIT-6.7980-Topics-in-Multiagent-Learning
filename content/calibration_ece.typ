@@ -1,7 +1,7 @@
 #import "meta/gabri_notes.typ": *
 #show: gabri_notes.with(
   lec_num: 15,
-  date: [Thu, Nov 5, 2026],
+  date: [Tue, Nov 3, 2026],
   title: "Forecasting and calibration",
   instructor: [Prof. Gabriele Farina (`gfarina@mit.edu`)],
   extrathanks: [Expected calibration error section prepared by Ziyue Qiu (`ziyueqiu@mit.edu`).],
@@ -152,7 +152,7 @@ Now announce the distribution $D_t$ over forecasts while keeping the draw privat
 
 #ece-print(ece-privacy-story)
 
-With an unchanged 50--50 lottery, all-rain outcomes still give ECE 0.5. Which forecasts we draw must change with the history.
+With an unchanged 50--50 lottery, all-rain outcomes give expected ECE 0.5. Which forecasts we draw must change with the history.
 
 = Foster--Vohra's positive result <sec-ece-foster-vohra>
 
@@ -190,7 +190,7 @@ Positive means underprediction; negative means overprediction. Use the mean erro
 The lottery weights the next draw. The recorded ECE weights bucket gaps by the historical shares $N_q/T$.
 
 #ece-print[
-For example, if the errors at $0.25$ and $0.50$ are $0.50$ and $-0.25$, the draw chances are $1/3$ and $2/3$. If the second bucket goes from one rainy day in four to one in five, its mean error becomes $-0.30$ and the new lottery is $(3/8,5/8)$.
+For example, if the errors at $0.25$ and $0.50$ are $0.50$ and $-0.25$, the draw chances are $1/3$ and $2/3$. They balance the signed mean errors, $(1/3)(0.50)+(2/3)(-0.25)=0$. If the second bucket goes from one rainy day in four to one in five, its mean error becomes $-0.30$ and the new lottery is $(3/8,5/8)$.
 
 For $w_q=N_q/T$, Cauchy--Schwarz gives $"ECE"_T<=sqrt(sum_q w_q e_q^2)$. Set $V_T=T sum_q w_q e_q^2$. Empty buckets have weight zero.
 
@@ -541,13 +541,13 @@ Spacing $h=0.05$ gives an asymptotic expected ceiling of $0.025$. A finer grid p
 
 == Citation format
 
-Gabriele Farina. _Forecasting and calibration._ MIT 6.7980, Lecture 15, November 5, 2026. Expected calibration error section prepared by Ziyue Qiu.
+Gabriele Farina. _Forecasting and calibration._ MIT 6.7980, Lecture 15, November 3, 2026. Expected calibration error section prepared by Ziyue Qiu.
 
 == Review snapshot
 
-This Task 2 section is a draft for staff and group review. It preserves the required ECE narrative and labels the binary example as supplementary. The official course version requires staff review and merge.
+This Task 2 section is available for staff and group review. It preserves the required ECE narrative and labels the binary example as supplementary. The official course version requires staff review and merge.
 
-#link("https://github.com/gabrfarina/MIT-6.7980-Topics-in-Multiagent-Learning/pull/181")[Draft PR 181] · #link("https://ziyue-l15-ece-preview.qiuzy-william2019.chatgpt.site/calibration_ece")[Live review preview]
+#link("https://github.com/gabrfarina/MIT-6.7980-Topics-in-Multiagent-Learning/pull/181")[PR #181] · #link("https://ziyue-l15-ece-preview.qiuzy-william2019.chatgpt.site/calibration_ece")[Live review preview]
 
 == Other course notes
 
