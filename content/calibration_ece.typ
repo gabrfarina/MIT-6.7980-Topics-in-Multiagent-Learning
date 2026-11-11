@@ -27,7 +27,17 @@
 }
 
 
-How can we check whether probability forecasts agree with what happens? We first measure agreement on a recorded sequence, then ask whether a forecaster can achieve it against an adversarial outcome process. This section follows #citep(<Farina2026CalibrationSlides>, [slides 5--8]).
+#let ece-story-box(kind, body) = context {
+  if target() == "html" {
+    html.elem("div", attrs: (class: "ece-story-" + kind))[#body]
+  } else if kind == "insight" {
+    block(width: 100%, breakable: false, fill: luma(96%), inset: 7pt, body)
+  } else {
+    block(width: 100%, breakable: false, body)
+  }
+}
+
+A forecaster reports a 20% chance of rain on five days and an 80% chance on five other days. The average forecast is 50%, and it rains on five of the ten days. Is the forecaster calibrated? To answer, we need to check the days assigned each probability separately. Once we can score that record, we can ask what happens when Nature chooses the outcomes. This section follows #citep(<Farina2026CalibrationSlides>, [slides 5--8]).
 
 = Expected calibration error on a finite grid <sec-l15-ece-definition>
 
@@ -144,7 +154,7 @@ Using a bin midpoint instead of its mean forecast is a different statistic. More
 
 An adversarial process can invalidate calibration if it observes the _actual_ forecast before choosing the outcome. This is the classical impossibility obstruction #citep(<Oakes1985SelfCalibrating>, <Dawid1985CalibrationComment>). The following threshold version is used in the lecture and in #citep(<FosterVohra1998Calibration>, [Section 3]).
 
-The idea is to choose the outcome on the opposite side of the forecast: after a report of 0.2, choose one; after a report of 0.8, choose zero. Repeating a particular forecast then always produces the same contrary outcome, so each bucket stays far from its claimed frequency. The next claim makes this precise for _every_ possible forecast value.
+Return to the 20% and 80% buckets. Suppose Nature sees each new forecast and can decide whether it rains. It can make it rain on every 20% day and keep every 80% day dry. The observed rates become 100% and 0%, giving an 80 percentage point gap in each bucket. The claim below extends this argument to any forecast grid.
 
 #block(breakable: false)[
 #claim[Forecast-observing adversary][
@@ -168,13 +178,25 @@ To escape @clm-ece-adversary, change the information available to Nature. Let $D
 *Two probabilities play different roles.*
 If $D_t$ puts probability $1/2$ on each of $0.25$ and $0.75$, the coin chooses _which probability to report_. A draw of $p_t=0.75$ reports a 75% event forecast; the chance of choosing that report was 50%. The coin does not generate the event outcome.
 
-*A hidden coin changes what Nature can do.*
-Frames 2--4 have a strict order: announce $D_t$; Nature commits to a hidden $y_t$; privately draw and report $p_t$ without knowing $y_t$; reveal $y_t$ and update the history. Suppose Nature committed to one and the private coin selected $0.75$. The threshold response would require zero, but Nature can no longer switch. Had the coin selected $0.25$, that same committed one would have been the threshold response. The point is that one commitment cannot implement both responses to a draw that has not yet been seen. This removes the preceding impossibility argument while still allowing Nature to react to the history and $D_t$.
+#ece-story-box("protocol")[
+  #table(
+    columns: (1fr, 1fr), align: left, inset: (x: 8pt, y: 5pt),
+    stroke: .4pt + luma(86%),
+    table.header([*Nature sees the draw*], [*Nature sees the lottery*]),
+    [Nature can choose a different outcome for each draw.],
+    [A commitment to rain applies to either draw.],
+    [25% forecast: rain \ 75% forecast: no rain],
+    [25% forecast: rain \ 75% forecast: rain],
+  )
+]
+
+*Who commits first?*
+In frames 2--4, first announce $D_t$. Nature commits to a hidden $y_t$. The forecaster privately draws and reports $p_t$ without knowing $y_t$. Then reveal $y_t$ and update the history. In the table above, rain is the threshold response to $0.25$. The same commitment also applies to $0.75$, whose threshold response would have been no rain. Nature can use the history and $D_t$ to choose its commitment.
 
 Equivalently, the forecast and outcome may be drawn simultaneously, with the appropriate conditional independence. Nature can adapt to the past and observe the current distribution; it cannot condition the outcome on the current realized forecast. A point mass $D_t$ offers no such protection, because it reveals $p_t$ exactly. This protocol is the adaptive-adversary model of #citep(<FosterVohra1998Calibration>, [Section 3]).
 
 #figure(
-  image("figures/calibration_ece/ece_information_flow.svg", width: 100%,
+  image("figures/calibration_ece/ece_information_flow.svg", width: 90%,
     alt: "Six sequential frames. One: if Nature sees forecasts 0.25 or 0.75, it can respond with outcomes 1 or 0, forcing gaps of 0.75. Two: publish a 50-50 distribution over those forecasts and let Nature commit to a hidden outcome first. Three: privately draw forecast 0.75 without learning the outcome. Four: reveal the previously committed outcome 1; Nature cannot now switch to 0. Five: on one four-round trace each bucket receives outcomes 1 and 0, so ECE is 0.25. Six: the unchanged lottery still has expected ECE 0.5 against all-one outcomes; a suitable strategy must use the history."),
   caption: [Why privacy matters, in six frames. The gray diagonals mark agreement between the horizontal and vertical coordinates. Frames 2--3 plot _draw probabilities_; frames 1 and 4 plot outcomes; frames 5--6 plot _bucket frequencies_. Nature may use the announced distribution and history, but commits before seeing the current draw. The four-round record in frame 5 is an illustration, not a calibration guarantee.],
 ) <fig-l15-ece-protocol>
@@ -231,7 +253,7 @@ For a fixed positive tolerance it is this _excess_ error that is sublinear; one 
 
 == Supplement: a binary update for the ECE experiment <sec-l15-ece-adaptive>
 
-This supplementary binary example supplies the forecaster used in the ECE experiments. The general multicalibration algorithm is developed in the later lecture sections. The complete long-run proof for this example is in #ref(<sec-l15-ece-square-drift>, supplement: [Appendix]); its worked examples and interactive comparisons remain here.
+Follow one round to see how the strategy learns from its history. The initial lottery reports 25% with chance one third and 50% with chance two thirds. After observing the outcome, the strategy updates the selected bucket and recalculates the lottery. You can #link(<sec-l15-ece-experiment>)[try the round first] or work out the weights below. The complete long-run proof is in #ref(<sec-l15-ece-square-drift>, supplement: [Appendix]). Later lecture sections develop the general multicalibration algorithm.
 
 Here is the binary forecast-hedging procedure of #citep(<FosterHart2021Hedging>, [Section V, Theorem 12]). Fix an integer $m>=1$ and grid $Q={0,1/m,...,1}$ with spacing $h=1/m$. Before round $t$, store the past count $N_q$ and positive-outcome count $R_q$ for each bucket. Its _mean error_ is
 $ e_q := cases(R_q/N_q-q & "if" N_q>0, 0 & "if" N_q=0). $
@@ -275,6 +297,20 @@ The rule gives $D_(t)(0.25)=1/3$ and $D_(t)(0.50)=2/3$, since $(1/3)(0.5)+(2/3)(
 $ D_(t+1)(0.25)=frac(0.3,0.5+0.3)=3/8, quad D_(t+1)(0.50)=5/8. $
 Another zero made the higher forecast overpredict more, so the next lottery shifts toward the lower forecast. @fig-l15-ece-adaptive shows the update and a longer run.
 
+#ece-story-box("balance")[
+  *Expected signed mean error of the next selected bucket*
+  #table(
+    columns: (1fr, 1fr), align: center, inset: (x: 8pt, y: 5pt),
+    stroke: .4pt + luma(86%),
+    table.header([50% forecast], [25% forecast]),
+    [$2/3 times (-0.25) = -1/6$], [$1/3 times 0.50 = +1/6$],
+  )
+]
+
+#ece-story-box("insight")[
+  *Why these weights?* The 25% bucket has twice the absolute mean error, so the rule gives it half the draw probability. The two signed contributions sum to zero. Nature commits to the same outcome for both possible draws, so multiplying each contribution by that outcome still gives zero in the expected squared-error update. The closeness of the two forecasts bounds the remaining contribution from the forecast values. The #link(<sec-l15-ece-four-cases>)[four possible next records] show what the absolute ECE score does.
+]
+
 #figure(
   image("figures/calibration_ece/ece_adaptive.svg", width: 100%,
     alt: "Four panels: normalized errors plus 0.5 and minus 0.25 at adjacent forecasts 0.25 and 0.50; next-draw weights one third and two thirds; after outcome zero at forecast 0.50, its error becomes minus 0.3 and the weights become three eighths and five eighths; sampled checkpoints from a seeded 4000-round run on a finer grid show ECE becoming small with fluctuations."),
@@ -284,6 +320,12 @@ Another zero made the higher forecast overpredict more, so the next lottery shif
 === Try the interactive experiment <sec-l15-ece-experiment>
 
 In the #interactive-link("calibration_ece")[interactive experiment], commit an outcome before drawing the next forecast. The learner can see the committed outcome for teaching purposes, but the forecasting rule reads only the history and its frozen lottery. A commitment alone adds no data. A draw updates exactly one bucket.
+
+#ece-story-box("lab-steps")[
+  + *Commit 0.* The record still contains 11 rounds.
+  + *Draw once.* Check which forecast bucket gains a round.
+  + *Compare.* If you drew 0.50, ECE moves from 0.5227 to 0.5208 and the next chances become 3/8 and 5/8.
+]
 
 #context if target() == "html" {
   html.elem("div",attrs:(class:"ece-experiment-embed"))[
@@ -305,6 +347,10 @@ Both forecasts underpredict. Taking absolute values cannot cancel their errors.
 
 The history update rule can move its support to higher forecasts, eventually placing most next-draw probability on one in this example. Earlier bad buckets remain in the ECE calculation; as more observations enter better calibrated buckets, those old buckets have smaller historical weights $N_q/T$. This explains the different curves in @fig-l15-ece-comparison, without claiming a decrease after every round or for every finite run.
 
+#ece-story-box("insight")[
+  *Check the next-draw distributions after 1,000 rounds.* In the seeded all-one comparison, the fixed rule still draws only 0.25 or 0.50. The adaptive rule assigns 99.5% of its next draw to forecast 1. Its recorded ECE still includes the older, less calibrated forecasts.
+]
+
 *Reproduce the comparison.* In the experiment's _Compare fixed and adaptive forecasts_ panel, keep _Always 1_ and seed 20261105, then press _Run both to 1,000_. Both strategies start with the same eleven records and use the same uniform draw at each new round. Outcomes are predetermined before either draw. The reproducible seeded streams are an illustration, not a source of cryptographic privacy or a proof of the theorem. The comparison is separate from the single-round experiment; restarting it resets both comparison histories.
 
 #context if target()=="html" { html.elem("p")[#html.elem("a",attrs:(href:"interactive/calibration_ece.html#comparison"))[Open the comparison controls]] }
@@ -324,6 +370,10 @@ The history update rule can move its support to higher forecasts, eventually pla
 Try _Always 0_ or _Alternate 0, 1_, or change the seed and restart both histories. These are shared outcome sequences; a rule based on each strategy's own mean forecast would generally produce different outcomes and would answer a different comparison question.
 
 === Four possible next records <sec-l15-ece-four-cases>
+
+#ece-story-box("insight")[
+  *Compute each ECE first.* Start at 0.5227. If Nature commits to 1 and the coin selects 0.25, the recorded ECE rises to 0.5417. The other draw gives 0.4375. Averaging these two complete scores using one third and two thirds gives 0.4722 for that commitment. The calculation below explains this history. The long-run bound uses squared bucket errors.
+]
 
 Balancing the signed errors chooses the next lottery; it does not erase the absolute errors already recorded. To see what actually changes, keep the full initial history above. Write each bucket's _cumulative residual_ as $C_q:=R_q-N_q q=N_q e_q$. Then
 $ "ECE"_T=frac(1,T)sum_(q in Q)abs(C_q). $
