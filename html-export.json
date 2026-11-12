@@ -26,9 +26,17 @@
     "learning-algorithms": "slides/L05_learning_in_games.html"
   },
   "interactive_pages": {
-    "zero-sum-2xn": "interactive/zero_sum_2xn.html"
+    "zero-sum-2xn": "interactive/zero_sum_2xn.html",
+    "hidden-role-election": "interactive/hidden_role_election.html"
   },
   "notes": [
+    {
+      "source": "content/team_games.typ",
+      "supplementary": false,
+      "syllabus_ids": [
+        "team-games"
+      ]
+    },
     {
       "source": "content/nfgs_nash.typ",
       "supplementary": false,

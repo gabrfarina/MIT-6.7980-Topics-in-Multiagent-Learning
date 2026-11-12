@@ -116,9 +116,15 @@ def prepare_html_source(source: Path, chapter: dict) -> Path:
     content = relocate_source_paths(source, content)
     content = content.replace('/content/meta/gabri_notes.typ',
                               '/content/meta/gabri_notes_html.typ')
+    def html_figure_path(match: re.Match) -> str:
+        # These diagrams are SVG exports of the source PDFs, with no Typst
+        # figure source for the exporter to rebuild.
+        if match[1].startswith('mediator-hidden-role/'):
+            return match[0]
+        return '"/' + HTML_FIGURES.as_posix() + '/' + match[1] + '"'
+
     content = re.sub(r'"/content/figures/([^"\n]+\.svg)"',
-                     lambda match: '"/' + HTML_FIGURES.as_posix() + '/' + match[1] + '"',
-                     content)
+                     html_figure_path, content)
     target = ROOT / '.build' / 'html-source' / source.name
     write_if_changed(target, content)
     return target

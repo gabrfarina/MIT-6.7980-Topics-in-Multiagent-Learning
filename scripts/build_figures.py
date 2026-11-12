@@ -13,6 +13,8 @@ EXPORTER = ROOT / 'html-exporter/target/release/notes-html-exporter'
 
 # These are included by other figures rather than rendered on their own.
 SUPPORT_SOURCES = {
+    'team_belief_dag/pair.typ',
+    'team_games_tmecor/tree.typ',
     'kernelized/vertices.typ',
     'learning2/ftr_ent.typ',
     'learning2/ftr_euc.typ',
