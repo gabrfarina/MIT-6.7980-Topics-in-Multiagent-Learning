@@ -27,31 +27,58 @@
 // well best respond to it. Point back to the overview figure (forecasting route,
 // bottom arrow "Best response").
 
-If we can predict the future well, we can use that prediction to guide the best action. Forecasting is simpler than decision-making, because in decision-making, we also need to think of an action that is robust against every future. Forecasting is simpler than decision-making.
+In this section, we want to connect forecasting and decision-making together. The idea is simple: if we can predict the future well, we can use that prediction to decide what to do. If we knew the future exactly, we would simply play the best action against it. We do not know the future, but we can forecast it, and it turns out that best responding to a good forecast is already enough to guarantee low $Phi$-regret.
 
-The fact that we can reach an equilibrium in many games might be a result from the fact that we can predict the future well.
+Both problems involve an unknown future, but forecasting is the simpler of the two. A forecaster only has to report a prediction and is judged on how well that prediction matches what happens. A decision maker must also commit to an action, and that action has to perform well no matter which future arrives. The reduction in this section shows that, as far as $Phi$-regret is concerned, the harder problem can be solved by solving the easier one.
+
+This suggests a different way to read the results of earlier lectures. Learning dynamics converge to equilibria in many games, and one explanation is that the forecasting problems the players face are tractable. On this view, players can make good decisions because they can make good forecasts.
 
 == Best responding to forecasts <sec-calibration-best-response>
 
+What should the forecaster predict? For a decision maker, the unknown part of the future is the utility vector $vu^((t)) in cU$ that will determine how good each action turns out to be. We therefore forecast utilities: the forecasts live in the same set $cU$ as the utilities themselves, which is why we use the same letter for the forecasting domain and the utility set. Given a forecast, the decision maker plays an action that is optimal for it.
+
 #definition[Best-response map][
-  For the forecast utility vector $p in cU$, the best response can be chosen by $ sigma(p) in argmax_(vx in cX) ip(vx, p) $with a fixed tie-breaking rule.
+  The _best-response map_ $sigma: cU -> cX$ assigns to each forecast utility vector $p in cU$ an action
+  $
+    sigma(p) in argmax_(vx in cX) ip(vx, p),
+  $
+  where ties are broken by a fixed rule#footnote[For example, if rock and paper are both
+  best responses to $p$, the rule "pick the first action in a fixed order" always returns
+  rock. Any rule works, as long as it depends only on $p$: the tests
+  $h_phi.alt (p) = phi.alt(sigma(p)) - sigma(p)$ in @sec-calibration-tests are built from
+  $sigma$, so $sigma$ must give the same action every time it sees the same forecast.],
+  so that $sigma$ is a well-defined function.
 ] <def-calibration-best-response>
 
-The intuition behind this is that we are building a forecaster for future utility. We forecast the future utility $p tilde D_t$. Then, we select the best action $x = sigma(p)$. Lastly, we observed the real $u_t$ of the world. It turns out that this simple "choose the best action" strategy is very powerful. 
+Each round then has three steps. First, the forecaster announces a distribution $D^((t))$ over forecasts of the next utility, and we draw a forecast $p ~ D^((t))$. Second, we play the best response $vx^((t)) = sigma(p)$. Third, we observe the realized utility $vu^((t))$ and pass it to the forecaster as the outcome. 
+
+#figure(
+  image("figures/calibration_forecasting_to_learn/best_response_flow.svg", width: 85%,
+    alt: "Three boxes connected left to right by arrows: draw a forecast p from D superscript t; play the best response x superscript t equals sigma of p; observe the utility u superscript t."),
+  caption: [One round of best responding to a forecast. The forecast distribution $D^((t))$ determines the action distribution $mu^((t))$, the distribution of $sigma(p)$ for $p ~ D^((t))$.],
+) <fig-calibration-best-response-flow>
+
+One might expect that acting on a forecast requires some hedging, such as spreading weight over several actions in case the forecast is wrong. It turns out that this is unnecessary: playing the best response to the sampled forecast directly is enough, provided the forecaster is multicalibrated with respect to the right tests (@sec-calibration-tests).
 
 #pseudocode-list(numbered-title: [Forecast-then-best-respond learner])[
-  - *Data:* an $cH$-multicalibrated forecaster $cal(F)$; best-response map $sigma$.
+  - *Data:* $cal(F)$, a forecaster over $cU$ that is multicalibrated with respect to a set of tests $cH supset.eq cH_Phi$ (@def-calibration-deviation-tests); $sigma$, the best-response map of @def-calibration-best-response.
   + *function* `NextStrategy()`
-    + TODO: obtain $D^((t))$ from $cal(F)$.
-    + TODO: announce $mu^((t))$, the distribution of $sigma(p)$ for $p ~ D^((t))$.
-    + TODO: sample $p ~ D^((t))$ privately, play $sigma(p)$.
+    - Step 1: ask the forecaster for a distribution over forecasts of the next utility.
+    + $D^((t)) <- cal(F)$.`NextForecast()`
+    - Step 2: the forecasts determine the action distribution. This is the strategy we announce; Nature may know $mu^((t))$ before choosing $vu^((t))$.
+    + $mu^((t)) <-$ distribution of $sigma(p)$ for $p ~ D^((t))$
+    - Step 3: draw a forecast privately and best respond to it.
+    + sample $p^((t)) ~ D^((t))$
+    + *return* $vx^((t)) <- sigma(p^((t)))$
   + *function* `ObserveUtility`$(vu^((t)))$
-    + TODO: pass $vu^((t))$ to $cal(F)$ as the realized outcome.
+    - The realized utility is the outcome that the forecaster was trying to predict.
+    + $cal(F)$.`ObserveOutcome`$(vu^((t)))$
 ] <algo:calibration-best-response>
 
 #remark[
-  TODO: why $mu^((t))$ is announced but the sampled action stays hidden; why playing the
-  mean action $EE[sigma(p)]$ can change regret for nonlinear deviations $phi.alt$.
+ The world may choose $vu^((t))$ adversarially, and it may know $mu^((t))$ when it does so. It does not see the sampled forecast $p^((t))$, and therefore it does not see the action $sigma(p^((t)))$ that we play. Both parts of this protocol matter.
+
+  - _Why the sample stays hidden._ If the world could see $p^((t))$ before choosing $vu^((t))$, it could play against the forecast itself, as in the impossibility example for expected calibration error, and no forecaster could stay calibrated. Keeping the draw private is what avoids that example.
 ] <rem-calibration-hidden-action>
 
 == Choosing the tests <sec-calibration-tests>
