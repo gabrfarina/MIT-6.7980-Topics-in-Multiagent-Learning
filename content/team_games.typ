@@ -86,14 +86,31 @@ For a two-player zero-sum game, the #lecture-link("learning_intro", <sec-learnin
   _Min-max._ If Player 3 guesses uniformly ($e = f = 1\/2$), it is wrong with probability $1\/2$ whatever the team does, so the team gets at most $1\/2$. Conversely, fix any $(e, f)$. The plan in which Player 1 sends the bit in the clear and Player 2 reads it ($a = c = 1$, $b = d = 0$) gets $1/2 (overline(e) + f)$, and the plan that sends the flipped bit ($a = c = 0$, $b = d = 1$) gets $1/2 (e + overline(f))$. The two values sum to $1$, so one of them is at least $1\/2$.
 ]
 
-The two orders of play explain the gap. In the min-max problem the adversary commits first, and the team then tailors its message to the adversary's known guesses. In the max-min problem the team commits first. A message that tells Player 2 anything about the bit then tells Player 3 the same thing, so the team can do no better than having Player 2 guess blindly. For instance, if Player 1 sends the bit in the clear, Player 3 copies Player 2's guess and the team gets $0$. The team's utility is not concave in $(a, b; c, d)$, so the minimax theorem does not apply (see @exr-team-bilinear). @sec-team-correlation shows that shared randomness closes the gap.
+The two orders of play explain the gap. In the min-max problem the adversary commits first, and the team then tailors its message to the adversary's known guesses. In the max-min problem the team commits first. A message that tells Player 2 anything about the bit then tells Player 3 the same thing, so the team can do no better than having Player 2 guess blindly. For instance, if Player 1 sends the bit in the clear, Player 3 reads the bit from the message, as Player 2 can, and the team gets $0$. The team's utility is not concave in $(a, b; c, d)$, so the minimax theorem does not apply (see @exr-team-bilinear). @sec-team-correlation shows that shared randomness closes the gap.
 
 
 == Why not Nash equilibrium? <sec-team-nash>
 
 We could instead treat the teammates as separate players and look for a #lecture-link("nfgs_nash", <def-nash-equilibrium>)[Nash equilibrium] of the three-player game. A Nash equilibrium is never better for the team than a TME. In a Nash equilibrium the adversary best-responds to the teammates' strategies $(vmu_1, vmu_2)$, so the team gets $min_vy EE[u(pi_1, pi_2, vy)]$, which is at most the TME value by @def-team-tme. #citet(<Stengel97:Team>) show that a TME, together with a suitable strategy of the adversary, is itself a Nash equilibrium. So the TME is the Nash equilibrium that the team likes best.
 
-Other Nash equilibria can be much worse for the team. A Nash equilibrium rules out only _unilateral_ deviations, and a team may be stuck where only a joint deviation helps.
+Other Nash equilibria can be much worse for the team. In the communication game, the team can even lose surely.
+
+#theorem[A losing Nash equilibrium][
+  In the communication game, the profile $(a, b; c, d; e, f) = (1, 0; 1, 0; 1, 0)$ is a Nash equilibrium of the three-player game, and under it the team gets $0$.
+] <thm-team-losing-nash>
+#proof[
+  Under this profile Player 1 sends the bit in the clear, left for $0$ and right for $1$, and after each message Players 2 and 3 both guess the bit that the message stands for. Both are always right, so the team gets $u(1, 0; 1, 0; 1, 0) = 0$. We check that no player gains by deviating alone.
+
+  _Player 3._ It gets $-u$, and $u >= 0$ for every profile, so no deviation gives Player 3 more than $0$.
+
+  _Player 1._ Fix $(c, d; e, f) = (1, 0; 1, 0)$. Players 2 and 3 then make the same guess after each message, so Player 3 is right whenever Player 2 is: each of the four terms of $u$ contains one of the factors $overline(c), d, overline(e), f$, which are all $0$. Hence $u(a, b; 1, 0; 1, 0) = 0$ for every $(a, b)$.
+
+  _Player 2._ Fix $(a, b; e, f) = (1, 0; 1, 0)$. Player 1 then reveals the bit, and Player 3 guesses it correctly after either message: each term of $u$ contains one of the factors $overline(a), b, overline(e), f$, which are all $0$. Hence $u(1, 0; c, d; 1, 0) = 0$ for every $(c, d)$.
+]
+
+The team gets $0$, although it can guarantee $1\/4$ (@thm-team-tme-values). A Nash equilibrium rules out only _unilateral_ deviations, and a team may be stuck where only a joint deviation helps. Against the same strategy of Player 3, the teammates would win surely by switching together to the flipped code $(a, b; c, d) = (0, 1; 0, 1)$, in which Player 1 sends right for $0$ and Player 2 guesses $0$ after right: $u(0, 1; 0, 1; 1, 0) = 1$. By the proof above, neither half of this switch gains anything on its own.
+
+In @thm-team-losing-nash each teammate is indifferent among all of its strategies. The next example shows that a bad equilibrium can also be strict, and that it needs no adversary.
 
 #example[Miscoordination][
   Two teammates each choose $L$ or $R$, and the adversary has no move. The team gets $1$ if both choose $L$, $epsilon in (0, 1)$ if both choose $R$, and $0$ otherwise. The TME value is $1$, attained at $(L, L)$. The profile $(R, R)$ is a Nash equilibrium, since a teammate that switches alone lowers the payoff from $epsilon$ to $0$. Its value $epsilon$ is arbitrarily far below the TME value.
@@ -318,7 +335,7 @@ In general we should not expect a repair like these four inequalities. A polynom
 = Computational hardness <sec-team-hardness>
 
 In a two-player zero-sum extensive-form game, the #lecture-link("efg_intro", <sec-sequence-form>)[sequence form] gives a maxmin strategy by a linear program of polynomial size. For teams, finding the value is NP-hard, even without an adversary. The reason is that the team, viewed as one player, can forget (@sec-team-imperfect-recall) what one teammate knew when the other acts.
-The reduction below is due to #citet(<Koller92:Complexity>), who phrased it as a single player with imperfect recall.
+The NP-hardness result is attributed to #citet(<Koller92:Complexity>, supplement: [Prop.~2.6]). In their reduction an adversary chooses a clause, and a single player with imperfect recall is shown its variables one at a time and assigns each without remembering the others. The version below, in which chance chooses the clause and two teammates play, is the proof of #citet(<Zhang23:Team>, supplement: [Thm.~C.1]). When the adversary is itself a team of several players, the TMECor value problem is $Delta_2^P$-complete (@thm-team-delta2).
 
 
 == The satisfiability reduction <sec-team-sat>
@@ -349,7 +366,7 @@ The nodes of Player 2 that see the same variable $x_i$ form one information set,
   Each clause is drawn with probability $1\/m$, and given clause $C_j$ the team gets $1$ exactly when the literal $pi_1 (j)$ is true under $pi_2$.
 ]
 
-#theorem[Team games are hard #citep(<Koller92:Complexity>)][
+#theorem[Team games are hard #citep(<Zhang23:Team>, [Thm.~C.1])][
   The team can win $G_phi$ with probability $1$ if and only if $phi$ is satisfiable. This holds both with and without correlation. Hence deciding whether the TME value, or the TMECor value, of a team game is $1$ is NP-hard, even when both teammates have perfect recall and there is no adversary.
 ] <thm-team-sat>
 #proof[
@@ -379,13 +396,26 @@ The gap $1\/8$ is the largest this reduction can give. A uniformly random assign
 
 == Teams against teams <sec-team-vs-team>
 
-So far team ▼ has been a single adversary. When team ▼ is also a team of several players, the problem becomes harder than NP, in a precise sense. Recall that $Delta_2^P$ is the class of decision problems that a polynomial-time algorithm can solve with access to a SAT oracle, which answers any satisfiability question in one step. It contains both NP and coNP, and it is believed to be strictly larger than both.
+So far team ▼ has been a single adversary. When team ▼ is also a team of several players, the problem becomes harder than NP. Recall that $Delta_2^P$ is the class of decision problems that a polynomial-time algorithm can solve with access to a SAT oracle, which answers any satisfiability question in one step. It contains both NP and coNP, and it is believed to be strictly larger than both. Likewise, $Sigma_2^P$ is the class of decision problems that a _nondeterministic_ polynomial-time algorithm can solve with a SAT oracle. It contains $Delta_2^P$, and it is believed to be strictly larger.
 
-#theorem[Teams against teams #citep(<Zhang23:Team>)][
-  Deciding whether the TMECor value of a team game is at least a given threshold is $Delta_2^P$-complete when both teams have several players. When team ▼ is a single player, as in @sec-team-sat, the same problem is NP-complete #citep(<Koller92:Complexity>).
+With two teams, we define the TME and TMECor values as in @thm-team-convexification, by $max_(vx in tcX) min_(vy in cY) vx^top U vy$ and by the same problem over $cX$, where $cY$ is now the realization polytope of team ▼. Whether team ▼ correlates does not matter, since some joint plan of team ▼ attains the minimum. Exact values raise a difficulty, as a TME may need irrational probabilities even when all payoffs are rational #citep(<Koller92:Complexity>, [Ex.~2.12]). The results are therefore stated for a _value problem_ with an error margin #citep(<Zhang23:Team>, [App.~C]). Its input is a team game, a threshold $v$, and an error $epsilon > 0$, all rational. The answer must be yes if the value is at least $v$ and no if it is less than $v - epsilon$, and the input is promised to fall in one of these two cases. Since $epsilon$ is written in binary, it can be exponentially small.
+
+#theorem[Complexity of the value problems][
+  + If team ▼ is a single player, the TMECor and TME value problems are NP-hard #citep(<Koller92:Complexity>, [Prop.~2.6]) and in NP #citep(<Zhang23:Team>, [Thms.~C.3 and~C.4]), so they are NP-complete.
+  + For games between two teams, each of which may have several players, the TMECor value problem is $Delta_2^P$-complete #citep(<Zhang23:Team>, [Thms.~C.7 and~C.8]), and the TME value problem is $Sigma_2^P$-complete #citep(<Zhang23:Team>, [Thms.~C.4 and~C.5]).
 ] <thm-team-delta2>
 
-Both directions explain where the extra power of the SAT oracle goes. For membership, the TMECor value is the value of a linear program over distributions of joint plans. The ellipsoid method solves it with polynomially many calls to a separation oracle, and each call asks for a best response of team ▼. When team ▼ is itself a team, computing that best response is NP-hard by @thm-team-sat, so the SAT oracle, combined with binary search on the best-response value, answers it. For hardness, #citet(<Zhang23:Team>) reduce from a $Delta_2^P$-complete variant of satisfiability. Without correlation the problem is harder still. Deciding the TME value of a team-vs-team game is $Sigma_2^P$-complete #citep(<Zhang23:Team>), another sign that the TME lacks the structure that correlation brings.
+NP-hardness holds even without an adversary. By @thm-team-sat-gap, the game $G_phi$ of @sec-team-sat has value $1$ if $phi$ is satisfiable and at most $1 - 1\/m$ otherwise, so the value problem with $v = 1$ and $epsilon = 1\/(2m)$ decides satisfiability. #citet(<Koller92:Complexity>) state hardness for an exact threshold, but their reduction has the same gap. They prove membership in NP only for pure strategies #citep(<Koller92:Complexity>, [Prop.~2.7]).
+
+Both directions of the second item explain where the extra power of the SAT oracle goes. For membership, the TMECor value is at least $v$ if and only if the convex set
+$
+  {vx in cX : vx^top U vy >= v "for all" vy in cY}
+$
+is nonempty. Up to the error that the promise allows, the ellipsoid method decides this with polynomially many calls to a separation oracle, which, given a point $vx$, either asserts that $vx$ lies in the set or returns a hyperplane that separates $vx$ from it. The oracle needs best responses of _both_ teams #citep(<Zhang23:Team>, [Thm.~C.7]). If $vx in.not cX$, a separating hyperplane can be computed by maximizing linear functions over $cX$, by the equivalence of separation and optimization, and each such maximization is a best response of team ▲, attained at a joint plan in $V$. If instead $vx^top U vy < v$ for some $vy in cY$, a minimizing $vy$ is a best response of team ▼. A best response of a team is NP-hard to compute in general (@thm-team-sat), but whether some joint plan has value at least $t$ is a question in NP. Binary search on $t$, followed by fixing the plan one action at a time, therefore finds a best response with polynomially many calls to a SAT oracle.
+
+With a single adversary, the best response of team ▼ is a linear program over its sequence form, but that of team ▲ is still NP-hard, so this argument gives only $Delta_2^P$. Membership in NP rests on a certificate instead #citep(<Zhang23:Team>, [Thm.~C.3]). By Carathéodory's theorem (@sec-team-realization-form), a TMECor can be taken to mix at most $abs(Z) + 1$ joint plans. These plans and their probabilities form a certificate of polynomial size, and a verifier computes the adversary's best response to it in polynomial time. For the TME, the certificate is an uncorrelated strategy whose probabilities are rounded to a precision that depends on $epsilon$ and on the size of the game #citep(<Zhang23:Team>, [Thm.~C.4]). The error $epsilon$ absorbs the loss from rounding.
+
+For hardness of the TMECor value problem between two teams, the reduction starts from a $Delta_2^P$-complete variant of satisfiability, which asks whether the last variable is true in the lexicographically last satisfying assignment of a formula, and gives each team one player per variable #citep(<Zhang23:Team>, [Thm.~C.8]). Without correlation the problem is harder still, unless the polynomial hierarchy collapses. For pure team strategies, the corresponding problem was already known to be $Sigma_2^P$-complete #citep(<Koller92:Complexity>, [Prop.~2.10]). The TME hardness proof #citep(<Zhang23:Team>, [Thm.~C.5]) gives team ▲ two players for each of its variables and penalizes them when their answers differ. Without shared randomness they can avoid the penalty only by playing nearly pure strategies, another sign that the TME lacks the structure that correlation brings.
 
 = The team belief DAG <sec-team-belief-dag>
 
@@ -399,8 +429,13 @@ Since different players do not have access to the private observations of
 teammates (communication is only allowed before play begins), treating
 teammates as one merged player removes the notion of perfect recall. I.e.,
 Player 1 does not have the same infoset as teammate player 2 at a given
-decision point. Computing a TMECor is also hard, so we convert the original
-game tree into a new construction: a *team belief DAG* (TB-DAG).
+decision point. Computing a TMECor is also hard (@thm-team-sat), so we convert the original
+game tree into a new construction: a *team belief DAG* (TB-DAG), whose size
+depends on how much information the teammates do not share
+(@sec-team-information-asymmetry). Once built, the TB-DAG plays the role of the
+sequence form: a TMECor can be computed by a linear program over flows through
+it, or approximated by CFR on it (@sec-team-tbdag-flows and
+@sec-team-tbdag-regret).
 
 #bpar[The idea:] The two assumptions underlying TMECor are key to the TB-DAG
 construction. Recall:
@@ -417,20 +452,21 @@ knowledge_ for the team.
 
 == The construction
 
-Each game tree (left) is converted into its TB-DAG (right):
+Each game tree (left) is converted into its TB-DAG (right), as in @fig-tbdag-construction:
 
 #figure(
   image("figures/team_belief_dag/construction.svg", width: 100%),
-  caption: [A team game tree (left) and its team belief DAG (right).],
+  caption: [A team game (left) and its team belief DAG (right). Member 1 of team ▲ acts at $A$ and $B$; member 2 acts at $C$, $D$, $E$, and $F$, but cannot tell $C$ from $D$ (shaded). In the TB-DAG, as for the tree-form decision processes of Lecture 7, filled squares are decision points, labeled by their beliefs, crossed squares are observation points, and hollow squares end the process. Solid edges are prescriptions, and dashed edges are public observations.],
 ) <fig-tbdag-construction>
 
 - *Left: the team game tree.* Chance moves first. The first team member acts
   at $A$ or $B$ and knows which (separate infosets). The second member acts at
-  $C, D, E, F$ but cannot tell $C$ and $D$ apart (see dotted line to represent
-  this).
-- *Right: the TB-DAG.* The blue boxes represent decision points of the team,
-  while the white boxes represent observation points. The root is labeled
-  $A B$. After chance moves, only the acting team member knows whether play is
+  $C, D, E, F$ but cannot tell $C$ and $D$ apart (see the shaded band representing
+  this). Each player chooses left ($ell$) or right ($r$).
+- *Right: the TB-DAG.* The filled squares represent decision points of the team,
+  while the crossed squares represent observation points; hollow squares are
+  terminal beliefs, and dashed edges are public observations. The root is
+  labeled ${A, B}$. After chance moves, only the acting team member knows whether play is
   at $A$ or $B$ --- the other members do not see anything. The DAG tracks the
   team instead of the individual player. For each decision-point level, an
   observation point level is added below it, alternating between the two.
@@ -451,8 +487,10 @@ situation it might be in:
 
 #figure(
   image("figures/team_belief_dag/prescription.svg", width: 100%),
-  caption: [Each edge out of ${A, B}$ is one answer sheet. Two infosets, two
-    actions each $==>$ four sheets $==>$ four edges.],
+  caption: [The four prescriptions at the root belief ${A, B}$ (highlighted).
+    A prescription picks one action at each of the two information sets $A$
+    and $B$, so there are $2 times 2 = 4$. The label $ell r$, for instance,
+    means left at $A$ and right at $B$.],
 ) <fig-tbdag-prescription>
 
 #bpar[Prescriptions: the edges out of a belief node.] A prescription, as
@@ -460,7 +498,7 @@ shown above, is a pre-determined singular action for each infoset that meets
 the belief. Ex: ${A, B}$ meets two infosets with two actions each $==>$
 $2 times 2 = 4$ prescriptions $==>$ $4$ edges. Each edge has a different
 representation corresponding to the original game tree: the edge to $C D$
-says "left at $A$, left at $B$," while the edge to $C F$ says "left at $A$,
+(labeled $ell ell$) says "left at $A$, left at $B$," while the edge to $C F$ (labeled $ell r$) says "left at $A$,
 right at $B$." etc. The child's label is just where those deterministic
 choices can lead.
 
@@ -469,13 +507,15 @@ choices can lead.
 After the team commits to its answer sheet, others respond. An _observation
 point_ is simply "where could we be now?" For example, if a team starts at
 ${A, B}$, with the sheet ($A -> C$, $B -> D$), play could be at $C$ or $D$,
-which we denote in white with the observation point ${C, D}$.
+which we denote with the observation point ${C, D}$.
 
 #figure(
   image("figures/team_belief_dag/public_observation.svg", width: 100%),
-  caption: [After ($A -> C$, $B -> D$): the mover cannot tell $C$ from $D$
-    $==>$ ${C, D}$ stays one belief. After ($A -> C$, $B -> F$): everyone can
-    tell $C$ from $F$ $==>$ split into ${C}$ and ${F}$.],
+  caption: [Public observations after the prescriptions $ell ell$ and $ell r$
+    (highlighted). After $ell ell$, play is at $C$ or $D$, which member 2 cannot
+    tell apart, so the observation point $C D$ has the single child ${C, D}$.
+    After $ell r$, play is at $C$ or $F$, and no information set contains both,
+    so $C F$ splits into ${C}$ and ${F}$.],
 ) <fig-tbdag-public-observation>
 
 #bpar[The splitting rule (public observations):]
@@ -502,11 +542,11 @@ $==>$ ${x, y, z}$ would stay as one belief.
 
 Why a DAG and not a tree? The answer is size constraints. Observe that the
 same belief can be reached along different paths. For example, in the TB-DAG
-above, the belief ${G}$ has two parents:
+above, the belief ${G}$ can be reached from two beliefs:
 
-- Parent 1: belief ${C}$: the answer sheet leads to observation point $G$,
+- From belief ${C}$: the answer sheet leads to observation point $G$,
   which becomes the belief ${G}$;
-- Parent 2: belief ${C, D}$: the answer sheet leads to observation point
+- From belief ${C, D}$: the answer sheet leads to observation point
   ${G, I}$, which splits since $G$ and $I$ are publicly distinguishable.
 
 A full tree of histories would have two separate copies of ${G}$ as leaves,
@@ -522,12 +562,117 @@ As such, the TB-DAG enables:
 - *Solving the team game as a single-player problem:* the constructed
   player's memory is common knowledge that can be accessed by the entire team
   $==>$ there is perfect recall $==>$ the sequence-form machinery that fails
-  on the merged team player applies to the TB-DAG. An optimal distribution
-  over flows through the DAG _is_ a TMECor.
+  on the merged team player applies to the TB-DAG. An optimal DAG-form
+  strategy gives an optimal realization vector, and a TMECor is a distribution
+  over joint plans that induces it (@cor-team-dag-saddle).
 - *Decentralized execution of the joint plan:* Since the plan is agreed in
   advance, each member can privately simulate everything the team as a whole
   can deduce $==>$ during play, every member knows the current belief and
   which prescription applies without any communication during the game.
+
+== Team strategies as flows <sec-team-tbdag-flows>
+
+We now write the TB-DAG in the notation of #lecture-link("efg_intro", <sec-tfdp-notation>)[tree-form decision processes]. The decision points $cal(J)$ are the beliefs, except the beliefs ${z}$ of terminal nodes $z in Z$, where the process ends. The actions $A_j$ at a decision point $j in cal(J)$ are its prescriptions. The observation points $cal(K)$ are the crossed squares, and we identify each of them with its label, the set of game-tree nodes where play may be. Prescription $a$ at $j$ leads to the observation point $rho(j, a) in cal(K)$, and every observation point is reached from exactly one pair $(j, a)$ #citep(<Zhang23:Team>, [Def.~A.1 and Alg.~1]). The set of sequences is $Sigma := {∅} union {j a : j in cal(J), a in A_j}$.
+
+In a tree-form decision process, each decision point $j$ has a single parent sequence $p_j$. In the TB-DAG a belief can be reached along several paths, so we collect its _parent sequences_
+$
+  cal(P)_j := {j' a' in Sigma : j "is a child of" rho(j', a')},
+$
+with $cal(P)_j := {∅}$ if $j$ is the root. The team does not choose the public observation, so an observation point passes its entire probability flow to each of its children, exactly as in the sequence form. The flow into $j$ is therefore the total flow on $cal(P)_j$.
+
+#definition[DAG-form strategies #citep(<Zhang23:Team>, [Sec.~2 and App.~A])][
+  The polytope of _DAG-form strategies_ of team ▲ is the convex polytope
+  $
+    cal(Q) := {vq in RR_(>= 0)^Sigma : #h(2em) vq[∅] = 1, #h(2em) sum_(a in A_j) vq[j a] = sum_(sigma in cal(P)_j) vq[sigma] quad forall j in cal(J)}.
+  $
+] <def-team-dag-form>
+
+If the TB-DAG is a tree, then $cal(P)_j = {p_j}$ for every $j$, and $cal(Q)$ is the #lecture-link("efg_intro", <sec-sequence-form>)[sequence-form polytope]. As there, local distributions $vtheta_j in Delta(A_j)$ at the decision points determine a DAG-form strategy, computed top-down by
+$
+  vq[∅] := 1, quad vq[j a] := vtheta_j [a] dot sum_(sigma in cal(P)_j) vq[sigma] quad "for all" j in cal(J), a in A_j.
+$
+Conversely, every $vq in cal(Q)$ arises in this way, from $vtheta_j [a] := vq[j a] \/ sum_(sigma in cal(P)_j) vq[sigma]$ when the denominator is positive and from any $vtheta_j$ otherwise. A _pure_ strategy picks one prescription at each decision point, so each of its $vtheta_j$ is a point mass.
+
+#example[DAG-form strategies in the TB-DAG of @fig-tbdag-construction][
+  Each sequence leads to its own observation point, so we index the entries of $vq$ by the labels of observation points. For instance, $vq[C F]$ is the flow on the prescription "left at $A$, right at $B$" at the root, and $vq[G I]$ is the flow on the prescription "left" at the belief ${C, D}$. Besides nonnegativity, the constraints of @def-team-dag-form are
+  $
+    cases(
+      vq[∅] = 1,
+      vq[C D] + vq[C F] + vq[D E] + vq[E F] = vq[∅],
+      vq[G] + vq[H] = vq[C F],
+      vq[G I] + vq[H J] = vq[C D],
+      vq[I] + vq[J] = vq[D E],
+      vq[K] + vq[L] = vq[D E] + vq[E F],
+      vq[M] + vq[N] = vq[C F] + vq[E F],
+    )
+  $
+  for the root ${A, B}$ and the beliefs ${C}$, ${C, D}$, ${D}$, ${E}$, and ${F}$. The beliefs ${E}$ and ${F}$ have two parent sequences each, so their right-hand sides have two terms.
+] <ex-team-dag-form>
+
+Which terminal nodes does a DAG-form strategy play to? A terminal node $z$ belongs to the label of every observation point at which play may end at $z$. There $z$ is a public observation on its own, since no teammate acts after $z$, so the next belief is ${z}$. The _realization vector_ of $vq in cal(Q)$ records the flow into each of these beliefs,
+$
+  vx^vq [z] := sum_(j a in Sigma : z in rho(j, a)) vq[j a] quad "for" z in Z.
+$
+In @ex-team-dag-form, $vx^vq [G] = vq[G] + vq[G I]$ and $vx^vq [K] = vq[K]$. The next theorem is the team analogue of the remark after @thm-team-bspp, that $cX$ is a linear image of the sequence-form polytope when the team is a single player with perfect recall.
+
+#theorem[DAG form and realization form #citep(<Zhang23:Team>, [Thm.~4.2 and App.~A])][
+  The linear map $vq |-> vx^vq$ maps $cal(Q)$ onto the realization polytope $cX$ of @def-team-realization. More precisely:
+  + For every joint plan $(pi_1, pi_2)$, the pure strategy that prescribes, at each belief, the actions of $(pi_1, pi_2)$ at the information sets meeting that belief has realization vector $vx^(pi_1, pi_2)$.
+  + For every $vq in cal(Q)$, choose a prescription at each decision point $j$ independently, from the distribution $vtheta_j$ that gives rise to $vq$. Each pure strategy has the realization vector of some joint plan, and the resulting distribution $vmu$ over joint plans satisfies $vx^vmu = vx^vq$.
+] <thm-team-dag-realization>
+#proof[
+  Claim 1 is shown in the first half of the proof of Theorem 4.2 #citep(<Zhang23:Team>, [App.~D.1]). It gives $V subset.eq {vx^vq : vq in cal(Q)}$, and since this set is convex, $cX = conv(V)$ is contained in it.
+
+  For claim 2, say that a pure strategy _reaches_ a node of the TB-DAG if it plays every prescription on some path from the root to that node. Two different paths to the same node last meet at a decision point, which they leave by different prescriptions #citep(<Zhang23:Team>, [Def.~A.1]), so a pure strategy reaches each node along at most one path. We show by induction in top-down order that the sampled strategy reaches each $j in cal(J)$ with probability $sum_(sigma in cal(P)_j) vq[sigma]$. This holds at the root. If it holds at $j$, the strategy reaches $rho(j, a)$ with probability $vtheta_j [a] dot sum_(sigma in cal(P)_j) vq[sigma] = vq[j a]$, since the choice at $j$ is independent of the choices above $j$. A belief is reached through at most one of its parents, so its probability is the sum over its parents, as claimed. By the same argument, the strategy reaches the terminal belief ${z}$ with probability $vx^vq [z]$. Finally, the second half of that proof #citep(<Zhang23:Team>, [App.~D.1]) constructs, for every pure strategy, a joint plan that plays to $z$ exactly when the pure strategy reaches ${z}$. Hence $vx^vmu = vx^vq$, which also shows $vx^vq in cX$.
+]
+
+With @thm-team-bspp, the TMECor problem becomes a saddle-point problem over $cal(Q)$.
+
+#corollary[TMECor over DAG-form strategies][
+  The TMECor value equals
+  $
+    max_(vq in cal(Q)) min_(vy in cY) (vx^vq)^top U vy.
+  $
+  A distribution $vmu in Delta(Pi_1 times Pi_2)$ is a TMECor if and only if $vx^vmu = vx^(vq^*)$ for some maxmin solution $vq^*$ of this problem.
+] <cor-team-dag-saddle>
+#proof[
+  By @thm-team-dag-realization, $vx^vq$ ranges over all of $cX$ as $vq$ ranges over $cal(Q)$. So the problem above has the value of the problem of @thm-team-bspp, and $vq$ is a maxmin solution of the former if and only if $vx^vq$ is one of the latter. @thm-team-bspp then gives both claims.
+]
+
+In particular, the distribution that @thm-team-dag-realization obtains from a maxmin solution $vq^*$ is a TMECor. Like the sequence-form polytope, $cal(Q)$ is described by one linear equality per decision point, so we can compute $vq^*$ by linear programming.
+
+#corollary[TMECor by linear programming][
+  Suppose that team ▼ is a single player with perfect recall. Then the TMECor value and a maxmin solution $vq^*$ of @cor-team-dag-saddle are given by a linear program whose size is linear in the number of edges of the TB-DAG plus the size of the game tree.
+] <cor-team-dag-lp>
+#proof[
+  By @sec-team-bspp, $cY = {vy^vw : vw in cal(Q)_3}$, where $cal(Q)_3$ is the sequence-form polytope of Player 3 and $vy^vw [z]$ is the entry of $vw$ at Player 3's last sequence on the path to $z$. For fixed $vq$, the inner problem $min_(vw in cal(Q)_3) (vx^vq)^top U vy^vw$ is a feasible and bounded linear program whose constraints do not depend on $vq$ and whose objective is linear in $vq$. By linear programming duality, its value equals that of its dual, in which $vq$ appears only in the right-hand sides of the constraints, linearly. Maximizing the dual objective jointly over $vq in cal(Q)$ and the dual variables is therefore a single linear program. Its constraint matrix consists of the constraints of $cal(Q)$, the transposed constraints of $cal(Q)_3$, and a block coupling the two, with at most as many nonzero entries as there are pairs of a sequence $j a$ and a terminal node $z in rho(j, a)$. Each such pair is an edge of the TB-DAG into the belief ${z}$.
+]
+
+If team ▼ is also a team, the same argument applies with its own TB-DAG in place of the sequence form of Player 3. This does not contradict @sec-team-sequence-form, which showed that, unless $"P" = "NP"$, no polynomial-time procedure gives a polynomial-size linear description of $cX$. The description of $cX$ as the linear image of $cal(Q)$ has the size of the TB-DAG, which is not polynomial in general. In the game $G_phi$ of @sec-team-sat, for instance, if every two clauses of $phi$ are linked by a chain of clauses that share variables, the root belief meets all $m$ information sets of Player 1, so it has one prescription for each way of pointing to a literal in every clause, $3^m$ of them when every clause has three literals. @sec-team-information-asymmetry bounds it in terms of the team's information asymmetry.
+
+== Regret minimization on the TB-DAG <sec-team-tbdag-regret>
+
+The TB-DAG also supports #lecture-link("learning_efg", <sec-cfr>)[CFR], with one local regret minimizer for $Delta(A_j)$ at each decision point $j in cal(J)$, which learns a distribution over prescriptions. The CFR pseudocode carries over with two changes, both due to beliefs with several parents #citep(<Zhang23:Team>, [Alg.~2]).
+- `NextStrategy` combines the local strategies $vtheta_j^((t))$ into $vq^((t)) in cal(Q)$ by the top-down rule above, with the total flow on the parent sequences $cal(P)_j$ in place of the entry $vx^((t))[p_j]$ of the parent sequence.
+- `ObserveUtility` computes the value of an observation point as the sum of the values of its children, as before. A belief with several parents is a child of each of them, so its value enters the value of each. The counterfactual utility of prescription $a$ at $j$ is again $vg^((t))[j a]$ plus the value of $rho(j, a)$.
+
+Here $vg^((t)) in RR^Sigma$ is the team's utility vector. Against a strategy $vy^((t)) in cY$ of team ▼, the team's utility $(vx^vq)^top U vy^((t))$ is linear in $vq$, with coefficients
+$
+  vg^((t))[j a] = sum_(z in Z inter rho(j, a)) (U vy^((t)))[z],
+$
+a sum over the terminal nodes at which play may end right after prescription $a$ at $j$.
+
+#theorem[CFR on the TB-DAG #citep(<Zhang23:Team>, [Thm.~4.3 and Cor.~A.4])][
+  Run CFR on the TB-DAG with regret matching at every decision point, against utility vectors whose entries lie in a fixed bounded range. After $T$ iterations, its regret is $O(sqrt(T))$ times the number of nodes of the TB-DAG, and each iteration takes time linear in the number of edges of the TB-DAG.
+] <thm-team-tbdag-cfr>
+
+To approximate a TMECor, team ▲ runs this algorithm and Player 3 runs CFR on its tree-form decision process, in the #lecture-link("learning_intro", <sec-learning-zero-sum>)[self-play setup] for the problem of @cor-team-dag-saddle. If team ▼ is also a team, it runs CFR on its own TB-DAG. Since $vq |-> vx^vq$ is linear and maps $cal(Q)$ onto $cX$ (@thm-team-dag-realization), the team's regret over $cal(Q)$ equals the regret of the realization vectors $vx^(vq^((t)))$ over $cX$. Let $overline(vq)$ and $overline(vy)$ be the averages of the iterates after $T$ iterations, let $overline(vx) := vx^overline(vq)$, and let $v^*$ be the TMECor value. By the #lecture-link("learning_intro", <thm-regret-gap>)[saddle-point gap theorem],
+$
+  min_(vy in cY) overline(vx)^top U vy >= max_(vx in cX) vx^top U overline(vy) - ("Reg"_cX^((T)) + "Reg"_cY^((T)))/T >= v^* - ("Reg"_cX^((T)) + "Reg"_cY^((T)))/T.
+$
+Both regrets are $O(sqrt(T))$, so the guarantee of $overline(vx)$ is within $O(1\/sqrt(T))$ of the TMECor value. @sec-team-information-asymmetry bounds the number of edges of the TB-DAG, and hence the time per iteration, in terms of the team's information asymmetry.
+
+To play, the teammates use randomness shared before play to choose a prescription at every decision point, as in claim 2 of @thm-team-dag-realization for $overline(vq)$. Each teammate then plays its part of the resulting joint plan. The team thus plays a distribution $overline(vmu)$ with $vx^overline(vmu) = overline(vx)$, which by @lem-team-utility guarantees the right-hand side above against every strategy of Player 3. By Carathéodory's theorem, as in @sec-team-realization-form, a distribution on at most $abs(Z) + 1$ joint plans also realizes $overline(vx)$.
 
 = Worked example: public information and shared randomness <sec-team-public-signal>
 
@@ -577,16 +722,22 @@ In team belief DAG terms, the null signal leads to a belief containing all four 
 
 The team belief DAG (TB-DAG) represents a team's coordinated strategies without listing all of its pure joint plans. Its usefulness depends on how large this representation becomes. Following slides 18--21 #citep(<Zhang26:TeamGames>), we bound its size by counting the possibilities within each public state. The key parameter is the amount of information that individual teammates possess but that is not common knowledge within the team.
 
-Recall that a decision point contains a belief $B$, a set of possible game-tree nodes. A prescription specifies an action at each information set intersecting $B$. Applying that prescription produces an observation point; a subsequent public observation determines the next decision point. A public state groups histories that cannot be separated using the team's common knowledge. In particular, a public state may contain several beliefs, because past prescriptions can rule out different histories.
+Recall that a decision point contains a belief $B$, a set of possible game-tree nodes. A prescription specifies an action at each information set intersecting $B$. Applying that prescription produces an observation point; a subsequent public observation determines the next decision point. A public state groups histories that cannot be separated using the team's common knowledge. In particular, a public state may contain several beliefs, because past prescriptions can rule out different histories. Formally, public states are defined through a graph on the nodes of the game tree.
+
+#definition[Public state #citep(<Zhang23:Team>, [Defs.~4.1 and~6.1])][
+  The _connectivity graph_ $cal(G)$ of team ▲ has the nodes (histories) of the game tree as its vertices. Two distinct nodes $h$ and $h'$ at the same depth are adjacent in $cal(G)$ if some information set of a member of team ▲ contains both a node at or below $h$ and a node at or below $h'$. A _public state_ of team ▲ is a connected component of $cal(G)$. The public states of team ▼ are defined in the same way from its own information sets.
+] <def-team-public-state>
+
+If $h$ and $h'$ are adjacent, a teammate acting at such an information set cannot tell which of them occurred, so the distinction between them never becomes common knowledge of the team. In terms of $cal(G)$, the splitting rule of @sec-team-belief-dag splits an observation point $O$ into the connected components of the subgraph $cal(G)[O]$ induced by $O$, and each component becomes a decision point #citep(<Zhang23:Team>, [Sec.~4]). Such a component is connected in $cal(G)$, so every belief lies inside a single public state.
 
 == Branching factor and last-infosets
 
-Work in a finite, timeable, two-team zero-sum game with individual perfect recall. Timeability assigns equal times within each information set and increasing times along paths. Let $N$ be the tree size and $b$ its maximum branching factor; every information set then has at most $b$ actions.
+Work in a finite, timeable, two-team zero-sum game with individual perfect recall. Timeability assigns equal times within each information set and increasing times along paths. Following #citet(<Carminati26:Representations>, supplement: [Def.~2.3]), we take the time of a node to be its depth, so all nodes of an information set lie at the same depth. Let $N$ be the tree size and $b$ its maximum branching factor; every information set then has at most $b$ actions.
 
 To identify the information still relevant at a public state, consider the team as one merged player. An information set $J$ _remembers_ $I$ when every history in $J$ passes through $I$ and takes the same action there. At a history $h$, retain the information sets visited along $h$ that no later visited information set remembers; call these $"LI"(h)$, the _last-infosets_. They include the current information set when the team acts at $h$.
 
 #block(breakable: false)[
-#definition[Information asymmetry][
+#definition[Information asymmetry #citep(<Carminati26:Representations>, [Sec.~4.1])][
   For a public state $P$, let
   $
     cal(L)(P) := union_(h in P) "LI"(h), quad
@@ -597,7 +748,7 @@ To identify the information still relevant at a public state, consider the team 
 ] <def-team-information-asymmetry>
 ]
 
-This definition follows Carminati et al. #citep(<Carminati26:Representations>). The union over histories matters: $k$ is not the number of teammates, nor the number of last-infosets on one realized path. One teammate can have many possible private observations within the same public state, each giving a different last-infoset. Perfect recall removes older information sets remembered by that teammate's latest information set, but it does not make their private information public to the team.
+This definition follows Carminati et al. #citep(<Carminati26:Representations>). The parameter goes back to #citet(<Zhang23:Team>, supplement: [Def.~B.2]), who call a team game _$k$-private_ when every public state contains at most $k$ distinct latest information sets of individual teammates. Every last-infoset is the latest information set of some teammate, since by perfect recall a teammate's latest information set remembers its earlier ones #citep(<Carminati26:Representations>, [fn.~7]). So a $k$-private game has information asymmetry at most $k$. The union over histories matters: $k$ is not the number of teammates, nor the number of last-infosets on one realized path. One teammate can have many possible private observations within the same public state, each giving a different last-infoset. Perfect recall removes older information sets remembered by that teammate's latest information set, but it does not make their private information public to the team.
 
 At the symmetric-information extreme $k=1$, the team can be represented by a single perfect-recall player. There is then no collection of distinct private information sets on which a coordinator must simultaneously prescribe actions. Larger $k$ allows more such contingencies, even if the number of teammates stays fixed.
 
@@ -621,24 +772,43 @@ $
 Why does this count help? The reachability entries retain which histories are compatible with the team's choices. The action entries also specify the current prescription. Information sets omitted from the list are remembered by retained ones, so their relevant past actions need not be encoded again. Thus we count the decision-point/prescription possibilities together, instead of independently counting beliefs and then multiplying by all possible prescriptions.
 
 #example[
-  Suppose a public state has three last-infosets and each has actions $L$ and $R$. There are at most $3^3=27$ signatures. For example, $(⊥,L,R)$ says that the first information set is excluded by the joint team plan, while the other two prescribe $L$ and $R$. This is an upper bound: some signatures may violate the game's reachability constraints, and different signatures need not create different DAG nodes. If all three information sets must be reachable under every plan, only the $2^3=8$ action-only signatures remain.
+  Suppose a public state has three last-infosets and each has actions $ell$ and $r$. There are at most $3^3=27$ signatures. For example, $(⊥, ell, r)$ says that the first information set is excluded by the joint team plan, while the other two prescribe $ell$ and $r$. This is an upper bound: some signatures may violate the game's reachability constraints, and different signatures need not create different DAG nodes. If all three information sets must be reachable under every plan, only the $2^3=8$ action-only signatures remain.
 ]
 
 #figure(
   image("figures/team_games/last_infoset_signature.svg", width: 100%),
-  caption: [Encoding a plan at a public state with $k_P=3$ and $b=2$. Each last-infoset contributes $⊥$, $L$, or $R$; the highlighted choices give $(⊥,L,R)$. These are encoding choices, not branches of a game tree. Some combinations may be infeasible, so $27$ is an upper bound.],
+  caption: [Encoding a plan at a public state with $k_P=3$ and $b=2$. Each last-infoset contributes $⊥$, $ell$, or $r$; the highlighted choices give $(⊥, ell, r)$. These are encoding choices, not branches of a game tree. Some combinations may be infeasible, so $27$ is an upper bound.],
 ) <fig-team-last-infoset-signature>
 
-The lecture's $(b+1)^k$ bound captures this combinatorial part of the observation-point count. In a construction that further separates compatible histories into public-observation components, one signature may generate several disjoint components. Accounting for their incident edges gives the more explicit bound
+To make this precise, recall that a node is consistent with $pi$ when $pi$ prescribes every action of team ▲ on the path to it, and let $P^pi subset.eq P$ be the set of nodes of $P$ consistent with $pi$. The _prescription of $pi$_ at a decision point consists of the actions that $pi$ prescribes at the information sets meeting it. We say that $pi$ _leads to_ a decision point if some path from the root to it takes the prescription of $pi$ at every decision point on the way, and that $pi$ leads to the observation points that its prescriptions produce at these decision points. Every observation point is led to by some plan. Indeed, a path in the TB-DAG visits one decision point per depth, and each information set lies at a single depth, so the prescriptions along a path to an observation point never assign two actions to one information set, and they extend to a joint plan that leads to it.
+
+#lemma[Signatures determine observation points #citep(<Carminati26:Representations>, [proof of Thm.~6.2])][
+  Fix a public state $P$ and a pure joint plan $pi$.
+  + Whether $pi$ is consistent with a node of $P$ depends only on the signature of $pi$ at $P$. In particular, the signature determines $P^pi$.
+  + The decision points inside $P$ that $pi$ leads to are the connected components of $cal(G)[P^pi]$.
+  + At each of these decision points, the prescription of $pi$ consists of the entries of the signature at the information sets meeting it.
+  Hence the signature of $pi$ at $P$ determines the observation points that $pi$ leads to from decision points inside $P$, at most one per connected component of $cal(G)[P^pi]$.
+] <lem-team-signature>
+#proofsketch[
+  _Part 1._ Let $h in P$. Every information set $I$ visited along $h$ that is not in $"LI"(h)$ is remembered by a later visited one. Remembering is transitive, so the latest visited information set $J$ that remembers $I$ lies in $"LI"(h)$. Every node of $J$ passes through $I$ and takes there the action that the path to $h$ takes, so if $pi$ is consistent with some node of $J$, it prescribes that action at $I$. Hence $pi$ is consistent with $h$ if and only if, for each $J in "LI"(h)$, the signature at $J$ is not $⊥$ and, unless $h in J$, it equals the action taken at $J$ on the path to $h$. Since $"LI"(h) subset.eq cal(L)(P)$, this condition depends only on the signature.
+
+  _Part 2._ Let $S_t$ be the set of nodes at depth $t$ consistent with $pi$. We show by induction on $t$ that the decision points at depth $t$ that $pi$ leads to are the connected components of $cal(G)[S_t]$. At depth $0$ the only decision point is the root. If an information set contains a node at or below $h$, it contains a node at or below the parent of $h$, so the parents of two adjacent nodes coincide or are adjacent. Hence, if $h, h' in S_(t+1)$ are adjacent, the induction hypothesis puts their parents in one decision point $B'$ that $pi$ leads to. Then $h$ and $h'$ both lie in the observation point produced by the prescription of $pi$ at $B'$, and the splitting rule keeps them in one decision point. Every node of $S_(t+1)$ lies in the observation point produced at the decision point containing its parent, and these observation points are disjoint subsets of $S_(t+1)$. So the decision points at depth $t+1$ that $pi$ leads to are connected, disjoint, and cover $S_(t+1)$, and adjacent nodes share one. They are therefore the components of $cal(G)[S_(t+1)]$. Finally, the edges of $cal(G)$ join nodes of equal depth, so $P$ lies at a single depth $t$, and since $P$ is a connected component of $cal(G)$, the components of $cal(G)[S_t]$ that meet $P$ are those of $cal(G)[P^pi]$.
+
+  _Part 3._ If team ▲ acts at a node $h$ of such a decision point, the information set of $h$ lies in $"LI"(h) subset.eq cal(L)(P)$, and $pi$ is consistent with $h$ by part 2, so the signature records the action of $pi$ there.
+]
+
+By @lem-team-signature, the observation points whose decision points lie in $P$ number at most $abs(P) (b+1)^(k_P)$: there are at most $(b+1)^(k_P)$ signatures, and $cal(G)[P^pi]$ has at most $abs(P)$ components.
+
+The lecture's $(b+1)^k$ bound captures this combinatorial part of the observation-point count. The TB-DAG of @sec-team-belief-dag further separates compatible histories into public-observation components, so one signature may generate several disjoint components. Accounting for their incident edges gives the more explicit bound
 $
   E <= N (b+1)^(k+1)
       = (b+1)^k dot N(b+1),
 $
-where $E$ is the number of TB-DAG edges; see Theorem 6.2 of Carminati et al. #citep(<Carminati26:Representations>). In either convention, the exponential dependence is on $k$, with only a polynomial factor in the original tree size.
+where $E$ is the number of TB-DAG edges; see Theorem 6.2 of Carminati et al. #citep(<Carminati26:Representations>). In either convention, the exponential dependence is on $k$, with only a polynomial factor in the original tree size. For $k$-private games, #citet(<Zhang23:Team>, supplement: [Thm.~B.3]) state the bound as $O^*((b+1)^k)$, where $O^*$ hides factors polynomial in the size of the game.
 
 == Consequences for regret minimization
 
-The TB-DAG supports regret minimization directly #citep(<Zhang23:Team>). A CFR iteration propagates values through the DAG and updates local regrets, with work proportional to its representation size. Consequently, the size bound gives
+The TB-DAG supports regret minimization directly #citep(<Zhang23:Team>, [Thm.~4.3]); see @sec-team-tbdag-regret. A CFR iteration propagates values through the DAG and updates local regrets, with work proportional to its representation size. Consequently, the size bound gives
 $
   "time per CFR iteration"
     = O(N(b+1)^(k+1))
@@ -652,6 +822,8 @@ Second, *the representation may still be large*. Even with binary actions, the c
 
 Third, *this is a per-iteration bound*. Running $T$ CFR iterations costs $O(T N(b+1)^(k+1))$, apart from constructing the representation. The accuracy of the averaged strategies depends on the regret accumulated over those iterations. The size bound alone does not specify how many iterations achieve a requested approximation error, and one iteration does not compute an exact equilibrium.
 
+The regret bound of CFR also bounds the number of iterations. Suppose that the payoffs lie in $[-1, 1]$ and that both teams run CFR on their TB-DAGs with #lecture-link("learning1", <sec-mwu>)[multiplicative weights] as the local regret minimizer. After $T$ iterations, the average strategies form an $O(epsilon_T)$-approximate equilibrium, where $epsilon_T := N sqrt(k log(b) \/ T)$ #citep(<Carminati26:Representations>, [Thms.~4.13 and~6.3]). So the team's average strategy guarantees the TMECor value up to $O(epsilon_T)$, and $T = O(N^2 k log(b) \/ epsilon^2)$ iterations, or $O(N^3 (b+1)^(k+1) k log(b) \/ epsilon^2)$ total time, suffice for accuracy $epsilon$. The iteration count is polynomial because a single plan leads to at most $N$ decision points, which are disjoint by @lem-team-signature, so the regret bound of CFR adds up at most $N$ local regrets. Moreover, multiplicative weights pays only $log(b^k) = k log b$ for the at most $b^k$ prescriptions at a decision point, whose information sets are among the last-infosets of its public state #citep(<Carminati26:Representations>, [Sec.~4.5]).
+
 == How much improvement should we expect?
 
 Slide 21 uses bridge to illustrate the scale of the savings. Its rough estimates are $N approx 2^200$, $b < 2^6$, and $k approx binom(52,13) < 2^40$. Plugging these estimates into the counting term yields
@@ -660,7 +832,7 @@ $
 $
 This is much smaller than the slide's naive normal-form estimate of roughly $2^(2^200)$, even after allowing polynomial overhead in $N$. Both quantities remain enormous. The comparison demonstrates the benefit of organizing computation around private-information contingencies; it is not a practical running-time prediction for solving bridge.
 
-Finally, could we replace the dependence on $b$ and $k$ by $2^(O(k)) "poly"(N)$ in general? The lecture rules this out assuming $"FPT" != "W[1]"$, a standard parameterized-complexity assumption weaker than the Exponential Time Hypothesis. Even the exact mixed-strategy value problem for one imperfect-recall player admits no $f(k) "poly"(N)$ algorithm under that assumption #citep(<Carminati26:Representations>). There is no contradiction with the constant-$k$ guarantee: in $N(b+1)^(k+1)$ the exponent of $N$ may grow with $k$, whereas the exponent in $f(k) "poly"(N)$ must be independent of $k$. Extra structure can still make particular game families easier.
+Finally, could we replace the dependence on $b$ and $k$ by $2^(O(k)) "poly"(N)$ in general? The lecture rules this out assuming $"FPT" != "W[1]"$, a standard parameterized-complexity assumption weaker than the Exponential Time Hypothesis. Even the exact mixed-strategy value problem for one imperfect-recall player admits no $f(k) "poly"(N)$ algorithm under that assumption #citep(<Carminati26:Representations>, [Thm.~6.5]). The exponential dependence on $k$ is also necessary: assuming the Exponential Time Hypothesis, no algorithm finds an optimal strategy for such a player in time $2^(o(k)) "poly"(N)$ #citep(<Carminati26:Representations>, [Cor.~7.2]). There is no contradiction with the constant-$k$ guarantee: in $N(b+1)^(k+1)$ the exponent of $N$ may grow with $k$, whereas the exponent in $f(k) "poly"(N)$ must be independent of $k$. Extra structure can still make particular game families easier.
 
 = Hidden-role games <sec-hidden-role-games>
 
@@ -698,7 +870,7 @@ Recall that a Nash equilibrium is a strategy profile in which no player can incr
 
 $ u_i (x_i^*, vx_(-i)^*) >= u_i (x_i', vx_(-i)^*) quad "for all" i, x_i'. $
 
-This condition is *individual*: it compares the status quo with a change by just one player, holding everyone else fixed. In a team game, however, two teammates may need to change their behavior together to achieve a higher common payoff, even if neither has an individually profitable deviation. Hence, Nash equilibria can be poor outcomes for the team, as in the communication-game example earlier in this lecture.
+This condition is *individual*: it compares the status quo with a change by just one player, holding everyone else fixed. In a team game, however, two teammates may need to change their behavior together to achieve a higher common payoff, even if neither has an individually profitable deviation. Hence, Nash equilibria can be poor outcomes for the team, as in the communication-game example earlier in this lecture (@thm-team-losing-nash).
 
 The problem becomes especially pronounced if there is just one team: we would like a solution concept to identify a *jointly optimal* team strategy, not merely a profile immune to unilateral changes.
 
@@ -850,100 +1022,50 @@ Bad has no useful announcement: saying Good elects Good', saying Good' elects Go
   This also explains a feature of Avalon discussed later in the lecture. A game with Merlin and two Mordreds is not simply Resistance followed by an independent $1/3$ chance of identifying Merlin: the distinguishable Merlin card gives the Good team implicit correlation.
 ]
 
-#let custom-thm(
-  title: "Theorem",
-  number: none,        // e.g., "1.2", "A", or none for unnumbered
-  name: none,          // e.g., "Pythagoras"
-  color: blue,         // accent color for border & header
-  fill: black,
-  body,
-) = block(
-  fill: color.lighten(90%),
-  stroke: (left: 3pt + color),
-  inset: (left: 1em, rest: 0.8em),
-  radius: 4pt,
-  width: 100%,
-  {
-    // Build the header line
-    let header = {
-      set text(weight: "bold", fill: color.darken(20%))
-      title
-      if number != none {
-        [ ]
-        number
-      }
-      if name != none {
-        [ (]
-        name
-        [)]
-      }
-      [.]
-    }
-    header
-    body
-  }
-)
-#let star = $""^ast$
-#let val(a, cmp, b, c, marked: false) = box[$#a #h(0.14em) #sym.slash #h(0.14em) #b #cmp #c #h(0.05em) #(if marked { star })$]
-= Computation of Hidden-Role Equilibria
-== Results Overview
+= Computation of hidden-role equilibria <sec-hidden-role-computation>
+
+A hidden-role equilibrium is a team maxmin equilibrium of the split-personality game (@def-hidden-role-equilibrium), and team maxmin equilibria are NP-hard to compute even without an adversary (@thm-team-sat). Hidden roles add a further difficulty because the communication parameters $M$ and $R$ are part of the optimization. The value is a supremum over all of them, so a priori it may only be approached by ever longer communication, and it is not clear that it can be computed at all. Throughout, we call team MAX _Good_ and team MIN _Bad_, as in @sec-l12-election-example, and write $k$ for the number of Bad players.
+
+== Results overview <sec-hidden-role-overview>
 
 Given three reasonable and common assumptions, it becomes possible to compute hidden-role equilibria efficiently! The criteria are:
 
-+ *Private communication* between any pair of players, which can be implemented e.g. by public-key encryption (still viable as of Nov. 2026)
-+ "Bad" team is a *minority* (reasonable in many games where e.g. majority voting is involved)
-+ "Bad" team can *coordinate* (i.e. know each other's identities, can share randomness, etc.)
++ *Private communication* between any pair of players, which can be implemented e.g. by public-key encryption if the "Bad" team is computationally bounded (still viable as of Nov. 2026)
++ "Bad" team is a *minority*, $k < n\/2$ (reasonable in many games where e.g. majority voting is involved)
++ "Bad" team can *coordinate* (i.e. know each other's identities, can share randomness, etc.). Formally, in the coordinated split-personality form $"CSplit"(Gamma)$ of @sec-split-personality, a single adversary observes everything the Bad players observe and chooses all their actions #citep(<CarminatiZFGS24>, [Def.~3.4]).
 
-Assuming no collapse of computational complexity classes, private communication and coordination are both necessary for efficient computation. Whether "Bad" team minority is required is still open. As found in #cite(<Carminati2023HRG>), here is a table of the state of the art knowledge of computational complexity in hidden-role equilibria:
+Assuming no collapse of computational complexity classes, private communication and coordination are both necessary for efficient computation. Whether "Bad" team minority is required is still open. As found in #citet(<CarminatiZFGS24>), here is a table of the state of the art knowledge of computational complexity in hidden-role equilibria:
 #figure(
-table(
-  columns: 4,
-  stroke: 0.5pt,
-  align: center + horizon,
-
-  // Header
-  [*Adversary Team Assumptions*],
-  table.cell(colspan: 3)[*Communication Type*],
-
-  [],
-  [*None*],
-  [*Public*],
-  [*Private*],
-
-  // Coordinated rows
-  [*Coordinated, Minority*],
-  table.cell(rowspan: 2)[NP-complete],
-  table.cell(rowspan: 2)[NP-hard],
-  [P],
-
-  [*Coordinated*],
-  [_open_],
-
-  // Uncoordinated rows
-  [*Minority*],
-  table.cell(rowspan: 2)[$Sigma_2^P$-complete],
-  table.cell(rowspan: 2)[$Sigma_2^P$-hard],
-  table.cell(rowspan: 2)[coNP-hard],
-
-  [*None*],
-),
-caption: [
+  kind: table,
+  supplement: [Table],
+  caption: [
     Complexity results for computing hidden-role value with a constant number of players, for various assumptions about the adversary team and notions of communication.
-  ]
-)
+  ],
+)[
+  #table(
+    stroke: none,
+    columns: 4,
+    align: left + top,
+    inset: .7em,
+    table.header([*Bad team*], [*No communication*], [*Public*], [*Private*]),
+    [coordinated, minority], [NP-complete], [NP-hard], [P],
+    [coordinated], [NP-complete], [NP-hard], [_open_],
+    [minority], [$Sigma_2^P$-complete], [$Sigma_2^P$-hard], [coNP-hard],
+    [neither], [$Sigma_2^P$-complete], [$Sigma_2^P$-hard], [coNP-hard],
+  )
+] <tab-hidden-role-complexity>
 
 Let us now sketch a proof of this theorem, more directly stated as follows:
-#custom-thm(
-  title: "Theorem",
-  number: "12.Y",
-  name: "Efficient Hidden-Role Equilibria",
-)[
-  Consider a hidden-role game $Gamma$ with $n$ players, $k$ of which are on the bad team. All players can communicate pairwise privately and all the bad players can be coordinated as if they were a single player. If $k < n\/2$, then there exists a poly-time $epsilon$-approximation of the hidden-role equilibrium for the good players.
-]
+#theorem[Efficient hidden-role equilibria #citep(<CarminatiZFGS24>, [Thms.~4.3 and~B.3])][
+  Consider a hidden-role game $Gamma$ with $n$ players, $k$ of which are on the bad team. All players can communicate pairwise privately and all the bad players can be coordinated as if they were a single player. If $k < n\/2$, then the value of $Gamma$ equals the value of a two-player zero-sum game of size $abs(H)^(O(k))$, and so it can be computed in time $abs(H)^(O(k))$, where $abs(H)$ is the number of histories of $Gamma$, and the good players can compute and play an $epsilon$-approximation of the hidden-role equilibrium in time $"poly"(abs(H)^k, log(1\/epsilon))$, with messages of $"poly"(abs(H)^k, log(1\/epsilon))$ bits and as many rounds of communication per move.
+] <thm-hidden-role-efficient>
 
-== Proof Sketch using a Mediated-Hidden-Role Game
+The running time is polynomial in the size of the game for every fixed number $k$ of Bad players, but the degree of the polynomial grows with $k$. This mirrors the team belief DAG, whose size is polynomial for every fixed information asymmetry but has an exponent that grows with it (@sec-team-information-asymmetry). The accuracy $epsilon$ enters only through the length and number of messages, as $log(1\/epsilon)$. In Avalon with at most six players, $k = 2$, so the bound is a fixed polynomial in $abs(H)$.
 
-We introduce a slight variant of the hidden-role game which introduces a *mediator* player on the "Good" team. This player is known to be good but does not know the "goodness" of the players in the game, and all players are free to interface with this player with the same private bidirectional communications as between normal players. Clearly this game $Gamma'$ is strictly better for the "Good" team and thus has an equilibrium value at least that of $Gamma$; the challenge will be to prove that this game $Gamma'$ has an efficiently computable equilibrium strategy that is actually also playable in $Gamma$, which ultimately proves that it is a hidden-role equilibrium strategy for $Gamma$ as well.
+
+== Proof sketch using a mediated hidden-role game <sec-hidden-role-mediator>
+
+We introduce a slight variant of the hidden-role game which introduces a *mediator* player on the "Good" team. This player is known to be good but does not know the "goodness" of the players in the game, and all players are free to interface with this player with the same private bidirectional communications as between normal players. Clearly this game $Gamma'$ is at least as good for the "Good" team and thus has an equilibrium value at least that of $Gamma$; the challenge will be to prove that this game $Gamma'$ has an efficiently computable equilibrium strategy that is actually also playable in $Gamma$, which ultimately proves that it is a hidden-role equilibrium strategy for $Gamma$ as well.
 
 In other words, there remain three more pieces to this proof that we will provide high-level sketches for:
 
@@ -951,123 +1073,131 @@ In other words, there remain three more pieces to this proof that we will provid
 + Explaining why this mediator interface isn't exploitable (i.e. the equilibrium value of the zero-sum game is at least that of the mediated hidden-role game)
 + Explaining how to simulate this mediator in the original hidden-role game setting, deriving a hidden-role equilibrium for $Gamma$.
 
-#custom-thm(
-  title: "Key Idea",
-  number: "1",
-  name: "Mediator Interface",
-  color: green
-)[
+#claim[Key idea 1: mediator interface][
   In a mediated hidden-role game, we will have the mediator take on the role of simulating all of the strategies. In other words, the good players and mediator agree on the following scheme:
   + The good players privately communicate all observed info to the mediator
   + The mediator sends out actions to all actors
   + All good players execute actions as issued by the mediator
-]
+] <clm-hidden-role-interface>
 
-With this interface, only the mediator makes any decisions; the "good" players simply report their observations to the mediator and follow its instructions. In other words, this is our "reduction" of the mediated hidden-role game into a two-player zero-sum game, as all good player strategic decision-making is subsumed into the mediator and all bad player decision-making was coordinated to begin with and thus can also be subsumed into the decisions of one actor.
+With this interface, only the mediator makes any decisions; the "good" players simply report their observations to the mediator and follow its instructions. In other words, this is our "reduction" of the mediated hidden-role game into a two-player zero-sum game, as all good player strategic decision-making is subsumed into the mediator and all bad player decision-making was coordinated to begin with and thus can also be subsumed into the decisions of one actor. The mediator plays the role of the correlation device in a #lecture-link("correlated", <def-ce>)[correlated equilibrium], which recommends an action to each player; the differences are that the mediator also collects reports, and that some of the players it advises may be Bad.
 
 An extension: bad players can (and in a sense "should", to be as "confusing" as possible) send observations to the mediator, they just aren't obligated to be truthful. Moreover, they receive actions from the mediator, as the mediator may not know if they are bad. In other words; bad players send potentially misleading info in step 1, receive potentially useful info in step 3.
-#custom-thm(
-  title: "Key Idea",
-  number: "2",
-  name: "Mediator optimality",
-  color: green
-)[
-  We can simulate any strategy $x$ in the mediated game with the interface in Key Idea 1(call the simulated strategy $x'$), such that we do at least as good as the worst-case strategy against $x$. Moreover, if $x$ is any hidden-role equilibrium of $Gamma'$, then our simulated strategy $x'$ must also be a hidden-role equilibrium of $Gamma'$.
-]
+#theorem[Key idea 2: mediator optimality (revelation principle) #citep(<CarminatiZFGS24>, [Thm.~4.1])][
+  In a mediated hidden-role game $Gamma'$, with at least two communication rounds and messages of length at least $log abs(H)$ bits, Good has an optimal strategy of the following form. At every step, (1) every Good player privately reports its observation to the mediator; (2) the mediator privately recommends an action to every player, Good or Bad; and (3) every Good player plays its recommended action.
+] <thm-hidden-role-revelation>
 
-_Proof Sketch._ For any strategy $x$; all observations can be forwarded to the mediator, and then the individual players can just be internally simulated within the mediator, including any communications with one another, and then actions can be issued to the players themselves; this is our strategy $x'$. Now consider any best-response to $x'$, call this $y'$; we can turn $y'$ into a (possibly suboptimal) way of playing against $x$ by filling in the "virtual" interactions in a strategy $y^*$.
+_Proof Sketch._ For any strategy $x$, all observations can be forwarded to the mediator, and then the individual players can just be internally simulated within the mediator, including any communications with one another, and then actions can be issued to the players themselves; this is our strategy $x'$. Now consider any best-response to $x'$, call this $y'$; we can turn $y'$ into a (possibly suboptimal) way of playing against $x$ by filling in the "virtual" interactions in a strategy $y^*$.
 
-In other words, we use $x, y'$ to simulate a  $(x,y^*)$ that is equivalent to $(x', y')$:
+In other words, we use $x, y'$ to simulate a $(x,y^*)$ that is equivalent to $(x', y')$:
 
-For each bad player in $y^*$ simulate your "bad" best-response _actor_ $y'$ and your "good" response _communicator_ $x$. Let the simulated $x$ communicate with the $y'$ info but otherwise act like an $x$(basically act like a "misled" good actor communications wise), but the actions from your $y'$ determine your actual actions from your $y^*$. The communications between $x$ and $y^*$ are the same as the ones internally simulated in the mediator and the actions of $x$ the simulated ones with the same info as $x'$, and similarly the actions of $y^*$ are the same actions simulated in $y'$. This is illustrated much more clearly in the figures below:
+For each bad player in $y^*$ simulate your "bad" best-response _actor_ $y'$ and your "good" response _communicator_ $x$. Let the simulated $x$ communicate with the $y'$ info but otherwise act like an $x$ (basically act like a "misled" good actor communications wise), but the actions from your $y'$ determine your actual actions from your $y^*$. The communications between $x$ and $y^*$ are the same as the ones internally simulated in the mediator and the actions of $x$ the simulated ones with the same info as $x'$, and similarly the actions of $y^*$ are the same actions simulated in $y'$. This is illustrated much more clearly in the figures below:
 
-#figure(image("figures/mediator-hidden-role/6.7980_L12_P9_F1.svg", width:100%), caption: [Anatomy of $y'$ best response to $x'$. Note that y' can still essentially "zombify" $x_i$ to potentially send deceptive messages within the mediator simulation.]) <fig-team-mediator-simulation>
+#figure(image("figures/mediator-hidden-role/6.7980_L12_P9_F1.svg", width:100%), caption: [Anatomy of $y'$ best response to $x'$. Note that $y'$ can still essentially "zombify" $x_i$ to potentially send deceptive messages within the mediator simulation.]) <fig-team-mediator-simulation>
 
-#figure(image("figures/mediator-hidden-role/6.7980_L12_P9_F2.svg", width:100%), caption: [Anatomy of $y^*$ response to $x$. Note that internal functionality is exactly the same as in @fig-team-mediator-simulation, so the distribution over the outcomes in $Gamma$ are the same, so the expected utility is the same as well.])
+#figure(image("figures/mediator-hidden-role/6.7980_L12_P9_F2.svg", width:100%), caption: [Anatomy of $y^*$ response to $x$. Note that internal functionality is exactly the same as in @fig-team-mediator-simulation, so the distribution over the outcomes in $Gamma$ is the same, so the expected utility is the same as well.]) <fig-team-mediator-unrolled>
 
 As the utility from $(x',y')$ is the same as the utility from $(x, y^*)$, if we base $x'$ off of $x_"OPT" $ then we create an $(x',y')$ that is equal to $(x_"OPT" , y^*)$, which is in turn at least as good as $(x_"OPT" , y_"OPT")$, which must be optimal. Hence $(x', y')$ is in this case always an equilibrium. Because $(x', y')$ are also a Nash equilibrium of a two-player zero-sum game, they can be computed efficiently.
 
-#custom-thm(
-  title: "Key Idea",
-  number: "3",
-  name: "MPC Simulation of mediator behavior",
-  color: green
-)[
-  We can simulate any such mediator strategy using secure multiparty computation.
+How efficiently depends on the size of that zero-sum game. The conditions of Key idea 2 provide one round of communication for the reports and one for the recommendations, and messages that can encode any observation or action.
+
+#theorem[Mediated games are zero-sum games #citep(<CarminatiZFGS24>, [Thm.~4.2])][
+  Let $Gamma'$ be a mediated hidden-role game with a coordinated Bad team of $k$ players, at least two communication rounds, and messages of at least $log abs(H)$ bits. A hidden-role equilibrium of $Gamma'$ with private communication can be computed by solving a two-player zero-sum extensive-form game $Gamma_0$ with at most $abs(H)^(k+1)$ nodes.
+] <thm-hidden-role-zero-sum>
+#proofsketch[
+  The players of $Gamma_0$ are the mediator, for the Good team, and the adversary, for the Bad team. A state of $Gamma_0$ consists of a history $h$ of $Gamma$ and, for each player $i$, a _record_ $s_i$ of the observations reported for $i$ and the actions recommended to $i$ so far. Each move of $Gamma$ becomes three moves of $Gamma_0$.
+  + Every Good player reports its true observation. For every Bad player $i$, the adversary, which sees the true observations of all Bad players, chooses a report among the observations that a Good player with record $s_i$ could receive next, or the empty report $⊥$. The reports are appended to the records.
+  + The mediator sees the reports, but not who is Bad, and chooses an action to recommend to each player. The recommendations are appended to the records.
+  + Every Good player plays its recommendation. The adversary sees the recommendations to the Bad players and chooses their actions, and the history $h$ advances.
+  Reports that no Good player could have sent are left out: such a report identifies its sender as Bad, so it is dominated #citep(<CarminatiZFGS24>, [Sec.~4.1]). A Good player's record is determined by $h$, since that player reports truthfully and obeys. A Bad player's record is a prefix of that player's sequence of observations and actions along some path of $Gamma$, so each Bad player has at most $abs(H)$ possible records. Up to the bookkeeping within a move, a node of $Gamma_0$ is therefore determined by $h$ and the records of the $k$ Bad players, which gives the bound $abs(H)^(k+1)$ #citep(<CarminatiZFGS24>, [App.~A.2]).
 ]
+
+Both players of $Gamma_0$ remember everything they have observed, since the records only grow, so $Gamma_0$ has perfect recall. Like any two-player zero-sum extensive-form game with perfect recall, it can be solved by a linear program of polynomial size in the #lecture-link("efg_intro", <sec-sequence-form>)[sequence form]. This gives the running time $abs(H)^(O(k))$ of @thm-hidden-role-efficient. The exponent $k$ comes from the records of the $k$ Bad players, which the mediator must keep apart because it does not know who is Bad.
+
+#claim[Key idea 3: MPC simulation of mediator behavior][
+  We can simulate any such mediator strategy using secure multiparty computation.
+] <clm-hidden-role-mpc>
 
 The secure multiparty computation paradigm goes as follows:
 
-Consider some (possibly randomized) function $f:X^n arrow.r X^n$ (where $X$ is some set of possible inputs/outputs to a function, e.g. bitstrings of length at most $m$). We want each player to evaluate their output $in X$, i.e. $f_i (X_1, X_2, dots, X_n)$. Then secure MPC guarantees the following(in a private messaging environment):
+Consider some (possibly randomized) function $f:X^n arrow.r X^n$ (where $X$ is some set of possible inputs/outputs to a function, e.g. bitstrings of length at most $m$). We want each player to evaluate their output $in X$, i.e. $f_i (X_1, X_2, dots, X_n)$. Then secure MPC guarantees the following (in a private messaging environment):
 
 + Each player computes their output correctly with high probability.
 + No group of $< n \/ 2$ players can learn any significant info other than their own outputs.
 
-A similar(and related) cryptographic paradigm is "secret sharing". It looks like the following: a secret $x$ is distributed into $n$ pieces $x_i = "Share"(x,i)$ to $n$ players such that the following to guarantees are satisfied:
+A similar (and related) cryptographic paradigm is "secret sharing". It looks like the following: a secret $x$ is distributed into $n$ pieces $x_i = "Share"(x,i)$ to $n$ players such that the following two guarantees are satisfied:
 
 + The secret can be reconstructed from any group of $> n\/2$ people's secret pieces with a function $"Merge"(x_1, x_2, dots, x_n)$ that can accept $< n\/2$ faulty inputs.
-+ No group of $< n\/2$ players has can learn any significant info about the secret.
++ No group of $< n\/2$ players can learn any significant info about the secret.
 
-Both of these cryptographic protocols exist, as shown in #cite(<Rabin1989MPCSecret>).
+Both of these cryptographic protocols exist, as shown in #citet(<Rabin1989MPCSecret>); #citet(<CarminatiZFGS24>, supplement: [Thms.~B.1 and~B.2]) state the versions used here.
 
 Effectively what happens is this. The mediator strategy is effectively a function $f$ that takes in the infostate $s$ and $n$ inputs from the players $o_i$. Then the mediator outputs a new infostate $s'$ and $n$ actions $a_i$. More formally, if $"Update"$ is the infostate update function,
 $ f(s, o_1, o_2, dots, o_n) = s', a_1, a_2, dots, a_n, $
 where $s' = "Update"(s, o_1, o_2, dots, o_n)$.
 
-Clearly we want this $f$ in the MPC to map $o_i$ to $a_i$, but what to do with $s, s'$? The answer is to break it up with secret sharing, so that the function computed in MPC is actually $ f'((s_1, o_1), (s_2, o_2), dots, (s_n, o_n)) = ((s'_1, a_1), (s'_2, a_2), dots (s'_n, a_n)), $ where $ s'_i = "Share"("Update"("Merge"(s_1, s_2, dots, s_n), a_1, a_2, dots, a_n),i) $ and $ a_i = f_i ("Merge"(s_1,s_2, dots,s_n), o_1,o_2, dots,o_n). $
+Clearly we want this $f$ in the MPC to map $o_i$ to $a_i$, but what to do with $s, s'$? The answer is to break it up with secret sharing, so that the function computed in MPC is actually $ f'((s_1, o_1), (s_2, o_2), dots, (s_n, o_n)) = ((s'_1, a_1), (s'_2, a_2), dots (s'_n, a_n)), $ where $ s'_i = "Share"("Update"("Merge"(s_1, s_2, dots, s_n), o_1, o_2, dots, o_n),i) $ and $ a_i = f_i ("Merge"(s_1,s_2, dots,s_n), o_1,o_2, dots,o_n). $
 
 This $f'$ computed with MPC is correct with high probability and thus has expected utility at least $"OPT"(Gamma') - W/2^lambda $, where $W$ is some constant that rolls in both the worst case utility and the number of times error can accumulate throughout the game itself. Two natural results:
 
-+ Taking $lambda arrow.r infinity$ means that $"OPT"(Gamma) >= "OPT"(Gamma') - epsilon$ for all $epsilon$, which coupled with the fact that $"OPT"(Gamma) >= "OPT"(Gamma')$ means $"OPT"(Gamma) >= "OPT"(Gamma')$. Because a hidden-role equilibrium for $Gamma'$ is computable, so too is a hidden-role equilibrium EV for $Gamma$.
++ Taking $lambda arrow.r infinity$ means that $"OPT"(Gamma) >= "OPT"(Gamma') - epsilon$ for all $epsilon$, which coupled with the fact that $"OPT"(Gamma') >= "OPT"(Gamma)$ means $"OPT"(Gamma) = "OPT"(Gamma')$. Because a hidden-role equilibrium for $Gamma'$ is computable, so too is a hidden-role equilibrium EV for $Gamma$.
 + Moreover, such a simulated strategy is in fact playable in polynomial time, as long as you're willing to accept error $epsilon$ with extra polynomial terms in $log(1\/epsilon) = lambda + O(1)$.
 
-== An Application of Efficient Hidden-Role Equilibria
+More precisely, a play of $Gamma$ has at most $abs(H)$ moves, so the Bad players can break the privacy of the simulation or make it fail with probability at most $O(abs(H) 2^(-lambda))$ #citep(<CarminatiZFGS24>, [App.~B.3]). Choosing $lambda = log_2 (abs(H)\/epsilon) + O(1)$ makes this at most $epsilon$. The mediator's strategy in $Gamma_0$ is a circuit of size $"poly"(abs(H)^k)$, so the protocol uses messages of $"poly"(abs(H)^k, log(1\/epsilon))$ bits and as many rounds per move #citep(<CarminatiZFGS24>, [Thm.~B.3]).
 
-The famous game _Avalon_ becomes solvable with $<7$ players, as the bad team can be treated as if they are coordinated #cite(<Carminati2023HRG>). Using the optimal zero sum game from Key Idea 2 with some (lossless) computational simplification, #cite(<Carminati2023HRG>) calculated optimum values with PCFR+ that are detailed in the table below:
+#corollary[Rational values][
+  If the payoffs and chance probabilities of $Gamma$ are rational, $k < n\/2$, and Bad is coordinated, then $"CVal"_"priv" (Gamma)$ is a rational number.
+]
+
+#proof[
+  By @thm-hidden-role-efficient, $"CVal"_"priv" (Gamma)$ is the value of a finite two-player zero-sum game with rational payoffs and chance probabilities. That value is the optimal value of the sequence-form linear program, which has rational data, so it is rational.
+]
+
+Without the theorem this is not obvious, since the value is a supremum over ever longer communication.
+
+== Where assumptions are needed <sec-hidden-role-hardness>
+
+#theorem[Hardness without the assumptions #citep(<CarminatiZFGS24>, [Thms.~4.5 and~4.6])][
+  Even with a constant number of players and a minority Bad team:
+  + computing the value is NP-hard with public communication only, even with two Good players and one Bad player;
+  + with an uncoordinated Bad team, computing the value is coNP-hard with private communication and $Sigma_2^P$-hard with public or no communication.
+]
+
+These results are consistent with what we saw for team games. Without private channels, the Good players form a team that cannot pool its information, the source of hardness in @sec-team-hardness. Without coordination, the Bad players form a team as well, and computing a team's best response is itself NP-hard (@thm-team-sat). This adds a level of the polynomial hierarchy, from P to coNP with private communication and from NP to $Sigma_2^P$ without it, much as for teams against teams in @sec-team-vs-team.
+
+== An application of efficient hidden-role equilibria <sec-hidden-role-avalon>
+
+The famous game _Avalon_ becomes solvable with $<7$ players, as the bad team can be treated as if they are coordinated #citep(<CarminatiZFGS24>). Using the optimal zero sum game from Key Idea 2 with some (lossless) computational simplification, #citet(<CarminatiZFGS24>) calculated optimum values exactly with a rational-arithmetic simplex method, and approximately with PCFR+, a variant of #lecture-link("learning_efg", <sec-cfr>)[CFR]; they are detailed in the table below:
 
 #figure(
-  table(
-    columns: (auto, auto, auto),
-    align: (left, right, right),
-    stroke: none,
-    inset: (x: 0.7em, y: 0.18em),
-
-    // top rule
-    table.hline(stroke: 0.6pt),
-    [*Variant*], [*5 Players*], [*6 Players*],
-    // rule below header
-    table.hline(stroke: 0.6pt),
-
-    [No special roles (_Resistance_)],
-      val([3], [=], [10], [0.3000], marked: true),
-      val([1], [$approx$], [3], [0.3333], marked: true),
-    [Merlin],
-      val([2], [$approx$], [3], [0.6667], marked: true),
-      val([3], [=], [4], [0.7500], marked: true),
-    [Merlin & Mordred],
-      val([731], [$approx$], [1782], [0.4102]),
-      val([6543], [$approx$], [12464], [0.5250]),
-    [Merlin & 2 Mordreds],
-      val([5], [$approx$], [18], [0.2778]),
-      val([99], [$approx$], [340], [0.2912]),
-    [Merlin, Mordred, Percival, Morgana],
-      val([67], [$approx$], [120], [0.5583]),
-      [$—$], // em dash: too large to solve
-
-    // bottom rule
-    table.hline(stroke: 0.6pt),
-  ),
+  kind: table,
+  supplement: [Table],
   caption: [
     Exact equilibrium values for 5- and 6-player _Avalon_. The values marked
     $""^ast$ were also manually derived
-    by Christiano #cite(<Christiano2018Avalon>).
+    by Christiano #citep(<Christiano2018Avalon>).
   ],
-)
+)[
+  #table(
+    stroke: none,
+    columns: 3,
+    align: (left + top, right + top, right + top),
+    inset: .7em,
+    table.header([*Variant*], [*5 players*], [*6 players*]),
+    [no special roles (_Resistance_)], [$3\/10 = 0.3000^*$], [$1\/3 approx 0.3333^*$],
+    [Merlin], [$2\/3 approx 0.6667^*$], [$3\/4 = 0.7500^*$],
+    [Merlin and Mordred], [$731\/1782 approx 0.4102$], [$6543\/12464 approx 0.5250$],
+    [Merlin and two Mordreds], [$5\/18 approx 0.2778$], [$99\/340 approx 0.2912$],
+    [Merlin, Mordred, Percival, and Morgana], [$67\/120 approx 0.5583$], [too large to solve],
+  )
+] <tab-hidden-role-avalon>
 
-This demonstrates the feasibility of this poly-time equilibrium EV finding algorithm on real-world games, as equilibrium EVs for Avalon were previously computationally intractable.
 
-== AI Acknowledgement
-DeepSeek-V4.1-Flash-1017 was used to generate table, theorem box, and figure code. I also asked it for a surface-level proofread.
+This demonstrates the feasibility of this poly-time equilibrium EV finding algorithm on real-world games.
+
+The row with Merlin and two Mordreds illustrates the implicit correlation of @sec-l12-election-example. Merlin sees the Bad players except Mordred, so with two Mordreds Merlin sees no one and has no extra information. One might expect the value to be that of Resistance times the probability that the Bad team's final guess of Merlin is wrong: $3\/10 dot 2\/3 = 1\/5$ with five players. The exact value $5\/18$ is larger. As with the Good and Good' cards in the election, the distinguishable Merlin card is itself correlated randomness for the Good team.
+
+// AI acknowledgement from #173 (Ethan Liu): DeepSeek-V4.1-Flash-1017 was used to generate table, theorem box, and figure code, and for a surface-level proofread.
 
 = Problems <sec-team-tme-problems>
 
