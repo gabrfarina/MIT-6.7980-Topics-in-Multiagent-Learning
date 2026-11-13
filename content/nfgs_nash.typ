@@ -1031,7 +1031,7 @@ Therefore the unilateral improvement property does not guarantee that every play
 ]
 ]
 
-] <ex-quadratic-improvement>
+<ex-quadratic-improvement>
 = Equilibrium practice <sec-equilibrium-practice>
 
 #exercise[Finding Equilibria in Small Games][
@@ -1641,8 +1641,8 @@ _Iterated removal of strictly dominated strategies_ repeatedly deletes strictly 
       - C is not dominated by L, because against B it gives Player 2 $5 > 1$. It is not dominated by R either, since $3 > 1$ against T.
       - T and L are each the best reply to some action of the opponent (T against L, and L against T), so they are not dominated.
 
-    + Let's walk through both orders of removal, starting with the order that removes B first. 
-    
+    + Let's walk through both orders of removal, starting with the order that removes B first.
+
       #underline[First order:] remove B first. With B gone, Player 1 is left with T and M, so the remaining game is ${"T", "M"} times {"L", "C", "R"}$. Now L strictly dominates C for Player 2, since $4 > 3$ in both remaining rows. Removing C leaves ${"T", "M"} times {"L", "R"}$. L still strictly dominates R ($4 > 1$, $4 > 0$), and removing R leaves ${"T", "M"} times {"L"}$. Finally, T strictly dominates M ($4 > 3$), leaving ${"T"} times {"L"}$.
 
       #underline[Second order:] remove R first. With R gone, the remaining game is ${"T", "M", "B"} times {"L", "C"}$. Now T strictly dominates M ($4 > 3$, $4 > 3$), and it also dominates B. Removing M leaves ${"T", "B"} times {"L", "C"}$. C is still not dominated, so we remove B next, leaving ${"T"} times {"L", "C"}$. Finally, L strictly dominates C ($4 > 3$), leaving ${"T"} times {"L"}$.

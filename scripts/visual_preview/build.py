@@ -40,6 +40,8 @@ def compile_file(typst, root, source, dest, log, inputs=()):
     run = subprocess.run(args, cwd=root, capture_output=True, text=True, timeout=180)
     log.write_text(run.stdout + run.stderr, encoding="utf-8")
     if run.returncode:
+        print(f"Typst compilation failed: {source} ({log.name})", flush=True)
+        print(run.stdout + run.stderr, flush=True)
         raise RuntimeError(f"Typst failed for {source}; see {log.name}")
 
 
@@ -106,6 +108,7 @@ def main():
                 pdfs.append(dest)
             except (RuntimeError, subprocess.TimeoutExpired, ValueError) as e:
                 note["errors"].append(f"{side}: {e}")
+                print(f"Compilation error in {source} ({side}): {e}", flush=True)
                 pdfs.append(None)
         if not note["errors"]:
             note["regions"] = compare(*pdfs, args.output, name)
