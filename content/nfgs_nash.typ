@@ -951,11 +951,6 @@ $
 =
 (frac(1,6),frac(5,6)).
 $
-#align(center)[
-  #image(
-    "figures/nfgs_nash/maxmin_theater_football.svg",width: 170pt,
-  )
-]
 
 Finally, this maxmin strategy is *not* the same as Player 1's strategy in the mixed Nash equilibrium. In the mixed Nash equilibrium, Player 1 plays *insist* with probability $5/6$ and *accept* with probability $1/6$. In contrast, the maxmin strategy plays *insist* with probability $1/6$.
 
