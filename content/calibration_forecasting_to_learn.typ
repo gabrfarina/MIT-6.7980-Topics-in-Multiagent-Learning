@@ -83,16 +83,37 @@ One might expect that acting on a forecast requires some hedging, such as spread
 
 == Choosing the tests <sec-calibration-tests>
 
+// Check against Task 3 that "MC"_T (h) matches the notation used there.
+Best responding is only as good as the forecasts it acts on, and a forecaster is only as good as the tests it is calibrated against. Recall that the multicalibration error of a test $h$ is
+$
+  "MC"_T (h) = sum_(t=1)^T EE_(p ~ D^((t))) [ip(h(p), vu^((t)) - p)],
+$
+where the outcome being forecast is now the utility vector $vu^((t))$. Which tests should we ask the forecaster to pass? Since we care about the $Phi$-regret of the actions $sigma(p)$, the natural choice is one test for each deviation $phi.alt in Phi$, measuring how $phi.alt$ would change the action we play.
+
 #definition[Deviation tests][
-  TODO: for each $phi.alt in Phi$, $h_phi.alt (p) := phi.alt(sigma(p)) - sigma(p)$;
-  $cH_Phi := {h_phi.alt : phi.alt in Phi}$. Context-dependent version:
-  $h_phi.alt (c, p) = phi.alt(c, sigma(p)) - sigma(p)$.
+  For each deviation $phi.alt in Phi$, the _deviation test_ $h_phi.alt : cU -> RR^d$ is
+  $
+    h_phi.alt (p) := phi.alt(sigma(p)) - sigma(p),
+  $
+  and the set of deviation tests is $cH_Phi := {h_phi.alt : phi.alt in Phi}$.
 ] <def-calibration-deviation-tests>
 
-// Interpretation: the test measures the direction in which deviation phi would move
-// our action; multicalibration w.r.t. h_phi says the forecast error is uncorrelated
-// with that direction. Parallel: set of tests <=> set of deviations (GGM).
-TODO: interpretation.
+The vector $h_phi.alt (p)$ is the displacement that $phi.alt$ applies to the action we would play on forecast $p$. Its inner product with a utility vector is the gain from deviating: under the realized utility $vu^((t))$, deviation $phi.alt$ would have gained $ip(h_phi.alt (p), vu^((t)))$ over our action. Splitting $vu^((t)) = p + (vu^((t)) - p)$ divides this gain into two parts:
+$
+  ip(h_phi.alt (p), vu^((t))) = underbrace(ip(h_phi.alt (p), p), "gain predicted by the forecast") + underbrace(ip(h_phi.alt (p), vu^((t)) - p), "error of the forecast").
+$
+The predicted gain is never positive, because $sigma(p)$ is a best response to $p$. Calibration against $h_phi.alt$ controls the error part: averaged over time, the forecast errors $vu^((t)) - p$ are not correlated with the direction in which $phi.alt$ would move our action. In words, the forecaster does not systematically underestimate how much $phi.alt$ would gain. @sec-calibration-phi-bound turns this into a regret bound.
+
+A few remarks on this choice.
+
+- _Tests correspond to deviations._ There is one test for each deviation, so the set of tests is as rich as $Phi$. This mirrors the reduction of Gordon, Greenwald, and Marks, where the external regret minimizer learns over $Phi$ itself; here it learns over the corresponding tests.
+- _Any larger set of tests works._ The forecaster only needs to be calibrated against _at least_ the tests in $cH_Phi$, so we may use any $cH supset.eq cH_Phi$. This is convenient because $cH_Phi$ can be awkward to describe exactly, while a simpler superset is often easy to learn over (@sec-calibration-swap-example).
+- _The tests need not be continuous._ Because $sigma$ jumps between actions as $p$ crosses a tie, $h_phi.alt$ is typically discontinuous in $p$. This is not a problem: multicalibration only asks for bounded tests, and $h_phi.alt$ is bounded since $cX$ is compact.
+- _Swap regret recovers bucketed calibration._ On the simplex, swap deviations are $phi.alt(vx) = Q vx$ for column-stochastic $Q$, and the best response is a pure action $sigma(p) = ve_(a(p))$. Then $h_phi.alt (p) = Q ve_(a(p)) - ve_(a(p))$ depends on $p$ only through the best action $a(p)$. The forecaster therefore needs to be calibrated only on the regions of forecasts that share a best response, which is the link between calibration and correlated equilibrium found by #citet(<foster1997calibrated>).
+
+#remark[
+  If the deviations may also depend on the context, $phi.alt : C times cX -> cX$, the tests become $h_phi.alt (c, p) := phi.alt(c, sigma(p)) - sigma(p)$, and the results of this section carry over unchanged.
+] <rem-calibration-context-tests>
 
 == Bounding $Phi$-regret by calibration error <sec-calibration-phi-bound>
 
