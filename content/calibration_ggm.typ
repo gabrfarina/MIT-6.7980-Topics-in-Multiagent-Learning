@@ -62,7 +62,17 @@ The $Phi$-regret minimizer operates as follows.
   $
   which scores each transformation by the utility it would have obtained had it been applied to the strategy just played. $U^((t))$ is linear in $phi.alt$, because $u^((t))$ is linear and so is the evaluation map $phi.alt |-> phi.alt(vx^((t)))$.
 
-In words, $cR$ decides which transformation to guard against, and the oracle turns that transformation into a strategy that the transformation cannot improve. This is what makes the two regrets coincide.
+In words, $cR$ decides which transformation to guard against, and the oracle turns that transformation into a strategy that the transformation cannot improve (@fig-ggm-recap-loop). This is what makes the two regrets coincide.
+
+#figure(
+  caption: [The reduction of #citet(<gordon2008no>), reproduced from #lecture-link("phi_regret", <fig-ggm>)[]: the external regret minimizer works in the space of transformations, and the fixed-point oracle turns its output into a strategy.],
+)[
+  #image(
+    "figures/phi_regret/gordon.svg",
+    width: 100%,
+    alt: "Block diagram of the Gordon-Greenwald-Marks reduction: the utility u on the strategy set is turned into a utility U on transformations, an external regret minimizer over Phi outputs a transformation, and a fixed-point step turns it into the played strategy.",
+  )
+] <fig-ggm-recap-loop>
 
 #theorem[#citep(<gordon2008no>)][
   If the oracle returns exact fixed points, then for every $T$ the $Phi$-regret of the algorithm above equals the external regret $"Reg"_Phi^((T))$ of $cR$ on the utilities $U^((1)), ..., U^((T))$:
@@ -87,6 +97,26 @@ $
   sum_(t=1)^T (u^((t))(phi.alt^((t))(vx^((t)))) - u^((t))(vx^((t)))),
 $
 a term that $cR$ never observes and therefore cannot control. The fixed-point computation is the only nonlinear step of the reduction, and it carries all of its computational difficulty.
+
+#example[One round on rock-paper-scissors][
+  Let $cX = Delta^3$ over rock, paper and scissors, in this order, and suppose that $cR$ proposes the swap deviation $phi.alt^((t))(vx) = Q vx$ with
+  $
+    Q = mat(0.4, 0.1, 0.2; 0.5, 0.8, 0.3; 0.1, 0.1, 0.5),
+  $
+  which reroutes most of the probability toward paper. All entries of $Q$ are positive, so $Q$ has a unique fixed point on the simplex, its stationary distribution $vx^((t)) = (1\/6, 2\/3, 1\/6)$ (@fig-ggm-recap-fixed-points, right). Whatever utility $u^((t))$ arrives, $U^((t))(phi.alt^((t))) = u^((t))(Q vx^((t))) = u^((t))(vx^((t)))$: the deviation that $cR$ played earns exactly what the learner earned.
+
+  Suppose instead that the learner ignored the oracle and played the uniform strategy $vx = (1\/3, 1\/3, 1\/3)$. Then $Q vx = (7\/30, 8\/15, 7\/30)$, and if only paper is rewarded, $u^((t))(vx) = ip((0, 1, 0), vx)$, the deviation $phi.alt^((t))$ beats the learner by $8\/15 - 1\/3 = 1\/5$ in this round. This is one term of the unobserved sum above.
+] <ex-ggm-recap-rps>
+
+#figure(
+  caption: [Fixed points of the two deviations of @ex-ggm-recap-external and @ex-ggm-recap-swap on $Delta^3$. Each arrow starts at a strategy $vx$ and points along $phi.alt(vx) - vx$, scaled down for readability. The marked point is what the fixed-point oracle returns: there the displacement vanishes, so the deviation cannot improve on the strategy played. Left: the constant deviation with $hat(vx) = (3\/5, 1\/5, 1\/5)$, whose fixed point is $hat(vx)$ itself. Right: the swap deviation $vx |-> Q vx$ of @ex-ggm-recap-rps, whose fixed point is the stationary distribution $vx^star = (1\/6, 2\/3, 1\/6)$.],
+)[
+  #image(
+    "figures/calibration_ggm/fixed_points.svg",
+    width: 100%,
+    alt: "Two triangles representing the simplex over rock, paper and scissors, filled with arrows. Left: all arrows point toward a marked point near rock, the constant comparator. Right: arrows contract toward a marked point near paper, the stationary distribution of the matrix Q.",
+  )
+] <fig-ggm-recap-fixed-points>
 
 #block(breakable: false)[
 #remark[Instances and approximate fixed points][
