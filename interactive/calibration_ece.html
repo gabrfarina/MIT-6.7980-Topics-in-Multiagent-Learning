@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="noindex, nofollow" name="robots"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>Calibration, one round at a time · MIT 6.7980</title>
+<meta content="An interactive ECE experiment: commit an outcome, privately draw a forecast, and inspect historical bucket errors and their root mean square." name="description"/>
+<style>
+@font-face{font-family:"Source Sans 3";src:url("../assets/fonts/SourceSans3-Regular-web.woff") format("woff");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"Source Sans 3";src:url("../assets/fonts/SourceSans3-Bold-web.woff") format("woff");font-weight:700;font-style:normal;font-display:swap}
+:root{--paper:#fbfaf7;--surface:#fff;--ink:#171411;--muted:#6b635b;--rule:#d7d0c6;--blue:#2864a5;--orange:#a74e17;--bluewash:#edf3fa;--orangewash:#fbefe4;--warn:#a33428;--radius:8px;--motion:cubic-bezier(.22,1,.36,1)}
+*{box-sizing:border-box}html{background:var(--paper);color:var(--ink);font:16px/24px "Source Sans 3",sans-serif}body{margin:0}.lab{max-width:1040px;margin:auto;padding:32px 24px 48px}.embedded .lab{padding:16px 8px 24px}.embedded{background:var(--surface)}
+h1,h2,h3,p{margin:0}h1{font-size:30px;line-height:36px;font-weight:700;letter-spacing:-.02em;max-width:680px;text-wrap:balance}h2{font-size:20px;line-height:28px}h3{font-size:16px;line-height:24px}p{max-width:680px;text-wrap:pretty}.caption-2{font-size:14px;line-height:20px;color:var(--muted)}.title-4{font-size:14px;line-height:20px;font-weight:700}.body-3{font-size:16px;line-height:24px}.button-md{font-size:16px;line-height:24px;font-weight:700}.heading-4{font-size:30px;line-height:36px;font-weight:700}.heading-6{font-size:20px;line-height:28px;font-weight:700}
+a{color:var(--blue);text-underline-offset:3px}.back{display:inline-block;margin-bottom:16px;font-size:14px;line-height:20px}.embedded .back{display:none}.kicker{font-size:12px;line-height:16px;letter-spacing:.08em;font-weight:700;color:var(--orange);text-transform:uppercase;margin-bottom:8px}.intro{margin-top:12px;color:var(--muted)}
+.runbar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:24px 0 16px}.phase{display:flex;gap:8px;align-items:center;color:var(--muted);font-size:14px;line-height:20px}.phase b{display:flex;align-items:center;gap:8px;color:var(--ink)}.dot{width:8px;height:8px;border-radius:50%;background:var(--rule);display:inline-block}.current .dot{background:var(--blue)}.phase-arrow{color:var(--rule)}
+button,select,input{font:inherit}button{min-height:44px;border:1px solid var(--rule);border-radius:var(--radius);padding:8px 12px;background:var(--surface);color:var(--ink);cursor:pointer;transition:background-color .3s var(--motion),opacity .3s var(--motion),transform .3s var(--motion);font-weight:700}button:hover:not(:disabled){background:var(--bluewash);border-color:var(--blue)}button:active:not(:disabled){transform:translateY(1px)}button.primary{background:var(--blue);border-color:var(--blue);color:white}button.primary:hover:not(:disabled){background:#204f83}button:disabled{opacity:.4;cursor:not-allowed}button.quiet{font-weight:400;background:transparent}button:focus-visible,a:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+.round{padding:24px;border:1px solid var(--rule);border-radius:var(--radius);background:var(--surface)}.round-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}.round-stage{display:flex;flex-direction:column;align-items:flex-start;gap:12px}fieldset{margin:0;padding:0;border:0}legend{font-weight:700;margin-bottom:12px}.choices{display:flex;gap:8px}.choice{display:inline-flex;align-items:center;gap:8px;min-width:64px;min-height:44px;padding:8px 12px;border:1px solid var(--rule);border-radius:8px;cursor:pointer}.choice:has(input:checked){background:var(--bluewash);border-color:var(--blue)}.choice:focus-within{outline:3px solid var(--blue);outline-offset:3px}.choice input{accent-color:var(--blue);margin:0}.choice:has(input:disabled){cursor:default;opacity:.6}.stage-help{font-size:14px;line-height:20px;color:var(--muted);max-width:360px}.status{margin-top:16px;min-height:48px;font-size:16px;line-height:24px}.status.error{color:var(--warn)}.locked{color:var(--orange)}
+.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:24px 0}.metric{padding:0 0 12px;border-bottom:1px solid var(--rule)}.metric-label{font-size:14px;line-height:20px;color:var(--muted)}.metric-value{font-size:30px;line-height:36px;letter-spacing:-.02em;margin:4px 0;font-variant-numeric:tabular-nums}.metric.blue .metric-value{color:var(--blue)}.metric.orange .metric-value{color:var(--orange)}.metric small{display:block;font-size:12px;line-height:16px;color:var(--muted)}.metric .increase{color:var(--warn)}
+.plots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}.plot{margin:0;min-width:0}.plot p{font-size:14px;line-height:20px;color:var(--muted);margin:4px 0 8px}.plot svg{display:block;width:100%;height:auto;overflow:visible}.plot .tick{font-size:12px;fill:var(--muted)}.plot .label{font-size:14px;fill:var(--ink)}.legend{display:flex;gap:16px;font-size:12px;line-height:16px;color:var(--muted);margin-top:8px}.legend span{display:inline-flex;align-items:center;gap:8px}.swatch{width:20px;height:2px;background:var(--blue)}.swatch.rms{background:transparent;border-top:2px dashed var(--orange)}.plot-note{margin-top:12px;font-size:12px;line-height:16px;color:var(--muted)}
+details{margin-top:24px}summary{font-weight:700;cursor:pointer;padding:12px 0;list-style-position:outside}summary::marker{color:var(--blue)}details[open]>summary{margin-bottom:8px}.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.settings-grid label{display:block;font-size:14px;line-height:20px;font-weight:700}.settings-grid select{display:block;margin-top:8px;width:100%;min-height:44px;padding:8px 12px;border:1px solid var(--rule);border-radius:8px;background:var(--surface);color:var(--ink);font-size:16px;line-height:24px}.batch{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:16px}.settings-note{margin:12px 0 0;font-size:14px;line-height:20px;color:var(--muted)}.table-wrap{overflow:auto;max-height:320px;border:1px solid var(--rule);border-radius:8px;background:var(--surface);margin-top:12px}table{width:100%;border-collapse:collapse;font-size:14px;line-height:20px;font-variant-numeric:tabular-nums;text-align:left}th,td{padding:12px;text-align:left;border-bottom:1px solid var(--rule);vertical-align:top}thead th{position:sticky;top:0;background:var(--paper);z-index:1;font-weight:700}tbody tr:last-child td,tbody tr:last-child th{border-bottom:0}.selected td{background:var(--bluewash)}.num{white-space:nowrap}.muted{color:var(--muted)}.chance{color:var(--blue);font-weight:700}.case-table{min-width:0}.case-table td{padding:8px}.case-table button{width:100%;text-align:left;min-width:104px}.case-table button small{display:block;font-size:12px;line-height:16px;color:var(--muted);font-weight:400}.case-table .rise{color:var(--warn)}.case-explain{padding:16px 0 0;font-size:14px;line-height:20px;min-height:60px}.bound{margin-top:24px;padding-top:16px;border-top:1px solid var(--rule);font-size:14px;line-height:20px;color:var(--muted)}.bound strong{color:var(--ink)}.fade{animation:feedback .5s var(--motion)}@keyframes feedback{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:640px){.lab{padding:24px 16px 32px}.round{padding:16px}.round-grid,.plots,.settings-grid{grid-template-columns:1fr}.round-grid{gap:24px}.runbar{margin-top:16px}.metrics{gap:12px}.metric-value{font-size:24px;line-height:32px}.metric-label{min-height:40px}.plots{gap:24px}.plot .tick{font-size:16px}.plot .label{font-size:18px}.case-table th,.case-table td{padding:8px}.case-table button{min-width:80px;font-size:14px;line-height:20px}.embedded .lab{padding-inline:4px}.phase{font-size:12px;line-height:16px;gap:4px}.phase b{gap:4px}.bound{max-width:100%}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+.comparison{margin-top:32px;padding-top:24px;border-top:1px solid var(--rule);scroll-margin-top:24px}.comparison>p{margin-top:8px}.comparison-form{display:grid;grid-template-columns:1fr 1fr auto;gap:16px;align-items:end;margin-top:24px}.comparison-form label{display:block;font-size:14px;line-height:20px;font-weight:700}.comparison-form input,.comparison-form select{display:block;width:100%;margin-top:8px;min-height:44px;padding:8px 12px;border:1px solid var(--rule);border-radius:8px;background:var(--surface);color:var(--ink);font-size:16px;line-height:24px}.comparison-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}.comparison-results{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin:24px 0 16px}.comparison-results .metric-label{color:var(--ink);font-weight:700}.comparison-lottery{font-size:14px;line-height:20px;color:var(--muted);margin-top:8px}.comparison-chart{margin:0}.comparison-chart svg{display:block;width:100%;height:auto}.comparison-chart .tick{font-size:14px;fill:var(--muted)}.comparison-chart .label{font-size:16px;fill:var(--ink)}.comparison-chart .legend{flex-wrap:wrap}.swatch.fixed{background:none;border-top:2px dashed var(--orange)}.comparison .status{min-height:24px;font-size:14px;line-height:20px}.comparison-active{margin-top:12px;font-size:12px;line-height:16px;color:var(--muted)}
+@media(max-width:640px){.comparison-form{grid-template-columns:1fr}.comparison-results{gap:16px}.comparison-results .metric-label{min-height:0}.comparison-chart .tick{font-size:12px}.comparison-chart .label{font-size:14px}}
+</style>
+<style>
+.experiment-appendix { border-top:1px solid #cbd5e1; margin-top:24px; padding-top:16px; }
+.experiment-appendix-section { margin:16px 0; padding:12px 0; border-top:1px solid #e2e8f0; }
+.experiment-appendix-section h3 { margin:0 0 12px; }
+.phase-arrow { color:#64748b; }
+</style></head>
+<body>
+<main class="lab" id="experiment">
+<a class="back" href="../calibration_ece.html#sec-l15-ece-experiment">Back to the ECE notes</a>
+
+<header><p class="kicker">MIT 6.7980 · ECE experiment</p><h1 class="heading-4">Calibration, one round at a time</h1><p class="intro body-3">Choose rain or no rain first. Draw a forecast and see which bucket changes. The plots show the new draw probabilities and the ECE of the full record.</p></header>
+<p class="caption-2" style="margin-top:12px"><strong>Supplementary binary example.</strong> Read the <a href="../calibration_ece.html#sec-l15-ece-square-drift" target="_top">proof for this update rule</a> in Appendix A.</p>
+<div class="runbar"><div aria-label="Round sequence" class="phase"><b class="current" id="phase-choose"><span class="dot"></span>Choose outcome</b><span aria-hidden="true" class="phase-arrow">·</span><b id="phase-draw"><span class="dot"></span>Private draw</b><span aria-hidden="true" class="phase-arrow">·</span><span>Update history</span></div><button class="quiet" id="reset" type="button">Reset history</button></div>
+<section aria-label="One round of forecasting" class="round"><div class="round-grid"><div class="round-stage"><fieldset id="outcomes"><legend>1. Choose the next outcome</legend><div class="choices"><label class="choice"><input checked="" name="outcome" type="radio" value="0"/><span>0</span></label><label class="choice"><input name="outcome" type="radio" value="1"/><span>1</span></label></div></fieldset><button class="primary button-md" id="commit" type="button">Commit outcome</button><p class="stage-help">The outcome is fixed before the private draw. Committing adds no observation yet.</p></div><div class="round-stage"><h2 class="heading-6">2. Draw a forecast</h2><button class="button-md" disabled="" id="draw" type="button">Draw forecast</button><p class="stage-help">The draw uses only the frozen lottery from the history. Then the committed outcome updates its bucket.</p></div></div><p aria-live="polite" class="status" id="status" role="status">Choose an outcome, then commit it.</p></section>
+<section aria-label="Recorded history" class="metrics"><div class="metric"><p class="metric-label">Recorded rounds</p><p class="metric-value" id="total">11</p><small id="rounds-note">11 initial + 0 new</small></div><div class="metric blue"><p class="metric-label">ECE</p><p class="metric-value" id="ece">0.5227</p><small id="delta">Bucket gaps, weighted by history</small></div><div class="metric orange"><p class="metric-label">Root mean square</p><p class="metric-value" id="rms">0.5887</p><small>ECE ≤ root mean square</small></div></section>
+<section aria-label="Distribution and learning curves" class="plots"><figure class="plot"><h2 class="heading-6">Next draw distribution</h2><p>Each height gives the chance of drawing that forecast.</p><svg aria-label="Next draw distribution" id="distribution" role="img" viewbox="0 0 440 240"></svg></figure><figure class="plot"><h2 class="heading-6">Recorded error over time</h2><p>Each score comes from the absolute gaps in the forecast buckets.</p><svg aria-label="ECE and root mean square by new round" id="trajectory" role="img" viewbox="0 0 440 240"></svg><div class="legend"><span><i class="swatch"></i>ECE</span><span><i class="swatch rms"></i>Root mean square</span></div></figure></section>
+<p class="plot-note">The plot shows fewer checkpoints on long runs. Every score still uses the full record.</p>
+<p class="caption-2 appendix-link-row"><a class="experiment-appendix-link" href="#experiment-appendix">More controls and recorded data in the experiment appendix</a></p>
+<section aria-labelledby="comparison-heading" class="comparison" id="comparison">
+<h2 class="heading-6" id="comparison-heading">Compare fixed and adaptive forecasts</h2>
+<p class="body-3">Both rules start with the same 11 records on a grid with h = 0.25. They share the outcome sequence and the random numbers used to draw forecasts. The adaptive rule recalculates its probabilities after each round.</p>
+<form class="comparison-form" id="comparison-form"><div><label for="comparison-policy">Shared outcome sequence</label><select id="comparison-policy"><option value="ones">Always 1</option><option value="zeros">Always 0</option><option value="alternating">Alternate 0, 1</option></select></div><div><label for="comparison-seed">Reproducible seed</label><input id="comparison-seed" max="4294967295" min="0" required="" step="1" type="number" value="20261105"/></div><button id="comparison-reset" type="submit">Restart comparison</button></form>
+<p class="comparison-active" id="comparison-active"></p>
+<div class="comparison-actions"><button id="comparison-run100" type="button">Advance both by 100</button><button class="primary" id="comparison-run1000" type="button">Run both to 1,000</button></div>
+<p aria-live="polite" class="status" id="comparison-status" role="status">Run both to 1,000 with the default settings to reproduce the PDF figure.</p>
+<div class="comparison-results"><div class="metric orange"><p class="metric-label">Fixed lottery · ECE</p><p class="metric-value" id="comparison-fixed">0.5227</p><p class="comparison-lottery" id="comparison-fixed-lottery"></p></div><div class="metric blue"><p class="metric-label">History update · ECE</p><p class="metric-value" id="comparison-adaptive">0.5227</p><p class="comparison-lottery" id="comparison-adaptive-lottery"></p></div></div>
+<figure class="comparison-chart"><svg aria-label="Fixed and adaptive ECE on shared axes" id="comparison-curve" role="img" viewbox="0 0 800 300"></svg><figcaption><div class="legend"><span><i class="swatch fixed"></i>Fixed lottery ECE</span><span><i class="swatch"></i>History update ECE</span></div><p class="plot-note">Both curves show ECE. Every score includes the 11 starting records. Long curves show sampled checkpoints.</p></figcaption></figure>
+<p class="caption-2" id="comparison-explanation"></p>
+<p class="plot-note">The comparison runs separately from the single-round controls. After changing a setting, restart the comparison to replay both rules. The curves show what happened for the chosen outcome sequence and seed.</p>
+</section>
+<footer class="bound"><p id="bound"><strong>Long-run bound.</strong> On a fixed grid, the long-run expected ECE is at most h/2 when Nature commits before seeing the draw. ECE can rise after a single round.</p><p style="margin-top:8px">The square uses the mean error within each bucket. <a href="https://math.huji.ac.il/hart/papers/calib-int.pdf">Foster and Hart (2021), Section V, Theorem 12</a>.</p></footer>
+<noscript><p>Enable JavaScript to run the experiment. You can also read the worked example and all four branches in the ECE notes.</p></noscript>
+<section class="experiment-appendix" id="experiment-appendix"><h2>Experiment appendix</h2><section class="experiment-appendix-section" id="settings"><h3>Change the rule or run more rounds</h3><div class="settings-grid"><div><label for="strategy">Forecasting rule</label><select id="strategy"><option value="adaptive">Update from history</option><option value="fixed">Keep the 1/3, 2/3 lottery fixed</option></select></div><div><label for="preset">Starting history and grid</label><select id="preset"><option value="worked">Worked example · h = 0.25</option><option value="fresh">Empty history · h = 0.05</option></select></div><div><label for="policy">How Nature chooses outcomes</label><select id="policy"><option value="manual">Choose each outcome yourself</option><option value="zeros">Always choose 0</option><option value="ones">Always choose 1</option><option value="mean">Choose 1 when public mean &lt; 0.65</option></select></div></div><div class="batch"><button disabled="" id="batch" type="button">Run 100 rounds</button><p class="caption-2" id="batch-help">Choose an automatic outcome rule to run a batch.</p></div><p class="settings-note">Changing the forecasting rule or starting history resets the experiment. Each automatic outcome is committed before a new private draw.</p></section><section class="experiment-appendix-section" id="possibilities"><h3>Inspect the possible next records</h3><p class="caption-2">These are hypothetical branches from the current history. Each branch computes a complete ECE with absolute values. Inspecting one never changes the recorded data.</p><div class="table-wrap"><table class="case-table" id="case-table"></table></div><p class="case-explain" id="case-explain">Select a branch to inspect its calculation.</p></section><section class="experiment-appendix-section" id="buckets"><h3>Inspect the historical buckets</h3><p class="caption-2">The observed rate uses past data. The next draw chance selects the next report. They are different probabilities.</p><div aria-label="Scrollable bucket table" class="table-wrap" tabindex="0"><table id="bucket-table"><thead><tr><th>Forecast q</th><th>Rounds N</th><th>Observed rate</th><th>Mean error</th><th>Next draw chance</th></tr></thead><tbody></tbody></table></div></section><section class="experiment-appendix-section" id="comparison-checkpoints"><h3>Read the comparison checkpoints</h3><div aria-label="Scrollable comparison checkpoint table" class="table-wrap" tabindex="0"><table id="comparison-table"><thead><tr><th>New rounds</th><th>Fixed ECE</th><th>Adaptive ECE</th></tr></thead><tbody></tbody></table></div></section></section></main>
+<script id="ece-model">
+(function(root){
+  'use strict';
+  function createExperiment(options={}){
+    const m=options.m??4,preset=options.preset??'worked',strategy=options.strategy??'adaptive';
+    if(!Number.isInteger(m)||m<1||m>100)throw new Error('Choose a grid with1 to100 intervals.');
+    if(!['worked','fresh'].includes(preset)||(preset==='worked'&&m!==4))throw new Error('The worked history uses the four interval grid.');
+    if(!['adaptive','fixed'].includes(strategy)||(strategy==='fixed'&&m%4!==0))throw new Error('This fixed lottery needs0.25 and0.50 on the grid.');
+    const random=options.random??(()=>{const a=new Uint32Array(1);root.crypto.getRandomValues(a);return a[0]/4294967296;});
+    let N,R,initialTotal,phase,locked,lastDraw,history;
+    const clone=x=>JSON.parse(JSON.stringify(x));
+    function metrics(n=N,r=R){
+      const total=n.reduce((a,b)=>a+b,0);
+      if(!total)return {ece:0,c2:0,rms:0};
+      let absolute=0,square=0;
+      n.forEach((count,i)=>{if(count){const residual=(m*r[i]-i*count)/m;absolute+=Math.abs(residual);square+=residual*residual/count;}});
+      return {ece:absolute/total,c2:square/total,rms:Math.sqrt(square/total)};
+    }
+    function errors(){return N.map((count,i)=>count?(m*R[i]-i*count)/(m*count):0);}
+    function distribution(){
+      const d=Array(m+1).fill(0);
+      if(strategy==='fixed'){d[m/4]=1/3;d[m/2]=2/3;return d;}
+      const e=errors();
+      const zeros=N.map((n,i)=>i).filter(i=>N[i]===0||m*R[i]-i*N[i]===0);
+      if(zeros.length){zeros.sort((a,b)=>Math.abs(a-m/2)-Math.abs(b-m/2)||a-b);d[zeros[0]]=1;return d;}
+      const b=e.findIndex(x=>x<0),a=b-1;
+      if(a<0||!(e[a]>0))throw new Error('Bucket boundary invariant failed.');
+      d[a]=-e[b]/(e[a]-e[b]);d[b]=e[a]/(e[a]-e[b]);return d;
+    }
+    function snapshot(){
+      return clone({m,preset,strategy,N,R,grid:N.map((_,i)=>i/m),errors:errors(),distribution:locked?locked.distribution:distribution(),total:N.reduce((a,b)=>a+b,0),newRounds:N.reduce((a,b)=>a+b,0)-initialTotal,initialTotal,phase,committedOutcome:locked?.y??null,metrics:metrics(),history,lastDraw});
+    }
+    function reset(){
+      N=preset==='worked'?[1,4,4,1,1]:Array(m+1).fill(0);R=preset==='worked'?[1,3,1,0,0]:Array(m+1).fill(0);
+      initialTotal=N.reduce((a,b)=>a+b,0);phase='ready';locked=null;lastDraw=null;history=initialTotal?[{round:0,...metrics()}]:[];return snapshot();
+    }
+    function commitInternal(y){
+      if(phase!=='ready')throw new Error('The outcome is already committed and locked. Draw or reset first.');
+      if(y!==0&&y!==1)throw new Error('The binary outcome must be0 or1.');
+      if(N.reduce((a,b)=>a+b,0)-initialTotal>=10000)throw new Error('The10000 round limit has been reached. Reset to start again.');
+      const d=distribution();locked={y,distribution:d.slice(),mean:d.reduce((v,p,i)=>v+p*i/m,0)};phase='committed';
+    }
+    function drawInternal(){
+      if(phase!=='committed')throw new Error('Commit an outcome before drawing a forecast.');
+      const u=random();if(!Number.isFinite(u)||u<0||u>=1)throw new Error('The random draw must lie in[0,1).');
+      const pending=locked;let cumulative=0,index=-1;
+      for(let i=0;i<=m;i++){cumulative+=pending.distribution[i];if(u<cumulative){index=i;break;}}
+      if(index<0)index=pending.distribution.findLastIndex(p=>p>0);
+      const before=metrics();N[index]++;R[index]+=pending.y;const after=metrics();
+      lastDraw={p:index/m,y:pending.y,index,chance:pending.distribution[index],meanBefore:pending.mean,eceBefore:before.ece,eceAfter:after.ece,delta:after.ece-before.ece};
+      phase='ready';locked=null;history.push({round:N.reduce((a,b)=>a+b,0)-initialTotal,p:lastDraw.p,y:lastDraw.y,...after});
+    }
+    function preview(p,y){
+      const i=Math.round(p*m);if(!Number.isFinite(p)||i<0||i>m||Math.abs(i/m-p)>1e-12)throw new Error('The hypothetical forecast must be on the grid.');
+      if(y!==0&&y!==1)throw new Error('The binary outcome must be0 or1.');
+      const n=N.slice(),r=R.slice();n[i]++;r[i]+=y;return {N:n,R:r,total:n.reduce((a,b)=>a+b,0),metrics:metrics(n,r)};
+    }
+    const api={snapshot,reset,preview,commit(y){commitInternal(y);return snapshot();},draw(){drawInternal();return snapshot();},run(count,policy){
+      if(!['zeros','ones','mean','alternating'].includes(policy))throw new Error('Choose an allowed public outcome policy.');
+      if(phase!=='ready')throw new Error('Finish the committed and locked round before a batch.');
+      const remaining=10000-(N.reduce((a,b)=>a+b,0)-initialTotal);
+      if(!Number.isInteger(count)||count<1||count>remaining)throw new Error('Batch exceeds the10000 round limit.');
+      for(let t=0;t<count;t++){
+        const d=distribution(),mean=d.reduce((v,p,i)=>v+p*i/m,0);
+        const y=policy==='zeros'?0:policy==='ones'?1:policy==='alternating'?(N.reduce((a,b)=>a+b,0)-initialTotal)%2:Number(mean<.65);
+        commitInternal(y);drawInternal();
+      }
+      return snapshot();
+    }};
+    reset();return api;
+  }
+  function createComparison(options={}){
+    const seed=options.seed??20261105,policy=options.policy??'ones';
+    if(!Number.isInteger(seed)||seed<0||seed>4294967295)throw new Error('Seed must be an integer from 0 to 4294967295.');
+    if(!['ones','zeros','alternating'].includes(policy))throw new Error('Choose a shared predetermined outcome policy.');
+    // Mulberry32 is a reproducible teaching stream, not cryptographic randomness.
+    const seeded=value=>()=>{let t=value+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return ((t^t>>>14)>>>0)/4294967296;};
+    const randomFactory=options.randomFactory??seeded;
+    let fixed,adaptive;
+    function snapshot(){const f=fixed.snapshot(),a=adaptive.snapshot();return {seed,policy,newRounds:f.newRounds,fixed:f,adaptive:a};}
+    function reset(){fixed=createExperiment({strategy:'fixed',random:randomFactory(seed)});adaptive=createExperiment({strategy:'adaptive',random:randomFactory(seed)});return snapshot();}
+    reset();return {snapshot,reset,run(count){
+      const remaining=10000-fixed.snapshot().newRounds;
+      if(!Number.isInteger(count)||count<1||count>remaining)throw new Error('Choose a positive batch within the 10000 round limit.');
+      // Both policies are predetermined. Identically seeded streams couple the
+      // uniform draw at each round; each model commits before consuming its draw.
+      fixed.run(count,policy);adaptive.run(count,policy);return snapshot();
+    }};
+  }
+  root.ECE=Object.freeze({createExperiment,createComparison});
+})(globalThis);
+</script>
+<script id="ece-ui">
+(function(){
+'use strict';
+const $=id=>document.getElementById(id),fmt=(v,d=4)=>Number(v).toFixed(d),pct=v=>(100*v).toFixed(v===0||v===1?0:1)+'%';
+if(window.parent!==window)document.body.classList.add('embedded');
+let model=ECE.createExperiment(),chosen=0,previewChoice=null;
+function publicOutcome(s){const policy=$('policy').value;return policy==='zeros'?0:policy==='ones'?1:policy==='mean'?Number(s.distribution.reduce((v,d,i)=>v+d*i/s.m,0)<.65):chosen;}
+function svgText(x,y,text,cls='tick',extra=''){return `<text x="${x}" y="${y}" class="${cls}" ${extra}>${text}</text>`;}
+function chartFrame(yTitle){let svg='';for(const v of [0,.5,1]){const y=190-v*155;svg+=`<line x1="48" y1="${y}" x2="416" y2="${y}" stroke="var(--rule)" stroke-width="1"/>`+svgText(35,y+4,v,'tick','text-anchor="end"');}svg+=svgText(14,113,yTitle,'tick','text-anchor="middle" transform="rotate(-90 14 113)"');return svg;}
+function distributionPlot(s){let svg=chartFrame('Draw chance');const support=s.distribution.map((d,i)=>d>0?i:-1).filter(i=>i>=0);s.grid.forEach((q,i)=>{const x=48+q*368,y=190-s.distribution[i]*155,c=i===support[0]?'var(--blue)':'var(--orange)';if(s.distribution[i])svg+=`<line x1="${x}" y1="190" x2="${x}" y2="${y}" stroke="${c}" stroke-width="3"/><circle cx="${x}" cy="${y}" r="5" fill="${c}"/>`+svgText(x,y-12,pct(s.distribution[i]),'label',`text-anchor="middle" style="fill:${c}"`);else svg+=`<circle cx="${x}" cy="190" r="2" fill="var(--rule)"/>`;});for(const q of [0,.25,.5,.75,1])svg+=svgText(48+q*368,212,String(q),'tick','text-anchor="middle"');svg+=svgText(232,235,'Forecast q','label','text-anchor="middle"');$('distribution').innerHTML=svg;$('distribution').setAttribute('aria-label','Next draw chances: '+support.map(i=>`forecast ${s.grid[i]} with chance ${pct(s.distribution[i])}`).join('; '));}
+function trajectoryPlot(s){let svg=chartFrame('Error');const max=Math.max(1,s.newRounds);const all=s.history;let points=all;if(all.length>650){const stride=Math.ceil((all.length-50)/600);points=all.filter((_,i)=>i%stride===0||i>=all.length-50);}for(const [key,color,dash]of[['rms','var(--orange)','5 4'],['ece','var(--blue)','']]){if(points.length){const d=points.map((p,i)=>`${i?'L':'M'}${48+p.round/max*368},${190-p[key]*155}`).join(' ');svg+=`<path d="${d}" fill="none" stroke="${color}" stroke-width="2" ${dash?`stroke-dasharray="${dash}"`:''}/>`;const last=points.at(-1);svg+=`<circle cx="${48+last.round/max*368}" cy="${190-last[key]*155}" r="4" fill="${color}"/>`;}}if(!all.length)svg+=svgText(232,110,'Draw a forecast to start the record.','label','text-anchor="middle"');const ticks=max<2?[0,max]:[0,Math.round(max/2),max];for(const t of ticks)svg+=svgText(48+t/max*368,212,String(t),'tick','text-anchor="middle"');svg+=svgText(232,235,'New rounds','label','text-anchor="middle"');$('trajectory').innerHTML=svg;}
+function renderCases(s){const support=s.distribution.map((d,i)=>d>0?i:-1).filter(i=>i>=0);let out='<thead><tr><th>Committed outcome</th>'+support.map(i=>`<th>Draw ${fmt(s.grid[i],2)}<br><span class="muted">chance ${pct(s.distribution[i])}</span></th>`).join('')+'<th>Expected ECE</th></tr></thead><tbody>';for(const y of [0,1]){let average=0;out+=`<tr><th>${y}</th>`;for(const i of support){const score=model.preview(s.grid[i],y).metrics.ece;average+=s.distribution[i]*score;const rise=score>s.metrics.ece+1e-12;out+=`<td><button type="button" data-case="${y}:${i}" ${rise?'class="rise"':''} aria-label="Inspect outcome ${y}, forecast ${fmt(s.grid[i],2)}"><span>${fmt(score)}</span><small>${s.total?(rise?'ECE rises':'ECE does not rise'):'First record'}</small></button></td>`;}out+=`<td class="num">${fmt(average)}</td></tr>`;}out+='</tbody>';$('case-table').innerHTML=out;if(previewChoice){const [y,i]=previewChoice;if(support.includes(i)){const p=s.grid[i],next=model.preview(p,y),C=(s.m*s.R[i]-i*s.N[i])/s.m,after=C+y-p;$('case-explain').textContent=`Hypothetical p = ${fmt(p,2)}, y = ${y}: selected residual ${fmt(C,2)} + (${y} − ${fmt(p,2)}) = ${fmt(after,2)}. Sum every bucket's absolute residual, then divide by ${next.total}: ECE = ${fmt(next.metrics.ece)}. Recorded history is unchanged.`;return;}}$('case-explain').textContent='Select a branch to inspect its calculation. The expected column averages these completed ECE scores over draw chances.';}
+function renderBuckets(s){$('bucket-table').querySelector('tbody').innerHTML=s.grid.map((q,i)=>{if(!s.N[i]&&!s.distribution[i])return '';const rate=s.N[i]?s.R[i]/s.N[i]:null;return `<tr ${s.lastDraw?.index===i?'class="selected"':''}><td class="num">${fmt(q,2)}</td><td class="num">${s.N[i]}</td><td>${rate===null?'Unused':`${s.R[i]} / ${s.N[i]}<br><span class="muted">${fmt(rate)}</span>`}</td><td class="num">${s.N[i]?`${s.errors[i]>0?'+':''}${fmt(s.errors[i])}`:'0 by convention'}</td><td class="chance">${pct(s.distribution[i])}</td></tr>`;}).join('');}
+function render(message){const s=model.snapshot(),locked=s.phase==='committed',limit=s.newRounds>=10000,policy=$('policy').value;
+ $('total').textContent=s.total.toLocaleString('en-US');$('rounds-note').textContent=`${s.initialTotal} initial + ${s.newRounds} new`;$('ece').textContent=s.total?fmt(s.metrics.ece):'—';$('rms').textContent=s.total?fmt(s.metrics.rms):'—';
+ $('delta').className='';$('delta').textContent=!s.total?'No observations yet':s.lastDraw?`${s.lastDraw.delta>0?'+':''}${fmt(s.lastDraw.delta)} after the last draw`:'Bucket gaps, weighted by history';if(s.lastDraw?.delta>0)$('delta').classList.add('increase');
+ $('commit').disabled=locked||limit;$('draw').disabled=!locked;$('draw').classList.toggle('primary',locked);$('commit').classList.toggle('primary',!locked);$('strategy').disabled=locked;$('preset').disabled=locked;$('policy').disabled=locked;
+ for(const input of document.querySelectorAll('input[name="outcome"]')){input.disabled=locked||policy!=='manual'||limit;input.checked=Number(input.value)===(locked?s.committedOutcome:publicOutcome(s));}
+ $('batch').disabled=locked||policy==='manual'||limit;$('batch-help').textContent=limit?'10,000 new rounds reached. Reset to start again.':policy==='manual'?'Choose an automatic outcome rule to run a batch.':`Each of the next ${Math.min(100,10000-s.newRounds)} outcomes is chosen before its draw.`;
+ $('phase-choose').classList.toggle('current',!locked);$('phase-draw').classList.toggle('current',locked);
+ if(message){$('status').className='status fade';$('status').textContent=message;}else if(locked){$('status').className='status locked';$('status').textContent=`Outcome locked: ${s.committedOutcome}. Forecast not drawn yet; history is unchanged.`;}
+ $('bound').innerHTML=s.strategy==='fixed'?'<strong>Fixed lottery comparison.</strong> These draw chances never adapt. There is no general calibration guarantee; try an outcome of 1 on every round.':'<strong>Long run guarantee.</strong> On this fixed grid, the history update rule has asymptotic expected ECE at most h/2 = '+fmt(1/(2*s.m),3)+' when Nature cannot see the current draw. One branch or one round can still increase ECE.';
+ distributionPlot(s);trajectoryPlot(s);renderCases(s);renderBuckets(s);
+}
+function attempt(action){try{action();}catch(e){$('status').className='status error';$('status').textContent=e.message;}}
+$('commit').addEventListener('click',()=>attempt(()=>{model.commit(publicOutcome(model.snapshot()));render();$('draw').focus();}));
+$('draw').addEventListener('click',()=>attempt(()=>{const s=model.draw(),d=s.lastDraw;previewChoice=null;render(`Drew forecast ${fmt(d.p,2)} with chance ${pct(d.chance)}, then observed ${d.y}. ECE: ${fmt(d.eceBefore)} → ${fmt(d.eceAfter)}. Only that bucket was updated.`);if(!$('commit').disabled)$('commit').focus();}));
+$('reset').addEventListener('click',()=>attempt(()=>{const s=model.reset();previewChoice=null;render(s.total?'Restored the 11 recorded rounds from the worked example.':'Empty history restored. No observations have been recorded.');}));
+for(const input of document.querySelectorAll('input[name="outcome"]'))input.addEventListener('change',()=>{chosen=Number(input.value);});
+function restart(){model=ECE.createExperiment({preset:$('preset').value,m:$('preset').value==='worked'?4:20,strategy:$('strategy').value});previewChoice=null;render('Started a new experiment with the selected history and forecasting rule.');}
+$('strategy').addEventListener('change',()=>attempt(restart));$('preset').addEventListener('change',()=>attempt(restart));$('policy').addEventListener('change',()=>render('Outcome rule updated. The next outcome will be fixed before its private draw.'));
+$('batch').addEventListener('click',()=>attempt(()=>{const count=Math.min(100,10000-model.snapshot().newRounds);model.run(count,$('policy').value);previewChoice=null;render(`Recorded ${count} new rounds. Every outcome was committed before its private draw. The curves show this experiment, not a proof of convergence.`);}));
+$('case-table').addEventListener('click',event=>{const button=event.target.closest('button[data-case]');if(!button)return;previewChoice=button.dataset.case.split(':').map(Number);renderCases(model.snapshot());});
+render('Choose an outcome, then commit it. The worked example starts with ECE 23/44 = 0.5227.');
+let comparison=ECE.createComparison();
+const policyNames={ones:'Always 1',zeros:'Always 0',alternating:'Alternate 0, 1'};
+function comparisonDirty(s){return $('comparison-seed').value.trim()===''||Number($('comparison-seed').value)!==s.seed||$('comparison-policy').value!==s.policy;}
+function comparisonPlot(s){
+ const narrow=$('comparison').clientWidth<600,w=narrow?360:800,h=narrow?260:300,left=narrow?44:56,right=w-(narrow?20:32),bottom=h-50,top=24,max=Math.max(1,s.newRounds);
+ let out='';const xy=p=>[left+p.round/max*(right-left),bottom-p.ece*(bottom-top)];
+ for(const v of [0,.25,.5,.75,1]){const y=bottom-v*(bottom-top);out+=`<line x1="${left}" x2="${right}" y1="${y}" y2="${y}" stroke="var(--rule)"/>`+svgText(left-10,y+4,v,'tick','text-anchor="end"');}
+ for(const [key,color,dash,label]of[['fixed','var(--orange)','7 4','Fixed'],['adaptive','var(--blue)','','Adaptive']]){
+  const all=s[key].history,stride=Math.max(1,Math.ceil(all.length/600)),points=all.filter((_,i)=>i%stride===0||i===all.length-1);
+  out+=`<path d="${points.map((p,i)=>`${i?'L':'M'}${xy(p).join(',')}`).join(' ')}" fill="none" stroke="${color}" stroke-width="2.5" ${dash?`stroke-dasharray="${dash}"`:''}/>`;
+  const last=all.at(-1),[x,y]=xy(last);out+=`<circle cx="${x}" cy="${y}" r="4" fill="${color}"/>`;
+  if(s.newRounds)out+=svgText(right-6,Math.max(top+12,Math.min(bottom-8,y+(key==='fixed'?-12:18))),`${label} ${fmt(last.ece)}`,'label',`text-anchor="end" style="fill:${color}"`);
+ }
+ const ticks=s.newRounds<2?[0]:[0,Math.round(s.newRounds/2),s.newRounds];
+ for(const t of ticks)out+=svgText(left+t/max*(right-left),bottom+22,t,'tick','text-anchor="middle"');
+ out+=svgText((left+right)/2,h-5,'New rounds','label','text-anchor="middle"')+svgText(13,(top+bottom)/2,'ECE','label',`text-anchor="middle" transform="rotate(-90 13 ${(top+bottom)/2})"`);
+ $('comparison-curve').setAttribute('viewBox',`0 0 ${w} ${h}`);$('comparison-curve').innerHTML=out;
+ $('comparison-curve').setAttribute('aria-label',`${s.newRounds} new rounds with shared ${policyNames[s.policy]} outcomes. Fixed ECE ${fmt(s.fixed.metrics.ece)}; history update ECE ${fmt(s.adaptive.metrics.ece)}.`);
+}
+function renderComparison(message){
+ const s=comparison.snapshot(),dirty=comparisonDirty(s),cap=s.newRounds>=10000;
+ $('comparison-fixed').textContent=fmt(s.fixed.metrics.ece);$('comparison-adaptive').textContent=fmt(s.adaptive.metrics.ece);
+ for(const key of ['fixed','adaptive'])$('comparison-'+key+'-lottery').textContent='Next draw: '+s[key].distribution.flatMap((d,i)=>d>0?[`${pct(d)} at forecast ${fmt(i/4,2)}`]:[]).join('; ')+'.';
+ $('comparison-active').textContent=`Active: ${policyNames[s.policy]} · seed ${s.seed} · 11 initial + ${s.newRounds.toLocaleString('en-US')} new records in each run.`;
+ $('comparison-run100').disabled=dirty||cap;$('comparison-run1000').disabled=dirty||s.newRounds>=1000;
+ $('comparison-status').className='status';$('comparison-status').textContent=message??'Ready. Advance both runs, or restart to replay the same seed.';
+ if(dirty)$('comparison-status').textContent='Settings changed. Restart comparison to apply them.';
+ else if(cap)$('comparison-status').textContent='10,000 new rounds reached. Restart to compare again.';
+ const rounds=[...new Set([0,1,10,100,1000,10000,s.newRounds].filter(t=>t<=s.newRounds))].sort((a,b)=>a-b);
+ $('comparison-table').querySelector('tbody').innerHTML=rounds.map(t=>`<tr><th>${t.toLocaleString('en-US')}</th><td>${fmt(s.fixed.history[t].ece)}</td><td>${fmt(s.adaptive.history[t].ece)}</td></tr>`).join('');
+ $('comparison-explanation').textContent=s.policy==='ones'?'With all new outcomes equal to 1, the fixed reports 0.25 and 0.50 both underpredict. Under independent draws its long-run ECE is (1/3)(0.75) + (2/3)(0.50) = 7/12. The adaptive rule can move its support toward 1. Old buckets remain in ECE with their historical weights.':s.policy==='zeros'?'With all new outcomes equal to 0, the fixed reports both overpredict; under independent draws its long-run ECE is (1/3)(0.25) + (2/3)(0.50) = 5/12. The adaptive rule can move toward 0.':'The outcome sequence 0, 1, 0, 1 is fixed before either draw. This is another comparison example; neither the actual ECE nor its expectation must decrease after every round.';
+ comparisonPlot(s);
+}
+function comparisonAttempt(action){try{action();}catch(e){$('comparison-status').className='status error';$('comparison-status').textContent=e.message;}}
+$('comparison-form').addEventListener('submit',event=>{event.preventDefault();comparisonAttempt(()=>{if(!$('comparison-seed').value.trim())throw new Error('Enter an integer seed.');comparison=ECE.createComparison({seed:Number($('comparison-seed').value),policy:$('comparison-policy').value});renderComparison('Both histories restarted. Run to 1,000 with the default settings to reproduce the PDF figure.');});});
+for(const id of ['comparison-policy','comparison-seed'])$(id).addEventListener('input',()=>renderComparison());
+for(const [id,target]of[['comparison-run100',100],['comparison-run1000',1000]])$(id).addEventListener('click',()=>comparisonAttempt(()=>{const s=comparison.snapshot();if(comparisonDirty(s))throw new Error('Restart comparison to apply changed settings.');const count=id==='comparison-run100'?Math.min(100,10000-s.newRounds):target-s.newRounds;const next=comparison.run(count);renderComparison(`Added ${count} identical outcomes to each run. Both curves now include ${next.newRounds.toLocaleString('en-US')} new rounds.`);}));
+let comparisonWidth=0;new ResizeObserver(entries=>{const width=entries[0].contentRect.width;if(Math.abs(width-comparisonWidth)>1){comparisonWidth=width;comparisonPlot(comparison.snapshot());}}).observe($('comparison'));
+renderComparison();
+})();
+</script>
+</body>
+</html>
