@@ -2,7 +2,7 @@
 #import "meta/note-status.typ": note-status
 #show: gabri_notes.with(
   lec_num: 13,
-  date: [Thu, Nov 5, 2026],
+  date: [Thu, Oct 29, 2026],
   title: "Alignment (part I)",
   instructor: [Natalie Collina],
 )
@@ -46,7 +46,7 @@ In each round $k >= 2$, the speaker is asked to be unbiased on the days that rea
 Like ordinary calibration, this is a property of a sequence of predictions, not an algorithm. Exact empirical unbiasedness on a finite transcript is an idealization that we adopt only to make the proof transparent; @rem-ca-approximate describes the condition that is actually achievable.
 
 #remark[Approximate conversation calibration][
-  No online algorithm can be exactly unbiased conditionally on every possible value of the other party's previous prediction. The definition of #citet(<collina2025tractable>) relaxes @def-ca-perfect-cc in two ways. First, the previous prediction $p^(t, k-1)$ is only located up to a bucket of width $g(T)$. Second, the predictions on each resulting subsequence $S$ only need to be within $ell_1$-distance $f(abs(S))$ of a perfectly calibrated sequence, where $f$ grows sublinearly. Such an agent is called _$(f, g)$-conversation-calibrated_. Such conditions can be enforced by efficient online algorithms without any prior. The analysis below then goes through with additive error terms that depend on $f$ and $g$, and that vanish as $T -> infinity$ for suitable choices of $f$ and $g$. The resulting bound on the number of rounds, which involves a quantity $beta(T)$, is discussed separately.
+  No online algorithm can be exactly unbiased conditionally on every possible value of the other party's previous prediction. The definition of #citet(<collina2025tractable>) relaxes @def-ca-perfect-cc in two ways. First, the previous prediction $p^(t, k-1)$ is only located up to a bucket of width $g(T)$. Second, the predictions on each resulting subsequence $S$ only need to be within $ell_1$-distance $f(abs(S))$ of a perfectly calibrated sequence, where $f$ grows sublinearly. Such an agent is called _$(f, g)$-conversation-calibrated_. Such conditions can be enforced by efficient online algorithms without any prior. The analysis below then goes through with additive error terms that depend on $f$ and $g$; after normalizing the squared error by $T$, these terms vanish as $T -> infinity$ for suitable choices of $f$ and $g$. The resulting bound on the number of rounds, which involves a quantity $beta(T)$, is discussed separately.
 ] <rem-ca-approximate>
 
 == The agreement theorem
@@ -84,12 +84,14 @@ $
   sum_(t in S) (c - y^t)^2 = sum_(t in S) (m - y^t)^2 + abs(S) (c - m)^2.
 $
 
+#block(breakable: false)[
 #lemma[Each round reduces squared error][
   If the speaker of round $k >= 2$ is perfectly conversation-calibrated at round $k$, then
   $
     "SQE"_(k-1) - "SQE"_k = sum_(t in cal(T)_k) (p^(t, k) - p^(t, k-1))^2 >= eps^2 abs(cal(T)_(k+1)).
   $
 ] <lem-ca-one-round>
+]
 
 #proof[
   On a day $t in.not cal(T)_k$, the conversation has already ended, so $overline(p)^(t, k) = overline(p)^(t, k-1)$, and the day contributes nothing to $"SQE"_(k-1) - "SQE"_k$. On a day $t in cal(T)_k$ both rounds took place, so $overline(p)^(t, k-1) = p^(t, k-1)$ and $overline(p)^(t, k) = p^(t, k)$.
