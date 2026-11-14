@@ -42,7 +42,7 @@
 #let ece-print(body) = context if target() != "html" { body }
 
 #let ece-reliability-example = [
-In the reliability diagram, points above the diagonal underpredict and points below it overpredict. ECE uses the vertical gaps. By the triangle inequality, ECE bounds the absolute overall signed bias.
+Read the gap as the vertical distance from the diagonal. Points above it are underpredictions, and points below it are overpredictions. The triangle inequality makes ECE an upper bound on the absolute overall bias.
 
 #figure(
   image("figures/calibration_ece/ece_reliability.svg", width: 100%,
@@ -53,23 +53,23 @@ In the reliability diagram, points above the diagonal underpredict and points be
 
 #let ece-privacy-story = [
 #figure(
-  image("figures/calibration_ece/ece_information_flow.svg", width: 90%,
+  image("figures/calibration_ece/ece_information_flow.svg", width: 84%,
     alt: "Six sequential frames. One: if Nature sees forecasts 0.25 or 0.75, it can respond with outcomes 1 or 0, forcing gaps of 0.75. Two: publish a 50-50 distribution over those forecasts and let Nature commit to a hidden outcome first. Three: privately draw forecast 0.75 without learning the outcome. Four: reveal the previously committed outcome 1; Nature cannot now switch to 0. Five: on one four-round trace each bucket receives outcomes 1 and 0, so ECE is 0.25. Six: the unchanged lottery still has expected ECE 0.5 against all-one outcomes; a suitable strategy must use the history."),
   caption: [Why privacy matters, in six frames. The gray diagonals mark agreement between the horizontal and vertical coordinates. Frames 2--3 plot _draw probabilities_; frames 1 and 4 plot outcomes; frames 5--6 plot _bucket frequencies_. Nature may use the announced distribution and history, but commits before seeing the current draw. The four-round record in frame 5 is an illustration, not a calibration guarantee.],
 ) <fig-l15-ece-protocol>
 ]
 
-A forecaster reports a 20% chance of rain on five days and an 80% chance on five other days. The average forecast is 50%, and it rains on five of the ten days. Is the forecaster calibrated? To answer, we need to check the days assigned each probability separately. Once we can score that record, we can ask what happens when Nature chooses the outcomes. This section follows #citep(<Farina2026CalibrationSlides>, [slides 5--8]).
+The introduction asks how often it rains on days forecast at 70%. ECE applies that check to every reported probability. Suppose five days are forecast at 20% and five at 80%, and it rains on five days in all. The average forecast is 50%. What happens when we check the two groups separately? The setup follows #citep(<Farina2026CalibrationSlides>, [slides 5--8]).
 
 = Expected calibration error on a finite grid <sec-l15-ece-definition>
 
-Calibration compares forecasts with observed frequencies. On ten days forecast at 70%, seven rainy days give a gap of zero and nine give a gap of 20 percentage points. Even a calibrated forecaster can show a gap in a small sample.
+A calibration gap is the difference between a forecast and its group's rain rate. Even a calibrated forecast can show a gap in a small sample.
 
-At round $t$, report $p_t$ before observing $y_t$, where $y_t=1$ means rain and $y_t=0$ means a dry day. We evaluate a realized sequence $(p_t,y_t)_(t=1)^T$, with $T>=1$ and forecasts in a finite set $Q subset.eq [0,1]$. A _bucket_ collects all rounds with the same reported probability. For $q in Q$, define
+On round $t$, the forecaster reports $p_t$ and later sees the outcome $y_t$. Let $y_t=1$ mean rain and $y_t=0$ mean a dry day. After $T>=1$ rounds, we have a record $(p_t,y_t)_(t=1)^T$. Forecasts come from a finite set $Q subset.eq [0,1]$. For each $q in Q$, collect the rounds with forecast $q$ into a bucket.
 $
   I_q := {t in {1,...,T}: p_t=q}, quad N_q := |I_q|.
 $
-For a nonempty bucket, let $overline(y)_q := (1/N_q) sum_(t in I_q) y_t$. This is the observed event frequency among rounds assigned forecast $q$. Write $Q_+ := {q in Q: N_q>0}$.
+If the bucket has at least one round, $overline(y)_q := (1/N_q) sum_(t in I_q) y_t$ is the fraction of those rounds on which it rained. Let $Q_+ := {q in Q: N_q>0}$ be the set of forecasts that were used.
 
 #block(breakable: false)[
 #definition[Empirical ECE][
@@ -78,24 +78,24 @@ For a nonempty bucket, let $overline(y)_q := (1/N_q) sum_(t in I_q) y_t$. This i
     "ECE"_T := sum_(q in Q_+) frac(N_q,T) abs(overline(y)_q-q)
       = frac(1,T) sum_(q in Q) abs(sum_(t in I_q) (y_t-q)).
   $
-  Empty buckets contribute zero through the second expression; their mean outcome need not be defined.
+  In the second formula, the sum for an empty bucket is zero. Its mean is undefined.
 ] <def-l15-ece>
 ]
 
-Group equal forecasts, find each bucket's absolute gap, and average those gaps by bucket size. Multiplying a bucket's mean gap by its count gives the second expression. ECE is zero when every used bucket's observed frequency matches its forecast.
+Buckets count in proportion to their size. ECE is zero exactly when every used bucket matches its forecast.
 
 #ece-web[
 #remark[What is being averaged?][
-  Despite its name, @def-l15-ece is a statistic of the realized data. No additional expectation over a forecaster's randomization is taken here. Also distinguish the normalized error $"ECE"_T$ from the cumulative error $T "ECE"_T$; an $o(T)$ bound on the latter is an $o(1)$ bound on the former.
+  Compute @def-l15-ece on one observed record. Its average is $"ECE"_T$ and its cumulative error is $T "ECE"_T$. Dividing an $o(T)$ cumulative bound by $T$ gives an $o(1)$ bound on the average.
 ]
 ]
 
 #block[
 == Worked example: opposite errors do not cancel <sec-l15-ece-example>
 
-Now consider ten forecasts on $Q={0.2,0.8}$. One possible recording is
+Here is the record for the ten days from the opening example, on the grid $Q={0.2,0.8}$.
 $ p=0.2: quad (1,1,0,0,0), quad p=0.8: quad (1,1,1,0,0). $
-Each bucket contains five rounds; their order within a bucket does not affect ECE.
+The order of days within a bucket has no effect on ECE.
 
 #figure(
   table(
@@ -114,18 +114,18 @@ $
   frac(1,T) sum_(t=1)^T (y_t-p_t)
   = frac(5,10)(0.4-0.2)+frac(5,10)(0.6-0.8)=0.
 $
-Nevertheless,
+Taking absolute values within the buckets gives
 $ "ECE"_T=frac(5,10)abs(0.4-0.2)+frac(5,10)abs(0.6-0.8)=0.2. $
-The forecasts and outcomes have the same overall mean, 0.5, but disagree within both buckets. Moving the absolute value outside the sum would conceal these errors.
+The overall rain rate matches the average forecast at 0.5. The two bucket gaps go in opposite directions, so we take their absolute values before adding.
 
 #ece-print(ece-reliability-example)
 ]
 
 = When Nature sees the forecast <sec-ece-impossibility>
 
-An adversarial process can invalidate calibration if it observes the _actual_ forecast before choosing the outcome. This is the classical impossibility obstruction #citep(<Oakes1985SelfCalibrating>, <Dawid1985CalibrationComment>). The following threshold version is used in the lecture and in #citep(<FosterVohra1998Calibration>, [Section 3]).
+Let Nature choose whether it rains. If it sees the actual forecast first, it can keep the record from calibrating #citep(<Oakes1985SelfCalibrating>, <Dawid1985CalibrationComment>). The lecture uses the threshold rule from #citep(<FosterVohra1998Calibration>, [Section 3]).
 
-Return to the 20% and 80% buckets. Suppose Nature sees each new forecast and can decide whether it rains. It can make it rain on every 20% day and keep every 80% day dry. The observed rates become 100% and 0%, giving an 80 percentage point gap in each bucket. The claim below extends this argument to any forecast grid.
+Take the same two forecasts. Nature makes it rain every time it sees 20% and keeps it dry every time it sees 80%. Each bucket misses by 80 percentage points. The same idea gives a lower bound on any grid.
 
 #block(breakable: false)[
 #claim[Forecast-observing adversary][
@@ -140,19 +140,19 @@ Return to the 20% and 80% buckets. Suppose Nature sees each new forecast and can
   In any nonempty bucket with $q<1/2$, every outcome is one, so $overline(y)_q=1$ and the gap is $1-q>1/2$. In a bucket with $q>=1/2$, every outcome is zero, so the gap is $q>=1/2$. The bucket weights sum to one; averaging these gaps proves the claim.
 ]
 
-With this response rule, Nature can force cumulative error to grow at least linearly when it sees each draw.
+The cumulative error grows at least linearly under this rule.
 
 = Private randomized forecasts <sec-ece-randomization>
 
-Now announce the distribution $D_t$ over forecasts while keeping the draw private.
+Change the order of play. The forecaster announces the distribution $D_t$ over forecasts and keeps the draw private.
 
-*Two probabilities.* For this example, switch to a coin that selects 25% or 75% with equal chance. Drawing 75% reports a 75% chance of rain. The chance of selecting that report was 50%.
+Suppose a fair coin picks 25% or 75%. Each forecast has a 50% chance of being picked. If the coin picks 75%, the report says there is a 75% chance of rain.
 
-*Who commits first?* Nature can use the history and $D_t$ to commit to $y_t$. The forecaster draws $p_t$ without seeing $y_t$, then observes the outcome. The same commitment applies to either draw #citep(<FosterVohra1998Calibration>, [Section 3]).
+Nature sees the history and $D_t$, then chooses $y_t$. The forecaster draws $p_t$ without knowing $y_t$, and the outcome is revealed after the draw. Whatever comes up on the coin, the outcome has already been chosen #citep(<FosterVohra1998Calibration>, [Section 3]).
 
 #ece-print(ece-privacy-story)
 
-With an unchanged 50--50 lottery, all-rain outcomes give expected ECE 0.5. Which forecasts we draw must change with the history.
+If it rains every day and the forecaster keeps using this fair coin, the expected ECE is 0.5. A strategy that handles different outcomes needs to adjust its lottery.
 
 = Foster--Vohra's positive result <sec-ece-foster-vohra>
 
@@ -164,33 +164,33 @@ With an unchanged 50--50 lottery, all-rain outcomes give expected ECE 0.5. Which
 ] <thm-ece-foster-vohra>
 ]
 
-This is the finite-grid version of Foster--Vohra's existence result #citep(<FosterVohra1998Calibration>). See #citep(<GuptaRamdas2022Calibration>, [Section 1]) for the excess-error formulation. The expectation includes both parties' random choices.
+Foster and Vohra prove existence #citep(<FosterVohra1998Calibration>). We use the excess-error form of #citep(<GuptaRamdas2022Calibration>, [Section 1]), averaging over both sides' random choices. At tolerance 0.05, ECE 0.08 contributes 0.03 of excess and ECE 0.02 contributes zero.
 
-For $epsilon=0.05$, ECE 0.08 contributes 0.03 of excess error, while ECE 0.02 contributes zero. At fixed $epsilon$, the expected cumulative _excess_ is $o(T)$. The finer grid supplies intermediate probabilities.
+*From ECE to multicalibration.* The ECE above uses the forecast actually drawn. In the next section, a test averages its signed residual over $D_t$ before summing across rounds. For the sign tests on forecast buckets, this replaces $bb(1)_(p_t=q)(y_t-q)$ by $D_t(q)(y_t-q)$ before taking each bucket's absolute value.
+
+Draw 0.25 or 0.75 by a fair coin on a dry day and again on a rainy day. Averaging residuals first gives $(abs(0.25)+abs(-0.25))/2=0.25$. The draw $(0.75,0.25)$ gives ECE 0.75. The four equally likely records give mean ECE $3/8$. Multicalibration also lets tests use context, such as weekday versus weekend.
 
 #ece-web[
 = ECE experiment and worked examples <sec-l15-ece-lab>
 
-Follow one round of the experiment below, compare a fixed lottery with the history update, or work through the additional figures and exercises.
+Choose the next outcome in the experiment, then draw a forecast. The comparison below runs a fixed lottery and an adaptive one on the same sequence.
 ]
 
 == Supplement: a binary update for the ECE experiment <sec-l15-ece-adaptive>
 
-This update illustrates how to adapt the lottery. The full proof is in #ref(<sec-l15-ece-square-drift>, supplement: [Appendix]).
-
-Here is the binary forecast-hedging procedure of #citep(<FosterHart2021Hedging>, [Section V, Theorem 12]). Fix an integer $m>=1$ and grid $Q={0,1/m,...,1}$ with spacing $h=1/m$. Before round $t$, store the past count $N_q$ and positive-outcome count $R_q$ for each bucket. Its _mean error_ is
+The experiment uses the rule of #citep(<FosterHart2021Hedging>, [Section V, Theorem 12]). See #ref(<sec-l15-ece-square-drift>, supplement: [Appendix]) for its proof. Fix an integer $m>=1$ and a grid $Q={0,1/m,...,1}$ with spacing $h=1/m$. Before round $t$, let $N_q$ count reports of $q$ and $R_q$ count how often it rained on those rounds. The mean error in bucket $q$ is
 $ e_q := cases(R_q/N_q-q & "if" N_q>0, 0 & "if" N_q=0). $
-Positive means underprediction; negative means overprediction. Use the mean error here, rather than the cumulative residual $N_q e_q$.
+Positive $e_q$ means underprediction. Negative $e_q$ means overprediction. The total residual is $N_q e_q$.
 
-+ If some $e_q=0$, choose such a forecast with probability one. This also lets the procedure try unused buckets.
-+ Otherwise $e_0>0$ and $e_1<0$, so there are adjacent $a<b$ with $e_a>0>e_b$. Put all next-round mass on these two forecasts:
++ If any $e_q=0$, use that forecast. Unused buckets are eligible.
++ Otherwise $e_0>0$ and $e_1<0$. Draw only from a neighboring pair $a<b$ with $e_a>0>e_b$.
   $ D_(t)(a)=frac(-e_b,e_a-e_b), quad D_(t)(b)=frac(e_a,e_a-e_b). $
-+ Nature commits without seeing the current draw. Privately sample $p_t~D_t$, then observe $y_t$. Update only its bucket: $N_(p_t) <- N_(p_t)+1$ and $R_(p_t) <- R_(p_t)+y_t$. Recompute the errors and distribution next round.
++ After Nature commits, draw $p_t~D_t$ privately and observe $y_t$. Update $N_(p_t) <- N_(p_t)+1$ and $R_(p_t) <- R_(p_t)+y_t$. Recompute the lottery next round.
 
-The lottery weights the next draw. The recorded ECE weights bucket gaps by the historical shares $N_q/T$.
+The draw probabilities choose the next forecast. ECE uses the fraction of past rounds in each bucket, $N_q/T$.
 
 #ece-print[
-For example, if the errors at $0.25$ and $0.50$ are $0.50$ and $-0.25$, the draw chances are $1/3$ and $2/3$. They balance the signed mean errors, $(1/3)(0.50)+(2/3)(-0.25)=0$. If the second bucket goes from one rainy day in four to one in five, its mean error becomes $-0.30$ and the new lottery is $(3/8,5/8)$.
+Suppose the mean errors at $0.25$ and $0.50$ are $0.50$ and $-0.25$. Draw with chances $1/3$ and $2/3$ so the signed errors balance, $(1/3)(0.50)+(2/3)(-0.25)=0$. If the second bucket goes from one rainy day in four to one in five, its error becomes $-0.30$ and the new draw chances are $(3/8,5/8)$.
 
 For $w_q=N_q/T$, Cauchy--Schwarz gives $"ECE"_T<=sqrt(sum_q w_q e_q^2)$. Set $V_T=T sum_q w_q e_q^2$. Empty buckets have weight zero.
 
@@ -198,8 +198,8 @@ For $w_q=N_q/T$, Cauchy--Schwarz gives $"ECE"_T<=sqrt(sum_q w_q e_q^2)$. Set $V_
 ]
 
 #ece-web[
-*An update you can calculate by hand.*
-Consider this finite initial history on a coarse grid:
+*Updating one bucket by hand*
+Start with these eleven rounds. The buckets at 0.25 and 0.50 have mean errors on opposite sides of zero.
 #figure(
   table(
     columns: (auto,auto,auto,auto), align: center, inset: 4pt,
@@ -226,7 +226,7 @@ Consider this finite initial history on a coarse grid:
 ) <tab-l15-ece-symbols>
 
 #ece-story-box("balance")[
-  *Before the draw: signed contributions to the expected bucket error*
+  *Signed errors before the draw*
   #table(
     columns: (1fr, 1fr), align: center, inset: (x: 8pt, y: 5pt),
     stroke: .4pt + luma(86%),
@@ -239,9 +239,9 @@ Consider this finite initial history on a coarse grid:
   *Why these weights?* The 25% bucket has twice the absolute mean error, so it gets half the draw probability. The committed outcome $y_t$ is the same for both possible draws, so its term in the expected squared-score update is proportional to $y_t (1/6-1/6)=0$. The #link(<sec-l15-ece-square-drift>)[proof] bounds the remaining terms.
 ]
 
-Suppose the private draw is $0.50$ and the revealed outcome is zero. That bucket now has one positive in five rounds, so its error is $1/5-0.5=-0.3$. The other error remains $0.5$. Thus
+Draw $0.50$ and suppose the outcome is zero. That bucket now has one rainy day in five, so its error is $1/5-0.5=-0.3$. The other bucket stays at $0.5$. The new draw chances are
 $ D_(t+1)(0.25)=frac(0.3,0.5+0.3)=3/8, quad D_(t+1)(0.50)=5/8. $
-Another zero made the higher forecast overpredict more, so the next lottery shifts toward the lower forecast. @fig-l15-ece-adaptive shows the update and a longer run.
+The higher forecast is now further above the observed rain rate. The next draw gives more weight to the lower forecast. @fig-l15-ece-adaptive shows this step and a longer run.
 
 #figure(
   image("figures/calibration_ece/ece_adaptive.svg", width: 100%,
@@ -267,14 +267,14 @@ Open the #interactive-link("calibration_ece")[interactive experiment] with the w
 
 #link(<ece-static-1>)[See the same round in the static companions.]
 
-=== Why the lottery must learn <sec-l15-ece-comparison>
+=== What happens with a fixed lottery <sec-l15-ece-comparison>
 
 Let every new outcome be one. With independent draws from the fixed lottery, both bucket frequencies tend to one and their shares tend to $1/3$ and $2/3$. The initial history has vanishing weight, so almost surely
 $ lim_(T -> oo) "ECE"_T=frac(1,3)abs(1-0.25)+frac(2,3)abs(1-0.50)=frac(7,12) approx 0.5833. $
 
-In the run in @fig-l15-ece-comparison, the adaptive rule eventually puts 99.5% of its next-draw probability on 1. As better forecasts accumulate, the older buckets count for less in ECE.
+By the end of the run in @fig-l15-ece-comparison, the adaptive rule puts 99.5% of the next draw on forecast 1. The old buckets count for less as the record grows.
 
-*Try it.* Choose _Always 1_ and seed 20261105, then select _Run both to 1,000_. Both strategies start with the same eleven records and use the same outcomes and uniform draws.
+To reproduce the plot, choose _Always 1_, enter seed 20261105, and select _Run both to 1,000_. The two runs start with the same eleven records, outcomes, and uniform draws.
 
 #context if target()=="html" { html.elem("p")[#html.elem("a",attrs:(href:"interactive/calibration_ece.html#comparison"))[Open the comparison controls]] }
 
@@ -288,15 +288,15 @@ In the run in @fig-l15-ece-comparison, the adaptive rule eventually puts 99.5% o
  ),caption:[Checkpoints from the default reproducible comparison. Each score also includes the original eleven records.],
 ) <tab-l15-ece-comparison>
 
-#link(<ece-static-2>)[Static companion in the static companions]
+#link(<ece-static-2>)[See the two ECE curves]
 
 === Four possible next records <sec-l15-ece-four-cases>
 
-Write $C_q=R_q-N_q q$ for the total residual in bucket $q$. ECE is the sum of the absolute bucket residuals divided by the record count.
+Let $C_q=R_q-N_q q$ be the total residual in bucket $q$. To get ECE, add the absolute bucket totals and divide by the number of records.
 The selected buckets have $C_(0.25)=2$ and $C_(0.50)=-1$. The other three buckets contribute $1+0.75+1=2.75$ to the absolute sum. Thus the current score is
 $ "ECE"_11=frac(abs(2)+abs(-1)+2.75,11)=frac(23,44) approx 0.5227. $
 
-Nature commits either zero or one before the private draw. For each possible committed outcome, there are two possible draws. Only the drawn bucket changes, by $C_p^+=C_p+(y-p)$; the total count becomes 12 in all four cases.
+Nature picks zero or one before the private draw. Each choice can be followed by either forecast. Update the drawn bucket by $C_p^+=C_p+(y-p)$ and divide by 12 in every case.
 #figure(
   table(
     columns: (auto,auto,auto,auto,auto), align: center, inset: 5pt,
@@ -313,7 +313,7 @@ For example, with $p=0.50$ and $y=0$, the residual changes from $-1$ to $-1+(0-0
 For either committed outcome, average over the draw probabilities _after_ computing each branch's ECE:
 $ EE["ECE"_12 | y=0]=frac(1,3)frac(11,24)+frac(2,3)frac(25,48)=frac(1,2), $
 $ EE["ECE"_12 | y=1]=frac(1,3)frac(13,24)+frac(2,3)frac(7,16)=frac(17,36). $
-Both averages fall below $23/44$ for this starting history. The individual branch with $p=0.25$ and $y=1$ rises, so the long-run result needs a separate argument.
+For this history, both conditional averages are below $23/44$. The branch with $p=0.25$ and $y=1$ still rises. Appendix A gives the argument over many rounds.
 
 #ece-check([Quick check: a rising branch], [One private draw gives $"ECE"_12=13/24>23/44$. Does this disprove the long-run theorem?], <ece-quick-answer-2>) <check-l15-ece-branch>
 
@@ -325,7 +325,7 @@ Both averages fall below $23/44$ for this starting history. The individual branc
 
 === From squared calibration error to ECE <sec-l15-ece-square-bridge>
 
-The long-run argument uses the weighted square of each _bucket's_ mean error. With $w_q=N_q/T$ and $e_q=overline(y)_q-q$, set $C_(2,T)=sum_q w_q e_q^2$ and $V_T=T C_(2,T)$. This is the squared calibration score used by Foster--Vohra. The outcome is averaged within each bucket before squaring, and empty buckets contribute zero.
+For the proof, square the _mean error in each bucket_ and weight by the bucket's share of past rounds. With $w_q=N_q/T$ and $e_q=overline(y)_q-q$, set $C_(2,T)=sum_q w_q e_q^2$ and $V_T=T C_(2,T)$. This is the squared calibration score used by Foster--Vohra. Empty buckets have weight zero.
 
 Since the weights sum to one, Cauchy--Schwarz gives $"ECE"_T<=sqrt(C_(2,T))$. In @fig-l15-ece-bridge, $C_(2,11)=61/176 approx 0.3466$, so ECE $0.5227$ is bounded by the square root, $0.5887$.
 
@@ -343,7 +343,7 @@ The #link(<sec-l15-ece-square-drift>)[appendix proof] bounds the long-run expect
   + Explain why this forecasting rule solves the simplified signed-error objective on slide 8 but does not ensure calibration.
 ] <exr-l15-ece-telescoping>
 
-#link(<ece-reference-solution-1>)[Reference solution in the experiment answers]
+#link(<ece-reference-solution-1>)[See the solution]
 ]
 
 #block(breakable: false)[
@@ -354,7 +354,7 @@ The #link(<sec-l15-ece-square-drift>)[appendix proof] bounds the long-run expect
   + Compare their average squared prediction losses, $(1/(2m))sum_(t=1)^(2m) (y_t-p_t)^2$.
 ] <exr-l15-ece-informativeness>
 
-#link(<ece-reference-solution-2>)[Reference solution in the experiment answers]
+#link(<ece-reference-solution-2>)[See the solution]
 ]
 
 #block(breakable: false)[
@@ -365,7 +365,7 @@ The #link(<sec-l15-ece-square-drift>)[appendix proof] bounds the long-run expect
   + Explain why this does not contradict @thm-ece-foster-vohra.
 ] <exr-ece-grid>
 
-#link(<ece-reference-solution-3>)[Reference solution in the experiment answers]
+#link(<ece-reference-solution-3>)[See the solution]
 ]
 
 == Visual examples for the main ideas <sec-l15-ece-visual-examples>
@@ -412,7 +412,7 @@ In @fig-l15-ece-aggregation, merging the two buckets gives a single gap of zero.
 
 Frame 5 gives one possible four-round record. Each bucket receives one rain and one dry outcome, for ECE 0.25. Seeing the draw would let Nature force ECE 0.75 in this example. Privacy removes that option, but the same 50--50 lottery still has expected ECE 0.5 if it always rains. We need a strategy that learns which forecasts to report.
 
-Both forecasters in @fig-l15-ece-informativeness have ECE zero. @exr-l15-ece-informativeness asks how their accuracy differs.
+The two forecasts in @fig-l15-ece-informativeness have zero ECE. Use @exr-l15-ece-informativeness to compare their squared prediction losses.
 #figure(
   image("figures/calibration_ece/ece_informativeness.svg", width: 100%,
     alt: "Equally common contexts A and B always produce zero and one respectively. A constant forecast 0.5 has one reliability point at (0.5,0.5), ECE zero, and mean squared prediction loss one quarter. A context-aware forecast has points at (0,0) and (1,1), ECE zero, and mean squared loss zero."),
@@ -443,19 +443,19 @@ Both forecasters in @fig-l15-ece-informativeness have ECE zero. @exr-l15-ece-inf
 
 === Quick check: zero signed bias <ece-quick-answer-1>
 
-The two absolute gaps are both $0.25$, so $"ECE"=0.25$. Signed errors cancel; absolute bucket gaps add.
+Each bucket contributes half of $0.25$, so $"ECE"=0.25$.
 
 #link(<check-l15-ece-signed>)[Return to the quick check]
 
 === Quick check: a rising branch <ece-quick-answer-2>
 
-No. A single branch can increase ECE. The theorem bounds a long-run expectation under the stated protocol; it does not promise improvement after every draw.
+A single draw can increase ECE. The theorem concerns the long-run expectation under the stated protocol.
 
 #link(<check-l15-ece-branch>)[Return to the quick check]
 
 === Quick check: take the square root <ece-quick-answer-3>
 
-We obtain $"ECE"_T<=sqrt(0.04)=0.20$. Equality is not required. The score $0.04$ itself is not the bound supplied by this inequality.
+The upper bound is $"ECE"_T<=sqrt(0.04)=0.20$. The actual ECE can be smaller.
 
 #link(<check-l15-ece-root>)[Return to the quick check]
 
@@ -492,7 +492,7 @@ We obtain $"ECE"_T<=sqrt(0.04)=0.20$. Equality is not required. The score $0.04$
 ]
 ]
 
-#block(breakable: false)[
+#ece-web[
 = References
 
 #lec_bibliography("meta/refs.bib", title: none)
@@ -537,17 +537,18 @@ Spacing $h=0.05$ gives an asymptotic expected ceiling of $0.025$. A finer grid p
 
 #ece-web[
 #block(breakable:false)[
-= Citation and review information <sec-l15-ece-review-info>
+= Citation and course links <sec-l15-ece-review-info>
 
 == Citation format
 
 Gabriele Farina. _Forecasting and calibration._ MIT 6.7980, Lecture 15, November 3, 2026. Expected calibration error section prepared by Ziyue Qiu.
 
-== Review snapshot
+== Course resources <l15-b-2-review-snapshot>
 
-This Task 2 section is available for staff and group review. It preserves the required ECE narrative and labels the binary example as supplementary. The official course version requires staff review and merge.
-
-#link("https://github.com/gabrfarina/MIT-6.7980-Topics-in-Multiagent-Learning/pull/181")[PR #181] · #link("https://ziyue-l15-ece-preview.qiuzy-william2019.chatgpt.site/calibration_ece")[Live review preview]
+- #link("https://web.mit.edu/~6.7980/www/slides/L15_calibration_gordon.html?overview=1")[Lecture 15 slides]
+- #link(<sec-l15-ece-lab>)[ECE experiment and worked examples]
+- #link("https://www.mit.edu/~6.7980/syllabus.pdf")[Course syllabus]
+- #link("https://github.com/gabrfarina/MIT-6.7980-Topics-in-Multiagent-Learning/pull/181")[PR \#181]
 
 == Other course notes
 
@@ -556,4 +557,29 @@ This Task 2 section is available for staff and group review. It preserves the re
 ]
 ]
 
+]
+
+#ece-print[
+#block(above: 10pt, breakable: false)[
+  #text(size: 11pt, fill: rgb("#171411"))[*References*]
+  #block(above: 4pt)[
+    #set text(size: 9.2pt)
+    #set par(justify: false, leading: .48em, spacing: .48em)
+    #lec_bibliography("meta/refs.bib", title: none)
+  ]
+]
+#block(width: 100%, above: 8pt, breakable: false)[
+  #line(length: 100%, stroke: .45pt + rgb("#d7d0c6"))
+  #v(4pt)
+  #set text(size: 9pt, fill: rgb("#325d8a"))
+  *Course links*
+  #v(3pt)
+  #grid(
+    columns: (1fr, 1fr), column-gutter: 12pt, row-gutter: 4pt,
+    [#link("https://web.mit.edu/~6.7980/www/slides/L15_calibration_gordon.html?overview=1")[Lecture 15 slides]],
+    [#link("https://ziyue-l15-ece-preview.qiuzy-william2019.chatgpt.site/calibration_ece#sec-l15-ece-lab")[Online ECE experiment]],
+    [#link("https://www.mit.edu/~6.7980/")[Course schedule and notes]],
+    [#link("https://github.com/gabrfarina/MIT-6.7980-Topics-in-Multiagent-Learning/pull/181")[PR \#181]],
+  )
+]
 ]
