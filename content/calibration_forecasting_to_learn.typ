@@ -88,7 +88,9 @@ Best responding is only as good as the forecasts it acts on, and a forecaster is
 $
   "MC"_T (h) = sum_(t=1)^T EE_(p ~ D^((t))) [ip(h(p), vu^((t)) - p)],
 $
-where the outcome being forecast is now the utility vector $vu^((t))$. Which tests should we ask the forecaster to pass? Since we care about the $Phi$-regret of the actions $sigma(p)$, the natural choice is one test for each deviation $phi.alt in Phi$, measuring how $phi.alt$ would change the action we play.
+where the outcome being forecast is now the utility vector $vu^((t))$. The forecaster is $cH$-multicalibrated if $"MC"_T (h) = o(T)$ for every $h in cH$.
+
+Which tests should we ask the forecaster to pass? Since we care about the $Phi$-regret of the actions $sigma(p)$, the natural choice is one test for each deviation $phi.alt in Phi$, measuring how $phi.alt$ would change the action we play.
 
 #definition[Deviation tests][
   For each deviation $phi.alt in Phi$, the _deviation test_ $h_phi.alt : cU -> RR^d$ is
@@ -100,71 +102,11 @@ where the outcome being forecast is now the utility vector $vu^((t))$. Which tes
 
 The vector $h_phi.alt (p)$ is the displacement that $phi.alt$ applies to the action we would play on forecast $p$. Its inner product with a utility vector is the gain from deviating: under the realized utility $vu^((t))$, deviation $phi.alt$ would have gained $ip(h_phi.alt (p), vu^((t)))$ over our action. Splitting $vu^((t)) = p + (vu^((t)) - p)$ divides this gain into two parts:
 $
-  ip(h_phi.alt (p), vu^((t))) = underbrace(ip(h_phi.alt (p), p), "gain predicted by the forecast") + underbrace(ip(h_phi.alt (p), vu^((t)) - p), "error of the forecast").
+  ip(h_phi.alt (p), vu^((t)))
+    &= ip(h_phi.alt (p), p + (vu^((t)) - p)) \
+    &= underbrace(ip(h_phi.alt (p), p), "predicted gain") + underbrace(ip(h_phi.alt (p), vu^((t)) - p), "forecast error") \
+    &= underbrace(ip(phi.alt(sigma(p)), p) - ip(sigma(p), p), <= 0 "by best response") + ip(h_phi.alt (p), vu^((t)) - p)
 $
-The predicted gain is never positive, because $sigma(p)$ is a best response to $p$. Calibration against $h_phi.alt$ controls the error part: averaged over time, the forecast errors $vu^((t)) - p$ are not correlated with the direction in which $phi.alt$ would move our action. In words, the forecaster does not systematically underestimate how much $phi.alt$ would gain. @sec-calibration-phi-bound turns this into a regret bound.
-
-A few remarks on this choice.
-
-- _Tests correspond to deviations._ There is one test for each deviation, so the set of tests is as rich as $Phi$. This mirrors the reduction of Gordon, Greenwald, and Marks, where the external regret minimizer learns over $Phi$ itself; here it learns over the corresponding tests.
-- _Any larger set of tests works._ The forecaster only needs to be calibrated against _at least_ the tests in $cH_Phi$, so we may use any $cH supset.eq cH_Phi$. This is convenient because $cH_Phi$ can be awkward to describe exactly, while a simpler superset is often easy to learn over (@sec-calibration-swap-example).
-- _The tests need not be continuous._ Because $sigma$ jumps between actions as $p$ crosses a tie, $h_phi.alt$ is typically discontinuous in $p$. This is not a problem: multicalibration only asks for bounded tests, and $h_phi.alt$ is bounded since $cX$ is compact.
-- _Swap regret recovers bucketed calibration._ On the simplex, swap deviations are $phi.alt(vx) = Q vx$ for column-stochastic $Q$, and the best response is a pure action $sigma(p) = ve_(a(p))$. Then $h_phi.alt (p) = Q ve_(a(p)) - ve_(a(p))$ depends on $p$ only through the best action $a(p)$. The forecaster therefore needs to be calibrated only on the regions of forecasts that share a best response, which is the link between calibration and correlated equilibrium found by #citet(<foster1997calibrated>).
-
-#remark[
-  If the deviations may also depend on the context, $phi.alt : C times cX -> cX$, the tests become $h_phi.alt (c, p) := phi.alt(c, sigma(p)) - sigma(p)$, and the results of this section carry over unchanged.
-] <rem-calibration-context-tests>
-
-== Bounding $Phi$-regret by calibration error <sec-calibration-phi-bound>
-
-#lemma[
-  TODO: for every $phi.alt in Phi$, $R_T^Phi (phi.alt) <= "MC"_T (h_phi.alt)$.
-] <lem-calibration-phi-by-mc>
-#proof[
-  TODO: write $R_T^Phi (phi.alt) = sum_t EE_(p ~ D^((t))) ip(h_phi.alt (p), vu^((t)))$,
-  add and subtract $p$; the term $ip(h_phi.alt (p), p) =
-  ip(phi.alt(sigma(p)), p) - ip(sigma(p), p) <= 0$
-  because $sigma(p)$ is a best response and $phi.alt(sigma(p)) in cX$.
-]
-
-#theorem[
-  TODO: combine with the multicalibration algorithm (Task 5):
-  $R_T^Phi (phi.alt) <= "MC"_T (h_phi.alt) <= "Reg"_(cH, T)(h_phi.alt) + sum_t epsilon_t$.
-  State conditions under which this is $o(T)$.
-] <thm-calibration-phi-regret>
-#proof[
-  TODO.
-]
-
-== Comparison with Gordon-Greenwald-Marks <sec-calibration-vs-ggm>
-
-// Slide 25 table.
-#figure(
-  table(
-    columns: 3,
-    align: left,
-    table.header[*Ingredient*][*Gordon-Greenwald-Marks*][*Forecasting route*],
-    [Learn over], [Deviations $Phi$], [Tests $cH supset.eq cH_Phi$],
-    [Optimization step], [Fixed point of $phi.alt^((t))$], [EVI for $h^((t))$],
-    [Play], [The fixed point $vx^((t))$], [Best response $sigma(p)$],
-    [Regret bound], [Exact identity], [Upper bound + EVI error],
-  ),
-  caption: [Two routes from external regret to $Phi$-regret.],
-) <tab-calibration-vs-ggm>
-
-TODO: discussion (forecasting route needs no geometry of the maps $cX -> cX$).
-
-== Example: swap regret via forecasting (NTH) <sec-calibration-swap-example>
-
-// Nice-to-have. On the simplex $Delta(A)$, phi(x) = Q x for column-stochastic Q.
-TODO: write $sigma$ explicitly (best pure action w.r.t. $p$, fixed tie-breaking).
-TODO: write $h_Q (p) = Q sigma(p) - sigma(p)$ explicitly; size of $cH$.
-TODO: compare with GGM / Blum-Mansour (#lecture-link("phi_regret", <sec-ggm>)[]).
-
-== Summary <sec-calibration-summary>
-
-// Recap of the main ideas of the lecture; reuse the overview figure from the intro
-// (content/figures/calibration_intro/forecasting_regret_overview.svg, PR #188).
-TODO: recap.
+The predicted gain is never positive, because $sigma(p)$ is a best response to $p$ and $phi.alt(sigma(p))$ is just another point of $cX$. Only the error part remains. Calibration against $h_phi.alt$ controls the error part: averaged over time, the forecast errors $vu^((t)) - p$ are not correlated with the direction in which $phi.alt$ would move our action. This is by the definition of multicalibration $"MC"_T (h) = o(T)$. Calibration means that these surprises cancel out over time, playing according to deviation $phi.alt$ may win in some rounds, but its total gain over all $T$ rounds is at most $o(T)$.
 
 #lec_bibliography("meta/refs.bib")
