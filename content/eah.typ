@@ -518,7 +518,7 @@ note].
   optimization and check that its minimum is at least $-epsilon.alt$. For EFP, check
   $ parallel sum_t p_t (f(vz_t)-vz_t) parallel_2 <= epsilon.alt. $
   Arbitrary response lists need not admit such weights: in the example, using only $z=0$ gives
-  residual $1$. The cuts and certificates describe the reduction; an efficient implementation needs
+  residual $1$, so the EFP condition fails when $epsilon.alt < 1$. The cuts and certificates describe the reduction; an efficient implementation needs
   suitable oracles and quantitative bounds.
 ]
 
