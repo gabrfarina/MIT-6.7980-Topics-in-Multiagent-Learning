@@ -688,26 +688,6 @@ with the convention $0 log 0 = 0$. This section shows what $H$ looks like, prove
 
 #example[
   @fig-entropy displays the negative entropy for $m = 2$ and $m = 3$ actions. With two actions, the simplex is a segment and $H$ is the convex curve $x |-> H(x, 1 - x)$. With three actions, the simplex is a triangle and $H$ is a bowl hanging below it. The bowl touches the triangle only at its corners, the pure strategies, where $H = 0$. Its lowest point lies below the uniform strategy, at height $-log 3$. Every edge of the triangle is a copy of the two-action simplex, and along each edge the bowl follows the two-action curve (blue). Near the edges the walls become vertical; this steepness matters below.
-#block(breakable: false)[
-#wrapped-figure(
-  [
-    Multiplicative weights update is the special case of _both FTRL and OMD_ in which the regularizer $psi$ is set to the _negative entropy_ function
-    $ H(vx) := sum_(a in A) x_a log x_a. $
-
-    #example[
-      The adjacent plot displays the negative entropy function in the case of $|A|=2$ actions.
-    ]
-  ],
-  [
-    #image(
-      "figures/learning1/entropy.svg",
-      width: 100%,
-      alt: "Negative entropy on a two-action simplex, minimized at the uniform distribution.",
-    )
-  ],
-  side: right,
-  text-width: 65%,
-)
 ]
 
 #figure(
