@@ -37,6 +37,7 @@
 !/slides/L15_calibration_gordon.pdf
 !/slides/L15_calibration_gordon.html
 !/slides/L16_large_games.pdf
+!/slides/L17_nonconvex_games.pdf
 
 # Build products, editor state, and local secrets.
 **/target/
