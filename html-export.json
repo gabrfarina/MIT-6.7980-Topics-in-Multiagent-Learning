@@ -93,6 +93,13 @@
       ]
     },
     {
+      "source": "content/nonconvex_equilibrium.typ",
+      "supplementary": false,
+      "syllabus_ids": [
+        "nonconvex"
+      ]
+    },
+    {
       "source": "content/tfnp.typ",
       "supplementary": false,
       "syllabus_ids": [
