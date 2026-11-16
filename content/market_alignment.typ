@@ -2,7 +2,7 @@
 #import "meta/note-status.typ": note-status
 #show: gabri_notes.with(
   lec_num: 13,
-  date: [Thu, Oct 29, 2026],
+  date: [Thu, Nov 5, 2026],
   title: "Alignment (part I)",
   instructor: [Natalie Collina],
 )
