@@ -323,7 +323,7 @@
   lecture(
     "nonconvex",
     [Nonconvex games],
-    description: [Nonconvexity, learning dynamics, and local equilibrium concepts. A worked example explains failure of pure equilibrium and the role of randomization.],
+    description: [Nonconvexity, learning dynamics, and local equilibrium concepts. Worked examples explain pure and mixed equilibrium, local deviations, and the error in gradient approximations.],
     instructor: [Weiqiang Zheng],
   ),
   module[Part IV: Computational complexity],
