@@ -156,35 +156,32 @@ $Phi$-regret according to this set of transformations is usually called _externa
 
 === Summary of equilibrium approximation guarantees
 
-The table below summarizes how each restriction of the transformation class $Phi$ maps directly to a game-theoretic equilibrium concept, along with the precise quantitative rate $epsilon$ achieved by the average joint play $vmu^((T))$:
+The following summarizes the transformation classes, equilibrium
+targets, and approximation guarantees.
 
-#align(center, table(
-  columns: (1.3fr, 1.4fr, 1.4fr, 1.5fr),
-  align: (col, row) => (
-    if col == 3 { center + horizon } else { left + horizon }
-  ),
-  stroke: (x, y) => if y == 0 {
-    (bottom: 0.8pt + black, top: 0.8pt + black)
-  } else if y == 5 {
-    (bottom: 0.8pt + black)
-  } else {
-    (bottom: 0.3pt + luma(200))
-  },
-  fill: (col, row) => if row == 0 { rgb("f4f6fa") } else { none },
-  inset: (x: 8pt, y: 7pt),
-  table.header(
-    [*Regret Type*],
-    [*Transformation Set $Phi$*],
-    [*Equilibrium Target*],
-    [*Guarantee ($epsilon$)*]
-  ),
-  [External Regret], [Constant maps $Phi^"const"$], [Coarse Correlated (CCE)], [$epsilon = max_i "Reg"_i^((T)) / T$],
-  [External (Zero-sum)], [Constant maps $Phi^"const"$], [Nash Equilibrium], [$"Nash gap" = ("Reg"_1^((T)) + "Reg"_2^((T))) / T$],
-  [Swap Regret], [Stochastic maps $Phi^"swap"$], [Correlated (CE)], [$epsilon = max_i (Phi"-Reg"_i^((T))) / T$],
-  [Internal Regret], [Pairwise swaps $Phi^"int"$], [Correlated (CE)], [$epsilon = |A| max_i (Phi"-Reg"_i^((T))) / T$],
-  [Trigger Regret], [Trigger continuations], [Extensive-form CE (EFCE)], [$epsilon = |A| max_i (Phi"-Reg"_i^((T))) / T$],
-))
+*External regret.*
+Constant maps $Phi^"const"$ lead to coarse correlated equilibria (CCE):
+$
+  epsilon = max_i "Reg"_i^((T)) / T.
+$
 
+*External regret in two-player zero-sum games.*
+Constant maps $Phi^"const"$ lead to Nash equilibria:
+$
+  "Nash gap" = ("Reg"_1^((T)) + "Reg"_2^((T))) / T.
+$
+
+*Swap regret.*
+Stochastic maps $Phi^"swap"$ lead to correlated equilibria (CE):
+$
+  epsilon = max_i (Phi"-Reg"_i^((T))) / T.
+$
+
+*Internal regret.*
+Pairwise switches $Phi^"int"$ lead to correlated equilibria (CE):
+$
+  epsilon = |A| max_i (Phi"-Reg"_i^((T))) / T.
+$
 
 #exercise[Comparing external, internal, and swap regret][
   Fix a finite action set $A$, and consider a learner that plays $vx^((1)), ..., vx^((T)) in Delta(A)$ against linear utilities $u^((1)), ..., u^((T))$. For $a, b in A$ write
