@@ -303,7 +303,7 @@ To summarize, exploration keeps each individual update small, while the confiden
 Today, we know that bandit optimization is possible well past probability simplexes. In fact, we can construct bandit algorithms for any convex and compact domain $cX subset.eq RR^d$.
 In particular, we mention the general general result by #citet(<abernethy2008competing>), who showed that the a bandit algorithm can be constructed starting from a full-information regret miminizer built using the FTRL algorithm with a self-concordant distance-generating function.
 
-= Problems
+= Problems <sec-bandit-problems>
 
 #exercise[Variance of the importance-sampling estimator][
   Let $A$ be finite, and suppose the gain vector $vg^((t)) in [0,1]^A$ is fixed before the learner samples $a^((t)) ~ vy^((t))$, where $y^((t))_a > 0$ for every $a in A$. The learner observes $w^((t)) = g^((t))_(a^((t)))$ and uses the importance-sampling estimator
@@ -341,6 +341,40 @@ In particular, we mention the general general result by #citet(<abernethy2008com
   for both $i=1,2$ and every $T$.
 
   Conditional on $B=b$, the strong law of large numbers gives a limiting realized empirical distribution with probability $1/2$ on $(b,0)$ and probability $1/2$ on $(b,1)$. Under this distribution, Player 2's expected utility is $1/2$, but the fixed deviation to action $b$ gives utility $1$. Its CCE inequality fails by $1/2$. Hence the realized empirical distribution converges almost surely, but its limit is *not* a CCE. Averaging over $B$ instead gives the uniform joint distribution, which is a CCE; this averaging conceals the incentive to deviate in each realized limit.
+]
+
+#exercise[An adversary that sees the current action][
+  Consider a learner with two actions, $A = {1, 2}$, and utilities $vg^((t)) in [0,1]^A$. Suppose that, unlike the adversary described in the setup at the beginning of this lecture, the adversary observes the action $a^((t))$ sampled by the learner at round $t$ before choosing $vg^((t))$. Construct such an adversary that forces
+  $ "Reg"^((T)) >= T/2 $
+  for every learner, with probability one.
+]
+
+#solution[
+  After observing $a^((t))$, the adversary sets $vg^((t)) := ve_(b^((t)))$, where $b^((t))$ is the action other than $a^((t))$. The learner then collects $ip(vg^((t)), vx^((t))) = 0$ at every round. Let $N_a$ be the number of rounds in which action $a$ has utility $1$, so that $N_1 + N_2 = T$. Then, for every realization of the learner's randomness,
+  $
+    "Reg"^((T)) = max_(xhat in Delta(A)) sum_(t=1)^T ip(vg^((t)), xhat) - 0 = max{N_1, N_2} >= T/2.
+  $
+  This does not contradict the guarantees for Exp3 and Exp3.P, where $vg^((t))$ is chosen before the learner's draw at round $t$.
+]
+
+#exercise[Exp3.P dynamics and coarse correlated equilibria][
+  Consider an $n$-player normal-form game with finite action sets $A_1, ..., A_n$, where $K_i := |A_i| >= 2$ and $K := max_i K_i$, and utilities $u_i : A_1 times dots.h.c times A_n -> [0,1]$. Players repeatedly play the game for $T$ rounds. Each player $i$ runs Exp3.P over $A_i$ and observes only its realized payoff $u_i (a^((t)))$, where $a^((t)) = (a_1^((t)), ..., a_n^((t)))$ is the realized action profile. Recall that $vmu in Delta(A_1 times dots.h.c times A_n)$ is an _$epsilon$-approximate_ #lecture-link("correlated", <def-cce>)[coarse correlated equilibrium] if
+  $ EE_(a ~ vmu) [u_i (a'_i, a_(-i)) - u_i (a)] <= epsilon quad forall i in [n], a'_i in A_i. $
+  Show that, with probability at least $1 - delta$, the empirical distribution of play
+  $ hat(vmu)^((T)) := 1/T sum_(t=1)^T ve_(a^((t))) $
+  is an $epsilon$-approximate coarse correlated equilibrium, and determine how $epsilon$ depends on $n$, $K$, $T$, and $delta$.
+]
+
+#solution[
+  Fix player $i$ and let $vg_i^((t)) := (u_i (a_i, a_(-i)^((t))))_(a_i in A_i) in [0,1]^(A_i)$, so that $w_i^((t)) = u_i (a^((t))) = g_(i, a_i^((t)))^((t))$. The opponents draw $a_(-i)^((t))$ from the history alone, independently of $a_i^((t))$, so this is the bandit model of this lecture with an adaptive adversary. Run Exp3.P with confidence $delta/n$. By @thm-exp3p and a union bound over players, with probability at least $1 - delta$, simultaneously for all $i in [n]$,
+  $ "Reg"_i^((T)) <= C(sqrt(K T log(n K T \/ delta)) + log(n K T \/ delta)) $
+  for an absolute constant $C$. Moreover, for every $i$ and $a'_i in A_i$,
+  $
+    EE_(a ~ hat(vmu)^((T))) [u_i (a'_i, a_(-i)) - u_i (a)] = 1/T sum_(t=1)^T (g_(i, a'_i)^((t)) - w_i^((t))) <= ("Reg"_i^((T))) / T.
+  $
+  Hence, with probability at least $1 - delta$, $hat(vmu)^((T))$ is an $epsilon$-approximate CCE with
+  $ epsilon = C(sqrt((K log(n K T \/ delta)) / T) + (log(n K T \/ delta)) / T) = tilde(O)(sqrt(K \/ T)), $
+  where the number of players enters only through $log n$.
 ]
 
 #lec_bibliography("meta/refs.bib")
