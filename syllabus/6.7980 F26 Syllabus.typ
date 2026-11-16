@@ -131,7 +131,7 @@
 
 #item(
   "Lecture notes",
-)[Lecture notes are available as HTML and PDF on the course website. Announcements and administrative materials will be posted on Canvas.]
+)[Lecture notes are available as HTML and PDF on the course website. Supplementary Lecture 6 distinguishes Nash equilibrium for a specified initial distribution from Markov-perfect equilibrium. Announcements and administrative materials will be posted on Canvas.]
 
 #item(
   "Collaboration policy",

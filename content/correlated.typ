@@ -149,7 +149,7 @@ Since Cartesian products of nonempty, convex, and compact sets are themselves no
 
 #corollary[
   The set of Nash equilibria in a two-player zero-sum game is nonempty, convex, and compact.
-]
+] <cor-nash-convex>
 
 It is worth remarking again that what does the heavy lifting here is really #ref(label("thm:nash is mm")); the rest follows as a direct corollary.
 
@@ -173,7 +173,7 @@ In the general two-player case, often referred to as _two-player general-sum gam
   ][
     #image("figures/correlated/kohlberg_mertens.svg", width: 175.392pt)
   ]
-]
+] <rem-kohlberg-mertens>
 
 *Computation*  In two-player general-sum games, computation of Nash equilibria is not a linear program. However, it is a _linear complementarity problem_ (LCP), a more general class of problems than linear feasibility programs, and which are written in the form
 
@@ -183,13 +183,36 @@ In the general two-player case, often referred to as _two-player general-sum gam
   $upright("find") quad vx \, vw in bb(R)^d #h(2em) upright("s.t.") #h(2em) vw = matM vx + vq \, #h(2em) vx \, vw >= 0 \, #h(2em) vx^top vw = 0 .$.body,
 ) <eq:lcp-general>
 
-The Lemke-Howson algorithm is a well-known algorithm to solve LCPs, and it can be used to find Nash equilibria in two-player general-sum games. However, the algorithm is not polynomial-time in the worst case, and it can be hard to find Nash equilibria in practice. An important corollary of the connection between two-player general-sum games and LCPs is the following:
+The Lemke-Howson algorithm is a well-known algorithm to solve LCPs, and it can be used to find Nash equilibria in two-player general-sum games. However, the algorithm is not polynomial-time in the worst case, and it can be hard to find Nash equilibria in practice.
 
-#corollary[
-  Any two-player general-sum games with rational payoffs admits a Nash equilibrium with rational coordinates.
+*Rationality and bit complexity*  The key fact behind two-player games is that, once the supports of an equilibrium are fixed, the equilibrium conditions become _linear_, because the payoff $ve_(a_1)^top matU_1 vy$ of a pure action is linear in the opponent's strategy. With three or more players this breaks down: the payoff of a pure action against the other players' mixed strategies is multilinear in their strategies (it contains products such as $y_(a_2) z_(a_3)$ of probabilities chosen by different players), so fixing the supports leaves a system of polynomial equations, whose solutions can be irrational (@sec-irrational-equilibria).
+
+#theorem[Rational Nash equilibria of polynomial bit complexity][
+  Consider a two-player general-sum game in which every entry of $matU_1$ and $matU_2$ is a rational number $p \/ q$, where $p, q$ are integers with $q != 0$ and $|p|, |q| < 2^L$ for an integer $L >= 1$. Then the game has a Nash equilibrium whose probabilities are rational numbers with numerators and denominators of $O((|A_1| + |A_2|)^2 L)$ bits.
+
+  Here $|A_1|$ and $|A_2|$ are the numbers of actions of the two players. Since the game is described by $2 |A_1| |A_2|$ payoffs of $O(L)$ bits each, the bound is polynomial in the size of the game.
+] <thm-rational-nash-2p>
+
+#proof[
+  The plan is as follows. We fix the supports of some Nash equilibrium, which turns the equilibrium conditions into _linear_ constraints whose solutions are all Nash equilibria. These solutions form a bounded set, and we pick a _vertex_ of it: a point that is the unique solution of a square system of linear equations with integer coefficients. Cramer's rule then writes its coordinates as ratios of integers, and it remains to bound how large those integers can be.
+
+  *Fixing the supports.*  By Nash's theorem, the game has a Nash equilibrium $(vx^*, vy^*)$. Let $S_1 subset.eq A_1$ and $S_2 subset.eq A_2$ be its supports, that is, the sets of actions played with positive probability. Our unknowns are the $|A_1|$ probabilities in $vx$ and the $|A_2|$ probabilities in $vy$, together with two extra variables $v_1$ and $v_2$ that stand for the payoffs of the two players. This makes $N := |A_1| + |A_2| + 2$ variables in total, and we let $P subset.eq bb(R)^N$ be the set of points $(vx, vy, v_1, v_2)$ such that
+  $
+    ve_(a_1)^top matU_1 vy & <= v_1 quad forall a_1 in A_1, & quad ve_(a_1)^top matU_1 vy & = v_1 quad forall a_1 in S_1, \
+    vx^top matU_2 ve_(a_2) & <= v_2 quad forall a_2 in A_2, & quad vx^top matU_2 ve_(a_2) & = v_2 quad forall a_2 in S_2,
+  $
+  and such that $vx in Delta(A_1)$, $vy in Delta(A_2)$, $x_(a_1) = 0$ for $a_1 in.not S_1$, and $y_(a_2) = 0$ for $a_2 in.not S_2$. In words: no action earns Player 1 more than $v_1$, every action in $S_1$ earns exactly $v_1$, and similarly for Player 2. All of these constraints are linear in $(vx, vy, v_1, v_2)$.
+
+  *Properties of $P$.*  First, $P$ contains the point $(vx^*, vy^*, v_1^*, v_2^*)$, where $v_1^* := max_(a_1 in A_1) ve_(a_1)^top matU_1 vy^*$ and $v_2^* := max_(a_2 in A_2) vx^(* top) matU_2 ve_(a_2)$ are the best payoffs available to the players. Indeed, $vx^(* top) matU_1 vy^*$ is an average of the payoffs $ve_(a_1)^top matU_1 vy^*$ of the actions $a_1 in S_1$, each with positive weight. If one of them were below $v_1^*$, the average would be below $v_1^*$ too, and switching to a best pure action would be a profitable deviation. So every action in $S_1$ earns exactly $v_1^*$, and likewise for Player 2. Second, $P$ is bounded, which guarantees a vertex in the next step: $vx$ and $vy$ lie in probability simplexes, and $v_1 = ve_(a_1)^top matU_1 vy$ for any $a_1 in S_1$ is an average of payoffs, and likewise for $v_2$. Third, every point of $P$ is a Nash equilibrium: since $vx$ is supported on $S_1$, where every action earns $v_1$, we have $vx^top matU_1 vy = v_1 >= max_(a_1 in A_1) ve_(a_1)^top matU_1 vy$, so Player 1 has no profitable deviation to a pure action, which suffices by the remark after the #lecture-link("nfgs_nash", <def-nash-equilibrium>)[definition of Nash equilibrium]. The same argument applies to Player 2. So it suffices to find _some_ point of $P$ with small coordinates.
+
+  *A vertex of $P$.*  Since $P$ is cut out by finitely many linear equations and inequalities, it is a _polyhedron_, and by the previous step it is nonempty and bounded. Call $vr in P$ a _vertex_, or corner, of $P$ if some $N$ linearly independent constraints of $P$ hold with equality at $vr$. These $N$ equations form a square system $matA vr = vb$ whose rows are linearly independent, so $det(matA) != 0$ and $vr$ is its only solution. We use without proof a standard fact from linear programming: every nonempty bounded polyhedron (that is, every nonempty polytope) has at least one vertex. (An unbounded polyhedron need not have a vertex; for example, a line has none.) Let $vr$ be a vertex of $P$.
+
+  *Clearing denominators.*  To apply Cramer's rule with integers, we first make the coefficients of this system integers. Each chosen inequality holds with equality at $vr$, so every row is an equation. A row involving $matU_1$ has the form $ve_(a_1)^top matU_1 vy - v_1 = 0$, and its payoff coefficients are the $|A_2|$ entries in row $a_1$ of $matU_1$, one for each action of the opponent. Multiply the row by the product of their denominators; this scales the coefficients of both $vy$ and the payoff variable $v_1$, and does not change the solution. The coefficient of $y_(a_2)$ becomes $p_(a_2) product_(a'_2 != a_2) q_(a'_2)$ and that of $v_1$ becomes $- product_(a'_2) q_(a'_2)$. Each is a product of at most $|A_2|$ integers of absolute value less than $2^L$, so all of these coefficients are integers of absolute value less than $B := 2^(k L)$, where $k := max{|A_1|, |A_2|}$. Treat the rows involving $matU_2$ in the same way. The remaining rows come from the simplex and support constraints, such as $vone^top vx = 1$ or $x_(a_1) = 0$, so their coefficients are in ${0, plus.minus 1}$, and $vb in {0, 1}^N$.
+
+  *Bounding the numbers.*  By Cramer's rule, each coordinate of $vr$ equals $det(matA_j) \/ det(matA)$, where $matA_j$ is $matA$ with its $j$-th column replaced by $vb$. Both determinants are integers, because all entries are. Expanding a $N times N$ determinant as a sum over permutations writes it as a sum of $N!$ products of $N$ entries, each of absolute value less than $B$, so each determinant has absolute value less than $N! dot B^N <= N^N dot 2^(N k L) = 2^b$, where $b := N (log_2 N + k L)$. An integer of absolute value less than $2^b$ can be written with $ceil(b)$ bits plus a sign bit. Finally, $N <= 2 k + 2 <= 4 k$ and $log_2 N <= N <= 4 k <= 4 k L$ because $L >= 1$, so $log_2 N + k L <= 5 k L$ and $b <= 4 k dot 5 k L = 20 k^2 L$. Since $k <= |A_1| + |A_2|$, every numerator and denominator has $O((|A_1| + |A_2|)^2 L)$ bits.
 ]
 
-This follows directly from the way Lemke-Howson works, which is similar to the simplex algorithm. The algorithm moves along edges of a rational polytope until it finds a Nash equilibrium. Since the algorithm only moves along the edges of the polytope, it will only generate rational solutions.
+The proof is also an algorithm: trying all $2^(|A_1| + |A_2|)$ pairs of supports and finding a vertex of $P$ (for example, with the simplex method) computes an exact rational Nash equilibrium in exponential time. This is the _support enumeration_ algorithm of the #lecture-link("nash_algorithms", <sec-support-enumeration>)[supplementary notes on Nash equilibrium computation], which also show that the Lemke-Howson algorithm outputs a rational equilibrium.
 
 #exercise[Nash equilibrium as a linear complementarity problem][
   Consider a generic two-player general-sum game, with utility matrices $U_1$ and $U_2$ as defined above. Show that finding a Nash equilibrium of the game can be reduced to the LCP of #ref(<eq:lcp-general>, supplement: none), with a number of variables $d$ that is linear in $| A_1 | + | A_2 |$.
@@ -239,7 +262,7 @@ In games with more than two players, the behavior of Nash equilibria can be even
   $
 
   From a computational point of view, this property raises the question of how a Nash equilibrium solver could even _represent_ such an output.
-]
+] <ex-irrational-nash>
 
 #exercise[The irrational Nash equilibrium in the preceding example][
   Prove that the three-player game above has exactly the stated Nash equilibrium. In particular, rule out equilibria in which only some players mix before imposing indifference for all three players.
@@ -274,11 +297,41 @@ In games with more than two players, the behavior of Nash equilibria can be even
   The issues with irrational numbers do not stop at square roots. In fact, _any polynomial root_ might be required to represent a Nash equilibrium. This was shown by #citet(<bubelis1979equilibria>), who showed how to construct games with arbitrary polynomial roots.
 
   Beyond the representation, the topology of Nash equilibria is also in general arbitrarily complex in three-player games. In particular, #citet(<datta2003universality>) showed that for any real algebraic variety, one can come up with some three-player game whose set of fully mixed Nash equilibria is isomorphic to that variety.
-]
+] <rem-nash-universality>
 
 *Computation*  On the computational side, the situation is even more dire. As a first consideration, because Nash equilibria might require irrational numbers, even the question of how to _represent_ the output equilibrium needs attention. In general, we cannot hope for an _exact_ value. However, even asking for a _constant_ approximation turns out to be hard. We will talk about this in more detail at the end of the course, where we relate the computation of (approximate) Nash equilibria to a complexity class called PPAD.
 
 If one is willing to stomach a worst-case superpolynomial runtime, some methods exist. While the Lemke-Howson algorithm cannot be used beyond two-player games, other methods (such as #citep(<Porter2008Jul>)) still apply.
+
+@tab-nash-summary summarizes how the properties of Nash equilibria change across the three classes of games studied in this section.
+
+#figure(
+  kind: table,
+  supplement: [Table],
+  caption: [Properties of Nash equilibria across the classes of games studied in this section.],
+)[
+  #set par(justify: false)
+  #set text(hyphenate: false)
+  #table(
+    stroke: none,
+    columns: (auto, 1fr, 1fr, 1fr),
+    align: left + top,
+    inset: .6em,
+    table.header([], [*Computational*], [*Algebraic*], [*Topological*]),
+    [*Two-player \ zero-sum*],
+    [Polynomial time via linear programming (#ref(label("thm:nash is mm"), supplement: [Thm.]))],
+    [A rational equilibrium exists for rational payoffs (@thm-rational-nash-2p[Thm.])],
+    [Convex and compact, a product of maxmin sets (#ref(label("cor:nash product"), supplement: [Cor.]), @cor-nash-convex[Cor.])],
+    [*Two-player \ general-sum*],
+    [A linear complementarity problem; Lemke-Howson is not polynomial-time in the worst case],
+    [A rational equilibrium exists for rational payoffs (@thm-rational-nash-2p[Thm.])],
+    [Can be non-convex, and even non-contractible (@rem-kohlberg-mertens[Rem.])],
+    [*More than \ two players*],
+    [Hard even to approximate],
+    [May require irrational numbers (@ex-irrational-nash[Ex.]), and even arbitrary algebraic numbers (@rem-nash-universality[Rem.])],
+    [Fully mixed equilibria can be isomorphic to any real algebraic variety (@rem-nash-universality[Rem.])],
+  )
+] <tab-nash-summary>
 
 = Correlated and coarse correlated equilibrium
 
@@ -497,6 +550,22 @@ Say an action $a_i in A_i$ is _dominated_ by another action $a_i^(*) in A_i$ if,
 == How to think about correlated play in games
 
 We can think of the correlation between the strategies of the players in a correlated or coarse correlated equilibrium as arising from some _correlation device_ in the game. This is a trusted mediator that can recommend but not enforce behavior. The distribution $vmu$ from which the correlation device samples recommendations is public knowledge, but the players only get to observe the recommended action that was sampled for them. A correlated / coarse correlated equilibrium is then a distribution $vmu$ such that no player can unilaterally deviate from the recommended action to improve their payoff.
+
+#example[Correlation can benefit both players][
+  This adapts a classic example of #citet(<Aumann1974Mar>). Two warehouse robots approach a narrow aisle from opposite ends. Each robot can either _wait_ or _go_. If both go, they block each other; if exactly one goes, it passes quickly while the other is delayed; if both wait, they then pass slowly in turn. The utilities are as follows.
+
+  #align(center)[
+    #image("figures/correlated/aisle_game.svg")
+  ]
+
+  *Nash equilibria.*  The game has two pure Nash equilibria, $("Wait", "Go")$ and $("Go", "Wait")$, with utilities $(2, 5)$ and $(5, 2)$. It also has a mixed Nash equilibrium in which each robot waits with probability $2 \/ 3$, the probability that makes the other robot indifferent, since $4 dot.op 2 \/ 3 + 2 dot.op 1 \/ 3 = 5 dot.op 2 \/ 3 = 10 \/ 3$. In it, each robot obtains $10 \/ 3$. The total utility is $7$ in either pure equilibrium and $20 \/ 3$ in the mixed one.
+
+  *A better correlated equilibrium.*  Consider a central controller that draws one of $("Wait", "Wait")$, $("Wait", "Go")$, $("Go", "Wait")$ uniformly at random and privately tells each robot only its own action. Call this distribution $vmu$. A robot told to go knows that the other was told to wait, so going yields $5$ while waiting would yield $4$. A robot told to wait considers the other equally likely to have been told to wait or to go, so waiting yields $(4 + 2) \/ 2 = 3$ while going would yield $(5 + 0) \/ 2 = 5 \/ 2$. By symmetry the same holds for the other robot, so neither robot gains by deviating from its recommendation, and $vmu$ is a correlated equilibrium.
+
+  Under $vmu$, each robot obtains $(4 + 2 + 5) \/ 3 = 11 \/ 3$. This is strictly more than the $10 \/ 3$ of the mixed equilibrium for _both_ robots, and the total utility $22 \/ 3$ exceeds that of every Nash equilibrium. The correlated equilibrium does not beat the robot favored by a pure equilibrium, which obtains $5$; rather, it achieves an outcome that is better in aggregate and fair to both robots.
+
+  *Why privacy matters.*  A public signal that tells both robots to play $("Wait", "Go")$ or $("Go", "Wait")$ with probability $1 \/ 2$ each is also a correlated equilibrium, but it merely averages the two pure Nash equilibria, giving $7 \/ 2$ to each robot. The controller above does better because its recommendations are private. If the robots knew that $("Wait", "Wait")$ had been drawn, each would prefer to go; a robot told to wait does not know whether the other was told to wait or to go, and this uncertainty is what makes recommending $("Wait", "Wait")$ sustainable.
+]
 
 The distinction between correlated and coarse correlated equilibrium is in when the players decide when to commit to the recommended action. In a coarse correlated equilibrium, the players commit to the recommended action _before_ the recommendation is made. In a correlated equilibrium, the players commit to the recommended action _after_ the recommendation is made.
 
