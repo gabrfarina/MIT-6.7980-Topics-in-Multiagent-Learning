@@ -51,8 +51,8 @@
   // State y = J: (u(J), u(P)) for Alice = (1, 0), J-provider = (2.5, 0), P-provider = (1, 1.5).
   panel(0, "J", (1, 0), (2.5, 0), (1, 1.5), [(#upsans("J") is better)])
   lbl((1, 0), "north", text(fill: alice-col)[$u_A$])
-  lbl((2.5, 0), "north", text(fill: bob-col)[$u_(upsans(J))$])
-  lbl((1, 1.5), "east", text(fill: bob-col)[$u_(upsans(P))$])
+  lbl((2.5, 0), "north", text(fill: bob-col)[$u_(B_1)$])
+  lbl((1, 1.5), "east", text(fill: bob-col)[$u_(B_2)$])
   lbl((1.8, 0.8), "south-west", [midpoint])
   lbl((1.47, 0.36), "north-west", text(size: 8pt)[$+beta\/2$])
 
@@ -60,8 +60,8 @@
   let dx = 4.9
   panel(dx, "P", (0, 1), (1.5, 1), (0, 2.5), [(#upsans("P") is better)])
   lbl((dx + 0, 1), "east", text(fill: alice-col)[$u_A$])
-  lbl((dx + 1.5, 1), "west", text(fill: bob-col)[$u_(upsans(J))$])
-  lbl((dx + 0, 2.5), "east", text(fill: bob-col)[$u_(upsans(P))$])
+  lbl((dx + 1.5, 1), "west", text(fill: bob-col)[$u_(B_1)$])
+  lbl((dx + 0, 2.5), "east", text(fill: bob-col)[$u_(B_2)$])
   lbl((dx + 0.8, 1.8), "south-west", [midpoint])
   lbl((dx + 0.45, 1.3), "north-west", text(size: 8pt)[$+beta\/2$])
 })
