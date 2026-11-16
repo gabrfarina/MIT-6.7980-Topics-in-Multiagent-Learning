@@ -7,9 +7,10 @@
   title: "Nonconvex games",
 )
 
-// Integration: this is the worked-example contribution, not the complete L17
-// lecture. Place it after the squared-distance game on slide PDF page 2 and
-// before Phi-equilibrium. Keep these labels when integrating other sections.
+// Integration: these are two contributions, not the complete L17 lecture.
+// Place the first after the squared-distance game on slide PDF page 2 and before
+// Phi-equilibrium; place the local-deviations section with pages 4--5. Keep the
+// labels when integrating other sections.
 
 = A smooth game with no pure equilibrium <sec-nonconvex-distance-game>
 
@@ -137,6 +138,132 @@ earns $1/4$ by randomizing, but earns zero by choosing the mean with certainty.
     $y=1/2$.],
 ) <fig-nonconvex-randomization>
 
+= Local deviations and what gradients can certify <sec-nonconvex-local>
+
+The previous example shows why a pure equilibrium may fail to exist. We now
+ask a more limited question: how much could a player gain from changing their
+action by at most a small distance $delta$? This section expands the local
+deviation and linearization discussion on pages 4--5 of the
+#link("https://www.mit.edu/~6.7980/slides/L17_nonconvex_games.pdf#page=4")[lecture slides].
+
+== What counts as a local deviation? <sec-nonconvex-local-maps>
+
+Write the players' joint action as $x=(x_i,x_(-i))$, where $x_(-i)$ lists the
+other players' actions. Player $i$'s feasible set is $X_i$. A deviation rule
+$phi_i: X_i -> X_i$ replaces their action $x_i$ with $phi_(i)(x_i)$, leaving the
+other players' actions fixed. It is *$delta$-local* if
+$ norm(phi_(i)(z)-z)_2 <= delta quad "for every" z in X_i. $
+The rule must respect both the distance limit and the feasible set everywhere.
+Let $Phi_(i)(delta)$ be a chosen family of such measurable rules, including the
+identity rule $phi_(i)(z)=z$.
+
+For example, on $[0,1]$, the rule $phi(z)=min{z+0.1,1}$ moves right by at most
+$0.1$. It sends $0.50$ to $0.60$ and $0.95$ to $1.00$. Clipping the move at the
+boundary keeps the action feasible.
+
+An $epsilon$-approximate $Phi(delta)$-equilibrium is a joint distribution of
+actions for which no player gains more than $epsilon$ in expectation by
+applying any rule from their family. The distribution may correlate players'
+actions. Each rule uses only that player's own action.
+
+== A gradient estimate with an error allowance <sec-nonconvex-linearization>
+
+Assume each $X_i$ is nonempty, convex, and compact. Utilities are differentiable,
+and changing player $i$'s action changes their gradient by at most $L$ times the
+distance moved, uniformly over fixed opponents' actions:
+$
+  norm(nabla_(x_i) u_(i)(z,x_(-i))-nabla_(x_i) u_(i)(w,x_(-i)))_2
+  <= L norm(z-w)_2.
+$
+This is *smoothness*. It limits how quickly the slope can change; it does not
+require the utility to be concave.
+
+Set $d_i=phi_(i)(x_i)-x_i$ and $g_(i)(x)=nabla_(x_i)u_(i)(x)$. The dot product
+$ip(g_(i)(x),d_i)$ estimates the payoff change using the current slope. Smoothness
+gives the following upper bound:
+$
+  u_(i)(phi_(i)(x_i),x_(-i))-u_(i)(x)
+  &<= ip(g_(i)(x),d_i) + L/2 norm(d_i)_2^2 \
+  &<= ip(g_(i)(x),d_i) + L delta^2/2.
+$
+In words: *actual gain is at most the gradient's estimate plus a curvature
+allowance*. If the expected gradient estimate is at most $epsilon$ for every
+allowed rule, expected actual gain is at most $epsilon+L delta^2/2$.
+
+This is the reduction in Lemma 1 of
+#link("https://arxiv.org/html/2403.08171v4")[Cai, Daskalakis, Luo, Wei, and Zheng].
+See Appendix C there for the proof. The allowance scales quadratically: halving
+the permitted move divides it by four.
+
+== From repeated play to an equilibrium guarantee <sec-nonconvex-local-regret>
+
+Suppose the players produce joint actions $x^((1)),...,x^((T))$. For each player,
+define the largest cumulative gain predicted by the gradients:
+$
+  R_i^((T)) := sup_(phi_i in Phi_(i)(delta))
+  sum_(t=1)^T ip(g_(i)(x^((t))),phi_(i)(x_i^((t)))-x_i^((t))).
+$
+The *same deviation rule* is used across all rounds in this comparison. It can
+respond to the player's action, but we do not select a separate rule for each
+round after seeing the other players' actions.
+
+Choose a round uniformly from $1,...,T$ and return the entire joint action from
+that round. This defines the empirical distribution of play. Applying the bound
+above round by round gives its approximation guarantee:
+$ epsilon_T = max_i R_i^((T))/T + L delta^2/2. $
+This is the repeated-play statement of Lemma 1. It concerns a distribution over
+joint actions, rather than the average action or the last action. For a fixed
+$delta$, reducing the regret term alone leaves the curvature allowance in this
+bound. The bound also presumes control of regret for the *chosen family* of
+rules; it does not itself provide an efficient algorithm for every family.
+
+== Worked example: zero slope, positive gain <sec-nonconvex-stationary-example>
+
+Return to $u_(1)(x,y)=(x-y)^2$ and $u_(2)(x,y)=-(x-y)^2$. At
+$(x,y)=(1/2,1/2)$, both own-action derivatives are zero:
+$ partial_x u_(1)=2(x-y)=0, quad partial_y u_(2)=2(x-y)=0. $
+Nevertheless, if player 1 moves from $1/2$ to $1/2+s$, their gain is $s^2$.
+For $0<delta<=1/2$, the largest gain among moves with $abs(s)<=delta$ is exactly
+$delta^2$. Player 2 is already best responding and has no positive gain.
+
+Both utilities have own-action smoothness constant $L=2$. Therefore the
+curvature allowance is $L delta^2/2=delta^2$: the bound is attained exactly by
+player 1. For instance, at $delta=0.2$, moving to $x=0.7$ gains $0.04$, although
+the gradient estimate is zero. The globally feasible rule
+$phi(z)=min{z+delta,1}$ realizes this deviation at the midpoint.
+
+#figure(
+  image("figures/nonconvex_local/stationary_gain.svg", width: 52%),
+  caption: [Player 1's utility with $y=1/2$ fixed. The tangent at $x=1/2$ is
+    flat, but the actual utility rises in either direction. The shaded interval
+    permits moves of at most $delta=0.2$; its endpoints give gain $0.04$.],
+) <fig-nonconvex-stationary-gain>
+
+Thus a zero gradient need not mean that every nearby change is unprofitable.
+Here it identifies the bottom of player 1's utility curve. The example also
+shows why a general guarantee based on first-order information retains a
+quadratic error allowance.
+
+== Exercise: budget the approximation error <sec-nonconvex-error-budget>
+
+#exercise[Choose the deviation radius][
+  Suppose $L=2$ and every player's average linearized regret is at most $0.02$.
+  + What equilibrium error does the bound certify when $delta=0.1$?
+  + What does it certify when $delta=0.2$?
+  + What is the largest radius this bound permits if the target error is $0.03$?
+] <ex-nonconvex-error-budget>
+
+#reference-solutions(title: [Show / hide the error-budget solution])[
+#solution[Separate learning error from curvature][
+  The bound is $epsilon_T<=0.02+delta^2$. Hence the first two certified errors
+  are $0.03$ and $0.06$. For the target $0.03$, solve
+  $ 0.02+delta^2<=0.03, quad "so" quad delta<=0.1. $
+  These are upper bounds, not predictions of the actual deviation gain. A
+  smaller radius gives a tighter bound while restricting which deviations are
+  being tested. A larger radius tests more substantial changes.
+] <sol-nonconvex-error-budget>
+]
+
 = Sources and contribution notes <sec-nonconvex-sources>
 
 - *Lecture example:* Weiqiang Zheng, MIT 6.7980, Lecture 17, November 12, 2026,
@@ -150,6 +277,13 @@ earns $1/4$ by randomizing, but earns zero by choosing the mean with certainty.
 - *Worked expansion:* the best-response calculation, mixed-equilibrium exercise
   and solution, and figures develop the lecture's example. Their elementary
   calculations are supplied in this note.
+- *Local deviations and linearization:* Yang Cai, Constantinos Daskalakis,
+  Haipeng Luo, Chen-Yu Wei, and Weiqiang Zheng,
+  #link("https://arxiv.org/html/2403.08171v4")[On Tractable Phi-Equilibria in Non-Concave Games],
+  arXiv:2403.08171v4 (April 20, 2025; preliminary version NeurIPS 2024),
+  Section 4, Assumption 1, Definition 3, and Lemma 1; proof in Appendix C.
+  The clipped-shift illustration, stationary-point calculation, figure, and
+  numerical error-budget exercise are worked expansions provided here.
 
 _AI assistance:_ ChatGPT assisted with drafting and revising the explanations,
 working through the example, creating the figures, and implementation checks.
