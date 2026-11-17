@@ -18,6 +18,7 @@ SUPPORT_SOURCES = {
     'learning2/ftr_euc.typ',
     'learning2/ftr_log.typ',
     'learning2/omd_euc.typ',
+    'team_belief_dag/pair.typ',
 }
 GATES = ('assignment', 'constant', 'addition', 'subtraction',
          'multiplication', 'comparison')
