@@ -19,14 +19,16 @@
     "learning-foundations": "slides/L04_learning_in_games.pdf",
     "learning-algorithms": "slides/L05_learning_in_games.pdf",
     "bandit": "slides/L06_bandit.pdf",
-    "efg-modeling": "slides/L07_efgs.pdf"
+    "efg-modeling": "slides/L07_efgs.pdf",
+    "information-design": "slides/L11_mechanism_design.pdf"
   },
   "interactive_slides": {
     "learning-foundations": "slides/L04_learning_in_games.html",
     "learning-algorithms": "slides/L05_learning_in_games.html"
   },
   "interactive_pages": {
-    "zero-sum-2xn": "interactive/zero_sum_2xn.html"
+    "zero-sum-2xn": "interactive/zero_sum_2xn.html",
+    "mechanism-design-compression": "interactive/mechanism_design_compression.html"
   },
   "notes": [
     {
@@ -83,6 +85,13 @@
       "supplementary": false,
       "syllabus_ids": [
         "efg-learning"
+      ]
+    },
+    {
+      "source": "content/mechanism_design.typ",
+      "supplementary": false,
+      "syllabus_ids": [
+        "information-design"
       ]
     },
     {
