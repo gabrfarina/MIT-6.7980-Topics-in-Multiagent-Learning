@@ -396,26 +396,34 @@ A similar phenomenon occurs in continuous time, where the learner reacts to the 
 
 As noted by Syrgkanis et al.~#citep(<syrgkanis2015fast>), the RVU bound implies accelerated convergence to Nash equilibria in two-player zero-sum games. The proof is quite elementary, and we will present it next.
 
-Let Player~1 measure its strategies with a norm $norm(dot.c)_cX$ on $RR^m$ and Player~2 with a norm $norm(dot.c)_cY$ on $RR^n$, with dual norms $norm(dot.c)_(cX,*)$ and $norm(dot.c)_(cY,*)$. For the utility matrix $mU in RR^(m times n)$ of Player~1, define the operator norm
-$
-  norm(mU)_"op" := max_(vv != bold(0)) norm(mU vv)_(cX,*) / norm(vv)_cY = max_(vw != bold(0)) norm(mU^top vw)_(cY,*) / norm(vw)_cX,
-$
-where the two expressions agree because both equal $max ip(vw, mU vv)$ over $norm(vw)_cX <= 1$ and $norm(vv)_cY <= 1$.
-
 #theorem[Accelerated convergence to Nash equilibria in two-player zero-sum games, #citep(<syrgkanis2015fast>)][
-  Consider any two-player zero-sum game with utility matrix $mU in RR^(m times n)$ for Player~1. Suppose that both players use optimistic predictions, $vm_1^((t)) = mU vy^((t-1))$ and $vm_2^((t)) = -mU^top vx^((t-1))$ for $t >= 2$, with arbitrary first-round predictions $vm_1^((1)), vm_2^((1))$ (for example, zero), and regret minimizers that satisfy the RVU bound of @sec-rvu with constants $Omega_1, Omega_2$ and a common learning rate $eta$. If $eta <= 1\/(4 norm(mU)_"op")$, then at any time $T$,
+  Consider any two-player zero-sum game; let $mU in RR^(m times n)$ be the utility matrix for Player 1. If the players employ regret minimizers that guarantee RVU regret bounds of the form
   $
-    "Reg"_1^((T)) + "Reg"_2^((T)) <= (Omega_1 + Omega_2) / eta + eta (norm(vg_1^((1)) - vm_1^((1)))_(cX,*)^2 + norm(vg_2^((1)) - vm_2^((1)))_(cY,*)^2),
+    "Reg"_1^((
+      T
+    )) &<= (Omega_1) / eta + eta sum_(t=1)^T norm(mU (vy^((t)) - vy^((t-1))))_*^2 - 1 / (8 eta) sum_(t=1)^T norm(vx^((t)) - vx^((t-1)))^2 \
+    "Reg"_2^((
+      T
+    )) &<= (Omega_2) / eta + eta sum_(t=1)^T norm(mU^top (vx^((t)) - vx^((t-1))))_*^2 - 1 / (8 eta) sum_(t=1)^T norm(vy^((t)) - vy^((t-1)))^2,
   $
-  which is _constant_ with respect to time. By the #lecture-link("learning_intro", <thm-regret-gap>)[regret-to-saddle-point-gap identity], the saddle-point gap of the average strategies $(overline(vx)^((T)), overline(vy)^((T)))$ is therefore $O_T (1\/T)$.
+  and $eta <= 1\/(4 norm(mU)_"op")$, where
+  $norm(mU)_"op" := max_(vz in RR^n) norm(mU vz)_* \/ norm(vz)$
+  is the operator norm of $mU$, then, at any time $T$, the sum of the regrets of the players satisfies the bound
+  $ "Reg"_1^((T)) + "Reg"_2^((T)) <= (Omega_1 + Omega_2) / eta $
+  which is _constant_ with respect to time. The #lecture-link("learning_intro", <thm-regret-gap>)[regret-to-saddle-point-gap identity] then implies convergence to the set of Nash equilibria in two-player zero-sum games at the rate of $O_T (1\/T)$.
 ]
 #proof[
-  For $t >= 2$, the prediction error of Player~1 is $vg_1^((t)) - vm_1^((t)) = mU (vy^((t)) - vy^((t-1)))$, so by definition of the operator norm $norm(vg_1^((t)) - vm_1^((t)))_(cX,*)^2 <= norm(mU)_"op"^2 norm(vy^((t)) - vy^((t-1)))_cY^2$, and symmetrically for Player~2. Separating the first round, the RVU bounds give
+  The statement follows from summing up the RVU bounds, and observing that the middle terms cancel out with the right-most terms. More precisely, we have
   $
-    "Reg"_1^((T)) &<= Omega_1 / eta + eta norm(vg_1^((1)) - vm_1^((1)))_(cX,*)^2 + eta norm(mU)_"op"^2 sum_(t=2)^T norm(vy^((t)) - vy^((t-1)))_cY^2 - 1 / (8 eta) sum_(t=2)^T norm(vx^((t)) - vx^((t-1)))_cX^2, \
-    "Reg"_2^((T)) &<= Omega_2 / eta + eta norm(vg_2^((1)) - vm_2^((1)))_(cY,*)^2 + eta norm(mU)_"op"^2 sum_(t=2)^T norm(vx^((t)) - vx^((t-1)))_cX^2 - 1 / (8 eta) sum_(t=2)^T norm(vy^((t)) - vy^((t-1)))_cY^2.
+    "Reg"_1^((
+      T
+    )) &<= (Omega_1) / eta + eta norm(mU)_"op"^2 sum_(t=1)^T norm(vy^((t)) - vy^((t-1)))_*^2 - 1 / (8 eta) sum_(t=1)^T norm(vx^((t)) - vx^((t-1)))^2 \
+    "Reg"_2^((
+      T
+    )) &<= (Omega_2) / eta + eta norm(mU)_"op"^2 sum_(t=1)^T norm(vx^((t)) - vx^((t-1)))_*^2 - 1 / (8 eta) sum_(t=1)^T norm(vy^((t)) - vy^((t-1)))^2
   $
-  Summing, each movement sum appears with coefficient $eta norm(mU)_"op"^2 - 1\/(8 eta)$, which is nonpositive whenever $eta <= 1\/(sqrt(8) norm(mU)_"op")$. The assumption $eta <= 1\/(4 norm(mU)_"op")$ is a (conservative) sufficient condition, and dropping the nonpositive terms gives the statement.
+  #v(-1mm)
+  Summing the inequalities and using the fact that $eta <= 1\/4 norm(mU)_"op"$ by assumption, we obtain the statement.
 ]
 
 == Accelerated learning of coarse correlated equilibria in general games <sec-fast-cce>
