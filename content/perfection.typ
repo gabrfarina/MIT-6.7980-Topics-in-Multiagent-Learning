@@ -209,6 +209,16 @@ The iterative algorithm repeatedly picks a numerical perturbation $macron(epsilo
 
 The practical algorithm is 3-4 orders of magnitude faster than the conceptual algorithm described in @sec:npp, and is the current state-of-the-art algorithm for computing QPE and EFPE.
 
+= Sequential irrationality in self-play <sec:self-play>
+
+Many of the strongest game-playing programs, such as AlphaZero #citep(<Silver18:AlphaZero>), learn by _self-play_: the program plays millions of games against itself and keeps updating its policy to win more often. At best, self-play approaches a Nash equilibrium, and as we saw in this lecture, a Nash equilibrium need not act sensibly in positions that equilibrium play never reaches. Self-play makes this worse: the program rarely trains on such positions, so an opponent who steers the game there can find it playing badly.
+
+KataGo #citep(<Wu19:KataGo>) is a self-play Go program far stronger than any human; even without search, its network alone plays at a professional level. Wang et al. #citep(<Wang23:Adversarial>) trained an _adversarial policy_ against it. The adversary is a weak player that human amateurs beat, yet it wins more than 99% of games against KataGo without search (@fig:go-cycle). It lures KataGo into building a large loop of stones that KataGo believes is safe, and then captures the entire loop. Such a weak strategy never came up during training, where KataGo only played against itself, so KataGo never learned to respond to it. This is Guess-the-Ace at scale: just as the questionable equilibrium of @ex:guess-the-ace plays poorly after Player~$1$’s mistake, which equilibrium play never makes, KataGo plays poorly in positions that only a weak opponent creates.
+
+#figure(caption: [Who beats whom in Go. The adversary #citep(<Wang23:Adversarial>) beats KataGo, which beats human professionals, yet human amateurs beat the adversary.])[
+  #image("figures/perfection/go-cycle.svg", width: 85%)
+] <fig:go-cycle>
+
 = Bibliography for this lecture
 
 #lec_bibliography("meta/refs.bib", title: none)
