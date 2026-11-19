@@ -1655,6 +1655,7 @@ fn solution_toggle_script() -> &'static str {
         r#"<script>
 (() => {
     for (const solution of document.querySelectorAll('.env.proof[data-proof-kind="Solution"]')) {
+        if (solution.closest(".solution-wrapper")) continue;
         const button = document.createElement("button");
         button.type = "button";
         button.className = "solution-toggle";
