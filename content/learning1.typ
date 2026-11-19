@@ -551,7 +551,7 @@ where $norm(dot.c)_*$ is the dual norm of the norm with respect to which $psi$ i
 
 We will see the regret bound for FTRL in the general case in @ftrl-omd-general-case.
 
-== OMD in the normal-form case
+== OMD in the normal-form case <sec-omd>
 
 The last general method that we mention today is the _online mirror descent (OMD)_ algorithm. This is the online generalization of the mirror descent optimization method, one of the workhorses of modern optimization theory. A good way to think about OMD is as a generalization of gradient ascent.
 
