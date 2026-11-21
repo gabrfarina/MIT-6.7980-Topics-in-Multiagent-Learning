@@ -85,12 +85,12 @@ $
 $
 
 #block(breakable: false)[
-#lemma[Each round reduces squared error][
-  If the speaker of round $k >= 2$ is perfectly conversation-calibrated at round $k$, then
-  $
-    "SQE"_(k-1) - "SQE"_k = sum_(t in cal(T)_k) (p^(t, k) - p^(t, k-1))^2 >= eps^2 abs(cal(T)_(k+1)).
-  $
-] <lem-ca-one-round>
+  #lemma[Each round reduces squared error][
+    If the speaker of round $k >= 2$ is perfectly conversation-calibrated at round $k$, then
+    $
+      "SQE"_(k-1) - "SQE"_k = sum_(t in cal(T)_k) (p^(t, k) - p^(t, k-1))^2 >= eps^2 abs(cal(T)_(k+1)).
+    $
+  ] <lem-ca-one-round>
 ]
 
 #proof[
@@ -118,5 +118,49 @@ $
 ]
 
 Informally, each round in which at least a $delta$ fraction of the days remain in conversation after that round removes at least $eps^2 delta T$ from a potential that starts at most at $T$ and never becomes negative. So there can be at most about $1 \/ (eps^2 delta)$ such rounds.
+
+
+// Task 14 (L13): Explain how the alignment problem can be modeled as a game. Especially, how to model the utility and actions for each player.
+
+= Modeling alignment <sec-alignment-game>
+
+We model the alignment problem as a multi-leader Stackelberg game~#citep(<collina2025emergent>). Each AI provider, whom we will name Bob $B_i$ for $i in [k]$, acts as a "leader" who commits to a conversation strategy first, knowing the human user Alice will observe these strategies and respond optimally. This replicates the reality of AI systems being deployed with fixed parameters, while users are free to adapt their interaction strategies.
+
+Alice observes features $x_A in cX_A$ and must choose an action $a in cA$. Each Bob observes features $x_B in cX_B$. An instance $(x_A, x_B, y)$ is drawn from a commonly known prior distribution $P$, where $y in cY$ is the underlying state of the world and unknown to all players. All players possess utility functions that depend on Alice's action and the unknown state:
+
+$
+  u_A : cA times cY arrow.r [0, 1] quad "and" quad u_(B_i) : cA times cY arrow.r [0, 1].
+$
+
+Alice and each Bob seeks to maximize their own expected utility, which may differ. For example, if Alice is a doctor, her utility depends on selecting the treatment that most benefits her patient. Meanwhile, Bobs may prefer to recommend certain treatments over others due to financial incentives, such as advertising partnerships.
+
+== The game structure
+
+The game proceeds as a multi-leader, single-follower Stackelberg game:
+
+1. Each Bob $B_i$ simultaneously commits to a conversation rule $C_i$, which specifies a distribution over messages given its observed features and private conversation history.
+2. Alice observes the chosen conversation rules $C = (C_1, ..., C_k)$, then chooses her own conversation rule $C_A$ and decision rule $D_A$.
+3. An instance $(x_A, x_B, y)$ is sampled from the prior distribution $P$. Alice observes $x_A$ and each Bob observes $x_B$.
+4. Alice and the Bobs engage in the communication protocol defined by $C$ and Alice's own conversation rule $C_A$ to sample a conversation transcript $pi$.
+5. Alice samples an action $a tilde D_A(x_A, pi)$ according to her decision rule, and all players receive their utilities $u_A(a, y)$ and $u_(B_i)(a, y)$.
+
+The protocol to sample a conversation transcript $pi$ is as follows:
+
+#pseudocode-list(numbered-title: [SampleTranscript($C$, $C_A$)])[
+  - *Data:* Conversation rules $C = (C_1, ..., C_k)$ and $C_A$; observed features $x_A, x_B$; conversation budget $R$.
+  - *Output:* A transcript $pi = (h_1, ..., h_k)$, where $h_i$ is the history of messages between Alice and Bob $B_i$.
+  + Initialize empty histories $h_i = ()$ for all $i in [k]$.
+  + *for each* round $r = 1, ..., R$:
+    + Alice sends a message to each Bob: $(m_(A,1), ..., m_(A,k)) tilde C_A(x_A, (h_1, ..., h_k))$
+    + *for each* provider $i in [k]$:
+      + $h_i <- h_i circle m_(A,i)$
+    + Each Bob responds using its private conversation history.
+    + *for each* provider $i in [k]$:
+      + $m_(B,i) tilde C_i(x_B, h_i)$
+      + $h_i <- h_i circle m_(B,i)$
+  + *return* $pi = (h_1, ..., h_k)$
+] <algo:sample-transcript>
+
+Here, $circle$ denotes appending a message to a conversation history.
 
 #lec_bibliography("meta/refs.bib")
