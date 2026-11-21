@@ -1,0 +1,890 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hidden-role election · MIT 6.7980</title>
+<meta name="description" content="Interactive three-player election for the hidden-role example in the MIT 6.7980 Lecture 12 notes.">
+<style>
+@font-face {
+    font-family: "Source Sans 3";
+    src: url("../assets/fonts/SourceSans3-Regular-web.woff?v=3dbf4ec102f9") format("woff");
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap
+}
+@font-face {
+    font-family: "Source Sans 3";
+    src: url("../assets/fonts/SourceSans3-Bold-web.woff?v=46e53922ba57") format("woff");
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap
+}
+</style>
+<style>
+  :root {
+    --paper: #fbfaf7;
+    --ink: #171411;
+    --muted: #6b635b;
+    --rule: #d7d0c6;
+    --block: #eeeeee;
+    --accent: #325d8a;
+    --brown: #8a4c20;
+    --serif: Georgia, "Times New Roman", Times, serif;
+    --sans: "Source Sans 3", "Helvetica Neue", Arial, sans-serif;
+    --p1: #d07a3a;
+    --p2: #7a6aa8;
+    --p3: #4f9aa8;
+    --good: #3d6ea8;
+    --goodp: #2a8a84;
+    --bad: #b45a55;
+    --elect: #2f7d4a;
+    --night: #ebe7df;
+    --night-2: #f4f1eb;
+    --glass: rgba(255, 255, 255, .72);
+    --cyan: #325d8a;
+    --gold: #d9aa67;
+  }
+  * { box-sizing: border-box; }
+  html { font-size: 90%; background: var(--paper); }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background:
+      radial-gradient(circle at 15% 0%, rgba(50, 93, 138, .09), transparent 30rem),
+      radial-gradient(circle at 90% 15%, rgba(138, 76, 32, .07), transparent 25rem),
+      var(--paper);
+    font-family: var(--serif);
+    font-size: 1.125rem;
+    line-height: 1.58;
+  }
+  main { max-width: 780px; margin: 0 auto; padding-inline: 24px; padding-block: 32px 64px; }
+  h1, h2, b, strong, .kicker, button, label { font-family: var(--sans); }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .kicker { margin: 0 0 .25rem; color: var(--brown); font-size: .86rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+  h1 { display: inline-block; max-width: 100%; margin: 0 0 1.4rem; padding-bottom: .32rem; border-bottom: 4px solid #000; font-size: 2.15rem; line-height: 1.08; }
+  h2 { position: relative; margin: 2rem 0 .6rem; font-size: 1.38rem; line-height: 1.18; }
+  h2::before { content: ""; position: absolute; left: -1.05rem; top: .18em; bottom: .16em; width: 3px; background: #c8c2b9; }
+  p { margin: .72rem 0; }
+  .game-shell {
+    position: relative;
+    overflow: hidden;
+    margin: 1.5rem -1rem 2rem;
+    padding: 1.1rem;
+    color: var(--ink);
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    background:
+      linear-gradient(rgba(50, 93, 138, .025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(50, 93, 138, .025) 1px, transparent 1px),
+      radial-gradient(circle at 50% 42%, rgba(50, 93, 138, .07), transparent 42%),
+      linear-gradient(145deg, #f8f6f1, #eeebe4 72%);
+    background-size: 24px 24px, 24px 24px, auto, auto;
+    box-shadow: 0 18px 45px rgba(76, 65, 52, .12), inset 0 1px #fff;
+  }
+  .game-shell::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,.25), transparent 65%);
+  }
+  .game-topbar {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: .2rem .2rem .8rem;
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--sans);
+  }
+  .classified {
+    color: var(--brown);
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+  }
+  .round-label { color: var(--muted); font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; }
+  .phase-track {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: .45rem;
+    margin: .9rem 0;
+    font-family: var(--sans);
+    font-size: .76rem;
+    color: #8c857c;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+  .phase {
+    position: relative;
+    padding-top: .62rem;
+    border-top: 2px solid #d8d2c9;
+    transition: color .25s, border-color .25s;
+  }
+  .phase.current { color: var(--accent); border-color: var(--accent); font-weight: 700; }
+  .phase.done { color: #687b8e; border-color: #9db1c4; }
+  .mode-panel {
+    position: relative;
+    z-index: 1;
+    display: block;
+    margin-bottom: .7rem;
+  }
+  .mode-block {
+    padding: .68rem .75rem;
+    border: 1px solid #ddd7ce;
+    border-radius: 10px;
+    background: rgba(255,255,255,.55);
+  }
+  .mode-title {
+    display: block;
+    margin-bottom: .35rem;
+    color: var(--muted);
+    font-family: var(--sans);
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+  }
+  .statement { margin: 1.1rem 0; padding: .55rem .85rem; background: var(--block); border: 1px solid #d8d8d8; border-radius: 3px; }
+  .controls { display: flex; flex-wrap: wrap; align-items: center; gap: .45rem .7rem; margin: .45rem 0; font-family: var(--sans); font-size: 1rem; }
+  .controls .group { display: inline-flex; align-items: baseline; gap: .4rem; flex-wrap: wrap; }
+  button { font-size: 1rem; color: var(--accent); background: none; border: 0; padding: 0; cursor: pointer; }
+  button:hover { text-decoration: underline; }
+  button.step, button.choice {
+    color: #403a34;
+    background: rgba(255,255,255,.72);
+    border: 1px solid #d2cbc1;
+    border-radius: 999px;
+    padding: .4rem .82rem;
+    text-decoration: none;
+    transition: transform .15s, border-color .15s, background .15s, box-shadow .15s;
+  }
+  button.step:hover, button.choice:hover {
+    text-decoration: none;
+    color: var(--accent);
+    border-color: #8ca5bc;
+    background: #edf2f6;
+    transform: translateY(-1px);
+  }
+  button.choice.current {
+    color: #fff;
+    border-color: var(--accent);
+    background: var(--accent);
+    box-shadow: 0 3px 10px rgba(50,93,138,.18);
+    font-weight: 700;
+  }
+  button.primary {
+    color: #fff;
+    border-color: transparent;
+    background: linear-gradient(135deg, #466f98, #325d8a);
+    box-shadow: 0 5px 14px rgba(50,93,138,.2);
+    font-weight: 700;
+  }
+  button.primary:hover { color: #fff; background: linear-gradient(135deg, #567fa7, #3d6b98); }
+  button:disabled { color: var(--muted); opacity: .45; cursor: default; text-decoration: none; }
+  button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+  .note { color: var(--muted); font-size: 1rem; }
+  .scoreboard {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    margin: .75rem 0;
+    padding: .55rem .8rem;
+    border: 1px solid #ddd7ce;
+    border-radius: 10px;
+    background: rgba(255,255,255,.5);
+    font-family: var(--sans);
+  }
+  .score { display: flex; align-items: center; gap: .55rem; }
+  .score.bad-score { justify-content: flex-end; text-align: right; }
+  .score-icon { width: .65rem; height: .65rem; border-radius: 50%; box-shadow: 0 0 12px currentColor; }
+  .good-score .score-icon { color: var(--cyan); background: var(--cyan); }
+  .bad-score .score-icon { color: #f08383; background: #f08383; }
+  .score-name { color: var(--muted); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; }
+  .score-value { display: block; color: var(--ink); font-size: 1.1rem; font-weight: 700; }
+  .versus { color: #aaa298; font-size: .72rem; font-weight: 700; letter-spacing: .1em; }
+  .game-message {
+    position: relative;
+    z-index: 1;
+    min-height: 3.4rem;
+    margin: .7rem 0;
+    padding: .72rem .9rem .72rem 2.8rem;
+    color: #34302b;
+    border: 1px solid #d8d2c9;
+    border-radius: 10px;
+    background: rgba(255,255,255,.65);
+    font-family: var(--sans);
+    font-size: .92rem;
+    line-height: 1.42;
+  }
+  .game-message::before {
+    content: "?";
+    position: absolute;
+    left: .85rem;
+    top: 50%;
+    width: 1.35rem;
+    height: 1.35rem;
+    margin-top: -.675rem;
+    color: var(--cyan);
+    border: 1px solid rgba(50,93,138,.35);
+    border-radius: 50%;
+    line-height: 1.28rem;
+    text-align: center;
+    font-weight: 700;
+  }
+  .game-message.result-good { border-color: #a9c5c0; background: #edf5f2; }
+  .game-message.result-good::before { content: "✓"; }
+  .game-message.result-bad { border-color: #d7b4b0; background: #f7eeee; }
+  .game-message.result-bad::before { content: "!"; color: #f6a0a0; border-color: rgba(240,131,131,.45); }
+  .table-wrap {
+    position: relative;
+    z-index: 1;
+    min-height: 25rem;
+    overflow: hidden;
+    padding: 1rem;
+    border: 1px solid #d0cbc2;
+    border-radius: 42% / 16%;
+    background:
+      radial-gradient(ellipse at center, rgba(86,126,128,.14), rgba(225,232,229,.9) 55%, rgba(214,218,212,.96) 78%),
+      #e5e8e3;
+    box-shadow: inset 0 0 40px rgba(88,85,78,.12), 0 8px 20px rgba(76,65,52,.1);
+  }
+  .table-wrap::before {
+    content: "";
+    position: absolute;
+    inset: 7%;
+    border: 1px dashed rgba(50,93,138,.18);
+    border-radius: 50%;
+  }
+  .table-center {
+    position: absolute;
+    left: 50%;
+    top: 52%;
+    width: 7.6rem;
+    height: 7.6rem;
+    transform: translate(-50%, -50%);
+    border: 1px solid rgba(50,93,138,.14);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(50,93,138,.06), transparent 67%);
+  }
+  .table-center::before {
+    content: "HIDDEN\\A ROLE";
+    white-space: pre;
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-content: center;
+    color: rgba(50,93,138,.2);
+    font-family: var(--sans);
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .16em;
+    line-height: 1.4;
+    text-align: center;
+  }
+  .board {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-areas: ". p1 ." "p3 . p2";
+    gap: 4.6rem 1.2rem;
+    min-height: 22rem;
+    align-items: center;
+  }
+  .seat {
+    position: relative;
+    min-width: 8.2rem;
+    text-align: center;
+    padding: .72rem .5rem .66rem;
+    border: 1px solid #d4cec5;
+    border-radius: 13px;
+    background: linear-gradient(150deg, rgba(255,255,255,.92), rgba(247,244,238,.78));
+    box-shadow: 0 10px 22px rgba(76,65,52,.13), inset 0 1px #fff;
+    backdrop-filter: blur(8px);
+    transition: transform .28s, border-color .28s, box-shadow .28s;
+    animation: seat-in .38s both;
+  }
+  .seat[data-i="0"] { grid-area: p1; }
+  .seat[data-i="1"] { grid-area: p2; }
+  .seat[data-i="2"] { grid-area: p3; }
+  .seat.you {
+    border-color: #c38e4f;
+    box-shadow: 0 0 0 1px rgba(195,142,79,.12), 0 12px 25px rgba(76,65,52,.14);
+  }
+  .seat.you::after {
+    content: "YOU";
+    position: absolute;
+    top: -.63rem;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: .1rem .45rem;
+    color: #fff;
+    border-radius: 999px;
+    background: var(--brown);
+    font-family: var(--sans);
+    font-size: .6rem;
+    font-weight: 700;
+    letter-spacing: .1em;
+  }
+  .seat.elected {
+    transform: translateY(-4px);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(50,93,138,.1), 0 10px 24px rgba(50,93,138,.16);
+  }
+  .seat.elected::before {
+    content: "ELECTED";
+    position: absolute;
+    right: -.45rem;
+    top: -.55rem;
+    padding: .12rem .38rem;
+    color: #fff;
+    border-radius: 999px;
+    background: var(--accent);
+    font-family: var(--sans);
+    font-size: .55rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+  }
+  .avatar {
+    width: 2.8rem; height: 2.8rem; margin: 0 auto .4rem;
+    border: 2px solid rgba(255,255,255,.8);
+    border-radius: 50%; color: #fff; font-family: var(--sans); font-weight: 700;
+    font-size: .8rem; line-height: 2.55rem;
+    box-shadow: 0 4px 10px rgba(76,65,52,.18);
+  }
+  .seat[data-i="0"] .avatar { background: var(--p1); }
+  .seat[data-i="1"] .avatar { background: var(--p2); }
+  .seat[data-i="2"] .avatar { background: var(--p3); }
+  .card {
+    position: relative;
+    display: inline-grid;
+    place-content: center;
+    min-width: 5.4rem;
+    min-height: 3rem;
+    margin: .08rem 0 .28rem;
+    padding: .2rem .5rem;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,.65);
+    border-radius: 7px;
+    color: #fff;
+    font-family: var(--sans);
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    box-shadow: inset 0 1px rgba(255,255,255,.25), 0 5px 10px rgba(76,65,52,.14);
+    animation: card-reveal .42s both;
+  }
+  .card::after {
+    content: "";
+    position: absolute;
+    inset: 3px;
+    border: 1px solid rgba(255,255,255,.17);
+    border-radius: 4px;
+  }
+  .role-name { position: relative; z-index: 1; display: block; line-height: 1.05; }
+  .role-tag {
+    position: relative;
+    z-index: 1;
+    display: block;
+    margin-top: .25rem;
+    font-size: .53rem;
+    letter-spacing: .14em;
+    opacity: .78;
+  }
+  .card.Goodp .role-tag {
+    display: inline-block;
+    margin-top: .28rem;
+    padding: .08rem .35rem;
+    color: #15504c;
+    border-radius: 999px;
+    background: rgba(255,255,255,.84);
+    opacity: 1;
+  }
+  .card.Good { background: linear-gradient(135deg, #4e82bf, #2e5689); }
+  .card.Goodp { background: linear-gradient(135deg, #38a49b, #236d6a); }
+  .card.Bad { background: linear-gradient(135deg, #c96964, #873d42); }
+  .card.back {
+    color: #817b73;
+    background:
+      repeating-linear-gradient(135deg, rgba(255,255,255,.045) 0 5px, transparent 5px 10px),
+      #d9d5ce;
+    font-weight: 600;
+  }
+  .who {
+    display: grid;
+    gap: .22rem;
+    min-height: 1.45rem;
+    color: var(--muted);
+    font-family: var(--sans);
+    font-size: .72rem;
+    line-height: 1.2;
+  }
+  .claim-line {
+    display: inline-flex;
+    justify-self: center;
+    align-items: center;
+    gap: .28rem;
+    padding: .2rem .48rem;
+    color: #403a34;
+    border: 1px solid #cec7bd;
+    border-radius: 999px;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(76,65,52,.08);
+    font-size: .74rem;
+    font-weight: 600;
+  }
+  .claim-line.good-prime {
+    color: #15504c;
+    border-color: #7eb8b2;
+    background: #edf7f5;
+  }
+  .claim-prefix { color: #8a8278; font-size: .62rem; font-weight: 400; text-transform: uppercase; letter-spacing: .05em; }
+  .vote-line { color: #766e65; font-size: .66rem; }
+  .action-dock {
+    position: relative;
+    z-index: 1;
+    min-height: 3.3rem;
+    margin-top: .8rem;
+    padding: .55rem .7rem;
+    border: 1px solid #d8d2c9;
+    border-radius: 10px;
+    background: rgba(255,255,255,.48);
+  }
+  .action-dock:empty::before {
+    content: "Your available actions will appear here.";
+    color: #8c857c;
+    font-family: var(--sans);
+    font-size: .82rem;
+  }
+  .game-stats {
+    position: relative;
+    z-index: 1;
+    margin: .65rem .15rem .1rem;
+    color: var(--muted);
+    font-family: var(--sans);
+    font-size: .78rem;
+  }
+  .confetti { position: absolute; inset: 0; z-index: 8; overflow: hidden; pointer-events: none; }
+  .confetti i {
+    position: absolute;
+    top: -1rem;
+    width: 6px;
+    height: 12px;
+    border-radius: 2px;
+    animation: confetti-fall 1.35s ease-in forwards;
+  }
+  @keyframes seat-in {
+    from { opacity: 0; transform: translateY(8px) scale(.97); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes card-reveal {
+    from { opacity: .15; transform: rotateY(82deg) scale(.9); }
+    to { opacity: 1; transform: rotateY(0) scale(1); }
+  }
+  @keyframes confetti-fall {
+    0% { transform: translateY(-10px) rotate(0); opacity: 1; }
+    100% { transform: translateY(36rem) rotate(520deg); opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+  footer { margin-top: 2.5rem; padding-top: .8rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 1rem; }
+  @media (max-width: 620px) {
+    main { padding-inline: 14px; }
+    h1 { font-size: 1.7rem; }
+    .game-shell { margin-inline: 0; padding: .8rem; border-radius: 14px; }
+    .mode-panel { grid-template-columns: 1fr; }
+    .table-wrap { min-height: 24rem; padding: .55rem; border-radius: 24px; }
+    .board { gap: 5.2rem .35rem; min-height: 22rem; }
+    .seat { min-width: 0; padding-inline: .25rem; }
+    .card { min-width: 4.35rem; font-size: .7rem; }
+    .table-center { width: 5.7rem; height: 5.7rem; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <p class="kicker">Lecture 12 · Interactive</p>
+  <h1>Hidden-role election</h1>
+
+  <p>Take a randomly assigned seat in the three-player election. You will receive a private role, make one public claim, and vote. The other two players follow the strategies from the notes. Electing any Good player gives Good the round; electing Bad or splitting the vote gives it to Bad.</p>
+
+  <section class="game-shell" aria-label="Hidden-role election game">
+    <div class="confetti" id="confetti" aria-hidden="true"></div>
+    <div class="game-topbar">
+      <span class="classified">Hidden-role lab</span>
+      <span class="round-label" id="round-label">Awaiting deal</span>
+    </div>
+
+    <div class="phase-track" aria-label="Round progress">
+      <div class="phase current" data-phase="announce">1 · Receive role</div>
+      <div class="phase" data-phase="vote">2 · Speak &amp; vote</div>
+      <div class="phase" data-phase="result">3 · Reveal outcome</div>
+    </div>
+
+    <div class="mode-panel">
+      <div class="mode-block">
+        <span class="mode-title">Choose the role cards</span>
+        <div class="controls">
+          <button type="button" class="choice current" data-dist="0">Good cards look the same</button>
+          <button type="button" class="choice" data-dist="1">Good cards have labels</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button type="button" class="step primary" id="deal">Start a new round</button>
+      <button type="button" class="step" id="auto">Try 200 rounds at once</button>
+      <button type="button" class="step" id="reset">Reset score</button>
+    </div>
+
+    <div class="scoreboard" aria-label="Session score">
+      <div class="score good-score">
+        <span class="score-icon"></span>
+        <span><span class="score-name">Good victories</span><span class="score-value" id="good-score">0</span></span>
+      </div>
+      <span class="versus">VS</span>
+      <div class="score bad-score">
+        <span><span class="score-name">Bad victories</span><span class="score-value" id="bad-score">0</span></span>
+        <span class="score-icon"></span>
+      </div>
+    </div>
+
+    <div class="game-message" id="status">Start a round to receive your private role. The other cards remain hidden.</div>
+    <div class="table-wrap">
+      <div class="table-center" aria-hidden="true"></div>
+      <div class="board" id="board" aria-label="Three players"></div>
+    </div>
+    <div class="controls action-dock" id="actions"></div>
+    <p class="game-stats" id="stats" aria-live="polite"></p>
+  </section>
+
+  <h2>What to look for</h2>
+  <p>With indistinguishable Good cards, Bad can say “Good” and copy the Good voting rule. The public record then looks the same no matter who is Bad, so electing an arbitrary player wins about two thirds of the time — the value in the notes.</p>
+  <p>A Good player need not elect themself: any Good winner is enough. Voting for yourself is safe individually, but if both Good players do that, the three votes can split and Bad wins. The team therefore needs a shared coordination rule. Bad, by contrast, wants to be elected and votes for themself.</p>
+  <p>Mark the Good cards Good and Good' and keep the same payoffs. If the Good seats announce honestly and elect the unique remaining label, Bad cannot match both labels. Whenever you are dealt Bad in this mode, try all three kinds of claim; the two Good players can still defeat you.</p>
+
+  <footer>Companion to the election example in Lecture 12. <a href="../index.html">Course page</a>.</footer>
+</main>
+<script>
+(function () {
+  var NAMES = ["P1", "P2", "P3"];
+  var state = {
+    dist: false,
+    you: null,
+    cards: null,
+    phase: "idle",
+    ann: [null, null, null],
+    votes: [null, null, null],
+    n: 0,
+    goodWins: 0
+  };
+
+  function $(id) { return document.getElementById(id); }
+  function shuffle(a) {
+    a = a.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+  function deck() {
+    return state.dist ? ["Good", "Good'", "Bad"] : ["Good", "Good", "Bad"];
+  }
+  function isGoodLabel(s) {
+    return s === "Good" || (state.dist && s === "Good'");
+  }
+  function cardClass(label) {
+    if (label === "Good'") return "Goodp";
+    return label;
+  }
+  function roleName(label) {
+    return label === "Good'" ? "Good Prime" : label;
+  }
+  function roleCard(label) {
+    if (label === "Good'") {
+      return "<span class=\"role-name\">GOOD</span><span class=\"role-tag\">PRIME</span>";
+    }
+    if (label === "Good") {
+      return "<span class=\"role-name\">GOOD</span><span class=\"role-tag\">STANDARD</span>";
+    }
+    return "<span class=\"role-name\">BAD</span><span class=\"role-tag\">SABOTEUR</span>";
+  }
+  function lectureElect(ann) {
+    if (!state.dist) return 0;
+    var S = [];
+    var outsider = false;
+    for (var i = 0; i < 3; i++) {
+      if (isGoodLabel(ann[i])) S.push(i);
+      else outsider = true;
+    }
+    if (outsider) return S.length ? Math.min.apply(null, S) : 0;
+    var iGood = -1, iPrime = -1, nGood = 0, nPrime = 0;
+    for (var i = 0; i < 3; i++) {
+      if (ann[i] === "Good") { nGood++; iGood = i; }
+      if (ann[i] === "Good'") { nPrime++; iPrime = i; }
+    }
+    if (nGood >= 2 && nPrime === 1) return iPrime;
+    if (nPrime >= 2 && nGood === 1) return iGood;
+    return 0;
+  }
+  function botAnnounce(i) {
+    if (!state.dist) return "Good";
+    return state.cards[i] === "Bad" ? "Good" : state.cards[i];
+  }
+  function resolve(votes, cards) {
+    var c = [0, 0, 0];
+    for (var i = 0; i < 3; i++) c[votes[i]]++;
+    var elected = null;
+    for (var i = 0; i < 3; i++) if (c[i] >= 2) elected = i;
+    var good = elected !== null && cards[elected] !== "Bad";
+    return { elected: elected, good: good };
+  }
+  function value() { return state.dist ? 1 : 2 / 3; }
+
+  function renderBoard() {
+    var html = "";
+    for (var i = 0; i < 3; i++) {
+      var show = state.phase === "result" || state.you === i;
+      var label = state.cards ? state.cards[i] : null;
+      var card = !state.cards
+        ? "<span class=\"card back\">—</span>"
+        : (show
+          ? "<span class=\"card " + cardClass(label) + "\">" + roleCard(label) + "</span>"
+          : "<span class=\"card back\">hidden</span>");
+      var details = "";
+      if (state.ann[i]) {
+        details += "<span class=\"claim-line" + (state.ann[i] === "Good'" ? " good-prime" : "") + "\">"
+          + "<span class=\"claim-prefix\">Said</span>" + roleName(state.ann[i]) + "</span>";
+      }
+      if (state.phase === "result" && state.votes[i] !== null) {
+        details += "<span class=\"vote-line\">Voted for " + NAMES[state.votes[i]] + "</span>";
+      }
+      var cls = "seat";
+      if (state.you === i) cls += " you";
+      if (state.phase === "result") {
+        var out = resolve(state.votes, state.cards);
+        if (out.elected === i) cls += " elected";
+      }
+      html += "<div class=\"" + cls + "\" data-i=\"" + i + "\">"
+        + "<div class=\"avatar\">" + NAMES[i] + "</div>"
+        + card
+        + "<div class=\"who\">" + details + "</div>"
+        + "</div>";
+    }
+    $("board").innerHTML = html;
+  }
+
+  function renderActions() {
+    var box = $("actions");
+    box.innerHTML = "";
+    if (state.phase === "announce") {
+      var opts = state.dist ? ["Good", "Good'", "Bad", "other"] : ["Good", "Bad", "other"];
+      opts.forEach(function (msg) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "choice";
+        b.textContent = "Say " + roleName(msg);
+        b.addEventListener("click", function () { announce(msg); });
+        box.appendChild(b);
+      });
+    } else if (state.phase === "vote") {
+      NAMES.forEach(function (name, i) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "choice";
+        b.textContent = "Vote for " + name;
+        b.addEventListener("click", function () { vote(i); });
+        box.appendChild(b);
+      });
+    }
+  }
+
+  function renderStatus() {
+    var el = $("status");
+    el.className = "game-message";
+    if (state.phase === "idle") {
+      el.textContent = "Start a round to receive your private role. The other cards remain hidden.";
+      return;
+    }
+    var you = NAMES[state.you];
+    var card = state.cards[state.you];
+    if (state.phase === "announce") {
+      el.innerHTML = "You are seated as <b>" + you + "</b>, and your private role is <b>" + roleName(card)
+        + "</b>. What will you tell the table?";
+    } else if (state.phase === "vote") {
+      el.innerHTML = "Everyone has spoken. Choose a player to elect. The Good players follow the strategy from the notes"
+        + (state.dist ? " and look for the unique honest label." : " and coordinate on P1.")
+        + " Bad votes for themself.";
+    } else {
+      var out = resolve(state.votes, state.cards);
+      var who = out.elected === null ? "nobody (no majority)" : NAMES[out.elected];
+      el.classList.add(out.good ? "result-good" : "result-bad");
+      el.innerHTML = "<b>" + (out.good ? "Good wins this round." : "Bad wins this round.") + "</b> "
+        + who + " is elected. The roles were: "
+        + NAMES.map(function (n, i) { return n + " was " + roleName(state.cards[i]); }).join(", ")
+        + ".";
+    }
+  }
+
+  function renderStats() {
+    var rate = state.n ? (100 * state.goodWins / state.n) : 0;
+    var target = state.dist ? "100%" : "66.7%";
+    $("good-score").textContent = state.goodWins;
+    $("bad-score").textContent = state.n - state.goodWins;
+    $("round-label").textContent = state.phase === "idle"
+      ? "Awaiting deal"
+      : (state.phase === "result" ? "Round " + state.n + " complete" : "Round " + (state.n + 1));
+    $("stats").textContent = state.n
+      ? ("Across completed rounds, Good won " + state.goodWins + " of " + state.n
+        + " elections (" + rate.toFixed(0) + "%). The theoretical benchmark is " + target + ".")
+      : "No completed rounds yet. The 200-round option uses the lecture strategies rather than your choices.";
+  }
+
+  function renderPhases() {
+    var order = { announce: 0, vote: 1, result: 2 };
+    var current = state.phase === "idle" ? 0 : order[state.phase];
+    document.querySelectorAll(".phase").forEach(function (phase, i) {
+      phase.classList.toggle("current", i === current);
+      phase.classList.toggle("done", i < current);
+    });
+  }
+
+  function burst(good) {
+    var box = $("confetti");
+    box.innerHTML = "";
+    var colors = good
+      ? ["#65d9e8", "#f6c86b", "#67c5a2", "#ffffff"]
+      : ["#f08383", "#b45a55", "#f6c86b", "#ffffff"];
+    for (var i = 0; i < 28; i++) {
+      var bit = document.createElement("i");
+      bit.style.left = (4 + Math.random() * 92) + "%";
+      bit.style.background = colors[i % colors.length];
+      bit.style.animationDelay = (Math.random() * .22) + "s";
+      bit.style.animationDuration = (1 + Math.random() * .65) + "s";
+      box.appendChild(bit);
+    }
+    window.setTimeout(function () { box.innerHTML = ""; }, 1900);
+  }
+
+  function render() {
+    renderBoard();
+    renderActions();
+    renderStatus();
+    renderStats();
+    renderPhases();
+  }
+
+  function deal() {
+    var cards = shuffle(deck());
+    state.cards = cards;
+    state.you = Math.floor(Math.random() * 3);
+    state.ann = [null, null, null];
+    state.votes = [null, null, null];
+    state.phase = "announce";
+    render();
+  }
+
+  function announce(msg) {
+    var ann = [null, null, null];
+    for (var i = 0; i < 3; i++) ann[i] = (i === state.you) ? msg : botAnnounce(i);
+    state.ann = ann;
+    state.phase = "vote";
+    render();
+  }
+
+  function vote(choice) {
+    var votes = [null, null, null];
+    var target = lectureElect(state.ann);
+    for (var i = 0; i < 3; i++) {
+      if (i === state.you) votes[i] = choice;
+      else votes[i] = state.cards[i] === "Bad" ? i : target;
+    }
+    state.votes = votes;
+    state.phase = "result";
+    var out = resolve(votes, state.cards);
+    state.n += 1;
+    if (out.good) state.goodWins += 1;
+    render();
+    burst(out.good);
+  }
+
+  function autoplay() {
+    var n = 200, good = 0;
+    var dist = state.dist;
+    for (var t = 0; t < n; t++) {
+      var cards = shuffle(dist ? ["Good", "Good'", "Bad"] : ["Good", "Good", "Bad"]);
+      var ann = [];
+      for (var i = 0; i < 3; i++) {
+        if (!dist) ann[i] = "Good";
+        else ann[i] = cards[i] === "Bad" ? ["Good", "Good'", "other"][t % 3] : cards[i];
+      }
+      var elect = dist ? (function () {
+        var S = [], outsider = false;
+        for (var i = 0; i < 3; i++) {
+          if (ann[i] === "Good" || ann[i] === "Good'") S.push(i);
+          else outsider = true;
+        }
+        if (outsider) return S.length ? Math.min.apply(null, S) : 0;
+        var iGood = -1, iPrime = -1, nGood = 0, nPrime = 0;
+        for (var i = 0; i < 3; i++) {
+          if (ann[i] === "Good") { nGood++; iGood = i; }
+          if (ann[i] === "Good'") { nPrime++; iPrime = i; }
+        }
+        if (nGood >= 2 && nPrime === 1) return iPrime;
+        if (nPrime >= 2 && nGood === 1) return iGood;
+        return 0;
+      })() : 0;
+      var votes = [elect, elect, elect];
+      if (resolve(votes, cards).good) good++;
+    }
+    state.n += n;
+    state.goodWins += good;
+    renderStats();
+    var pct = (100 * good / n).toFixed(1);
+    $("stats").textContent = "In 200 simulated rounds, Good won " + good + " times (" + pct
+      + "%). The theoretical benchmark is " + (dist ? "100%" : "66.7%") + ". Totals appear above.";
+    burst(dist);
+  }
+
+  document.querySelectorAll("[data-dist]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      state.dist = btn.dataset.dist === "1";
+      document.querySelectorAll("[data-dist]").forEach(function (b) {
+        b.classList.toggle("current", b === btn);
+      });
+      state.phase = "idle";
+      state.cards = null;
+      state.you = null;
+      state.ann = [null, null, null];
+      state.votes = [null, null, null];
+      state.n = 0;
+      state.goodWins = 0;
+      render();
+    });
+  });
+  $("deal").addEventListener("click", deal);
+  $("auto").addEventListener("click", autoplay);
+  $("reset").addEventListener("click", function () {
+    state.n = 0;
+    state.goodWins = 0;
+    render();
+  });
+  render();
+})();
+</script>
+</body>
+</html>
