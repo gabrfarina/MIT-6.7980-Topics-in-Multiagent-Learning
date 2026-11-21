@@ -38,23 +38,21 @@ Suppose the forecaster already knows which test to worry about this round. Plugg
 
 Three things to notice.#footnote[EVIs have appeared in the literature under other names, including "outgoing minimax problems" #citep(<FosterHart2021Hedging>), "accuracy certificates" #citep(<nemirovski2010accuracy>), and "negative correlation search" #citep(<perdomo2025defense>). The name and the general treatment are due to #citet(<zhang2025expected>).]
 - *It holds for every outcome.* The forecaster can solve the EVI before Nature moves and use the guarantee at whichever $vu^((t))$ Nature reveals.
-- *It asks for a distribution.* A point mass at $vp^star$ would reduce the condition to the classical variational inequality $ip(S(vp^star), vu - vp^star) <= epsilon$ for all $vu in cU$, which a fixed-point argument solves when $S$ is continuous. Tests usually are not. Take $cU = [0, 1]$ and $S(p) = 1$ if $p < 1\/2$ and $S(p) = -1$ otherwise, the test that catches the adversarial Nature of the ECE section, which makes it rain exactly when the forecast is below $1\/2$. No point mass beats a value of $1\/2$ against it: if $p^star < 1\/2$, take $u = 1$; otherwise take $u = 0$. Spreading the forecast over two points does far better, as the next example shows. Every bounded $S$ does admit an $epsilon$-solution for every $epsilon > 0$; @sec-noregret-mc-evi-algorithms says how to find one.
+- *It asks for a distribution.* A point mass at $vp^star$ would reduce the condition to the classical variational inequality $ip(S(vp^star), vu - vp^star) <= epsilon$, which a fixed-point argument solves when $S$ is continuous. Tests usually are not. Against the sign test $S(p) = 1$ if $p < 1\/2$ and $-1$ otherwise, the adversarial Nature of the ECE section, every point mass has value at least $1\/2$; two points do far better, as the next example shows.
 - *It is the analogue of a fixed point.* GGM plays $vx = phi.alt(vx)$ so that the deviation $phi.alt$ gains nothing whatever the utility; here the forecaster plays an EVI solution so that the test $S$ detects at most $epsilon$ whatever the outcome.
 
 #example[Two-point solutions in one dimension][
-  Let $cU = [0, 1]$, fix $m >= 1$, consider the grid $G := {0, 1\/m, ..., 1}$, and let $S : [0, 1] -> RR$ satisfy $|S| <= B$. Since $d = 1$, the EVI value of a distribution $D$ is
+  Let $cU = [0, 1]$ and let $S : [0, 1] -> RR$ satisfy $|S| <= B$. Since $d = 1$, a distribution $D$ has EVI value
   $
     max_(u in [0, 1]) (u EE_(p ~ D)[S(p)] - EE_(p ~ D)[S(p) p]) = max{EE[S(p)], 0} - EE[S(p) p].
   $
-  - If $S(0) <= 0$, the point mass at $p = 0$ has value $0$.
-  - If $S(1) >= 0$, the point mass at $p = 1$ has value $0$.
-  - Otherwise $S(0) > 0 > S(1)$, so there are adjacent grid points $a < b = a + 1\/m$ with $S(a) > 0 >= S(b)$. Put weight $lambda := -S(b) \/ (S(a) - S(b))$ on $a$ and $1 - lambda$ on $b$. Then $EE[S(p)] = 0$, and the value is
+  If $S(0) <= 0$, the point mass at $p = 0$ has value $0$, and if $S(1) >= 0$, the point mass at $p = 1$ does. Otherwise $S$ is positive at $0$ and negative at $1$, so it changes sign in between. Fix $m >= 1$ and the grid $G := {0, 1\/m, ..., 1}$, and let $a < b = a + 1\/m$ be adjacent grid points straddling a sign change, so that $S(a) > 0 >= S(b)$. Putting weight $lambda := -S(b) \/ (S(a) - S(b))$ on $a$ and $1 - lambda$ on $b$ makes $EE[S(p)] = 0$, which kills the first term. The second is small only because the two points are $1\/m$ apart:
   $
     -EE[S(p) p] = lambda S(a) (b - a) = (S(a) dot (-S(b))) / (S(a) - S(b)) dot 1/m <= (S(a) - S(b)) / (4 m) <= B / (2 m),
   $
   using $x y \/ (x + y) <= (x + y) \/ 4$ for $x, y >= 0$, with $x + y > 0$.
 
-  So two adjacent grid points always suffice for a $B\/(2m)$-solution. This is the forecast hedging of #citet(<FosterHart2021Hedging>) from the ECE section, now read as an EVI solver.
+  So hedging across a sign change on a grid of width $1\/m$ always gives a $B\/(2m)$-solution. This is the forecast hedging of #citet(<FosterHart2021Hedging>) from the ECE section, now read as an EVI solver.
 ] <ex-noregret-mc-two-point>
 
 == The algorithm <sec-noregret-mc-algorithm>
@@ -158,7 +156,7 @@ The next section turns forecasts into actions by best responding to them, choosi
 $
   EE_(vp ~ D)[ip(S(vp), vu - vp)] = 1/K sum_(k=1)^K (ip(S(vp^((k))), vu) - ip(S(vp^((k))), vp^((k)))) <= "Reg"^((K)) / K.
 $
-So $D$ is a $("Reg"^((K)) \/ K)$-solution. This is the same "average the no-regret iterates" argument that #lecture-link("learning_intro", <sec-learning-correlated>)[yields coarse correlated equilibria], and it only ever evaluates $S$ at the iterates, so $S$ need not be continuous. With online gradient ascent, a set $cU$ of diameter $D_(cU)$, and $norm(S)_2 <= B$, it reaches an $epsilon$-solution after $K = (D_(cU) B \/ epsilon)^2$ iterations. This settles the existence claimed in @sec-noregret-mc-evi. #citet(<zhang2025expected>) develop the regret-based route in more generality.
+So $D$ is a $("Reg"^((K)) \/ K)$-solution. This is the same "average the no-regret iterates" argument that #lecture-link("learning_intro", <sec-learning-correlated>)[yields coarse correlated equilibria], and it only ever evaluates $S$ at the iterates, so $S$ need not be continuous. With online gradient ascent, a set $cU$ of diameter $D_(cU)$, and $norm(S)_2 <= B$, it reaches an $epsilon$-solution after $K = (D_(cU) B \/ epsilon)^2$ iterations. So every bounded $S$ admits an $epsilon$-solution, for every $epsilon > 0$ and with no continuity assumed. #citet(<zhang2025expected>) develop the regret-based route in more generality.
 
 *Forecast hedging.* #citet(<FosterHart2021Hedging>) prove such distributions exist, calling them outgoing minimax solutions, by a minimax argument needing no continuity of $S$, and use them to build calibrated forecasters. @ex-noregret-mc-two-point is the one-dimensional instance.
 
