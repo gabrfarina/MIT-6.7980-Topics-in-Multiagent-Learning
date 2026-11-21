@@ -9,17 +9,17 @@
 
 Sometimes regular calibration is insufficient. Checking how a prediction performs overall may neglect the higher error within specific conditions or tests. For example, say a forecaster predicts a 70% chance of rain on 70 days, 50 weekdays and 20 weekend days. If it rains on 49 days, 40 weekdays and 9 weekend days, it rains on 70% of the days, making the forecaster perfectly calibrated overall. However, the forecaster consistently underpredicts rain on weekdays (80%) and overpredicts it on weekends (45%).
 
-Multicalibration provides a more general framework for evaluating forecasts.#footnote[Multicalibration was introduced by #cite(<pmlr-v80-hebert-johnson18a>, form: "prose").] Rather than examining only the discrepancy between predicted probabilities and observed frequencies, we consider a family of *tests* that can depend on both the forecast and the information available when it was made. Our objective is to ensure that no test in this family detects persistent forecasting errors.
+Multicalibration provides a more general framework for evaluating forecasts.#footnote[Multicalibration was introduced by #cite(<pmlr-v80-hebert-johnson18a>, form: "prose").] Rather than examining only the discrepancy between predicted probabilities and observed frequencies, we consider a family of _tests_ that can depend on both the forecast and the information available when it was made. Our objective is to ensure that no test in this family detects persistent forecasting errors.
 
 == Multicalibration protocol <sec-multicalibration-protocol>
 
 Let $cC$ denote the set of possible contexts (information available before making a prediction), and let $cU subset.eq RR^d$ be a compact, convex set containing both forecasts and outcomes. The multicalibration protocol proceeds over rounds $t = 1, 2, ..., T$.
 
 In each round, the following sequence of events occurs:
-+ *Observe the context:* observe $c_t in cC$, the information available before forecasting.
-+ *Announce a forecast distribution:* announce a probability distribution $D_t$ over forecasts $vp in cU$.
-+ *Nature selects an outcome:* Nature chooses the outcome $vu_t in cU$.
-+ *Update the forecaster:* observe $vu_t$ and update the learner.
++ _Observe the context:_ observe $c_t in cC$, the information available before forecasting.
++ _Announce a forecast distribution:_ announce a probability distribution $D_t$ over forecasts $vp in cU$.
++ _Nature selects an outcome:_ Nature chooses the outcome $vu_t in cU$.
++ _Update the forecaster:_ observe $vu_t$ and update the learner.
 
 Nature sees $D_t$, but chooses $vu_t$ before seeing the privately sampled forecast. This randomization is important because an adversary that observes the exact forecast can force a deterministic forecaster to be miscalibrated.
 
