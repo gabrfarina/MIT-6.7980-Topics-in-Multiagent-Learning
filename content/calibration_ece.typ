@@ -41,7 +41,8 @@ Thus $N_(0.2)=5$ and $overline(y)_(0.2)=2/5=0.4$. The two rows have signed gaps 
 
 The weight $N_q/T$ is the fraction of recorded days in that group; unused forecast values are omitted. In the table,
 $
-  "ECE"_(10)=(5/10) abs(0.4-0.2)+(5/10) abs(0.6-0.8)=0.2.
+  "ECE"_(10) &= frac(5,10) abs(0.4-0.2)+frac(5,10) abs(0.6-0.8) \
+    &=0.2.
 $
 This means a weighted average gap of 20 percentage points between each group's forecast and its observed rain rate. We compare group averages, rather than taking the absolute prediction error on each day. The overall forecast and rain rate are both 50%, but this agreement hides the two group errors.
 
