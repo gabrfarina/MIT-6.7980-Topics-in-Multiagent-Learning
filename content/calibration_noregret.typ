@@ -106,7 +106,7 @@ The utility $g^((t))(h)$ is exactly what round $t$ contributes to $"MC"^((T))(h)
 
 == Sublinear multicalibration error <sec-noregret-mc-analysis>
 
-Let $"Reg"_(cH)^((T))(h) := sum_(t=1)^T (g^((t))(h) - g^((t))(h^((t))))$ be the regret of $cR_(cH)$ against the test $h$ on the utilities $g^((1)), ..., g^((T))$.
+Everything now rests on the regret minimizer. Let $"Reg"_(cH)^((T))(h) := sum_(t=1)^T (g^((t))(h) - g^((t))(h^((t))))$ be its regret against the test $h$ on the utilities $g^((1)), ..., g^((T))$. The theorem below says the forecaster ends up only as badly multicalibrated as $cR_(cH)$ is regretful, plus whatever slack the EVI solver left behind.
 
 #theorem[#citep(<farina2026multicalibration>)][
   For every $h in cH$, the forecasts produced by @algo-noregret-mc satisfy
@@ -131,21 +131,21 @@ These are the same two lines as the GGM proof: add and subtract the regret minim
 ] <cor-noregret-mc>
 
 #example[Recovering calibration][
-  Take $d = 1$, $cU = [0, 1]$, no contexts, and forecasts on the grid $G$ of @ex-noregret-mc-two-point. ECE corresponds to the sign tests $h_(vs)(p) = sum_(q in G) s_q bb(1){p = q}$, whose convex hull is $vs in [-1, 1]^G$. Since $g^((t))(h_vs) = sum_q s_q D^((t))(q)(u^((t)) - q)$,
+  Plain calibration is the case with no contexts. Take $d = 1$, $cU = [0, 1]$, and forecasts on the grid $G$ of @ex-noregret-mc-two-point. ECE is what the sign tests $h_(vs)(p) = sum_(q in G) s_q bb(1){p = q}$ measure, with $vs$ ranging over the convex hull $[-1, 1]^G$: since $g^((t))(h_vs) = sum_q s_q D^((t))(q)(u^((t)) - q)$, matching each sign to its bucket gives
   $
     max_(vs) "MC"^((T))(h_vs) = sum_(q in G) abs(sum_(t=1)^T D^((t))(q) (u^((t)) - q)),
   $
-  which is $T$ times the ECE, with the indicator of the sampled forecast replaced by its probability $D^((t))(q)$.
+  which is $T$ times the ECE, with the indicator of the sampled forecast replaced by its probability.
 
-  Run online gradient ascent on the box $[-1, 1]^G$. It has diameter $2 sqrt(m+1)$, and the gradients $(D^((t))(q)(u^((t)) - q))_q$ have Euclidean norm at most $1$. With step size $eta = 2 sqrt((m+1)\/T)$, the #lecture-link("learning1", <ogd-regret-bound>)[regret bound for OGD] gives $"Reg"_(cH)^((T)) <= 2 sqrt((m+1) T)$. On the grid, the operator $S^((t))$ is the vector $vs^((t))$, so $|S^((t))| <= 1$, and @ex-noregret-mc-two-point gives $epsilon^((t)) <= 1\/(2m)$. @thm-noregret-mc then yields
+  So run the reduction on these tests. #lecture-link("learning1", <ogd-regret-bound>)[Online gradient ascent] over the box has regret $O(sqrt(m T))$, and @ex-noregret-mc-two-point solves each EVI to $epsilon^((t)) <= 1\/(2m)$, so @thm-noregret-mc gives
   $
-    1/T max_(vs) "MC"^((T))(h_vs) <= 2 sqrt((m+1) / T) + 1 / (2m),
+    1/T max_(vs) "MC"^((T))(h_vs) = O(sqrt(m\/T)) + 1/(2m).
   $
-  which is $O(T^(-1\/3))$ for $m approx T^(1\/3)$. The forecaster ends up splitting its mass between the two adjacent grid points where $vs^((t))$ changes sign: forecast hedging again, now driven by the learned signs $vs^((t))$ rather than the raw bucket errors.
+  The grid is the tension here: a finer grid leaves less hedging error, but gives the regret minimizer more to learn. Balancing the two at $m approx T^(1\/3)$ gives $O(T^(-1\/3))$. The forecaster that comes out splits its mass between the two grid points where $vs^((t))$ changes sign: forecast hedging again, now driven by learned signs rather than raw bucket errors.
 ] <ex-noregret-mc-ece>
 
 #remark[EVIs are necessary][
-  EVIs are not an artifact of this particular reduction, any more than fixed points are for $Phi$-regret #citep(<hazan2007computational>): a multicalibrated forecaster solves them whether it means to or not. Fix a context $c$ and a test $h in cH$, and let $S := h(c, dot)$. Feed the forecaster the context $c$ every round, and let Nature answer $D^((t))$ with $vu^((t)) in argmax_(vu in cU) ip(vu, EE_(vp ~ D^((t)))[S(vp)])$. Then for every fixed $vu^star in cU$, round $t$ contributes at least $EE_(vp ~ D^((t)))[ip(S(vp), vu^star - vp)]$ to $"MC"^((T))(h)$. The uniform mixture of $D^((1)), ..., D^((T))$ is therefore a $("MC"^((T))(h) \/ T)$-solution to the EVI induced by $S$, and multicalibration drives that to zero #citep(<farina2026multicalibration>).
+  EVIs are not an artifact of this particular reduction. Run any $cH$-multicalibrated forecaster on one context repeated forever, against a Nature that always replies in the worst direction, and the average of its forecasts is an EVI solution whose error tends to zero #citep(<farina2026multicalibration>). The forecaster was solving EVIs all along, much as a $Phi$-regret minimizer is always computing fixed points #citep(<hazan2007computational>).
 ]
 
 The next section turns forecasts into actions by best responding to them, choosing the tests so that $Phi$-regret is controlled by multicalibration error. With @thm-noregret-mc, that bounds $Phi$-regret by the external regret of $cR_(cH)$ plus $sum_t epsilon^((t))$, with no fixed point anywhere.
