@@ -86,6 +86,13 @@
       ]
     },
     {
+      "source": "content/calibration_ece.typ",
+      "supplementary": false,
+      "syllabus_ids": [
+        "calibration"
+      ]
+    },
+    {
       "source": "content/kernelized.typ",
       "supplementary": false,
       "syllabus_ids": [
