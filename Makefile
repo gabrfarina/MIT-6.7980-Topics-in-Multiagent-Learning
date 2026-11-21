@@ -2,7 +2,7 @@ PYTHON ?= python3
 FORCE ?= 0
 BUILD_FLAGS = $(if $(filter 1 true yes,$(FORCE)),--force,)
 
-.PHONY: all html bundle figures force syllabus check check-pdf serve
+.PHONY: all html bundle epub figures force syllabus check check-pdf serve
 
 all: bundle
 
@@ -17,6 +17,10 @@ figures:
 
 force:
 	$(MAKE) bundle FORCE=1
+
+# uv installs the script's dependencies; without it, beautifulsoup4 and lxml must already be installed.
+epub:
+	if command -v uv >/dev/null 2>&1; then uv run scripts/build_epub.py; else $(PYTHON) scripts/build_epub.py; fi
 
 syllabus:
 	typst compile --root . --font-path html-exporter/assets/fonts 'syllabus/6.7980 F26 Syllabus.typ' 'syllabus/6.7980 Fall 2026 Syllabus.pdf'
