@@ -1,0 +1,106 @@
+#cfr-poker {
+  --poker-border: #b8bec6;
+  --poker-panel: #f4f6f8;
+  color: #202833;
+  background: #fff;
+  border: 1px solid var(--poker-border);
+  border-radius: .65rem;
+  padding: 1.2rem;
+  margin-block: 1.25rem;
+  font: inherit;
+}
+#cfr-poker * { box-sizing: border-box; }
+#cfr-poker p { margin-block: .7rem; }
+#cfr-poker h4 { margin-block: 0 .7rem; }
+#cfr-poker label { display: flex; flex-direction: column; gap: .35rem; }
+#cfr-poker button, #cfr-poker select, #cfr-poker input {
+  font: inherit;
+  color: inherit;
+  background: #fff;
+  border: 1px solid #727e8c;
+  border-radius: .3rem;
+  padding: .45rem .65rem;
+  min-height: 2.5rem;
+}
+#cfr-poker button { cursor: pointer; }
+#cfr-poker button:hover:not(:disabled) { background: #e9eef4; }
+#cfr-poker button:disabled { opacity: .55; cursor: default; }
+#cfr-poker :focus-visible { outline: 3px solid #246dc4; outline-offset: 3px; }
+#cfr-poker .poker-toolbar, #cfr-poker .poker-controls {
+  display: flex;
+  gap: .65rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+#cfr-poker .poker-toolbar { justify-content: space-between; }
+#cfr-poker .poker-controls { margin-block: .8rem; }
+#cfr-poker .poker-provenance { font-size: .88em; color: #485565; }
+#cfr-poker .poker-table {
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+  padding: 1.5rem 1rem;
+  margin-block: 1rem;
+  color: #fff;
+  background: radial-gradient(ellipse at center, #247455, #164f3c);
+  border: .65rem solid #37413c;
+  border-radius: 45% / 18%;
+  box-shadow: inset 0 0 0 2px #93ad97, 0 3px 8px #0002;
+}
+#cfr-poker .poker-seat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .35rem;
+  text-align: center;
+  font-size: .9em;
+}
+#cfr-poker .poker-card {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 4.75rem;
+  border: 1px solid #d9d4c8;
+  border-radius: .4rem;
+  background: #fffdf7;
+  color: #202833;
+  font: bold 2rem/1 system-ui, sans-serif;
+  box-shadow: 0 2px 4px #0004;
+}
+#cfr-poker .poker-card-back {
+  color: #fff;
+  border: 3px solid #fffdf7;
+  background: repeating-linear-gradient(45deg, #354b70 0 5px, #425c85 5px 7px);
+}
+#cfr-poker .poker-card-empty {
+  color: #e7f0eb;
+  border: 1px dashed #c1d4c9;
+  background: #ffffff0d;
+  box-shadow: none;
+}
+#cfr-poker .poker-pot { padding: .2rem .8rem; border-radius: 1rem; background: #103d2e; }
+#cfr-poker .poker-panel {
+  background: var(--poker-panel);
+  border: 1px solid var(--poker-border);
+  border-radius: .4rem;
+  padding: 1rem;
+  margin-block: 1rem;
+}
+#cfr-poker .poker-decision { overflow-wrap: anywhere; }
+#cfr-poker .poker-table-wrap { overflow-x: auto; }
+#cfr-poker table { border-collapse: collapse; width: 100%; font-size: .85em; }
+#cfr-poker caption { text-align: left; margin-bottom: .5rem; }
+#cfr-poker th, #cfr-poker td { padding: .5rem; border-bottom: 1px solid var(--poker-border); text-align: right; }
+#cfr-poker th:first-child { text-align: left; white-space: nowrap; }
+#cfr-poker .poker-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; }
+#cfr-poker input { width: 100%; }
+#cfr-poker .poker-error { color: #a31919; }
+#cfr-poker .poker-error:empty { display: none; }
+#cfr-poker summary { cursor: pointer; }
+#cfr-poker .poker-history ol { padding-inline-start: 1.5rem; }
+@media (max-width: 540px) {
+  #cfr-poker { padding: .8rem; }
+  #cfr-poker .poker-fields { grid-template-columns: 1fr; }
+  #cfr-poker .poker-table { padding-inline: .5rem; border-width: .45rem; }
+  #cfr-poker .poker-toolbar { align-items: start; }
+}

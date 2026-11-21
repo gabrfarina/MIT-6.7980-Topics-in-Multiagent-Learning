@@ -14,6 +14,8 @@ COURSE_FIGURES = {
 }
 ASSET_SUFFIXES = {'.css', '.js', '.svg', '.png', '.jpg', '.jpeg', '.gif', '.webp',
                   '.ttf', '.otf', '.woff', '.woff2'}
+POKER_ASSETS = {'assets/cfr-poker/' + name for name in
+                ('poker-data.js', 'leduc.js', 'poker.js', 'poker.css')}
 
 
 def copy_font_assets(root: Path, destination: Path) -> None:
@@ -157,6 +159,8 @@ def copied_files(config: dict) -> dict[str, str]:
 
 def required_files(config: dict) -> set[str]:
     required = {'index.html', 'syllabus.pdf'}
+    if any(note['source'] == 'content/learning_efg.typ' for note in config['notes']):
+        required.update(POKER_ASSETS)
     claimed = {name.casefold() for name in required}
     for note in config['notes']:
         for output in note_outputs(note).values():

@@ -1,16 +1,44 @@
 """Exercise attachment validation and the build/deployment file contract."""
+import json
 from pathlib import Path
+import shutil
+import subprocess
 import tempfile
 import unittest
 
 import public_files
 from public_files import (COURSE_FIGURES, copy_font_assets, copy_public_files, note_outputs,
-                          required_files, validate_inputs, validate_public_path)
+                          POKER_ASSETS, required_files, validate_inputs, validate_public_path)
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 class PublicFilesTests(unittest.TestCase):
+    def test_poker_assets_required_with_the_host_lecture(self):
+        config = {'notes': [{'source': 'content/learning_efg.typ'}]}
+        self.assertTrue(POKER_ASSETS <= required_files(config))
+        self.assertTrue(POKER_ASSETS.isdisjoint(required_files({'notes': []})))
+        for name in POKER_ASSETS:
+            validate_public_path(name, required_files(config))
+
+    @unittest.skipUnless(shutil.which('typst'), 'Typst CLI is required')
+    def test_poker_mount_fallback_and_ordered_assets_survive_export(self):
+        with tempfile.TemporaryDirectory() as folder:
+            source = Path(folder) / 'probe.typ'
+            output = source.with_suffix('.html')
+            helper = json.dumps(str(ROOT / 'content/meta/cfr-poker.typ'))
+            source.write_text(f'#import {helper}: cfr-poker\n#cfr-poker()')
+            subprocess.run(['typst', 'compile', '--root', ROOT.anchor, '--features', 'html',
+                            '--format', 'html', str(source), str(output)],
+                           check=True, capture_output=True)
+            markup = output.read_text()
+        self.assertIn('id="cfr-poker"', markup)
+        self.assertIn('href="assets/cfr-poker/poker.css"', markup)
+        scripts = [markup.index('src="assets/cfr-poker/' + name + '"')
+                   for name in ('poker-data.js', 'leduc.js', 'poker.js')]
+        self.assertEqual(scripts, sorted(scripts))
+        self.assertIn('Enable JavaScript', markup)
+
     def setUp(self):
         directory = tempfile.TemporaryDirectory()
         self.addCleanup(directory.cleanup)
