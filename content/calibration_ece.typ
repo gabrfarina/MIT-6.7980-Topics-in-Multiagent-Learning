@@ -46,7 +46,11 @@ $
 
 Every occurrence of a forecast $q<1/2$ is followed by rain, so that group's rain rate is 1 and its gap is $1-q>1/2$. Every group with $q>=1/2$ has rain rate 0 and gap $q>=1/2$. Averaging these gaps gives $"ECE"_T>=1/2$ for every $T$. Thus cumulative calibration error $T "ECE"_T>=T/2$ cannot grow sublinearly. Forecasting exactly 50% also fails: Nature keeps it dry, giving gap $1/2$.
 
-Under the same information restriction, instead announce a distribution $D_t$ over forecasts, let Nature choose $y_t$, and privately sample $p_t$ without learning $y_t$. Nature knows $D_t$ but cannot in general infer which forecast is sampled. A suitable strategy must still learn from history; an arbitrary fixed lottery need not be calibrated.
+Under the same information restriction, instead announce a distribution $D_t$ over forecasts, let Nature choose $y_t$, and privately sample $p_t$ without learning $y_t$.
+
+For example, use a fresh fair coin to report either 20% or 80% each day. Nature knows these two possibilities, but must choose rain or no rain before seeing the coin flip. It can choose rain to oppose the 20% forecast, or no rain to oppose the 80% forecast, but cannot tailor that choice to the forecast actually sampled.
+
+Hiding the draw alone is not enough. If Nature makes it rain every day while each forecast still has a 50% chance of being drawn, both forecast groups have rain rate 1. Over many days, each group receives about half the observations, so ECE approaches $(1/2)(0.8)+(1/2)(0.2)=0.5$. The forecaster must also learn from the observed group errors and change its future forecast distribution. The question is whether such learning can make calibration error small against every Nature obeying the protocol.
 
 Foster and Vohra show that, for any tolerance $epsilon>0$, a suitable randomized strategy on a sufficiently fine finite grid can achieve $limsup_(T -> infinity) EE["ECE"_T]<=epsilon$ against any Nature following this protocol #citep(<FosterVohra1998Calibration>). The expectation averages over random choices; the grid may depend on $epsilon$. No weather model or stationary outcome process is needed. Calibration ensures agreement with observed frequencies, rather than accurate prediction of each day's weather.
 
