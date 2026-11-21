@@ -310,7 +310,7 @@ The backward and forward passes each take linear time. After observing the gradi
 This recovers learning over the reduced normal-form strategies without explicitly constructing that normal-form game. It is a different update from CFR, which combines local regret minimizers. The advantage here is that results about the vertex learning dynamics can be used directly:
 
 #corollary[Kernelized OMWU regret guarantees][
-  In an $m$-player game with utilities in $[0,1]$, let $H_i = max_(vx in X_i) norm(vx)_1$. After $T$ rounds,
+  In an $m$-player extensive-form game with utilities in $[0,1]$, let $H_i = max_(vx in X_i) norm(vx)_1$. After $T$ rounds,
 
   + *Against arbitrary opponents.* Using the constant learning rate $eta=sqrt(8 H_i log(A_i) \/ T)$ incurs total regret at most $"Reg"_(i,T)=O(sqrt(H_i log (A_i) T))$.
   + *In self-play.* A common constant learning rate $0<eta<=1/(C m log^4 T)$ guarantees
