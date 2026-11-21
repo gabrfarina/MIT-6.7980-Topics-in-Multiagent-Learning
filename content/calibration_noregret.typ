@@ -10,7 +10,9 @@
 // The header and the bibliography call make this file compile on its own.
 // When the sections are merged, keep only the body. Labels are prefixed with
 // `noregret-mc`. After merging, the prose references below can become labels:
-// "the multicalibration section" -> @sec-multicalibration (PR #192);
+// "the multicalibration section" / "the previous section" (protocol, MC error,
+//   symmetric families, sign tests h_s) -> @sec-multicalibration,
+//   @sec-multicalibration-protocol, @ex-multicalibration-ece (PR #192);
 // "the previous section" / GGM -> @sec-ggm-recap, @thm-ggm-recap (PR #193);
 // "the overview figure" -> @fig-calibration-intro-overview (PR #188);
 // "the ECE section" -> @sec-l15-ece-adaptive (PR #181).
@@ -19,7 +21,7 @@
 
 In the previous section, we saw how #citet(<gordon2008no>) build a $Phi$-regret minimizer out of an external regret minimizer over the deviations $Phi$: the regret minimizer names the deviation that currently threatens the learner the most, and a fixed point neutralizes it in the current round. Multicalibration admits the same recipe, following #citet(<farina2026multicalibration>). The tests $cH$ play the part of the deviations, and an _expected variational inequality_ plays the part of the fixed point. This is the left arrow of the overview figure from the introduction.
 
-Recall the multicalibration protocol. At each round $t$, the forecaster observes a context $c^((t)) in cC$ and announces a distribution $D^((t))$ over forecasts $vp in cU$. Nature sees $D^((t))$, but not the sampled forecast, and reveals an outcome $vu^((t)) in cU$, where $cU subset.eq RR^d$ is compact and convex. For a test $h : cC times cU -> RR^d$, the multicalibration error is
+We work in the multicalibration protocol of the multicalibration section: the forecaster sees a context $c^((t))$, announces a distribution $D^((t))$ over forecasts, and Nature, who sees $D^((t))$ but not the sampled forecast, reveals an outcome $vu^((t))$. The multicalibration error of a test $h$ is
 $
   "MC"^((T))(h) := sum_(t=1)^T EE_(vp ~ D^((t)))[ip(h(c^((t)), vp), vu^((t)) - vp)],
 $
@@ -41,6 +43,12 @@ Three things to notice.#footnote[EVIs have appeared in the literature under othe
 - *It asks for a distribution.* A point mass at $vp^star$ would reduce the condition to the classical variational inequality $ip(S(vp^star), vu - vp^star) <= epsilon$, which a fixed-point argument solves when $S$ is continuous. Tests usually are not. Against the sign test $S(p) = 1$ if $p < 1\/2$ and $-1$ otherwise, the adversarial Nature of the ECE section, every point mass has value at least $1\/2$; two points do far better, as the next example shows.
 - *It is the analogue of a fixed point.* GGM plays $vx = phi.alt(vx)$ so that the deviation $phi.alt$ gains nothing whatever the utility; here the forecaster plays an EVI solution so that the test $S$ detects at most $epsilon$ whatever the outcome.
 
+Solutions always exist, and a regret minimizer finds them. Run an external regret minimizer $cR_(cU)$ over $cU$ for $K$ iterations, where iteration $k$ outputs $vp^((k))$ and then observes the linear utility $vp |-> ip(S(vp^((k))), vp)$, and let $D$ be uniform over $vp^((1)), ..., vp^((K))$. Then for every $vu in cU$,
+$
+  EE_(vp ~ D)[ip(S(vp), vu - vp)] = 1/K sum_(k=1)^K (ip(S(vp^((k))), vu) - ip(S(vp^((k))), vp^((k)))) <= "Reg"^((K)) / K,
+$
+which is the same "average the no-regret iterates" argument that #lecture-link("learning_intro", <sec-learning-correlated>)[yields coarse correlated equilibria]. It evaluates $S$ only at the iterates, so $S$ need not be continuous, and with online gradient ascent it reaches an $epsilon$-solution in $(D_(cU) B \/ epsilon)^2$ iterations when $norm(S)_2 <= B$ and $cU$ has diameter $D_(cU)$.
+
 #example[Two-point solutions in one dimension][
   Let $cU = [0, 1]$ and let $S : [0, 1] -> RR$ satisfy $|S| <= B$. Since $d = 1$, a distribution $D$ has EVI value
   $
@@ -57,7 +65,7 @@ Three things to notice.#footnote[EVIs have appeared in the literature under othe
 
 == The algorithm <sec-noregret-mc-algorithm>
 
-The reduction runs an external regret minimizer $cR_(cH)$ over the tests themselves: the #lecture-link("learning_intro", <def-external-regret>)[definition of a regret minimizer] with $cH$ in place of $cX$. We assume $cH$ is convex, and otherwise run $cR_(cH)$ on $conv(cH)$. Nothing is lost that way, because the utilities fed to $cR_(cH)$ and the error $"MC"^((T))(h)$ are both linear in $h$, so their maxima over $conv(cH)$ are attained in $cH$.
+The reduction runs an external regret minimizer $cR_(cH)$ over the tests themselves: the #lecture-link("learning_intro", <def-external-regret>)[definition of a regret minimizer] with $cH$ in place of $cX$, which we assume convex.#footnote[Otherwise run $cR_(cH)$ on $conv(cH)$. Nothing is lost, because the utilities fed to $cR_(cH)$ and the error $"MC"^((T))(h)$ are both linear in $h$, so their maxima over $conv(cH)$ are attained in $cH$.]
 
 #pseudocode-list(numbered-title: [Multicalibration from external regret])[
   + *function* `NextForecast`$(c^((t)))$
@@ -80,9 +88,7 @@ The reduction runs an external regret minimizer $cR_(cH)$ over the tests themsel
   )
 ] <fig-noregret-mc-loop>
 
-The utility $g^((t))(h)$ is exactly what round $t$ contributes to $"MC"^((T))(h)$. The regret minimizer therefore drifts toward whichever tests are accumulating error, that is, toward the tests currently exposing the forecaster, and the EVI then forecasts so that the selected test sees almost nothing next round. For example:
-- If $cH = {h_1, ..., h_N}$ is finite, $cR_(cH)$ can be #lecture-link("learning1", <sec-mwu>)[multiplicative weights] over $Delta^N$. Here $h^((t)) = sum_i w_i^((t)) h_i$ and the utility vector is $(g^((t))(h_1), ..., g^((t))(h_N))$.
-- If $cH = {h_vtheta = sum_i theta_i f_i : vtheta in Theta}$ is linearly parameterized by a compact convex set $Theta$, $cR_(cH)$ can be #lecture-link("learning1", <sec-ogd>)[online projected gradient ascent] on $vtheta$, with gradient $(g^((t))(f_i))_i$.
+The utility $g^((t))(h)$ is exactly what round $t$ contributes to $"MC"^((T))(h)$. The regret minimizer therefore drifts toward whichever tests are accumulating error, that is, toward the tests currently exposing the forecaster, and the EVI then forecasts so that the selected test sees almost nothing next round. Any external regret minimizer will do: #lecture-link("learning1", <sec-mwu>)[multiplicative weights] over $Delta^N$ when $cH = {h_1, ..., h_N}$ is finite, or #lecture-link("learning1", <sec-ogd>)[online projected gradient ascent] when $cH$ is linearly parameterized, as in @ex-noregret-mc-ece below.
 
 @fig-noregret-mc-loop and @tab-noregret-mc-ggm line the two reductions up piece by piece.
 
@@ -127,40 +133,22 @@ Everything now rests on the regret minimizer. Let $"Reg"_(cH)^((T))(h) := sum_(t
 These are the same two lines as the GGM proof: add and subtract the regret minimizer's own utility, and let the nonlinear primitive absorb the leftover term. The EVI only bounds that term by $epsilon^((t))$ rather than zeroing it, which is why GGM's identity becomes an inequality here.
 
 #corollary[
-  If $cR_(cH)$ is an external regret minimizer, so that $max_(h in cH) "Reg"_(cH)^((T))(h) = o(T)$, and the EVIs are solved with $sum_(t=1)^T epsilon^((t)) = o(T)$ (for example $epsilon^((t)) = 1\/sqrt(t)$), then $sup_(h in cH) "MC"^((T))(h) = o(T)$. If moreover $-h in cH$ whenever $h in cH$, then $sup_(h in cH) |"MC"^((T))(h)| = o(T)$.
+  If $cR_(cH)$ is an external regret minimizer, so that $max_(h in cH) "Reg"_(cH)^((T))(h) = o(T)$, and the EVIs are solved with $sum_(t=1)^T epsilon^((t)) = o(T)$ (for example $epsilon^((t)) = 1\/sqrt(t)$), then $sup_(h in cH) "MC"^((T))(h) = o(T)$, and hence $sup_(h in cH) |"MC"^((T))(h)| = o(T)$ for the symmetric test families of the multicalibration section.
 ] <cor-noregret-mc>
 
 #example[Recovering calibration][
-  Plain calibration is the case with no contexts. Take $d = 1$, $cU = [0, 1]$, and forecasts on the grid $G$ of @ex-noregret-mc-two-point. ECE is what the sign tests $h_(vs)(p) = sum_(q in G) s_q bb(1){p = q}$ measure, with $vs$ ranging over the convex hull $[-1, 1]^G$: since $g^((t))(h_vs) = sum_q s_q D^((t))(q)(u^((t)) - q)$, matching each sign to its bucket gives
-  $
-    max_(vs) "MC"^((T))(h_vs) = sum_(q in G) abs(sum_(t=1)^T D^((t))(q) (u^((t)) - q)),
-  $
-  which is $T$ times the ECE, with the indicator of the sampled forecast replaced by its probability.
+  Plain calibration is the case with no contexts. Take $d = 1$, $cU = [0, 1]$, and forecasts on the grid $G$ of @ex-noregret-mc-two-point, and recall from the multicalibration section that maximizing over the sign tests $h_(vs)$, now with $vs$ ranging over the convex hull $[-1, 1]^G$, accumulates the absolute error in each bucket: $max_(vs) "MC"^((T))(h_vs)$ is $T$ times the ECE, with the indicator of the sampled forecast replaced by its probability $D^((t))(q)$.
 
-  So run the reduction on these tests. #lecture-link("learning1", <ogd-regret-bound>)[Online gradient ascent] over the box has regret $O(sqrt(m T))$, and @ex-noregret-mc-two-point solves each EVI to $epsilon^((t)) <= 1\/(2m)$, so @thm-noregret-mc gives
+  So run the reduction on these tests. The utility $g^((t))(h_vs) = sum_q s_q D^((t))(q)(u^((t)) - q)$ is linear in $vs$ with gradient of Euclidean norm at most $1$, and the box $[-1, 1]^G$ has diameter $2 sqrt(m+1)$, so online gradient ascent with step size $eta = 2 sqrt((m+1)\/T)$ has #lecture-link("learning1", <ogd-regret-bound>)[regret] $"Reg"_(cH)^((T)) <= 2 sqrt((m+1) T)$. On the grid the operator $S^((t))$ is the vector $vs^((t))$, so $|S^((t))| <= 1$, and @ex-noregret-mc-two-point solves each EVI to $epsilon^((t)) <= 1\/(2m)$. @thm-noregret-mc then yields
   $
-    1/T max_(vs) "MC"^((T))(h_vs) = O(sqrt(m\/T)) + 1/(2m).
+    1/T max_(vs) "MC"^((T))(h_vs) <= 2 sqrt((m+1) / T) + 1 / (2m).
   $
   The grid is the tension here: a finer grid leaves less hedging error, but gives the regret minimizer more to learn. Balancing the two at $m approx T^(1\/3)$ gives $O(T^(-1\/3))$. The forecaster that comes out splits its mass between the two grid points where $vs^((t))$ changes sign: forecast hedging again, now driven by learned signs rather than raw bucket errors.
 ] <ex-noregret-mc-ece>
 
-#remark[EVIs are necessary][
-  EVIs are not an artifact of this particular reduction. Run any $cH$-multicalibrated forecaster on one context repeated forever, against a Nature that always replies in the worst direction, and the average of its forecasts is an EVI solution whose error tends to zero #citep(<farina2026multicalibration>). The forecaster was solving EVIs all along, much as a $Phi$-regret minimizer is always computing fixed points #citep(<hazan2007computational>).
-]
+EVIs are not an artifact of this particular reduction: any $cH$-multicalibrated forecaster solves them implicitly, much as a $Phi$-regret minimizer is always computing fixed points #citep(<hazan2007computational>, <farina2026multicalibration>). So the question is whether they are easier than the fixed points they replace, and they are. The regret-based solver of @sec-noregret-mc-evi needs $O(1\/epsilon^2)$ iterations, and #citet(<zhang2025expected>) compute an $epsilon$-solution in time polynomial in $d$ and $log(B\/epsilon)$, for general, possibly nonmonotone, operators, given a membership oracle for $cU$; their algorithm is an instance of the #lecture-link("eah")[ellipsoid against hope] seen earlier in the course. Classical variational inequalities, by contrast, generalize Nash equilibria and are intractable in general.
 
-The next section turns forecasts into actions by best responding to them, choosing the tests so that $Phi$-regret is controlled by multicalibration error. With @thm-noregret-mc, that bounds $Phi$-regret by the external regret of $cR_(cH)$ plus $sum_t epsilon^((t))$, with no fixed point anywhere.
-
-= Appendix: algorithms for expected variational inequalities <sec-noregret-mc-evi-algorithms>
-
-*From no-regret iterates.* The simplest EVI solver is again a regret minimizer. Run an external regret minimizer $cR_(cU)$ over $cU$ for $K$ iterations. At iteration $k$, it outputs $vp^((k))$ and then observes the linear utility $vp |-> ip(S(vp^((k))), vp)$. Let $D$ be uniform over $vp^((1)), ..., vp^((K))$. Then for every $vu in cU$,
-$
-  EE_(vp ~ D)[ip(S(vp), vu - vp)] = 1/K sum_(k=1)^K (ip(S(vp^((k))), vu) - ip(S(vp^((k))), vp^((k)))) <= "Reg"^((K)) / K.
-$
-So $D$ is a $("Reg"^((K)) \/ K)$-solution. This is the same "average the no-regret iterates" argument that #lecture-link("learning_intro", <sec-learning-correlated>)[yields coarse correlated equilibria], and it only ever evaluates $S$ at the iterates, so $S$ need not be continuous. With online gradient ascent, a set $cU$ of diameter $D_(cU)$, and $norm(S)_2 <= B$, it reaches an $epsilon$-solution after $K = (D_(cU) B \/ epsilon)^2$ iterations. So every bounded $S$ admits an $epsilon$-solution, for every $epsilon > 0$ and with no continuity assumed. #citet(<zhang2025expected>) develop the regret-based route in more generality.
-
-*Forecast hedging.* #citet(<FosterHart2021Hedging>) prove such distributions exist, calling them outgoing minimax solutions, by a minimax argument needing no continuity of $S$, and use them to build calibrated forecasters. @ex-noregret-mc-two-point is the one-dimensional instance.
-
-*Polynomial-time algorithms.* The regret-based route needs $O(1\/epsilon^2)$ iterations. #citet(<zhang2025expected>) compute an $epsilon$-solution in time polynomial in $d$ and $log(B\/epsilon)$, for general, possibly nonmonotone, operators, given a membership oracle for $cU$; their algorithm is an instance of the #lecture-link("eah")[ellipsoid against hope] seen earlier in the course. Classical variational inequalities, by contrast, generalize Nash equilibria and are intractable in general. EVIs also turn out to capture correlated equilibria as a special case.
+The next section turns forecasts into actions by best responding to them, choosing the tests so that $Phi$-regret is controlled by multicalibration error. With @thm-noregret-mc, that bounds $Phi$-regret by external regret plus $sum_t epsilon^((t))$, with no fixed point anywhere.
 
 // Bibliography: remove when merging into the combined L15 source.
 #lec_bibliography("meta/refs.bib")
