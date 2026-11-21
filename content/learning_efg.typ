@@ -195,11 +195,30 @@ Pseudocode for CFR is given in @algo:cfr. Note that the implementation is parame
 
 == Learning using self-play
 
-The CFR algorithm can be used to learn a Nash equilibrium in a two-player zero-sum game by letting two regret minimizers play against each other. The two regret minimizers exchange their sequence-form strategies at every iteration according to the #lecture-link("learning_intro", <sec-learning-zero-sum>)[canonical self-play setup].
+The CFR algorithm can be used to learn a Nash equilibrium in a two-player zero-sum game by letting two regret minimizers play against each other. The two regret minimizers exchange their sequence-form strategies at every iteration according to the #lecture-link("learning_intro", <sec-learning-zero-sum>)[canonical self-play setup]. When a full traversal of the tree on every iteration is too expensive, sampling-based variants of CFR can be used instead; see #ref(<sec-mccfr>, supplement: [Appendix]).
 
 = Bibliography for this lecture
 
 #lec_bibliography("meta/refs.bib", title: none)
+
+#appendix[
+  = Appendix: Monte Carlo CFR <sec-mccfr>
+
+  Each iteration of @algo:cfr traverses the entire tree-form decision process. While this is linear in the size of the tree, the tree itself can grow exponentially with its depth, and a full traversal on every iteration can be prohibitively expensive. _Monte Carlo CFR (MCCFR)_ #citep(<lanctot2009monte>) avoids full traversals by only considering a sampled portion of the game tree on each iteration, while keeping the counterfactual values, and hence the regret updates, unchanged in expectation. As in #citet(<lanctot2009monte>), we consider two-player zero-sum games with perfect recall, with each local regret minimizer $R_j$ running #lecture-link("learning1", <sec-rm>)[regret matching].
+
+  *Sampled counterfactual values* On each iteration $t$, MCCFR samples a random set $Z^((t))$ of terminal nodes of the game tree, including each terminal node $z$ with some probability $q(z) > 0$. For a sequence $j a in Sigma$ of player $i$, let $Z_(j a)$ be the set of terminal nodes reached through $j a$. For $z in Z_(j a)$, let $u_(i)(z)$ be player $i$'s payoff at $z$, $w_(-i)(z)$ the external reach probability of $z$ (defined as for $w_(-i)(j)$ in @sec-cfr-values), and $w_(i)(j a, z)$ the probability that player $i$ plays their remaining actions from $j a$ to $z$. The counterfactual value of @sec-cfr-values is then
+  $ v_(i)^("cf")(j, a) = sum_(z in Z_(j a)) w_(-i)(z) dot w_(i)(j a, z) dot u_(i)(z). $
+  MCCFR replaces it with the _sampled counterfactual value_, which sums only over the sampled terminal nodes and divides each term by its sampling probability:
+  $ tilde(v)_(i)^("cf")(j, a) := sum_(z in Z^((t)) inter Z_(j a)) 1 / q(z) dot w_(-i)(z) dot w_(i)(j a, z) dot u_(i)(z). $
+  Since each term is included with probability $q(z)$, the sampled counterfactual value equals $v_(i)^("cf")(j, a)$ in expectation #citep(<lanctot2009monte>). Each $R_j$ observes the sampled values in place of the exact ones, and only the decision points on paths to sampled terminal nodes are updated. Taking $q(z) = 1$ for every terminal node recovers CFR. #citet(<lanctot2009monte>) introduce two sampling schemes:
+
+  + *Outcome sampling* samples a single terminal node per iteration, by simulating one play of the game in which each player follows a _sampling strategy_ (a strategy used only to choose the path) and chance follows its usual probabilities. Only the decision points on that one path are updated, so each iteration is very cheap. To ensure every terminal node can be sampled, player $i$'s sampling strategy gives every action some positive probability, for example by occasionally playing uniformly random actions. The drawback is that unlikely terminal nodes receive large weights $1 \/ q(z)$. If the opponent's sampling strategy is their actual strategy, the update needs only player $i$'s own strategy and the observed payoff, so outcome sampling can also be used for _online_ regret minimization, where player $i$ learns while playing an opponent whose strategy is unknown.
+
+  + *External sampling* samples only the actions _external_ to player $i$: at every opponent decision point and chance node, it samples a single action according to the opponent's current strategy or chance's probabilities, while at player $i$'s decision points it explores every action. Each terminal node is then sampled with probability exactly equal to its external reach probability, $q(z) = w_(-i)(z)$, so $w_(-i)(z) \/ q(z) = 1$ in the sampled counterfactual value and no term is divided by a small probability.
+
+  With high probability, the average regret of both schemes still decreases as $O(1 \/ sqrt(T))$, so they still compute an approximate equilibrium in self-play. Their bounds require more iterations than CFR, but each iteration is much cheaper. For outcome sampling, the bound is larger than that of external sampling by a factor of $1 \/ delta$, where $delta > 0$ is a lower bound on the sampling probabilities $q(z)$ of the terminal nodes that the opponent and chance can reach. For external sampling, the number of iterations grows by only a constant factor that depends on the desired confidence, while in balanced games (where the players make roughly equal numbers of decisions) each iteration costs $O(sqrt(abs(H)))$ instead of $O(abs(H))$, with $abs(H)$ the number of nodes in the game tree. Hence external sampling computes an approximate equilibrium in asymptotically less time than CFR #citep(<lanctot2009monte>).
+
+]
 
 #changelog[
   - 2025-10-09: Fixed typos (thanks Josh Rountree!).

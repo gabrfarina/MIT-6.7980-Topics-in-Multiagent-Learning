@@ -16,10 +16,6 @@ SUPPORT_SOURCES = {
     'team_belief_dag/pair.typ',
     'team_games_tmecor/tree.typ',
     'kernelized/vertices.typ',
-    'learning2/ftr_ent.typ',
-    'learning2/ftr_euc.typ',
-    'learning2/ftr_log.typ',
-    'learning2/omd_euc.typ',
 }
 GATES = ('assignment', 'constant', 'addition', 'subtraction',
          'multiplication', 'comparison')
