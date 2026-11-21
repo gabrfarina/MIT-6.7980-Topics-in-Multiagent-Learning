@@ -39,7 +39,19 @@ The goal of this lecture is to investigate how one can rule out sequential irrat
 = Undomination is not the solution
 <sec:une>
 
-One might believe that the problem of sequential irrationality is that of picking dominated strategies. So, one might be inclined to look into the problem of finding a Nash equilibrium whose support does not include any (weakly) dominated strategy (the concept is not immediately well defined, but for the purposes of this discussion let's restrict ourselves to Nash equilibria in deterministic strategies).
+One might believe that the problem of sequential irrationality is that of picking dominated strategies. So, one might be inclined to look into the problem of finding a Nash equilibrium whose support does not include any (weakly) dominated strategy. For deterministic strategies, this is unambiguous because support for a pure strategy is the strategy itself. For behavioral strategies, it is not immediately well-defined.
+
+
+
+_Remark (Why the support definition is ambiguous for behavioral strategy):_ A behavioral strategy $b_i$ specifies an independent distribution $ p (dot | I)$ at each information set. The mixed strategies equivalent to $b_i$ (Kuhn’s Theorem) may be made up of different supports. If one equivalent strategy has no weakly dominated strategies in its supports, but another does, it is unclear whether $b_i$ contains a no weakly dominated strategy in its support. Moreover, a mixture of non-dominated strategies can itself be dominated. For example, consider a coin-flipping game where you can accept \$6 or guess H vs. T to win \$10. Each option is the best to some belief (Fair; Heads; Tails), so none is weakly dominated. Yet a mixed strategy fo $1/2-1/2$ between H and T is dominated by taking \$6 because \$5 < \$6.
+
+*Definition (Undominated Nash equilibrium):* A strategy $sigma_i$ of Player $i$ is weakly dominated if there exists a $sigma'_i$ such that
+
+$
+u_i(sigma'_i, s_(-i)) >= u_i(sigma_i, s_(-i)) quad forall s_(-i) in S_(-i)
+$
+
+with the strict inequality holding for at least one $s_(-i)$. A strategy profile $sigma = (sigma_1, dots sigma_n)$ is a _undominated Nash equilibrium_ if it is a Nash equilibrium and has no $sigma_i$ that is weakly dominated.
 
 Unfortunately, domination of strategies is not the root cause of sequential irrationality, and therefore undomination is not its solution. Indeed, as much as undomination _does_ get rid of the undesirable behavior of @ex:guess-the-ace (Right), since action \`A$suit.spade.filled$' is strictly dominated by action \`$not$A$suit.spade.filled$', it does not prevent sequential irrationality in more complex settings, such as @ex:guess-the-ace-x.
 
@@ -53,6 +65,19 @@ Unfortunately, domination of strategies is not the root cause of sequential irra
     text-width: 65%,
   )
 ] <ex:guess-the-ace-x>
+
+== Rational and Irrational Nash equilibria in Guess-the-Ace
+<sec:une-equilibria>
+Player1's choice to gift at nodes $C, D$ does not effect the Nash Equilibria because optimal players would never reach that part of the game tree. Consequently, Nash Equilibria depend only on Player1 choosing to quit. The general set of Nash equilibria are:
+
+$
+{(o, q, g_C, g_D) : o=0, q, g_C, g_D in [0, 1]}
+
+$ 
+where $o$ is the probability that Player 1 offers (entering Player 2's information set $A$), $q$ is the probability that Player 2 guesses no ace, and $g_k$ is the probability that Player 1 gives the gift at decision point $k in \{C, D\}$. 
+
+The rational equilibrium is ${(0, 1, 0, 0)}$, while ${(0, q, g_C, g_D): q != 1 or g_C != 0 or g_D != 0}$ are irrational equilibria. 
+
 
 = Trembling-hand refinements
 
@@ -213,7 +238,111 @@ The practical algorithm is 3-4 orders of magnitude faster than the conceptual al
 
 #lec_bibliography("meta/refs.bib", title: none)
 
+
 #appendix[
+  = "Rational" Nash Equilibrium in @ex:guess-the-ace-x
+  From @sec:une-equilibria, the set of Nash equilibria in @ex:guess-the-ace-x is
+  $
+  {(o, q, g_C, g_D) : o=0, q, g_C, g_D in [0, 1]}.
+  $
+  The rational equilibrium is ${(0, 1, 0, 0)}$, while ${(0, q, g_C, g_D): q != 1 or g_C != 0 or g_D != 0}$ are irrational equilibria.
+
+  == Lemma: Player1 incentives
+  <sec:player1-incentives>
+  The game states are defined sequentially as follows: $x_O$ is the probability that Player 1 offers, $x_Q$ is the probability that Player 1 does not offer, $x_"OG"_k$ is the probability that Player1 gifts and $x_"OK"_k$ is the proabbility that Player1 keeps for $k in {C, D}$, lastly, $y_A$ is probability that Player2 guesses the ace, and $y_{not A}$ is the probability that Player2 guesses not the ace.
+
+  $
+  u_1(x, y) = -y_(not A suit.spade.filled)(frac(51, 52) x_O + frac(1, 52) x_"OG"_C) - y_(A suit.spade.filled) (frac(1, 52) x_O + frac(51, 52) x_"OG"_D)
+  $
+
+  Taking the derivatives we can see what happens to utility as we modify $x_O, x_"OG"_C, x_"OG"_D$ slightly, while keeping the other variables fixed. The derivatives are:
+
+  $
+  frac(d u_1(x, y), d x_O) = - (frac(51, 52) y_(not A suit.spade.filled) + frac(1, 51) y_A) < 0 \
+  frac(d u_1(x, y), d x_"OG"_C) = - frac(1, 52) y_(not A suit.spade.filled) < 0 \
+  frac(d u_1(x, y), d x_"OG"_D) = - frac(51, 52) y_(A suit.spade.filled) < 0 \
+  $
+
+  Any increase in $x_O, x_"OG"_C, x_"OG"_D$ decreases Player1's utility. 
+
+  == EFPE recovers "Rational" Nash Equilibrium in @ex:guess-the-ace-x
+  <sec:efpe>
+  From @sec:player1-incentives, Player1 maximizes utility by minimizing $x_O, x_"OG"_C, x_"OG"_D$. Under EFPE, these values are lower bounded by $epsilon.alt dot x_"prev"$ and $epsilon.alt$ when $x_"prev"$ does not exist. Thus, the EFPE solution is:
+
+  $
+  x^epsilon.alt = (x_O, x_Q, x_"OG"_C, x_"OK"_C, x_"OG"_D, x_"OK"_D) = (epsilon.alt, 1-epsilon.alt, epsilon.alt^2, 1 - epsilon.alt^2, epsilon.alt^2, 1 - epsilon.alt^2)
+  $
+
+  Under this setting, Player2's utility is
+
+  $
+  u_2(x, y) = -u_1(x, y) = y_(not A suit.spade.filled)(frac(51, 51) epsilon.alt + frac(1, 52) epsilon.alt^2) + y_(A suit.spade.filled) (frac(1, 52) epsilon.alt + frac(51, 52) epsilon.alt^2)
+  $
+
+  Taking the difference between $y_(not A suit.spade.filled)$ and $y_(A suit.spade.filled)$ options, we get
+  $
+    frac(epsilon.alt, 52) [(51 + epsilon.alt) - (1 + 51 epsilon.alt)] > 0 
+  $
+
+  Thus the unique best response for Player2 is ($y_(not A suit.spade.filled), y_(A suit.spade.filled)) = (1-epsilon.alt, epsilon)$
+
+  *Uniqueness:* In any equilibrium of the perturbed game, Player1 must play $x^epsilon.alt$ since it is the unique best response to every $y$. Then Player2 must play $y^epsilon.alt$ because it is the unique best response to $x^epsilon.alt$. As a result, the perterbed game has a unique equilibrium.
+
+  *Limit:* Behaviorally
+
+  $
+  pi(O|r) = epsilon.alt wide pi(G_k|j_k) = frac(epsilon.alt^2, epsilon.alt) = epsilon.alt wide pi(N) = 1 - epsilon.alt
+  $
+
+  As $epsilon.alt -> 0^(+)$, the limit converges to the rational equilibrium. Quit; Keep at Gift nodes; guess not Ace.
+
+  == QPE recovers "Rational" Nash Equilibrium in @ex:guess-the-ace-x
+  QPE recovers a rational Nash equilibrium through having every sequence $sigma$ of player actions have realization probability at leat $epsilon.alt^(\| sigma \|)$.
+
+  #figure(
+  table(
+    columns: 4,
+    align: (center, left, center, center),
+    stroke: none,
+    inset: (x: 10pt, y: 6pt),
+
+    table.hline(stroke: 1pt),
+    table.header(
+      [*Sequence* $sigma$], [*Actions*], [$|sigma|$], [*Lower bound* $epsilon^(|sigma|)$],
+    ),
+    table.hline(stroke: 0.5pt),
+
+    [$Q$],        [Quit],          [$1$], [$epsilon$],
+    [$O$],        [Offer],         [$1$], [$epsilon$],
+    [$O G_k$],    [Offer, Gift],   [$2$], [$epsilon^2$],
+    [$O K_k$],    [Offer, Keep],   [$2$], [$epsilon^2$],
+    table.hline(stroke: 0.3pt + gray),
+    [$N$, $A$],   [Guess (P2)],    [$1$], [$epsilon$],
+
+    table.hline(stroke: 1pt),
+  ),
+  caption: [QPE lower bounds on each sequence in Guess-the-Ace.],
+) <tab:qpe-bounds>
+
+Our lower bounds become 
+
+  $
+  x_"OG"_k, x_"OK"_k >= epsilon.alt^2 wide x_O, x_Q >= epsilon.alt wide y_(not A suit.spade.filled), y_(A suit.spade.filled) >= epsilon.alt
+  $
+
+  In addition there exists a flow constraint $x_"OG"_k + x_"OK"_k = x_O$. We know both $x_"OG"_k$ and $x_"OK"_k$ are lower bounded by $epsilon.alt^2$, so $x_O >= 2 epsilon.alt^2$. Consequently $x_O >= max(2 epsilon.alt^2, epsilon.alt)$. We will only investigate regime where $epsilon.alt < 1/2$, so $x_O >= epsilon.alt$. This is only constraint.
+
+  From @sec:player1-incentives, Player1 maximizes utility by minimizing $x_O, x_"OG"_C, x_"OG"_D$ and Player2 maximizes by minimizing $y_(A)$. Thus the QPE solution is:
+
+  $
+  x^epsilon.alt = (x_O, x_Q, x_"OG"_C, x_"OK"_C, x_"OG"_D, x_"OK"_D) = (epsilon.alt, 1-epsilon.alt, epsilon.alt^2, 1 - epsilon.alt^2, epsilon.alt^2, 1 - epsilon.alt^2)
+  $
+
+  These values are the same as EFPE @sec:efpe. The limit as $epsilon.alt -> 0^(+)$ is the rational Nash equilibrium.
+
+
+  
+
   = Why not uniform lower bounds in QPE?
 
   Not all vanishing perturbations $vell_1 \( epsilon.alt \) \, vell_2 \( epsilon.alt \)$ in the QPE
