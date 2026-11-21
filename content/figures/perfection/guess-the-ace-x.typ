@@ -30,7 +30,9 @@
       "/ANT/bet/BAT/gift": (150, 480),
     ),
     highlight-edges: ("/AT/quit", "/ANT/quit", "/AT/bet/BNAT", "/ANT/bet/BNAT"),
-    payoff: key => if key.contains("bet") [$(-\$, \$)$] else [$(0,0)$],
+    highlight-color: orange.darken(10%),
+    // Player 1 pays \$1000 when Player 2 guesses correctly or when Player 1 gifts.
+    payoff: key => if key in ("/AT/bet/BAT", "/ANT/bet/BNAT") or key.ends-with("/gift") [$(-\$, \$)$] else [$(0,0)$],
     action-name: action => if action == "BNAT" [
       #{ sym.not }A#spade
     ] else if action == "BAT" [
@@ -38,11 +40,11 @@
     ] else if action == "AT" [
       #set align(center)
       A#spade on top \
-      // ($1 / 52$)
+      ($1 / 52$)
     ] else if action == "ANT" [
       #set align(center)
       A#spade _not_ on top \
-      // ($51 / 52$)
+      ($51 / 52$)
     ] else if action == "no gift" [
       #{ sym.not }gift
     ] else [
