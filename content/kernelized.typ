@@ -172,8 +172,8 @@ The update in @algo:vertex-mwu adds a linear score to the exponent of each verte
   Substituting the inductive hypothesis in the vertex update yields
   $
     lambda_(t+1)(vv) & prop phi_(V)(vb_t)_vv exp(eta ip(vh_t, vv)) \
-                    & = product_(k:v_k=1) (b_(t,k) exp(eta h_(t,k))) \
-                    & = phi_(V)(vb_(t+1))_vv.
+                     & = product_(k:v_k=1) (b_(t,k) exp(eta h_(t,k))) \
+                     & = phi_(V)(vb_(t+1))_vv.
   $
   This proves the claim for both choices of $vh_t$.
 ]
@@ -208,12 +208,29 @@ Encoding the distribution is only half the task. `NextStrategy()` must also reco
   It follows that
   $
     K_(V)(vb_t,overline(ve)_k) & = sum_(vv:v_k=0) phi_(V)(vb_t)_vv \
-                             & = K_(V)(vb_t,vone) sum_(vv:v_k=0) lambda_(t)(vv).
+                               & = K_(V)(vb_t,vone) sum_(vv:v_k=0) lambda_(t)(vv).
   $
   Dividing by the normalizer gives the probability that coordinate $k$ is zero. Its complement is the expected value of that binary coordinate.
 ]
 
-Together, @thm:implicit-weights and @thm:kernel-mean prove @thm:kernelization. Maintain $vb_t$, evaluate one common normalizer and $d$ coordinate-exclusion kernels, return the resulting mean, and update $vb_t$ after observing the gradient. No explicit vector indexed by $V$ is needed.
+Together, @thm:implicit-weights and @thm:kernel-mean prove @thm:kernelization. Maintain $vb_t$, evaluate one common normalizer and $d$ coordinate-exclusion kernels, return the resulting mean, and update $vb_t$ after observing the gradient. No explicit vector indexed by $V$ is needed. Putting the pieces together gives @algo:kernelized-mwu.
+
+#pseudocode-list(
+  max-width: true,
+  numbered-title: [Kernelized MWU/OMWU],
+  caption: [Kernelized MWU/OMWU. Updating the weights can be done coordinate-wise without enumerating vertices and reading out a strategy requires $d+1$ kernel evaluations.],
+)[
+  + Initialize $vb_1=vone$, set $vg_0=0$, and set $t=1$.
+  + *function* `NextStrategy()`:
+    + Evaluate $N = K_(V)(vb_t,vone)$.
+    + Evaluate $M_k = K_(V)(vb_t,overline(ve)_k)$ for each $k=1,...,d$.
+    + Set $vx_(t, k) = 1 - frac(M_k, N)$ for each $k=1,...,d$.
+    + Return $vx_t$.
+  + *function* `ObserveUtility`$(vg_t)$:
+    + Set $vh_t=vg_t$ (MWU) or $vh_t=2vg_t-vg_(t-1)$ (OMWU).
+    + Set $vb_(t+1, k)=exp(eta vh_(t,k)) vb_(t, k)$ for each $k=1,...,d$.
+    + Increment $t$.
+] <algo:kernelized-mwu>
 
 = Examples of efficiently computable kernels
 
