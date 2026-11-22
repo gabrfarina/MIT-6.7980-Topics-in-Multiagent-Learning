@@ -48,7 +48,7 @@
 
 // `field` maps a strategy to phi(x); arrows are scaled so the longest one
 // spans 80% of the grid spacing.
-#let panel(field, fixed, fixed-label, label-dx, label-dy) = {
+#let panel(title, field, fixed, fixed-label, label-dx, label-dy) = {
   let n = 7
   let grid-pts = ()
   for i in range(n + 1) {
@@ -81,7 +81,7 @@
     place(top + left, dx: corner-p.at(0) - 0.07cm, dy: corner-p.at(1) - 0.45cm)[P]
     place(top + left, dx: corner-s.at(0) + 0.12cm, dy: corner-s.at(1) - 0.05cm)[S]
   })
-  pad(top: 5mm, bottom: 4mm, x: 4mm, body)
+  stack(spacing: 5mm, pad(top: 5mm, x: 4mm, body), align(center, strong(title)))
 }
 
 #let xhat = (3 / 5, 1 / 5, 1 / 5)
@@ -95,6 +95,6 @@
 #grid(
   columns: 2,
   column-gutter: 8mm,
-  panel(constant, xhat, $hat(vx)$, 0.12cm, -0.42cm),
-  panel(swap, (1 / 6, 2 / 3, 1 / 6), $vx^star$, 0.14cm, -0.16cm),
+  panel([Constant transformation], constant, xhat, $hat(vx)$, 0.12cm, -0.42cm),
+  panel([Swap transformation], swap, (1 / 6, 2 / 3, 1 / 6), $vx^star$, 0.14cm, -0.16cm),
 )
