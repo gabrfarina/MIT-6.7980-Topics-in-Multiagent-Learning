@@ -7,135 +7,73 @@
 )
 
 // [L15] Section 4 (MD): Recap of Gordon-Greenwald-Marks.
-// The header and the bibliography call make this file compile on its own.
-// When the sections are merged, keep only the body. Labels are prefixed with
-// `ggm-recap` to avoid collisions with the other sections.
-// After merging: the "two routes" paragraph can point to the overview figure
-// of the introduction (@fig-calibration-intro-overview, PR #188), and "the next
-// section" can become a reference to the label of Section 5.
+// The header and the bibliography call make this file compile on its own;
+// when the sections are merged, keep only the body. Labels are prefixed with
+// `ggm-recap`; Section 5 (PR #194) refers to @sec-ggm-recap and @thm-ggm-recap.
+// After merging, "the overview figure of the introduction" can become
+// @fig-calibration-intro-overview (calibration_intro.typ).
 
 = Recap of Gordon-Greenwald-Marks <sec-ggm-recap>
 
-So far, calibration has been a property of a forecaster. In this section we return to a problem from earlier in the course, $Phi$-regret minimization, because it is solved by the same recipe that we will use for multicalibration:
-$
-  "external regret minimization" + "a nonlinear optimization primitive".
-$
-For $Phi$-regret, the primitive is a fixed-point computation, and the resulting algorithm is the reduction of #citet(<gordon2008no>). We recall it below; the full treatment, including the Blum-Mansour algorithm for swap regret, is in #lecture-link("phi_regret", <sec-ggm>)[]. For multicalibration, the primitive will be the solution of an expected variational inequality.
+Multicalibration has the same structure as a problem we have already solved, $Phi$-regret minimization: both reduce to external regret minimization plus a nonlinear optimization primitive. For $Phi$-regret, the primitive is a fixed-point computation, and the resulting algorithm is the reduction of #citet(<gordon2008no>), the right-hand route in the overview figure of the introduction. For multicalibration, the primitive will be an expected variational inequality. This section recalls the first reduction at a high level; the full treatment is in #lecture-link("phi_regret", <sec-ggm>)[].
 
 == $Phi$-regret <sec-ggm-recap-phi>
 
-Recall the setting of #lecture-link("learning_intro", <defphirm>)[]. At each time $t$, the learner outputs a strategy $vx^((t))$ in a convex and compact set $cX$ and then observes a linear utility function $u^((t)) : cX -> RR$. Given a set $Phi$ of transformations $phi.alt : cX -> cX$, the learner's $Phi$-regret compares its realized utility with what it would have obtained by applying one fixed transformation to every strategy it played:
+Recall the setting of #lecture-link("learning_intro", <defphirm>)[]. At each time $t$, the learner outputs a strategy $vx^((t))$ in a convex and compact set $cX$ and then observes a linear utility function $u^((t)) : cX -> RR$. Given a set $Phi$ of transformations $phi.alt : cX -> cX$, the $Phi$-regret compares the learner's utility with what it would have obtained by applying one fixed transformation to every strategy it played:
 $
   Phi"-Reg"^((T)) := max_(hat(phi.alt) in Phi) sum_(t=1)^T (u^((t))(hat(phi.alt)(vx^((t)))) - u^((t))(vx^((t)))).
 $
-The goal is $Phi"-Reg"^((T)) = o(T)$ for every sequence of utilities. The set $Phi$ determines which counterfactuals the learner is held to, and a larger $Phi$ gives a stronger guarantee. Two choices from #lecture-link("learning_intro", <sec-regret-transformations>)[] will matter in this lecture.
+The goal is $Phi"-Reg"^((T)) = o(T)$. The choice of $Phi$ determines the regret notion, and two choices matter in this lecture.
 
 #example[External regret][
-  Let $Phi^"const"$ be the set of constant transformations $phi.alt_(hat(vx))(vx) := hat(vx)$, for $hat(vx) in cX$. Then
-  $
-    Phi"-Reg"^((T)) = max_(hat(vx) in cX) sum_(t=1)^T (u^((t))(hat(vx)) - u^((t))(vx^((t)))),
-  $
-  which is the external regret $"Reg"^((T))$: every strategy played is compared with the same alternative $hat(vx)$, whatever it was.
+  The constant transformations $phi.alt_(hat(vx))(vx) := hat(vx)$, for $hat(vx) in cX$, form the set $Phi^"const"$. Every strategy played is compared with the same alternative $hat(vx)$, and $Phi"-Reg"^((T))$ is the external regret.
 ] <ex-ggm-recap-external>
 
 #example[Swap regret][
-  Let $cX = Delta^n$ and let
-  $
-    Phi^"swap" := {vx |-> Q vx : Q >= 0, thin vone^top Q = vone^top}
-  $
-  be the set of column-stochastic matrices. Column $a$ of $Q$ is the distribution onto which the probability mass on action $a$ is rerouted, so different actions can be replaced in different ways. Since $u^((t))$ is linear, the maximum over $Q$ in the definition of $Phi"-Reg"^((T))$ is attained at a matrix whose columns are unit vectors, that is, at a deterministic map $s : {1, ..., n} -> {1, ..., n}$ that replaces each action $a$ with $s(a)$.
-
-  Constant transformations are a special case: for any $hat(vx) in Delta^n$, the matrix $Q = hat(vx) vone^top$ is column-stochastic and sends every $vx in Delta^n$ to $hat(vx)$. Hence $Phi^"const" subset.eq Phi^"swap"$ on the simplex, and swap regret is always at least external regret.
+  On the simplex $cX = Delta^n$, let $Phi^"swap"$ be the maps $vx |-> Q vx$ with $Q$ column-stochastic, that is, $Q >= 0$ and $vone^top Q = vone^top$. Column $a$ of $Q$ says where the probability mass on action $a$ is rerouted, so each action can be replaced differently. Since $Q = hat(vx) vone^top$ sends every $vx in Delta^n$ to $hat(vx)$, we have $Phi^"const" subset.eq Phi^"swap"$, and swap regret is at least external regret.
 ] <ex-ggm-recap-swap>
 
 == The reduction <sec-ggm-recap-reduction>
 
-Competing with every transformation in $Phi$ looks harder than competing with every fixed strategy. #citet(<gordon2008no>) showed that it is not, provided that we can compute fixed points. Their reduction has two ingredients:
-+ an external regret minimizer $cR$ whose decision set is $Phi$ itself, which requires $Phi$ to be convex and compact (see #lecture-link("phi_regret", <sec-ggm>)[] for the standing assumptions); and
+#citet(<gordon2008no>) build a $Phi$-regret minimizer from two ingredients:
++ an external regret minimizer $cR$ whose decisions are transformations $phi.alt in Phi$; and
 + a _fixed-point oracle_ that, given $phi.alt in Phi$, returns some $vx in cX$ with $phi.alt(vx) = vx$.
 
-The $Phi$-regret minimizer operates as follows.
-- `NextStrategy()`: ask $cR$ for a transformation $phi.alt^((t)) in Phi$, use the oracle to compute a fixed point $vx^((t)) = phi.alt^((t))(vx^((t)))$, and output $vx^((t))$.
-- `ObserveUtility`$(u^((t)))$: pass to $cR$ the utility function
-  $
-    U^((t))(phi.alt) := u^((t))(phi.alt(vx^((t)))), qquad phi.alt in Phi,
-  $
-  which scores each transformation by the utility it would have obtained had it been applied to the strategy just played. $U^((t))$ is linear in $phi.alt$, because $u^((t))$ is linear and so is the evaluation map $phi.alt |-> phi.alt(vx^((t)))$.
-
-In words, $cR$ decides which transformation to guard against, and the oracle turns that transformation into a strategy that the transformation cannot improve (@fig-ggm-recap-loop). This is what makes the two regrets coincide.
-
-#figure(
-  caption: [The reduction of #citet(<gordon2008no>), reproduced from #lecture-link("phi_regret", <fig-ggm>)[]: the external regret minimizer works in the space of transformations, and the fixed-point oracle turns its output into a strategy.],
-)[
-  #image(
-    "figures/phi_regret/gordon.svg",
-    width: 100%,
-    alt: "Block diagram of the Gordon-Greenwald-Marks reduction: the utility u on the strategy set is turned into a utility U on transformations, an external regret minimizer over Phi outputs a transformation, and a fixed-point step turns it into the played strategy.",
-  )
-] <fig-ggm-recap-loop>
+At each time $t$, the algorithm asks $cR$ for a transformation $phi.alt^((t))$, plays a fixed point $vx^((t)) = phi.alt^((t))(vx^((t)))$, observes $u^((t))$, and passes to $cR$ the linear utility
+$
+  U^((t))(phi.alt) := u^((t))(phi.alt(vx^((t)))), qquad phi.alt in Phi,
+$
+which scores each transformation by what it would have earned had it been applied to $vx^((t))$. We assume that the oracle returns exact fixed points efficiently. In words, $cR$ picks the transformation that currently threatens the learner the most, and the fixed point leaves that transformation nothing to gain in the current round.
 
 #theorem[#citep(<gordon2008no>)][
-  If the oracle returns exact fixed points, then for every $T$ the $Phi$-regret of the algorithm above equals the external regret $"Reg"_Phi^((T))$ of $cR$ on the utilities $U^((1)), ..., U^((T))$:
+  For every $T$, the $Phi$-regret of this algorithm equals the external regret $"Reg"_Phi^((T))$ of $cR$ on the utilities $U^((1)), ..., U^((T))$:
   $
     Phi"-Reg"^((T)) = "Reg"_Phi^((T)).
   $
-  In particular, the algorithm is a $Phi$-regret minimizer whenever $cR$ is an external regret minimizer.
+  Hence the algorithm has sublinear $Phi$-regret whenever $cR$ has sublinear external regret.
 ] <thm-ggm-recap>
 
 #proof[
-  By the definitions of $"Reg"_Phi^((T))$ and $U^((t))$,
+  Fix a comparator $hat(phi.alt) in Phi$. By the definition of $U^((t))$ and the fixed-point condition $phi.alt^((t))(vx^((t))) = vx^((t))$,
   $
-    "Reg"_Phi^((T))
-      &= max_(hat(phi.alt) in Phi) sum_(t=1)^T (U^((t))(hat(phi.alt)) - U^((t))(phi.alt^((t)))) \
-      &= max_(hat(phi.alt) in Phi) sum_(t=1)^T (u^((t))(hat(phi.alt)(vx^((t)))) - u^((t))(phi.alt^((t))(vx^((t))))).
+    U^((t))(hat(phi.alt)) - U^((t))(phi.alt^((t))) = u^((t))(hat(phi.alt)(vx^((t)))) - u^((t))(vx^((t))).
   $
-  Since $phi.alt^((t))(vx^((t))) = vx^((t))$, the right-hand side is the definition of $Phi"-Reg"^((T))$.
+  Summing over $t$ and maximizing over $hat(phi.alt)$ turns the left-hand side into $"Reg"_Phi^((T))$ and the right-hand side into $Phi"-Reg"^((T))$.
 ]
 
-The proof also shows why the fixed point is needed. If $vx^((t))$ were not fixed by $phi.alt^((t))$, then $Phi"-Reg"^((T))$ would exceed $"Reg"_Phi^((T))$ by
-$
-  sum_(t=1)^T (u^((t))(phi.alt^((t))(vx^((t)))) - u^((t))(vx^((t)))),
-$
-a term that $cR$ never observes and therefore cannot control. The fixed-point computation is the only nonlinear step of the reduction, and it carries all of its computational difficulty.
-
-#example[One round on rock-paper-scissors][
-  Let $cX = Delta^3$ over rock, paper and scissors, in this order, and suppose that $cR$ proposes the swap deviation $phi.alt^((t))(vx) = Q vx$ with
-  $
-    Q = mat(0.4, 0.1, 0.2; 0.5, 0.8, 0.3; 0.1, 0.1, 0.5),
-  $
-  which reroutes most of the probability toward paper. All entries of $Q$ are positive, so $Q$ has a unique fixed point on the simplex, its stationary distribution $vx^((t)) = (1\/6, 2\/3, 1\/6)$ (@fig-ggm-recap-fixed-points, right). Whatever utility $u^((t))$ arrives, $U^((t))(phi.alt^((t))) = u^((t))(Q vx^((t))) = u^((t))(vx^((t)))$: the deviation that $cR$ played earns exactly what the learner earned.
-
-  Suppose instead that the learner ignored the oracle and played the uniform strategy $vx = (1\/3, 1\/3, 1\/3)$. Then $Q vx = (7\/30, 8\/15, 7\/30)$, and if only paper is rewarded, $u^((t))(vx) = ip((0, 1, 0), vx)$, the deviation $phi.alt^((t))$ beats the learner by $8\/15 - 1\/3 = 1\/5$ in this round. This is one term of the unobserved sum above.
-] <ex-ggm-recap-rps>
+The fixed point is what makes the two regrets equal: without it, $Phi"-Reg"^((T))$ would exceed $"Reg"_Phi^((T))$ by $sum_t (u^((t))(phi.alt^((t))(vx^((t)))) - u^((t))(vx^((t))))$, a term that $cR$ never observes. @fig-ggm-recap-fixed-points shows what the oracle returns for the two examples above.
 
 #figure(
-  caption: [Fixed points of the two deviations of @ex-ggm-recap-external and @ex-ggm-recap-swap on $Delta^3$. Each arrow starts at a strategy $vx$ and points along $phi.alt(vx) - vx$, scaled down for readability. The marked point is what the fixed-point oracle returns: there the displacement vanishes, so the deviation cannot improve on the strategy played. Left: the constant deviation with $hat(vx) = (3\/5, 1\/5, 1\/5)$, whose fixed point is $hat(vx)$ itself. Right: the swap deviation $vx |-> Q vx$ of @ex-ggm-recap-rps, whose fixed point is the stationary distribution $vx^star = (1\/6, 2\/3, 1\/6)$.],
+  caption: [Fixed points on the simplex over rock, paper and scissors. Each arrow starts at a strategy $vx$ and points along $phi.alt(vx) - vx$, scaled down; the marked point is the oracle's output, where the displacement vanishes. Left: the constant transformation with $hat(vx) = (3\/5, 1\/5, 1\/5)$. Right: the swap transformation $vx |-> Q vx$ whose matrix has columns $(0.4, 0.5, 0.1)$, $(0.1, 0.8, 0.1)$ and $(0.2, 0.3, 0.5)$; its fixed point is the stationary distribution $vx^star = (1\/6, 2\/3, 1\/6)$.],
 )[
   #image(
     "figures/calibration_ggm/fixed_points.svg",
-    width: 100%,
+    width: 85%,
     alt: "Two triangles representing the simplex over rock, paper and scissors, filled with arrows. Left: all arrows point toward a marked point near rock, the constant comparator. Right: arrows contract toward a marked point near paper, the stationary distribution of the matrix Q.",
   )
 ] <fig-ggm-recap-fixed-points>
 
-#block(breakable: false)[
-#remark[Instances and approximate fixed points][
-  The reduction specializes as follows, and it degrades gracefully when fixed points are only approximate.
-  - For $Phi^"const"$, the fixed point of $phi.alt_(hat(vx))$ is $hat(vx)$ itself. The oracle is trivial, and the reduction plays the strategies of an external regret minimizer over $cX$, as it should.
-  - For $Phi^"swap"$, a fixed point of $vx |-> Q vx$ is a stationary distribution of the Markov chain on actions with transition matrix $Q$. It always exists and can be found by solving a linear system. Implementing $cR$ as $n$ independent external regret minimizers, one per column of $Q$, recovers the algorithm of #citet(<blum2007external>), described in #lecture-link("phi_regret").
-  - For a general $Phi$ of continuous maps, a fixed point exists by #lecture-link("brouwer")[Brouwer's theorem], but finding one can be hard. This difficulty cannot be avoided: no-$Phi$-regret learning is in general as hard as computing approximate fixed points #citep(<hazan2007computational>). If the oracle only guarantees $norm(phi.alt^((t))(vx^((t))) - vx^((t)))_1 <= epsilon_t$, and the utilities are $u^((t))(vx) = ip(vg^((t)), vx)$ with $norm(vg^((t)))_oo <= C$, the identity of @thm-ggm-recap weakens to
-    $
-      Phi"-Reg"^((T)) <= "Reg"_Phi^((T)) + C sum_(t=1)^T epsilon_t
-    $
-    (#lecture-link("phi_regret", <ex-approx-fixed-point>)[]).
-]
-]
-
-== Looking ahead: two routes to $Phi$-regret <sec-ggm-recap-routes>
-
-The reduction is one instance of a general pattern: an external regret minimizer selects the comparison that currently threatens the learner the most, and a nonlinear primitive neutralizes that comparison in the current round. The multicalibration algorithm of the next section follows the same pattern with different objects. Its external regret minimizer runs over a set of tests $cH$ rather than a set of deviations $Phi$; its primitive is an expected variational inequality rather than a fixed-point computation; and it outputs a distribution over forecasts rather than a strategy. Later in this lecture, best responding to these forecasts gives a second route to $Phi$-regret minimization.
-
-Two differences between the routes are worth keeping in mind. First, the fixed point turns the regret of $cR$ into $Phi$-regret through an exact identity, whereas the expected variational inequality only guarantees an inequality in each round, up to the accuracy of the solver; the forecasting route therefore gives an upper bound with an additive error term, much like the approximate fixed points in the remark above. Second, the forecasting route never computes a fixed point of a map from $cX$ to itself, so it does not need $Phi$ to consist of self-maps whose fixed points we can compute.
+For $Phi^"const"$ the oracle is trivial and the reduction simply plays the strategies chosen by $cR$. For $Phi^"swap"$ the fixed point is a stationary distribution of the Markov chain with transition matrix $Q$, found by solving a linear system; with one external regret minimizer per column of $Q$, the reduction is the algorithm of #citet(<blum2007external>). For general $Phi$, fixed points exist by #lecture-link("brouwer")[Brouwer's theorem] but can be hard to compute, and this cost is inherent: a no-$Phi$-regret learner can itself be used to find approximate fixed points #citep(<hazan2007computational>). #lecture-link("phi_regret", <sec-ggm>)[] covers these points, and #lecture-link("phi_regret", <ex-approx-fixed-point>)[one of its exercises] shows that approximate fixed points add their error to the regret bound.
 
 // Bibliography: remove when merging into the combined L15 source.
 #lec_bibliography("meta/refs.bib")
