@@ -157,7 +157,7 @@ Perhaps surprisingly, finding an EFPE or a QPE in a two-player game is not harde
 
 <sec:trembling-lp>
 
-We can compute a limit point of solutions to @eq:efpe and @eq:qpe using the same machinery. As a first step, just like what we did for the Nash equilibrium, we convert the bilinear saddle-point formulations @eq:efpe, @eq:qpe into linear programs by dualizing the internal minimization problems. This gives us a linear program where the constraints matrix and the objective function depend polynomially on $epsilon.alt$. In particular, for both QPE and EFPE we end up with a linear program of the form
+We can compute a limit point of solutions to @eq:efpe and @eq:qpe using the same machinery. As a first step, just like what we did for the Nash equilibrium, we convert the bilinear saddle-point formulations @eq:efpe, @eq:qpe into linear programs by dualizing the internal minimization problems. This gives us a linear program whose right-hand side and objective depend polynomially on $epsilon.alt$; for EFPE, so does the constraint matrix, as derived in #ref(<sec:app-efpe-lp>, supplement: [Appendix]). In particular, for both QPE and EFPE we end up with a linear program of the form
 
 $
   P(epsilon.alt) : cases(
@@ -273,4 +273,38 @@ The practical algorithm is 3-4 orders of magnitude faster than the conceptual al
   Given those continuations, Player 2 receives $1/2$ conditional on choosing $r$, and $0$ conditional on choosing $s$. Since $x_b>0$, the unique best response is $r=1-epsilon.alt$. This proves the claimed perturbed equilibrium for positive $epsilon.alt$.
 
   As $epsilon.alt$ tends to zero, the limiting profile selects $a$ at the root, but still mixes equally between $c$ and $d$ at $C$. In that subgame, $c$ gives Player 1 payoff $1$ and $d$ gives $-2$. Thus the continuation fails to be a best response, so the limit is not subgame perfect and therefore cannot be sequentially rational. Uniqueness was claimed only for the positive perturbations; the unperturbed game has other equilibria.
+
+  = Deriving the EFPE trembling linear program <sec:app-efpe-lp>
+
+  We dualize the inner minimization of (@eq:efpe) and bring the result to the form $P(epsilon.alt)$ of @sec:trembling-lp.
+
+  *Step 1: dualize the inner problem.* For fixed $vx$, Player~$2$ solves the following linear program (dual variables in brackets):
+  $
+    min_(vy >= 0) vx^top U_1 vy quad upright("s.t.") quad F_2 vy = vf_2 quad [vv "free"], quad M_(2)(epsilon.alt) vy >= vm_(2)(epsilon.alt) quad [vw >= 0].
+  $
+  For $0 < epsilon.alt <= 1 \/ max_j abs(A_j)$ this program is feasible (the uniform strategy satisfies every trembling constraint) and bounded, so by strong duality its value equals that of its dual
+  $
+    max_(vv, vw) vf_2^top vv + vm_(2)(epsilon.alt)^top vw quad upright("s.t.") quad F_2^top vv + M_(2)(epsilon.alt)^top vw <= U_1^top vx, quad vw >= 0.
+  $
+
+  *Step 2: merge.* Replacing the inner minimization of (@eq:efpe) with this maximization gives a single linear program:
+  $
+    max_(vx, vv, vw) quad & vf_2^top vv + vm_(2)(epsilon.alt)^top vw \
+    upright("s.t.") quad & F_1 vx = vf_1, quad M_(1)(epsilon.alt) vx >= vm_(1)(epsilon.alt), \
+    & U_1^top vx - F_2^top vv - M_(2)(epsilon.alt)^top vw >= 0, quad vx, vw >= 0.
+  $
+  Its optimal value is the value of (@eq:efpe), and its $vx$-part is an optimal strategy for Player~$1$.
+
+  *Step 3: standard form.* Split the free vector as $vv = vv^(+) - vv^(-)$ with $vv^(+), vv^(-) >= 0$, and turn the two inequality constraints into equalities by subtracting slacks $vs, bold(t) >= 0$. In the variable $vz = (vx, vv^(+), vv^(-), vw, vs, bold(t)) >= 0$, the program becomes $max vc(epsilon.alt)^top vz$ s.t. $A(epsilon.alt) vz = vb(epsilon.alt)$, with
+  $
+    A(epsilon.alt) & = mat(
+      F_1, 0, 0, 0, 0, 0;
+      M_(1)(epsilon.alt), 0, 0, 0, -I, 0;
+      U_1^top, -F_2^top, F_2^top, -M_(2)(epsilon.alt)^top, 0, -I
+    ), \
+    vb(epsilon.alt) & = (vf_1, vm_(1)(epsilon.alt), 0), quad
+    vc(epsilon.alt) = (0, vf_2, -vf_2, vm_(2)(epsilon.alt), 0, 0).
+  $
+
+  *Where $epsilon.alt$ appears.* All three are affine in $epsilon.alt$. The constraints $x_(j a) - epsilon.alt x_(p_j) >= 0$ of (#ref(label("eq:efpe constraint"))), with #box[$p_j != ∅$], put $epsilon.alt$ in the coefficients of $M_(1)$ and $M_(2)$, hence in $A(epsilon.alt)$; the constraints $x_(j a) >= epsilon.alt$, with #box[$p_j = ∅$], put it in the right-hand sides $vm_(1)$ and $vm_(2)$, hence in $vb(epsilon.alt)$ and $vc(epsilon.alt)$, respectively. This split follows (#ref(label("eq:efpe constraint"))) as written: since $x_∅ = 1$, the latter could also be written $x_(j a) - epsilon.alt x_∅ >= 0$, moving all of $epsilon.alt$ into $A(epsilon.alt)$.
 ]
