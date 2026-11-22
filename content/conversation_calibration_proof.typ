@@ -84,6 +84,6 @@ Summing over the $K - 1$ rounds, we obtain:
 $
   "MSE"_1 - "MSE"_K > (K - 1) delta eps^2 >= 1
 $
-Where the last inequality follow from the definition $K >= 1 + 1 / (delta eps^2)$.
+Where the last inequality follows from the definition $K >= 1 + 1 / (delta eps^2)$.
 
 However, this is impossible, as $"MSE"_1 <= 1$ (as shown earlier) and $"MSE"_K >= 0$ (as all terms are nonnegative). Therefore, at most $delta T$ days need more than $K$ rounds, as claimed.
