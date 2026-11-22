@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="360" viewBox="0 0 900 360" role="img" aria-labelledby="title desc">
+  <title id="title">Consistent transcripts and deviation continuation</title>
+  <desc id="desc">A mediator recommendation leads to player action, which branches to obedience and normal play or deviation and a fixed deviation continuation.</desc>
+  <style>
+    text { font-family: "New Computer Modern", serif; fill: #202020; }
+    .small { font-size: 18px; fill: #666; }
+    .label { font-size: 22px; }
+    .line { stroke: #777; stroke-width: 2.4; fill: none; }
+    .green-line { stroke: #4e8b63; stroke-width: 3; fill: none; }
+    .orange-line { stroke: #b36a2c; stroke-width: 3; fill: none; }
+    .blue-box { fill: #4779a8; fill-opacity: .12; stroke: #4779a8; stroke-width: 2; }
+    .green-box { fill: #4e8b63; fill-opacity: .12; stroke: #4e8b63; stroke-width: 2; }
+    .orange-box { fill: #b36a2c; fill-opacity: .12; stroke: #b36a2c; stroke-width: 2; }
+    .arrowhead-green { fill: #4e8b63; stroke: none; }
+    .arrowhead-orange { fill: #b36a2c; stroke: none; }
+    .arrowhead-neutral { fill: #777; stroke: none; }
+  </style>
+
+  <rect x="320" y="28" width="260" height="56" rx="5" class="blue-box" />
+  <text x="450" y="56" text-anchor="middle" class="label">mediator recommends a</text>
+
+  <line x1="450" y1="84" x2="450" y2="124" class="line" />
+  <path d="M 439 112 L 450 128 L 461 112 Z" class="arrowhead-neutral" />
+  <rect x="350" y="130" width="200" height="54" rx="5" class="blue-box" />
+  <text x="450" y="157" text-anchor="middle" class="label">player acts</text>
+
+  <line x1="450" y1="184" x2="250" y2="236" class="green-line" />
+  <path d="M 263 224 L 244 238 L 269 234 Z" class="arrowhead-green" />
+  <line x1="450" y1="184" x2="650" y2="236" class="orange-line" />
+  <path d="M 637 224 L 656 238 L 631 234 Z" class="arrowhead-orange" />
+  <text x="315" y="207" text-anchor="middle" class="small">obey a</text>
+  <text x="585" y="207" text-anchor="middle" class="small">play a′ ≠ a</text>
+
+  <rect x="100" y="240" width="300" height="58" rx="5" class="green-box" />
+  <text x="250" y="269" text-anchor="middle" class="label">normal protocol</text>
+  <text x="250" y="326" text-anchor="middle" class="small">consistent transcript</text>
+
+  <rect x="500" y="240" width="300" height="58" rx="5" class="orange-box" />
+  <text x="650" y="269" text-anchor="middle" class="label">deviation continuation</text>
+  <text x="650" y="326" text-anchor="middle" class="small">inconsistent transcript detected</text>
+</svg>
