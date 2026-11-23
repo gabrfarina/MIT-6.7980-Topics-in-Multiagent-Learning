@@ -73,4 +73,8 @@ The expectation averages over the forecaster's private draws and any random choi
 
 The next section extends these checks to groups defined by context, through multicalibration.
 
+#context if target() == "html" {
+  link("https://ziyue-l15-ece-preview.qiuzy-william2019.chatgpt.site/interactive/calibration_ece")[Try the interactive experiment]
+}
+
 #lec_bibliography("meta/refs.bib")
