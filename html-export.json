@@ -29,7 +29,8 @@
     "calibration": "slides/L15_calibration_gordon.pdf",
     "kernelized": "slides/L16_large_games.pdf",
     "nonconvex": "slides/L17_nonconvex_games.pdf",
-    "tfnp": "slides/L18_PPAD.pdf"
+    "tfnp": "slides/L18_PPAD.pdf",
+    "ppad": "slides/L19_PPAD-Hardness.pdf"
   },
   "interactive_slides": {
     "learning-foundations": "slides/L04_learning_in_games.html",

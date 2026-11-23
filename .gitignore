@@ -39,6 +39,7 @@
 !/slides/L16_large_games.pdf
 !/slides/L17_nonconvex_games.pdf
 !/slides/L18_PPAD.pdf
+!/slides/L19_PPAD-Hardness.pdf
 
 # Build products, editor state, and local secrets.
 **/target/
