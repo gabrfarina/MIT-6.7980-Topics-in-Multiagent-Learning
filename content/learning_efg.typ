@@ -106,6 +106,54 @@ In order to formally introduce counterfactual utility, we recall a bit of notati
   )
 ] <tab:notation>
 
+=== Counterfactual values, Q-values, and conditional expectations <sec-cfr-values>
+
+Both a Q-value and a counterfactual value evaluate an action at a decision point, assuming that subsequent play follows the current strategies. The difference is how they account for _getting to_ that decision point.
+
+- A *Q-value* asks: “If I were at this decision point and took this action, what continuation payoff should I expect?”
+- A *counterfactual value* evaluates the same action while keeping the opponents' and chance's probabilities of reaching this decision point, but leaving out your own earlier action probabilities.
+
+// Keep the worked example and its table together.
+#block(breakable: false)[
+  #example[
+    Consider the following decision process.
+
+    - You choose $sans("enter")$ with probability 0.1; otherwise your payoff is 0.
+    - After $sans("enter")$, chance lets you continue with probability 0.2; otherwise your payoff is 0.
+    - If you continue, you reach decision point $j$, where action $upsans(A)$ pays 10 and action $upsans(B)$ pays 4.
+
+    The actual probability of reaching $j$ is $0.1 times 0.2 = 0.02$.
+
+    #align(center, table(
+      stroke: none,
+      columns: 4,
+      align: (left, right, right, right),
+      inset: .7em,
+      table.header([*Quantity*], [*Multiplier*], [*A*], [*B*]),
+      [Q-value], [1], [10], [4],
+      [Counterfactual value], [0.2], [2], [0.8],
+      [Expected payoff], [0.02], [0.2], [0.08],
+    ))
+
+    The $upsans(A)$ and $upsans(B)$ columns assume that you choose the corresponding action at $j$. The Q-value is the continuation value once the player is placed at $j$; the counterfactual value additionally keeps chance's 0.2 reach probability but not your $sans("enter")$ probability; the expected payoff of the whole game keeps both.
+  ] <ex-cfr-values>
+]
+
+More generally, fix all strategies in a perfect-recall game, and let $Q_(i)(j, a)$ and $v_(i)^("cf")(j, a)$ denote player $i$'s Q-value and counterfactual value of action $a in A_j$ at decision point $j$. By perfect recall, all histories in the same decision point $j$ share the same parent sequence of player $i$.
+
+Let $w_(-i)(j)$ denote the external (or counterfactual) reach probability of $j$: the probability weight contributed by opponents and chance, excluding player $i$'s own earlier action probabilities. Whenever $w_(-i)(j) > 0$, the Q-value is the counterfactual value normalized by this external reach probability:
+$ v_(i)^("cf")(j, a) = w_(-i)(j) dot Q_(i)(j, a). $
+
+Thus, $Q_(i)(j, a)$ describes the continuation value of choosing $a$ once the player is placed at $j$, whereas the counterfactual value also retains the probability that opponents and chance make $j$ possible. Player $i$'s own probability of reaching $j$ is deliberately excluded, while player $i$'s strategy after taking $a$ still matters. We use the unnormalized counterfactual-value convention here.
+
+If the event of reaching $j$ and choosing $a$ has positive probability under the current strategy profile, then $Q_(i)(j, a)$ agrees with the ordinary conditional expectation of the payoff given that event. However, the Q-value is an action value and can still be defined when player $i$'s own earlier strategy gives $j$ zero actual reach, or when the current strategy assigns zero probability to action $a$. In those cases, the corresponding ordinary conditional expectation is undefined.
+
+This is one reason CFR works with counterfactual values. Even if your strategy in @ex-cfr-values never chooses $sans("enter")$, the Q-values at $j$ remain 10 and 4, and the counterfactual values remain 2 and 0.8. A full-tree CFR update can therefore evaluate the actions at $j$ even when your current strategy never reaches it.
+
+*Connection to normal form* In a one-shot normal-form game, player $i$'s decision point is reached with probability 1, so there is no earlier own-reach probability to remove. Hence the Q-value and counterfactual value both reduce to
+$ q_(i)(a_i) := EE_(a_(-i) ~ x_(-i))[u_(i)(a_i, a_(-i))]. $
+
+We fix player $i$'s action and average over the opponents' actions. When $a_i$ has positive probability under player $i$'s current strategy, this is also the ordinary conditional expectation of player $i$'s payoff given that player $i$ chooses $a_i$: by independence, conditioning on $a_i$ leaves the distribution of $a_(-i)$ unchanged. The formula above remains meaningful even when player $i$ assigns zero probability to $a_i$, in which case that ordinary conditional expectation is undefined.
 == Pseudocode for CFR
 
 Pseudocode for CFR is given in @algo:cfr. Note that the implementation is parametric on the regret minimization algorithms $R_j$ run locally at each decision point. Any regret minimizer $R_j$ for simplex domains can be used to solve the local regret minimization problems. Popular options are #lecture-link("learning1", <sec-rm>)[regret matching] and #lecture-link("learning1", <sec-rmp>)[regret matching plus].
@@ -147,11 +195,30 @@ Pseudocode for CFR is given in @algo:cfr. Note that the implementation is parame
 
 == Learning using self-play
 
-The CFR algorithm can be used to learn a Nash equilibrium in a two-player zero-sum game by letting two regret minimizers play against each other. The two regret minimizers exchange their sequence-form strategies at every iteration according to the #lecture-link("learning_intro", <sec-learning-zero-sum>)[canonical self-play setup].
+The CFR algorithm can be used to learn a Nash equilibrium in a two-player zero-sum game by letting two regret minimizers play against each other. The two regret minimizers exchange their sequence-form strategies at every iteration according to the #lecture-link("learning_intro", <sec-learning-zero-sum>)[canonical self-play setup]. When a full traversal of the tree on every iteration is too expensive, sampling-based variants of CFR can be used instead; see #ref(<sec-mccfr>, supplement: [Appendix]).
 
 = Bibliography for this lecture
 
 #lec_bibliography("meta/refs.bib", title: none)
+
+#appendix[
+  = Appendix: Monte Carlo CFR <sec-mccfr>
+
+  Each iteration of @algo:cfr traverses the entire tree-form decision process. While this is linear in the size of the tree, the tree itself can grow exponentially with its depth, and a full traversal on every iteration can be prohibitively expensive. _Monte Carlo CFR (MCCFR)_ #citep(<lanctot2009monte>) avoids full traversals by only considering a sampled portion of the game tree on each iteration, while keeping the counterfactual values, and hence the regret updates, unchanged in expectation. As in #citet(<lanctot2009monte>), we consider two-player zero-sum games with perfect recall, with each local regret minimizer $R_j$ running #lecture-link("learning1", <sec-rm>)[regret matching].
+
+  *Sampled counterfactual values* On each iteration $t$, MCCFR samples a random set $Z^((t))$ of terminal nodes of the game tree, including each terminal node $z$ with some probability $q(z) > 0$. For a sequence $j a in Sigma$ of player $i$, let $Z_(j a)$ be the set of terminal nodes reached through $j a$. For $z in Z_(j a)$, let $u_(i)(z)$ be player $i$'s payoff at $z$, $w_(-i)(z)$ the external reach probability of $z$ (defined as for $w_(-i)(j)$ in @sec-cfr-values), and $w_(i)(j a, z)$ the probability that player $i$ plays their remaining actions from $j a$ to $z$. The counterfactual value of @sec-cfr-values is then
+  $ v_(i)^("cf")(j, a) = sum_(z in Z_(j a)) w_(-i)(z) dot w_(i)(j a, z) dot u_(i)(z). $
+  MCCFR replaces it with the _sampled counterfactual value_, which sums only over the sampled terminal nodes and divides each term by its sampling probability:
+  $ tilde(v)_(i)^("cf")(j, a) := sum_(z in Z^((t)) inter Z_(j a)) 1 / q(z) dot w_(-i)(z) dot w_(i)(j a, z) dot u_(i)(z). $
+  Since each term is included with probability $q(z)$, the sampled counterfactual value equals $v_(i)^("cf")(j, a)$ in expectation #citep(<lanctot2009monte>). Each $R_j$ observes the sampled values in place of the exact ones, and only the decision points on paths to sampled terminal nodes are updated. Taking $q(z) = 1$ for every terminal node recovers CFR. #citet(<lanctot2009monte>) introduce two sampling schemes:
+
+  + *Outcome sampling* samples a single terminal node per iteration, by simulating one play of the game in which each player follows a _sampling strategy_ (a strategy used only to choose the path) and chance follows its usual probabilities. Only the decision points on that one path are updated, so each iteration is very cheap. To ensure every terminal node can be sampled, player $i$'s sampling strategy gives every action some positive probability, for example by occasionally playing uniformly random actions. The drawback is that unlikely terminal nodes receive large weights $1 \/ q(z)$. If the opponent's sampling strategy is their actual strategy, the update needs only player $i$'s own strategy and the observed payoff, so outcome sampling can also be used for _online_ regret minimization, where player $i$ learns while playing an opponent whose strategy is unknown.
+
+  + *External sampling* samples only the actions _external_ to player $i$: at every opponent decision point and chance node, it samples a single action according to the opponent's current strategy or chance's probabilities, while at player $i$'s decision points it explores every action. Each terminal node is then sampled with probability exactly equal to its external reach probability, $q(z) = w_(-i)(z)$, so $w_(-i)(z) \/ q(z) = 1$ in the sampled counterfactual value and no term is divided by a small probability.
+
+  With high probability, the average regret of both schemes still decreases as $O(1 \/ sqrt(T))$, so they still compute an approximate equilibrium in self-play. Their bounds require more iterations than CFR, but each iteration is much cheaper. For outcome sampling, the bound is larger than that of external sampling by a factor of $1 \/ delta$, where $delta > 0$ is a lower bound on the sampling probabilities $q(z)$ of the terminal nodes that the opponent and chance can reach. For external sampling, the number of iterations grows by only a constant factor that depends on the desired confidence, while in balanced games (where the players make roughly equal numbers of decisions) each iteration costs $O(sqrt(abs(H)))$ instead of $O(abs(H))$, with $abs(H)$ the number of nodes in the game tree. Hence external sampling computes an approximate equilibrium in asymptotically less time than CFR #citep(<lanctot2009monte>).
+
+]
 
 #changelog[
   - 2025-10-09: Fixed typos (thanks Josh Rountree!).

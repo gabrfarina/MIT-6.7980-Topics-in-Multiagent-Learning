@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Two-player zero-sum games with two rows · MIT 6.7980</title>
+<meta name="description" content="Interactive companion to the two-player zero-sum section of the MIT 6.7980 Lecture 3 notes.">
+<style>
+/* Shared lecture-note fonts; license: ../assets/fonts/OFL.txt. */
+@font-face {
+    font-family: "Source Sans 3";
+    src: url("../assets/fonts/SourceSans3-Regular-web.woff?v=3dbf4ec102f9") format("woff");
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap
+}
+
+@font-face {
+    font-family: "Source Sans 3";
+    src: url("../assets/fonts/SourceSans3-Bold-web.woff?v=46e53922ba57") format("woff");
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap
+}
+</style>
+<style>
+  /* Matches the HTML lecture notes (html-exporter/src/gabri-notes.css): paper, ink, rule, statement block, accent and brown. */
+  :root {
+    --paper: #fbfaf7;
+    --ink: #171411;
+    --muted: #6b635b;
+    --rule: #d7d0c6;
+    --block: #eeeeee;
+    --accent: #325d8a;
+    --brown: #8a4c20;
+    --serif: Georgia, "Times New Roman", Times, serif;
+    --sans: "Source Sans 3", "Helvetica Neue", Arial, sans-serif;
+    --c1: #1f5cb8; --c2: #b3323b; --c3: #2c7a4b; --c4: #8a5a00; --c5: #7a4fb0; --c6: #0e7c86; --c7: #c4621a; --c8: #555555;
+  }
+  html { font-size: 90%; background: var(--paper); }
+  body { margin: 0; color: var(--ink); background: var(--paper); font-family: var(--serif); font-size: 1.125rem; line-height: 1.58; }
+  main { max-width: 780px; margin: 0 auto; padding-inline: 24px; padding-block: 32px 64px; }
+  h1, h2, b, strong, .kicker, button, label, th { font-family: var(--sans); }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  i.m { font-style: italic; }
+  b.vec { font-family: var(--serif); font-style: italic; font-weight: 700; }
+  .kicker { margin: 0 0 .25rem; color: var(--brown); font-size: .86rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+  .kicker a { color: inherit; }
+  h1 { display: inline-block; max-width: 100%; margin: 0 0 1.4rem; padding-bottom: .32rem; border-bottom: 4px solid #000; font-size: 2.3rem; line-height: 1.08; }
+  h2 { position: relative; margin: 2rem 0 .6rem; font-size: 1.38rem; line-height: 1.18; }
+  h2::before { content: ""; position: absolute; left: -1.05rem; top: .18em; bottom: .16em; width: 3px; background: #c8c2b9; }
+  p { margin: .72rem 0; }
+  .statement { margin: 1.1rem 0; padding: .55rem .85rem; background: var(--block); border: 1px solid #d8d8d8; border-radius: 3px; }
+  .statement p { margin: .35rem 0; }
+  .controls { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem 1.4rem; margin: .6rem 0; font-family: var(--sans); font-size: 1rem; }
+  .controls .group { display: inline-flex; align-items: baseline; gap: .45rem; flex-wrap: wrap; }
+  button { font-size: 1rem; color: var(--accent); background: none; border: 0; padding: 0; cursor: pointer; }
+  button:hover { text-decoration: underline; }
+  button.step { width: 1.6rem; height: 1.6rem; border: 1px solid var(--rule); border-radius: 3px; background: var(--paper); color: var(--ink); line-height: 1; }
+  button.step:hover { text-decoration: none; border-color: var(--muted); }
+  button:disabled { color: var(--muted); opacity: .45; cursor: default; text-decoration: none; }
+  button.current { color: var(--ink); font-weight: 600; text-decoration: underline; text-decoration-color: var(--rule); }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .sep { color: var(--rule); }
+  .scroll { overflow-x: auto; max-width: 100%; }
+  table { border-collapse: collapse; }
+  table.payoffs td, table.payoffs th { padding: .2rem .3rem; text-align: center; }
+  table.payoffs th { font-weight: 600; font-size: .95rem; color: var(--muted); }
+  table.payoffs input { width: 3.6em; font-family: var(--serif); font-size: 1.05rem; text-align: center; padding: .15rem .2rem; border: 1px solid var(--rule); border-radius: 2px; background: #fff; color: var(--ink); }
+  table.payoffs input.bad { border-color: #b3323b; color: #b3323b; }
+  .note { color: var(--muted); font-size: 1rem; }
+  .error { color: #b3323b; font-size: 1rem; }
+  figure { margin: 1rem 0; }
+  figure svg { width: 100%; height: auto; display: block; }
+  .tick { font-family: var(--serif); font-size: 13px; fill: var(--ink); }
+  .lbl { font-family: var(--serif); font-size: 15px; font-style: italic; }
+  .slider { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem 1rem; font-family: var(--sans); font-size: 1rem; }
+  .slider input { flex: 1 1 220px; accent-color: var(--ink); }
+  table.lecture { margin: .75rem 0; font-size: 1rem; }
+  table.lecture th, table.lecture td { padding: .35rem .7rem; text-align: left; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+  table.lecture thead th { font-weight: 600; border-bottom: 1.5px solid var(--ink); }
+  table.lecture tbody tr:last-child td { border-bottom: 1.5px solid var(--ink); }
+  table.lecture td.num { font-variant-numeric: tabular-nums; }
+  td.best { font-weight: 700; }
+  select { max-width: 100%; font: inherit; color: var(--ink); background: white; border: 1px solid var(--rule); border-radius: 3px; padding: .25rem; }
+  [data-column].linked { background: #e5edf4; }
+  svg line.linked { stroke-width: 4; }
+  svg text[data-column] { cursor: pointer; }
+  #column-detail { min-height: 1.6em; }
+  #y-result { border-left: 3px solid var(--accent); }
+  @media (max-width: 540px) { main { padding-inline: 18px; } .tick { font-size: 16px; } .lbl { font-size: 18px; } }
+  footer { margin-top: 2.5rem; padding-top: .8rem; border-top: 1px solid var(--rule); color: var(--muted); font-size: 1rem; }
+  footer a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <p class="kicker"><a href="../correlated.html#sec-zero-sum">Lecture 3</a> · Interactive</p>
+  <h1>Two-player zero-sum games with two rows</h1>
+
+  <p>Player 1 chooses one of two rows and Player 2 one of <i class="m">n</i> columns; the entries of <b>U</b><sub>1</sub> below are Player 1's payoffs, and Player 2 receives their negative. Edit the entries, or add and remove columns, and the plot and the solution below update. Entries may be integers, decimals, or fractions such as 3/4; equilibrium solutions and snapped readouts are exact. Plot coordinates and moving-slider readouts are approximate.</p>
+
+  <div class="controls">
+    <span class="group">Columns:
+      <button type="button" class="step" id="minus" aria-label="Remove a column">−</button>
+      <span id="nval">5</span>
+      <button type="button" class="step" id="plus" aria-label="Add a column">+</button>
+    </span>
+    <span class="group">Examples:
+      <button type="button" data-preset="lecture">a worked 2 × 5 example</button><span class="sep">·</span>
+      <button type="button" data-preset="cap">a constant column below the value</button><span class="sep">·</span>
+      <button type="button" data-preset="pennies">matching pennies</button><span class="sep">·</span>
+      <button type="button" data-preset="saddle">a pure equilibrium</button>
+    </span>
+  </div>
+  <div class="scroll"><table class="payoffs" id="matrix" aria-label="Payoff matrix of Player 1"></table></div>
+  <p class="error" id="err" role="alert" hidden></p>
+
+  <h2>Graphical solution</h2>
+  <p>Write Player 1's strategy as <b class="vec">x</b> = (<i class="m">t</i>, 1 − <i class="m">t</i>). Against column <i class="m">j</i>, Player 1 earns <i class="m">ℓ<sub>j</sub></i>(<i class="m">t</i>), a linear function of <i class="m">t</i>. Player 2 has a pure best response to any <b class="vec">x</b>, so <b class="vec">x</b> guarantees the lower envelope min<sub><i class="m">j</i></sub> <i class="m">ℓ<sub>j</sub></i>(<i class="m">t</i>), drawn in black. The maxmin strategies of Player 1 are its highest points. Dashed lines mark columns strictly dominated for Player 2 by another pure column: that other column gives Player 1 a smaller payoff in both rows.</p>
+  <figure><svg id="plot" viewBox="0 0 760 360" role="img" aria-label="Lines ℓ_j(t) for each column, their lower envelope, and the maxmin strategies of Player 1"></svg></figure>
+  <div class="slider">
+    <label for="t"><i class="m">t</i> = <span id="tval"></span></label>
+    <input type="range" id="t" min="0" max="1" step="any" value="0.3">
+    <button type="button" id="snap">move to a maxmin strategy</button>
+  </div>
+  <div class="scroll"><table class="lecture" id="pays" aria-live="polite"></table></div>
+
+  <p class="note" id="responses" aria-live="polite"></p>
+  <p class="note" id="column-detail">Focus a matrix entry or hover a column to follow its line and LP constraint.</p>
+
+  <h2>Solution</h2>
+  <div class="statement" id="solution"></div>
+
+  <h2>Explore Player 2’s strategy</h2>
+  <p>An optimal strategy holds both row payoffs at or below the value. A best response to one particular row mixture need not do that.</p>
+  <div class="controls"><label for="ymode">Try:</label><select id="ymode" aria-label="Player 2 strategy"></select></div>
+  <div id="mixture-controls">
+    <div class="controls"><label for="ya">Endpoint A</label><select id="ya"></select><label for="yb">Endpoint B</label><select id="yb"></select></div>
+    <div class="slider"><label for="lambda">λ = <span id="lambda-value">0</span></label><input id="lambda" type="range" min="0" max="100" step="1" value="0"></div>
+    <p class="note">y = (1 − λ) A + λ B. Every point on this segment is optimal. With more than two optimal endpoints, these segments need not cover every optimal strategy.</p>
+  </div>
+  <div class="statement" id="y-result" aria-live="polite"></div>
+
+  <h2>Linear programming certificate</h2>
+  <p id="lp-intro"></p>
+  <div class="scroll"><table class="lecture" id="cert"></table></div>
+  <p class="note">At a pair of optimal solutions, a positive weight sits only on a constraint that holds with equality (complementary slackness). The converse can fail: a constraint can hold with equality while its weight is 0.</p>
+
+  <footer>Companion to the two-player zero-sum section of <a href="../correlated.html#sec-zero-sum">Lecture 3</a>. <a href="../index.html">Course page</a>.</footer>
+</main>
+
+<script>
+// Exact solver for 2 x n zero-sum games (Player 1 maximizes U[0][j] / U[1][j]).
+var ZS = (function () {
+  function gcd(a, b) { a = a < 0n ? -a : a; b = b < 0n ? -b : b; while (b) { var t = a % b; a = b; b = t; } return a; }
+  function Q(n, d) {
+    if (d === undefined) d = 1n;
+    n = BigInt(n); d = BigInt(d);
+    if (d === 0n) throw new Error("zero denominator");
+    if (d < 0n) { n = -n; d = -d; }
+    var g = gcd(n, d) || 1n;
+    return { n: n / g, d: d / g };
+  }
+  var add = function (a, b) { return Q(a.n * b.d + b.n * a.d, a.d * b.d); };
+  var sub = function (a, b) { return Q(a.n * b.d - b.n * a.d, a.d * b.d); };
+  var mul = function (a, b) { return Q(a.n * b.n, a.d * b.d); };
+  var div = function (a, b) { return Q(a.n * b.d, a.d * b.n); };
+  var cmp = function (a, b) { var x = a.n * b.d - b.n * a.d; return x < 0n ? -1 : x > 0n ? 1 : 0; };
+  var eq = function (a, b) { return cmp(a, b) === 0; };
+  var num = function (a) {
+    // Convert the ratio without overflowing on large intermediate integers.
+    if (a.n === 0n) return 0;
+    var n = String(a.n < 0n ? -a.n : a.n), d = String(a.d);
+    var mantissa = function (s) { return Number(s[0] + "." + s.slice(1, 16)); };
+    return (a.n < 0n ? -1 : 1) * (mantissa(n) / mantissa(d)) * Math.pow(10, n.length - d.length);
+  };
+  var str = function (a) { return a.d === 1n ? String(a.n).replace("-", "−") : (String(a.n) + "/" + String(a.d)).replace("-", "−"); };
+  var ZERO = Q(0), ONE = Q(1);
+
+  // Parse "3", "-2", "1.5", "3/4". Returns null on bad input.
+  function parse(s) {
+    s = String(s).trim().replace("−", "-");
+    if (s.length > 64) return null;
+    if (/^-?\d+$/.test(s)) return Q(s);
+    var m = s.match(/^(-?\d+)\s*\/\s*(\d+)$/);
+    if (m) return m[2] === "0" || /^0+$/.test(m[2]) ? null : Q(m[1], m[2]);
+    m = s.match(/^(-?)(\d*)\.(\d+)$/);
+    if (m && (m[2] + m[3]).length) { var d = 10n ** BigInt(m[3].length); var n = BigInt((m[2] || "0") + m[3]); return Q(m[1] ? -n : n, d); }
+    return null;
+  }
+
+  // l_j(t) = b_j + (a_j - b_j) t, with t = probability of Player 1's first action.
+  function line(U, j, t) { return add(U[1][j], mul(sub(U[0][j], U[1][j]), t)); }
+  function env(U, t) { var m = null; for (var j = 0; j < U[0].length; j++) { var v = line(U, j, t); if (m === null || cmp(v, m) < 0) m = v; } return m; }
+
+  function solve(U) {
+    var n = U[0].length;
+    // Candidate breakpoints: 0, 1, and pairwise crossings in [0, 1].
+    var cand = [ZERO, ONE];
+    for (var j = 0; j < n; j++) for (var k = j + 1; k < n; k++) {
+      var sj = sub(U[0][j], U[1][j]), sk = sub(U[0][k], U[1][k]);
+      var den = sub(sj, sk);
+      if (den.n === 0n) continue;
+      var t = div(sub(U[1][k], U[1][j]), den);
+      if (cmp(t, ZERO) >= 0 && cmp(t, ONE) <= 0) cand.push(t);
+    }
+    cand.sort(cmp);
+    var uniq = [];
+    cand.forEach(function (t) { if (!uniq.length || !eq(uniq[uniq.length - 1], t)) uniq.push(t); });
+    var envPts = uniq.map(function (t) { return [t, env(U, t)]; });
+    var v = envPts.reduce(function (m, p) { return cmp(p[1], m) > 0 ? p[1] : m; }, envPts[0][1]);
+    var opt = envPts.filter(function (p) { return eq(p[1], v); }).map(function (p) { return p[0]; });
+    var tLo = opt[0], tHi = opt[opt.length - 1];
+
+    // Player 2: optimal y keeps both of Player 1's payoffs <= v. Vertices of that set use at most two columns.
+    var sols = [];
+    function within(a) { return cmp(a, v) <= 0; }
+    for (var j = 0; j < n; j++) {
+      if (within(U[0][j]) && within(U[1][j])) sols.push({ j: j, k: j, lo: ONE, hi: ONE });
+      for (var k = j + 1; k < n; k++) {
+        // lambda on column j, 1 - lambda on column k; need r(lambda) = c_k + lambda (c_j - c_k) <= v for both rows.
+        var lo = ZERO, hi = ONE, ok = true;
+        for (var r = 0; r < 2 && ok; r++) {
+          var base = U[r][k], slope = sub(U[r][j], U[r][k]), rhs = sub(v, base);
+          if (slope.n === 0n) { if (cmp(rhs, ZERO) < 0) ok = false; }
+          else if (slope.n > 0n) { var b = div(rhs, slope); if (cmp(b, hi) < 0) hi = b; }
+          else { var b2 = div(rhs, slope); if (cmp(b2, lo) > 0) lo = b2; }
+        }
+        if (ok && cmp(lo, hi) <= 0 && cmp(hi, ZERO) > 0 && cmp(lo, ONE) < 0) sols.push({ j: j, k: k, lo: lo, hi: hi });
+      }
+    }
+    function yFrom(s, lam) {
+      var y = []; for (var i = 0; i < n; i++) y.push(ZERO);
+      y[s.j] = add(y[s.j], lam); y[s.k] = add(y[s.k], sub(ONE, lam)); return y;
+    }
+    var pts = [];
+    sols.forEach(function (s) { pts.push(yFrom(s, s.lo)); if (!eq(s.lo, s.hi)) pts.push(yFrom(s, s.hi)); });
+    var distinct = [];
+    pts.forEach(function (y) { if (!distinct.some(function (z) { return z.every(function (c, i) { return eq(c, y[i]); }); })) distinct.push(y); });
+    // Prefer a strategy with the smallest support for display.
+    distinct.sort(function (a, b) { return a.filter(function (c) { return c.n !== 0n; }).length - b.filter(function (c) { return c.n !== 0n; }).length; });
+
+    var yStar = distinct[0];
+    var tStar = tLo;
+    var xStar = [tStar, sub(ONE, tStar)];
+    var colPay = []; for (var c = 0; c < n; c++) colPay.push(line(U, c, tStar));
+    var rowPay = [0, 1].map(function (r) { var s = ZERO; for (var c2 = 0; c2 < n; c2++) s = add(s, mul(U[r][c2], yStar[c2])); return s; });
+    // Strictly dominated columns for Player 2 (who wants small entries).
+    var dominated = [];
+    for (var a = 0; a < n; a++) {
+      var by = -1;
+      for (var bb = 0; bb < n; bb++) if (bb !== a && cmp(U[0][bb], U[0][a]) < 0 && cmp(U[1][bb], U[1][a]) < 0) { by = bb; break; }
+      dominated.push(by);
+    }
+    return {
+      v: v, tLo: tLo, tHi: tHi, p1Unique: eq(tLo, tHi), envPts: envPts,
+      yStar: yStar, yAll: distinct, p2Unique: distinct.length === 1,
+      xStar: xStar, colPay: colPay, rowPay: rowPay, dominated: dominated
+    };
+  }
+  return { Q: Q, parse: parse, solve: solve, line: line, env: env, add: add, sub: sub, mul: mul, cmp: cmp, eq: eq, num: num, str: str, ZERO: ZERO, ONE: ONE };
+})();
+
+(function () {
+  var presets = {
+    lecture: [["5", "0", "3", "4", "2"], ["0", "4", "1", "3", "2"]],
+    cap: [["5", "0", "3", "4", "1"], ["0", "4", "1", "3", "1"]],
+    pennies: [["1", "-1"], ["-1", "1"]],
+    saddle: [["3", "5", "4"], ["1", "4", "6"]]
+  };
+  var MAXN = 8;
+  var state = { raw: presets.lecture.map(function (r) { return r.slice(); }), preset: "lecture", t: 0.3, exactT: null, highlighted: null };
+  function col(j) { return "var(--c" + ((j % 8) + 1) + ")"; }
+  var NS = "http://www.w3.org/2000/svg";
+  function el(tag, attrs, parent, text) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; if (parent) parent.appendChild(e); return e; }
+  function fmt(q) { return ZS.str(q); }
+  function vec(v) { return "(" + v.map(fmt).join(", ") + ")"; }
+  function ell(j) { return '<i class="m">ℓ<sub>' + (j + 1) + "</sub></i>"; }
+  function iv(s) { return '<i class="m">' + s + "</i>"; }
+  function bv(s) { return '<b class="vec">' + s + "</b>"; }
+
+  function buildMatrix() {
+    var n = state.raw[0].length, tb = document.getElementById("matrix");
+    var html = "<tr><th></th>";
+    for (var j = 0; j < n; j++) html += '<th data-column="' + j + '" scope="col" style="color:' + col(j) + '">' + (j + 1) + "</th>";
+    html += "</tr>";
+    for (var r = 0; r < 2; r++) {
+      html += '<tr><th scope="row">' + (r + 1) + "</th>";
+      for (var c = 0; c < n; c++) html += '<td data-column="' + c + '"><input id="u' + r + "-" + c + '" inputmode="decimal" aria-label="Payoff in row ' + (r + 1) + ", column " + (c + 1) + '" value="' + state.raw[r][c].replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;') + '"></td>';
+      html += "</tr>";
+    }
+    tb.innerHTML = html;
+    tb.querySelectorAll("input").forEach(function (inp) {
+      inp.addEventListener("input", function () {
+        var p = inp.id.slice(1).split("-").map(Number);
+        state.raw[p[0]][p[1]] = inp.value; state.preset = null; markPresets(); compute();
+      });
+    });
+    document.getElementById("nval").textContent = n;
+    document.getElementById("minus").disabled = n <= 1;
+    document.getElementById("plus").disabled = n >= MAXN;
+  }
+  function markPresets() { document.querySelectorAll("[data-preset]").forEach(function (b) { b.classList.toggle("current", b.dataset.preset === state.preset); }); }
+
+  function compute() {
+    var n = state.raw[0].length, U = [[], []], bad = 0;
+    for (var r = 0; r < 2; r++) for (var c = 0; c < n; c++) {
+      var q = ZS.parse(state.raw[r][c]), inp = document.getElementById("u" + r + "-" + c);
+      if (q !== null && (!Number.isFinite(ZS.num(q)))) q = null;
+      if (inp) inp.setAttribute("aria-invalid", q === null ? "true" : "false");
+      if (q === null) { bad++; if (inp) inp.classList.add("bad"); } else { if (inp) inp.classList.remove("bad"); U[r].push(q); }
+    }
+    var err = document.getElementById("err");
+    if (bad) { err.hidden = false; err.textContent = (bad === 1 ? "One entry is" : bad + " entries are") + " invalid. Use integers, decimals, or fractions (for example, 3, −1.5, or 2/3), with at most 64 characters per entry. The plot and solution still show the last valid matrix."; return; }
+    err.hidden = true;
+    state.U = U; state.sol = ZS.solve(U); state.exactT = null;
+    setupStrategies();
+    render();
+  }
+
+  function render() {
+    var U = state.U, s = state.sol, n = U[0].length, svg = document.getElementById("plot");
+    svg.innerHTML = "";
+    var W = 760, H = 360, L = 50, R = 56, T = 32, B = 40;
+    var all = []; for (var r = 0; r < 2; r++) for (var c = 0; c < n; c++) all.push(ZS.num(U[r][c]));
+    var lo = Math.min.apply(null, all), hi = Math.max.apply(null, all);
+    // A relative margin remains representable even at a large common offset.
+    if (hi - lo < Math.max(1e-9, Math.max(Math.abs(lo), Math.abs(hi)) * 1e-12)) {
+      var margin = Math.max(1, Math.abs(lo) * 0.1, Math.abs(hi) * 0.1);
+      hi += margin; lo -= margin;
+    }
+    var pad = (hi - lo) * 0.08; lo -= pad; hi += pad;
+    var X = function (t) { return L + t * (W - L - R); };
+    var Y = function (v) { return H - B - (v - lo) / (hi - lo) * (H - T - B); };
+    var step = Math.pow(10, Math.floor(Math.log10((hi - lo) / 4)));
+    if ((hi - lo) / step > 10) step *= 2;
+    if ((hi - lo) / step > 10) step *= 2.5;
+    var ink = "var(--ink)";
+    el("line", { x1: X(0), y1: Y(lo), x2: X(1) + 10, y2: Y(lo), stroke: ink, "stroke-width": 1 }, svg);
+    el("line", { x1: X(0), y1: Y(lo), x2: X(0), y2: Y(hi), stroke: ink, "stroke-width": 1 }, svg);
+    var firstTick = Math.ceil(lo / step) * step, previousTick = -Infinity;
+    for (var tick = 0; tick < 12; tick++) {
+      var g = firstTick + tick * step;
+      if (!Number.isFinite(g) || g > hi + step * 1e-8) break;
+      if (g <= previousTick) continue;
+      previousTick = g;
+      el("line", { x1: X(0) - 4, y1: Y(g), x2: X(0), y2: Y(g), stroke: ink }, svg);
+      el("text", { x: X(0) - 8, y: Y(g) + 4, "text-anchor": "end", class: "tick" }, svg, (Math.abs(g) >= 1e6 ? g.toExponential(1) : String(+g.toFixed(6))).replace("-", "−"));
+    }
+    [0, 0.25, 0.5, 0.75, 1].forEach(function (t) {
+      el("line", { x1: X(t), y1: Y(lo), x2: X(t), y2: Y(lo) + 4, stroke: ink }, svg);
+      el("text", { x: X(t), y: Y(lo) + 18, "text-anchor": "middle", class: "tick" }, svg, t);
+    });
+    el("text", { x: X(1) + 14, y: Y(lo) + 5, class: "lbl" }, svg, "t");
+    var a = ZS.num(s.tLo), b = ZS.num(s.tHi), v = ZS.num(s.v);
+    el("text", { x: X(0), y: 17, class: "tick" }, svg, "Payoff to Player 1");
+    if (b > a) el("rect", { x: X(a), y: Y(v), width: X(b) - X(a), height: Y(lo) - Y(v), fill: "var(--accent)", opacity: 0.12 }, svg);
+    var labels = [];
+    for (var j = 0; j < n; j++) {
+      el("line", { x1: X(0), y1: Y(ZS.num(U[1][j])), x2: X(1), y2: Y(ZS.num(U[0][j])), "data-column": j, stroke: col(j), "stroke-width": 1.4, "stroke-dasharray": s.dominated[j] >= 0 ? "6 4" : "none" }, svg);
+      labels.push({ j: j, y: Y(ZS.num(U[0][j])) });
+    }
+    labels.sort(function (p, q) { return p.y - q.y; });
+    for (var i = 1; i < labels.length; i++) if (labels[i].y - labels[i - 1].y < 16) labels[i].y = labels[i - 1].y + 16;
+    // Shift colliding labels back up, then connect displaced labels to their lines.
+    labels[labels.length - 1].y = Math.min(labels[labels.length - 1].y, H - B - 12);
+    for (var i = labels.length - 2; i >= 0; i--) labels[i].y = Math.min(labels[i].y, labels[i + 1].y - 16);
+    labels.forEach(function (p) {
+      var actualY = Y(ZS.num(U[0][p.j]));
+      if (Math.abs(p.y - actualY) > 1) el("line", { x1: X(1), y1: actualY, x2: X(1) + 6, y2: p.y, stroke: col(p.j), "stroke-width": 0.7 }, svg);
+      var tx = el("text", { x: X(1) + 8, y: p.y + 5, fill: col(p.j), "data-column": p.j, class: "lbl" }, svg, "ℓ");
+      el("tspan", { "baseline-shift": "sub", "font-size": "11px" }, tx, String(p.j + 1));
+    });
+    el("polyline", { points: s.envPts.map(function (p) { return X(ZS.num(p[0])) + "," + Y(ZS.num(p[1])); }).join(" "), fill: "none", stroke: ink, "stroke-width": 3.2, "stroke-linejoin": "round", "stroke-linecap": "round" }, svg);
+    el("line", { x1: X(a), y1: Y(lo), x2: X(a), y2: Y(v), stroke: ink, "stroke-width": 0.8, "stroke-dasharray": "2 3" }, svg);
+    if (b > a) el("line", { x1: X(b), y1: Y(lo), x2: X(b), y2: Y(v), stroke: ink, "stroke-width": 0.8, "stroke-dasharray": "2 3" }, svg);
+    [a].concat(b > a ? [b] : []).forEach(function (t) { el("circle", { cx: X(t), cy: Y(v), r: 4.5, fill: ink }, svg); });
+    var lab = el("text", { x: X((a + b) / 2), y: Y(v) - 12, "text-anchor": "middle", class: "lbl", fill: ink, "paint-order": "stroke", stroke: "var(--paper)", "stroke-width": 4 }, svg, "v");
+    el("tspan", { "baseline-shift": "super", "font-size": "11px", "font-style": "normal" }, lab, "*");
+    lab.appendChild(document.createTextNode(" = " + fmt(s.v)));
+    state.cursor = el("line", { stroke: "var(--muted)", "stroke-width": 0.8 }, svg);
+    state.cursorDot = el("circle", { r: 4, fill: "var(--paper)", stroke: ink, "stroke-width": 1.5 }, svg);
+    state.X = X; state.Y = Y; state.lo = lo; state.hi = hi;
+    renderCursor(); renderSolution(); renderStrategy(); highlightColumn(state.highlighted);
+  }
+
+  function renderCursor() {
+    var U = state.U, n = U[0].length, t = state.t;
+    var tq = state.exactT || ZS.parse(t.toFixed(12));
+    document.getElementById("tval").textContent = state.exactT ? fmt(tq) : "≈ " + t.toFixed(3);
+    var vals = []; for (var j = 0; j < n; j++) vals.push(ZS.line(U, j, tq));
+    var m = ZS.env(U, tq), bestColumns = [];
+    function display(q) { return state.exactT ? fmt(q) : "≈ " + String(+ZS.num(q).toFixed(4)).replace("-", "−"); }
+    state.cursor.setAttribute("x1", state.X(t)); state.cursor.setAttribute("x2", state.X(t));
+    state.cursor.setAttribute("y1", state.Y(state.lo)); state.cursor.setAttribute("y2", state.Y(state.hi));
+    state.cursorDot.setAttribute("cx", state.X(t)); state.cursorDot.setAttribute("cy", state.Y(ZS.num(m)));
+    var head = "<thead><tr><th></th>", row = "<tbody><tr><th>Payoff to Player 1</th>";
+    for (var k = 0; k < n; k++) {
+      var best = ZS.eq(vals[k], m); if (best) bestColumns.push(k + 1);
+      head += '<th data-column="' + k + '" style="color:' + col(k) + '">' + ell(k) + "</th>";
+      row += '<td data-column="' + k + '" class="num' + (best ? " best" : "") + '">' + display(vals[k]) + "</td>";
+    }
+    document.getElementById("pays").innerHTML = head + "<th>Guaranteed</th></tr></thead>" + row + '<td class="num best">' + display(m) + "</td></tr></tbody>";
+    document.getElementById("responses").textContent = "Best-response columns at this t: " + bestColumns.join(", ") + ". Bold payoffs attain the lower envelope.";
+  }
+
+  function setupStrategies() {
+    var all = state.sol.yAll.slice().sort(function (a, b) { return b.filter(function (q) { return q.n !== 0n; }).length - a.filter(function (q) { return q.n !== 0n; }).length; });
+    state.endpoints = all;
+    var options = all.map(function (y, i) { return '<option value="' + i + '">' + vec(y) + '</option>'; }).join("");
+    document.getElementById("ya").innerHTML = options; document.getElementById("yb").innerHTML = options;
+    document.getElementById("yb").value = all.length > 1 ? "1" : "0";
+    document.getElementById("lambda").value = "0";
+    document.getElementById("ymode").innerHTML = '<option value="optimal">Optimal strategy / mixture</option>' + state.U[0].map(function (_, j) { return '<option value="' + j + '">Pure column ' + (j + 1) + '</option>'; }).join("");
+  }
+  function rowPayoffs(y) {
+    return state.U.map(function (row) { return row.reduce(function (sum, q, j) { return ZS.add(sum, ZS.mul(q, y[j])); }, ZS.ZERO); });
+  }
+  function renderStrategy() {
+    var mode = document.getElementById("ymode").value, optimal = mode === "optimal";
+    var lam = ZS.Q(document.getElementById("lambda").value, 100);
+    document.getElementById("lambda-value").textContent = fmt(lam);
+    document.getElementById("mixture-controls").hidden = !optimal || state.endpoints.length === 1;
+    if (optimal) {
+      var a = state.endpoints[Number(document.getElementById("ya").value)], b = state.endpoints[Number(document.getElementById("yb").value)];
+      state.y = a.map(function (q, j) { return ZS.add(ZS.mul(ZS.sub(ZS.ONE, lam), q), ZS.mul(lam, b[j])); });
+    } else state.y = state.U[0].map(function (_, j) { return j === Number(mode) ? ZS.ONE : ZS.ZERO; });
+    state.rowPay = rowPayoffs(state.y);
+    state.w = ZS.cmp(state.rowPay[0], state.rowPay[1]) >= 0 ? state.rowPay[0] : state.rowPay[1];
+    var gap = ZS.sub(state.w, state.sol.v), br = [];
+    state.rowPay.forEach(function (q, i) { if (ZS.eq(q, state.w)) br.push(i + 1); });
+    var text = "<p><b>Selected y = " + vec(state.y) + ".</b> Row payoffs: " + vec(state.rowPay) + ". Player 1’s best-response rows: " + br.join(", ") + ".</p>";
+    text += "<p>Largest row payoff w = " + fmt(state.w) + "; gap above the game value: " + fmt(gap) + ". " + (gap.n === 0n ? "This strategy is optimal for Player 2." : "This strategy is not minimax: Player 1 can obtain more than the game value by choosing row " + br.join(" or ") + ".") + "</p>";
+    if (!optimal && ZS.eq(state.sol.colPay[Number(mode)], state.sol.v) && gap.n !== 0n) text += "<p>It is a best response to the optimal strategy x = " + vec(state.sol.xStar) + ", used in the certificate below, but it does not protect Player 2 against a change of row.</p>";
+    document.getElementById("y-result").innerHTML = text;
+    renderLP(); highlightColumn(state.highlighted);
+  }
+  function highlightColumn(j) {
+    state.highlighted = j;
+    document.querySelectorAll("[data-column]").forEach(function (e) { e.classList.toggle("linked", j !== null && Number(e.dataset.column) === j); });
+    var detail = document.getElementById("column-detail");
+    if (j === null || !state.U || j >= state.U[0].length) { detail.textContent = "Focus a matrix entry or hover a column to follow its line and LP constraint."; return; }
+    detail.innerHTML = "Column " + (j + 1) + ": " + ell(j) + "(t) = " + combo(state.U[0][j], state.U[1][j], "t", "(1 − t)") + (state.sol.dominated[j] >= 0 ? ". Strictly dominated for Player 2 by column " + (state.sol.dominated[j] + 1) : "") + ".";
+  }
+
+  function renderSolution() {
+    var s = state.sol, out = "";
+    out += "<p><b>Maxmin value.</b> " + iv("v") + "<sup>*</sup> = " + fmt(s.v) + ".</p>";
+    if (s.p1Unique) out += "<p><b>Player 1.</b> The unique maxmin strategy is " + iv("x") + "<sup>*</sup> = " + vec([s.tLo, ZS.sub(ZS.ONE, s.tLo)]) + ", at " + iv("t") + " = " + fmt(s.tLo) + ".</p>";
+    else out += "<p><b>Player 1.</b> The envelope is flat at its top, so every " + bv("x") + " = (" + iv("t") + ", 1 − " + iv("t") + ") with " + fmt(s.tLo) + " ≤ " + iv("t") + " ≤ " + fmt(s.tHi) + " is a maxmin strategy.</p>";
+    if (s.p2Unique) out += "<p><b>Player 2.</b> The unique maxmin strategy is " + iv("y") + "<sup>*</sup> = " + vec(s.yStar) + ".</p>";
+    else out += "<p><b>Player 2.</b> The maxmin strategy is not unique: " + s.yAll.slice(0, 3).map(vec).join(" and ") + (s.yAll.length > 3 ? ", among others," : "") + " are maxmin strategies, and so is every mixture of them.</p>";
+    var br = []; s.colPay.forEach(function (p, j) { if (ZS.eq(p, s.v)) br.push(j); });
+    out += "<p>Against " + bv("x") + (s.p1Unique ? "<sup>*</sup>" : " with " + iv("t") + " = " + fmt(s.tLo)) + ", the pure best responses of Player 2 are " + br.map(function (j) { return "column " + (j + 1); }).join(", ").replace(/, ([^,]*)$/, " and $1") + ".</p>";
+    document.getElementById("solution").innerHTML = out;
+  }
+
+  function term(c, xvar) {
+    var s = fmt(c);
+    if (ZS.eq(c, ZS.ZERO)) return null;
+    if (ZS.eq(c, ZS.ONE)) return xvar;
+    return s + xvar;
+  }
+  function combo(a, b, v1, v2) {
+    var parts = [term(a, v1), term(b, v2)].filter(Boolean);
+    if (!parts.length) return "0";
+    return parts.join(" + ").replace(/\+ −/g, "− ");
+  }
+  function renderLP() {
+    var s = state.sol, U = state.U, n = U[0].length, x = [s.tLo, ZS.sub(ZS.ONE, s.tLo)], y = state.y;
+    var x1 = iv("x") + "<sub>1</sub>", x2 = iv("x") + "<sub>2</sub>", vv = iv("v"), ww = iv("w");
+    document.getElementById("lp-intro").innerHTML = "Player 1 maximizes v with v ≤ xᵀU₁eⱼ for every column, x ≥ 0 and Σxᵢ = 1. Player 2 minimizes w with w ≥ eᵢᵀU₁y for both rows, y ≥ 0 and Σyⱼ = 1. Here x = " + vec(x) + " is an optimal strategy (independent of the exploration cursor), and y is your selected strategy above. The feasible bounds are v = " + fmt(s.v) + " and w = " + fmt(state.w) + ". " + (ZS.eq(s.v, state.w) ? "They agree, certifying optimality by weak duality." : "They differ: the selected y does not certify optimality.");
+    var rows = "<thead><tr><th>Constraint</th><th>Payoff</th><th>Holds with equality</th><th>Weight</th></tr></thead><tbody>";
+    for (var j = 0; j < n; j++) {
+      var p = ZS.line(U, j, s.tLo), tight = ZS.eq(p, s.v);
+      rows += '<tr data-column="' + j + '" tabindex="0"><td>' + vv + " ≤ " + combo(U[0][j], U[1][j], x1, x2) + '</td><td class="num">' + fmt(p) + "</td><td>" + (tight ? "yes" : "no") + '</td><td class="num">' + iv("y") + "<sub>" + (j + 1) + "</sub> = " + fmt(y[j]) + "</td></tr>";
+    }
+    var y1 = function (j) { return iv("y") + "<sub>" + (j + 1) + "</sub>"; };
+    for (var r = 0; r < 2; r++) {
+      var parts = []; for (var c = 0; c < n; c++) { var tm = term(U[r][c], y1(c)); if (tm) parts.push(tm); }
+      var rp = state.rowPay[r], t2 = ZS.eq(rp, state.w);
+      rows += "<tr><td>" + ww + " ≥ " + (parts.length ? parts.join(" + ").replace(/\+ −/g, "− ") : "0") + '</td><td class="num">' + fmt(rp) + "</td><td>" + (t2 ? "yes" : "no") + '</td><td class="num">' + iv("x") + "<sub>" + (r + 1) + "</sub> = " + fmt(x[r]) + "</td></tr>";
+    }
+    document.getElementById("cert").innerHTML = rows + "</tbody>";
+  }
+
+  document.getElementById("t").addEventListener("input", function (e) { state.t = Number(e.target.value); state.exactT = null; if (state.sol) renderCursor(); });
+  document.getElementById("snap").addEventListener("click", function () {
+    if (!state.sol) return;
+    state.exactT = ZS.mul(ZS.add(state.sol.tLo, state.sol.tHi), ZS.Q(1, 2));
+    var t = ZS.num(state.exactT);
+    state.t = t; document.getElementById("t").value = t; renderCursor();
+  });
+  document.getElementById("plus").addEventListener("click", function () {
+    if (state.raw[0].length >= MAXN) return;
+    state.raw[0].push("1"); state.raw[1].push("1"); state.preset = null; markPresets(); buildMatrix(); compute();
+  });
+  document.getElementById("minus").addEventListener("click", function () {
+    if (state.raw[0].length <= 1) return;
+    state.raw[0].pop(); state.raw[1].pop(); state.preset = null; markPresets(); buildMatrix(); compute();
+  });
+  document.querySelectorAll("[data-preset]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      state.raw = presets[btn.dataset.preset].map(function (r) { return r.slice(); }); state.preset = btn.dataset.preset;
+      markPresets(); buildMatrix(); compute();
+    });
+  });
+  ["ymode", "ya", "yb", "lambda"].forEach(function (id) { document.getElementById(id).addEventListener("input", renderStrategy); });
+  ["mouseover", "focusin"].forEach(function (event) { document.addEventListener(event, function (e) { var target = e.target.closest("[data-column]"); if (target) highlightColumn(Number(target.dataset.column)); }); });
+  ["mouseout", "focusout"].forEach(function (event) { document.addEventListener(event, function (e) { if (e.target.closest("[data-column]") && !(e.relatedTarget && e.relatedTarget.closest("[data-column]"))) highlightColumn(null); }); });
+  markPresets(); buildMatrix(); compute();
+})();
+</script>
+</body>
+</html>

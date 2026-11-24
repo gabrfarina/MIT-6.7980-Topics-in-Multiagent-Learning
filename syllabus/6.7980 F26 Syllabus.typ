@@ -131,7 +131,7 @@
 
 #item(
   "Lecture notes",
-)[Lecture notes are available as HTML and PDF on the course website. Announcements and administrative materials will be posted on Canvas.]
+)[Lecture notes are available as HTML and PDF on the course website. Supplementary Lecture 6 distinguishes Nash equilibrium for a specified initial distribution from Markov-perfect equilibrium. Announcements and administrative materials will be posted on Canvas.]
 
 #item(
   "Collaboration policy",
@@ -234,7 +234,7 @@
   lecture(
     "nash-properties",
     [Properties of Nash equilibrium],
-    description: [Topological and computational properties. Zero-sum games and linear programming. Correlated and coarse correlated equilibria.],
+    description: [Topological and computational properties. Zero-sum games and linear programming, with an interactive two-row game explorer. Correlated and coarse correlated equilibria.],
     instructor: [Gabriele Farina],
   ),
   lecture(

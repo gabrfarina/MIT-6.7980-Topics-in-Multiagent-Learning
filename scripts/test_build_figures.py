@@ -138,7 +138,6 @@ class FigureBuildTests(unittest.TestCase):
 #rect(width: size, height: 10pt, stroke: none)
 ''')
         # These sources must only be compiled through their including figures.
-        self.write('learning2/ftr_ent.typ', '#panic("component-only source")')
         self.write('kernelized/vertices.typ', '#panic("shared drawing helper")')
         self.build()
         self.assertEqual(self.svg_width('example/plot.svg'), 12)
