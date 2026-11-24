@@ -20,7 +20,9 @@ near either endpoint.
 *Unilateral moves.* At $(0, 0)$, both players receive zero. If player 1
 alone moves to $t != 0$, the payoff change is
 $-t^2 + t^4 / 2 <= -t^2 / 2 < 0$. The same holds for player 2 by symmetry,
-so $(0, 0)$ is a strict Nash equilibrium.
+so $(0, 0)$ is a strict Nash equilibrium. The point mass at $(0, 0)$ is
+also an exact local $Phi$-equilibrium for every deviation radius, since each
+rule changes only one player's action.
 
 *Coordinated moves.* Both players gain $u(t, t) = t^2 + t^4 > 0$ by moving
 to any common nonzero action $t$. The term $3 x y$ vanishes along the axes
