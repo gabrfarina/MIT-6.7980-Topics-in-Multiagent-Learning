@@ -46,8 +46,17 @@ In each round $k >= 2$, the speaker is asked to be unbiased on the days that rea
 Like ordinary calibration, this is a property of a sequence of predictions, not an algorithm. Exact empirical unbiasedness on a finite transcript is an idealization that we adopt only to make the proof transparent; @rem-ca-approximate describes the condition that is actually achievable.
 
 #remark[Approximate conversation calibration][
-  No online algorithm can be exactly unbiased conditionally on every possible value of the other party's previous prediction. The definition of #citet(<collina2025tractable>) relaxes @def-ca-perfect-cc in two ways. First, the previous prediction $p^(t, k-1)$ is only located up to a bucket of width $g(T)$. Second, the predictions on each resulting subsequence $S$ only need to be within $ell_1$-distance $f(abs(S))$ of a perfectly calibrated sequence, where $f$ grows sublinearly. Such an agent is called _$(f, g)$-conversation-calibrated_. Such conditions can be enforced by efficient online algorithms without any prior. The analysis below then goes through with additive error terms that depend on $f$ and $g$; after normalizing the squared error by $T$, these terms vanish as $T -> infinity$ for suitable choices of $f$ and $g$. The resulting bound on the number of rounds, which involves a quantity $beta(T)$, is discussed separately.
+  No online algorithm can be exactly unbiased conditionally on every possible value of the other party's previous prediction. The definition of #citet(<collina2025tractable>) relaxes @def-ca-perfect-cc in two ways. First, the previous prediction $p^(t, k-1)$ is only located up to a bucket of width $g(T)$. Second, the predictions on each resulting subsequence $S$ only need to be within $ell_1$-distance $f(abs(S))$ of a perfectly calibrated sequence, where $f$ grows sublinearly. Such an agent is called _$(f, g)$-conversation-calibrated_. Such conditions can be enforced by efficient online algorithms without any prior. The analysis below then goes through with additive error terms that depend on $f$ and $g$; after normalizing the squared error by $T$, these terms vanish as $T -> infinity$ for suitable choices of $f$ and $g$. The resulting bound on the number of rounds, which involves a quantity $beta(T)$, is discussed in @sec-ca-approx-bound.
 ] <rem-ca-approximate>
+
+#remark[Conversation calibration vs. Bayesian conditioning][
+
+Although conversation calibration is computationally cheaper than Bayesian conditioning, it is also weaker than Bayesian conditioning, since it only restricts average outcomes over groups of days, rather than restricting each and every prediction on each day. In fact, we can show that a Bayesian with a correct prior is approximately conversation-calibrated.
+
+Suppose that the days are drawn independently from a distribution, and that the human is a Bayesian whose prior is that distribution. Since the model's round-$(k-1)$ prediction and the human's own round-$k$ prediction are both part of the information the human conditions on, the expected outcome on the days where the model said $v'$ and the human said $v$ is exactly $v$. So over many days, the Bayesian human is approximately conversation-calibrated, with an error that vanishes as $T$ grows. (However, note that it will not necessarily satisfy @def-ca-perfect-cc exactly on a finite set of days.)
+
+Note that the converse fails: someone who simply repeats the model's prediction is conversation-calibrated, but is not Bayesian, since they don't use their own information.
+] <rem-ca-bayes>
 
 == The agreement theorem
 
@@ -118,5 +127,38 @@ $
 ]
 
 Informally, each round in which at least a $delta$ fraction of the days remain in conversation after that round removes at least $eps^2 delta T$ from a potential that starts at most at $T$ and never becomes negative. So there can be at most about $1 \/ (eps^2 delta)$ such rounds.
+
+== Agreement under approximate calibration <sec-ca-approx-bound>
+
+@thm-ca-agreement assumed that both parties are perfectly conversation-calibrated, but no online algorithm can guarantee perfect conversation calibration. As such, we now describe a bound on the number of rounds under the approximate condition described in @rem-ca-approximate. The following result is due to #citet(<collina2025tractable>); we state it for a common $f$ and $g$, with $f$ nondecreasing and concave, which simplifies the $beta(T)$ term in their Theorem 3.1.
+
+#theorem[Agreement under approximate conversation calibration][
+  Suppose that both the human and the model are $(f, g)$-conversation-calibrated, and let
+  $
+    beta(T) := 6 (g(T) + f(g(T) dot T) / (g(T) dot T)).
+  $
+  Then for any $eps, delta in (0, 1]$ with $eps^2 delta > beta(T)$, the protocol achieves $(eps, delta)$-agreement within
+  $
+    K = 1 + ceil(1 / (eps^2 delta - beta(T)))
+  $
+  rounds.
+] <thm-ca-approx-agreement>
+
+We note that the bound of @thm-ca-agreement is just the special case of @thm-ca-approx-agreement when we set $beta(T) = 0$. 
+
+#proofsketch[of @thm-ca-approx-agreement][
+  This proof is the same as the proof of @thm-ca-agreement, except that the per-round guarantee in @lem-ca-one-round becomes weaker. There are two reasons each round now lowers the squared error by less than before:
+  1. The speaker is only calibrated with respect to which bucket of width $g(T)$ the previous prediction falls into, not the exact value, which then reduces the guaranteed drop in squared error by $O(g(T) T)$.
+  2. Within each bucket, the speaker's predictions are only close to calibrated, within distance $f$. Adding up this error over the $1 \/ g(T)$ buckets, and using that $f$ is concave, further reduces the guaranteed drop by $O(f(g(T) T) \/ g(T))$.
+
+  Altogether,
+  $
+    "SQE"_(k-1) - "SQE"_k >= eps^2 abs(cal(T)_(k+1)) - beta(T) T,
+  $
+  and the rest of the argument is the same as in the proof of @thm-ca-agreement.
+]
+
+#paragraph-marker() *How many days are needed.*~~
+Unlike @thm-ca-agreement, this bound depends on $T$: it gives $O(1 \/ (eps^2 delta))$ rounds only once $beta(T) <= eps^2 delta \/ 2$. With the efficient algorithm of #citet(<collina2025tractable>), which achieves $f(tau) = O(sqrt(tau))$ and $g(T) = T^(-1\/3)$, we get $beta(T) = O(T^(-1\/3))$, so $T = O(1 \/ (eps^6 delta^3))$ days suffice.
 
 #lec_bibliography("meta/refs.bib")
