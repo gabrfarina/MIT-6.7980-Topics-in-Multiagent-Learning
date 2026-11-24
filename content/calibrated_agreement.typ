@@ -46,8 +46,17 @@ In each round $k >= 2$, the speaker is asked to be unbiased on the days that rea
 Like ordinary calibration, this is a property of a sequence of predictions, not an algorithm. Exact empirical unbiasedness on a finite transcript is an idealization that we adopt only to make the proof transparent; @rem-ca-approximate describes the condition that is actually achievable.
 
 #remark[Approximate conversation calibration][
-  No online algorithm can be exactly unbiased conditionally on every possible value of the other party's previous prediction. The definition of #citet(<collina2025tractable>) relaxes @def-ca-perfect-cc in two ways. First, the previous prediction $p^(t, k-1)$ is only located up to a bucket of width $g(T)$. Second, the predictions on each resulting subsequence $S$ only need to be within $ell_1$-distance $f(abs(S))$ of a perfectly calibrated sequence, where $f$ grows sublinearly. Such an agent is called _$(f, g)$-conversation-calibrated_. Such conditions can be enforced by efficient online algorithms without any prior. The analysis below then goes through with additive error terms that depend on $f$ and $g$; after normalizing the squared error by $T$, these terms vanish as $T -> infinity$ for suitable choices of $f$ and $g$. The resulting bound on the number of rounds, which involves a quantity $beta(T)$, is discussed separately.
+  No online algorithm can be exactly unbiased conditionally on every possible value of the other party's previous prediction. The definition of #citet(<collina2025tractable>) relaxes @def-ca-perfect-cc in two ways. First, the previous prediction $p^(t, k-1)$ is only located up to a bucket of width $g(T)$. Second, the predictions on each resulting subsequence $S$ only need to be within $ell_1$-distance $f(abs(S))$ of a perfectly calibrated sequence, where $f$ grows sublinearly. Such an agent is called _$(f, g)$-conversation-calibrated_. Such conditions can be enforced by efficient online algorithms without any prior. The analysis below then goes through with additive error terms that depend on $f$ and $g$; after normalizing the squared error by $T$, these terms vanish as $T -> infinity$ for suitable choices of $f$ and $g$. The resulting bound on the number of rounds, which involves a quantity $beta(T)$, is discussed elsewhere.
 ] <rem-ca-approximate>
+
+#remark[Conversation calibration vs. Bayesian conditioning][
+
+Although conversation calibration is computationally cheaper than Bayesian conditioning, it is also weaker than Bayesian conditioning, since it only restricts average outcomes over groups of days, rather than restricting each and every prediction on each day. In fact, we can show that a Bayesian with a correct prior is approximately conversation-calibrated.
+
+Suppose that the days are drawn independently from a distribution, and that the human is a Bayesian whose prior is that distribution. Since the model's round-$(k-1)$ prediction and the human's own round-$k$ prediction are both part of the information the human conditions on, the expected outcome on the days where the model said $v'$ and the human said $v$ is exactly $v$. So over many days, the Bayesian human is approximately conversation-calibrated, with an error that vanishes as $T$ grows. (However, note that it will not necessarily satisfy @def-ca-perfect-cc exactly on a finite set of days.)
+
+Note that the converse fails: someone who simply repeats the model's prediction is conversation-calibrated, but is not Bayesian, since they don't use their own information.
+] <rem-ca-bayes>
 
 == The agreement theorem
 
