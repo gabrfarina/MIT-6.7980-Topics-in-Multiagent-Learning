@@ -119,4 +119,77 @@ $
 
 Informally, each round in which at least a $delta$ fraction of the days remain in conversation after that round removes at least $eps^2 delta T$ from a potential that starts at most at $T$ and never becomes negative. So there can be at most about $1 \/ (eps^2 delta)$ such rounds.
 
+
+// Task 10 - Agreement not necessarily as good as seeing all features
+== Agreement is not always as good as seeing all the features
+
+There are problems where agreement based on information other than 
+the features themselves provides less information is worse
+than seeing all the features.
+For example, suppose
+the model sees $x_m$ and the human sees $x_h$, where both $x_m$
+and $x_h$ are independent and identically Bernoulli distributed, i.e.:
+$
+x_h, x_m in {0, 1}, qquad 
+x_h ~ "Bernoulli"(1/2), qquad x_m ~ "Bernoulli"(1/2),
+$
+and let the true label be $y = x_h xor x_m in {0, 1}$,
+where $xor$ is xor. 
+
+Suppose the agents can communicate the expected value of $y$ conditioned
+on the feature they can see.
+Without loss of generality, consider the human agent seeing $x_h = 0$. 
+Then,
+$
+  PP(y = 0 | x_h = 0) &= PP((x_m = 0 and x_h = 0) or (x_m = 1 and x_h = 1)| x_h = 0) \
+  &= PP(x_m = 0 and x_h = 0 | x_h = 0) + PP(x_m = 1 and x_h = 1 | x_h = 0) \
+  &= PP(x_m = 0 | x_h = 0) + 0 \
+  &= PP(x_m = 0) 
+  = 1/2 \
+  PP(y = 1 | x_h = 0) &= 1 - PP(y = 0 | x_h = 0) = 1/2
+$
+where the first equality is from the definition of xor,
+the second equality from the events being disjoint,
+and the fourth equality from the independence of the features.
+Similarly,
+$
+  PP(y = 0 | x_h = 1) &= PP((x_m = 1 and x_h = 1) or (x_m = 0 and x_h = 0)| x_h = 1) \
+  &= PP(x_m = 0 and x_h = 0 | x_h = 1) + PP(x_m = 1 and x_h = 1 | x_h = 1) \
+  &= 0 + PP(x_m = 1 | x_h = 1) \
+  &= PP(x_m = 1) = 1/2 \
+  PP(y = 1 | x_h = 1) &= 1/2
+$
+Analogously for $x_m$, 
+$
+  PP(y = 0 | x_m = 0) &= PP(x_h = 0 | x_m = 0) 
+  = PP(x_h = 0) = 1/2 \
+  PP(y = 1 | x_m = 0) &= 1/2 \
+  PP(y = 0 | x_m = 1) &= PP(x_h = 1 | x_m = 1) 
+  = PP(x_h = 1) = 1/2 \
+  PP(y = 1 | x_m = 1) &= 1/2
+$
+Then the expected values conditioned
+on each observed feature individually is the same:
+$
+  EE[bold(y) | x_h = 0] &= 0 dot PP(y = 0 | x_h = 0) + 1 dot PP(y = 1 | x_h = 0) 
+  &= 1/2 \
+  EE[bold(y) | x_h = 1] &= 0 dot PP(y = 0 | x_h = 1) + 1 dot PP(y = 1 | x_h = 1) 
+  &= 1/2 \
+  EE[bold(y) | x_m = 0] &= 0 dot PP(y = 0 | x_m = 0) + 1 dot PP(y = 1 | x_m = 0)
+  &= 1/2 \
+  EE[bold(y) | x_m = 1] &= 0 dot PP(y = 0 | x_m = 1) + 1 dot PP(y = 1 | x_m = 1)
+  &= 1/2
+$
+Therefore, no matter agent goes first, they will communicate
+that the expected value of $y$ based on their feature is $1/2$.
+No meaningful information is passed because this means that
+$y$ still has an equal chance of being either $0$ or $1$.
+
+If an agent could see all the features, 
+they could compute $y$ and always get the correct value.
+In this simple case, each feature is 
+a binary value and easily communicable. However, in the general case,
+the features an agent sees could be infeasible to communicate
+because of the size and number of the features.
+
 #lec_bibliography("meta/refs.bib")
