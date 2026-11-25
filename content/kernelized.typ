@@ -250,6 +250,41 @@ $ F_(0)(0)=1, quad F_(0)(r)=0 quad (r>0), $
 $ F_(j)(r)=sum_(s=0)^r q_(j,s) F_(j-1)(r-s). $
 The last battlefield receives $s$ units and contributes $q_(j,s)$; the preceding battlefields receive the remaining $r-s$ units. Consequently $K_(V)(vz,vw)=F_(B)(R)$. The computation uses $O(B(R+1)^2)$ operations, polynomial in the size of the one-hot representation.
 
+#block(breakable: false)[
+  #paragraph-marker() *A whole iteration for Colonel Blotto.*~~ Set $q_(j,s)=b_(t,(j,s))>0$ and compute the prefix table $F$ above. The suffix table $S_(j)(r)$ gives the total weight of allocating $r$ units to battlefields $j$ through $B$. It satisfies
+  $ S_(B+1)(0)=1, quad S_(B+1)(r)=0 quad (r>0), $
+  $ S_(j)(r)=sum_(s=0)^r q_(j,s) S_(j+1)(r-s). $
+]
+
+#lemma[All allocation marginals from one pair of tables][
+  The mean strategy played by vertex MWU has coordinates
+  $ x_(t,(j,s))=frac(q_(j,s), F_(B)(R)) sum_(r=0)^(R-s) F_(j-1)(r) S_(j+1)(R-s-r). $
+  Computing both tables and all marginals takes $O(B(R+1)^2)$ arithmetic operations and $O(B(R+1))$ space.
+]
+#proof[
+  Fix the allocation of $s$ units to battlefield $j$. Every feasible allocation then assigns some $r$ units to the prefix and exactly $R-s-r$ to the suffix. For each $r$, the two parts can be chosen independently, so their weights multiply. Summing over $r$ and multiplying by $q_(j,s)$ gives the total weight of allocations using coordinate $(j,s)$ in @thm:kernel-mean. Dividing by $F_(B)(R)$ gives the marginal. Each table and the output have $O(B(R+1))$ entries, with at most $R+1$ terms per entry.
+]
+
+#remark[The budget couples the marginals][
+  These are the marginals of a distribution over feasible allocations. They satisfy $sum_s x_(t,(j,s))=1$ for every $j$ and $sum_(j,s) s x_(t,(j,s))=R$. Drawing the battlefield allocations independently from those rows can violate the budget. The kernel computation shares the weight of each feasible prefix and suffix across many coordinates.
+]
+
+#example[Two units on three battlefields][
+  Let the weight rows, in order of troop counts $0,1,2$, be $(1,2,3)$, $(1,3,2)$, and $(1,1,2)$. The six feasible allocations have total weight $F_(3)(2)=18$. To put one unit on the middle battlefield, the other unit must go to the prefix or the suffix. These two cases have weights $3 dot 2$ and $3 dot 1$. Hence $x_(t,(2,1))=9/18=1/2$.
+]
+
+For a zero-sum game with battlefield values $c_j$, a win gives $c_j$, a loss gives $-c_j$, and a tie gives zero. If $y_(j,k)$ are the opponent's marginals, the gradient for assigning $s$ units to battlefield $j$ is
+$ g_(t,(j,s))=c_j (sum_(k<s) y_(j,k)-sum_(k>s) y_(j,k)). $
+Prefix and suffix sums compute these entries in $O(B(R+1))$ time. Store $log q$ and add $eta vg_t$ after observing the opponent's marginals. In the partition tables, use log-sum-exp for addition and $-infinity$ for an impossible budget. For $B$ battlefields and $R$ units, the resulting round costs $O(B(R+1)^2)$, whereas the enumerated update processes $binom(R+B-1, B-1)$ weights. The two algorithms use the same vertex update and return the same mean in exact arithmetic.
+
+Run the symmetric self-play example from the course repository.
+
+```bash
+python3 scripts/blotto/kernelized_mwu.py --troops 10 --values 1 2 3 4 --steps 400
+```
+
+The script reports the average marginals and the value of a best response against both the last and the average strategy. A best response uses the same budget recurrence with a maximum over splits and additive payoffs. This gives the best payoff of any feasible allocation against the chosen strategy.
+
 == Extensive-form games
 
 We finish with the sequence-form polytope. Besides evaluating one kernel in linear time, we will share computation across the $d+1$ evaluations to implement an entire learning round in linear time.

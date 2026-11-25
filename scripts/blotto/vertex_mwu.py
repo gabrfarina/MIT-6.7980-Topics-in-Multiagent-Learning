@@ -1,6 +1,15 @@
 import numpy as np
 from scipy.special import logsumexp
 
+
+def payoff_gradient(strategy, values):
+    """Expected payoff for each battlefield and troop count against strategy."""
+    grad = np.zeros_like(strategy)
+    grad[:, 1:] = np.cumsum(strategy, axis=1)[:, :-1]
+    grad[:, :-1] -= np.cumsum(strategy[:, ::-1], axis=1)[:, :-1][:, ::-1]
+    return grad * values[:, None]
+
+
 class MWU:
 
     # learning_rate = 0.01
@@ -28,7 +37,7 @@ class MWU:
             strat[index] = troops
             all_strategies.append(self.to_one_hot(strat))
             return
-        
+
         for i in range(troops + 1):
             strat[index] = i
             self.generate_strategies(strat, index + 1, all_strategies, troops - i)
@@ -40,10 +49,7 @@ class MWU:
         return self.mix_to_strategy(self.cur_mix)
 
     def compute_grad(self, strategy):
-        grad = np.zeros_like(strategy)
-        grad[:, 1:] = np.cumsum(strategy, axis=1)[:, :-1]
-        grad[:, :-1] -= np.cumsum(strategy[:, ::-1], axis=1)[:, :-1][:, ::-1]
-        return grad * self.values[:, None]
+        return payoff_gradient(strategy, self.values)
 
     def compute_value(self, s1, s2):
         val = 0
@@ -71,9 +77,9 @@ class MWU:
             # if _ % 100 == 0:
             #     print(np.mean(masked), np.std(masked))
             self.update_mix(grad)
-            
+
         return self.cur_strategy(), self.mix_to_strategy(self.sum_mix - np.log(num_steps+1))
-    
+
 def print_summary(mwu, strategy):
     all_vals = np.array([mwu.compute_value(strategy, x) for x in mwu.all_strategies])
     print()
