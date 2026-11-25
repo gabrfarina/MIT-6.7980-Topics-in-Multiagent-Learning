@@ -325,7 +325,7 @@ At one extreme, one would presumably hope that if the prediction is perfect, the
 This is indeed the case, as shown by Syrgkanis et al.~#citep(<syrgkanis2015fast>).
 
 #theorem[RVU bound, #citep(<syrgkanis2015fast>)][
-  Let $cX$ be convex and compact, let $psi$ be 1-strongly convex on $cX$ with respect to a norm $norm(dot.c)$, with dual norm $norm(dot.c)_*$, and let $Omega := max_(cX) psi - min_(cX) psi$. Consider predictive FTRL, or non-reflected predictive OMD initialized at $vz^((1)) := argmin_(vz in cX) psi(vz)$, with learning rate $eta > 0$ and arbitrary predictions $vm^((t))$. Then, for every sequence of utility gradients $vg^((1)), dots, vg^((T))$, the regret satisfies the following bound, often called the _RVU bound_ (regret bounded by variation in utilities):
+  Let $cX$ be convex and compact, let $psi$ be 1-strongly convex on $cX$ with respect to a norm $norm(dot.c)$, with dual norm $norm(dot.c)_*$, and let $Omega := max_(cX) psi - min_(cX) psi$. Consider predictive FTRL, or non-reflected predictive OMD initialized at $vz^((1)) := argmin_(vz in cX) psi(vz)$, with learning rate $eta > 0$ and arbitrary predictions $vm^((t))$. Then, for every sequence of utility gradients $vg^((1)), ..., vg^((T))$, the regret satisfies the following bound, often called the _RVU bound_ (regret bounded by variation in utilities):
   $
     "Reg"^((T)) <= Omega / eta + eta sum_(t=1)^T norm(vg^((t)) - vm^((t)))_*^2 - 1 / (8 eta) sum_(t=2)^T norm(vx^((t)) - vx^((t-1)))^2.
   $

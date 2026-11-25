@@ -300,7 +300,80 @@ The backward and forward passes each take linear time. After observing the gradi
     For weights $(2,3,5,7)$, the backward pass gives $Z_J=5+7=12$ and $Z_I=2+3(5+7)=38$. The forward pass gives
     $ vx=(2/38,36/38,15/38,21/38). $
     In particular, $x_c+x_d=x_b$. Multiplying the continuation factor into both root actions would instead give the incorrect normalizer $(2+3)(5+7)=60$.
-  ]
+  ] <ex:branch-continuation>
+]
+
+#exercise[Uniform initialization over reduced and full plans][
+  Consider the game in @ex:branch-continuation.
+  #enum(
+    numbering: "(a)",
+    [Compare uniform initialization over reduced realization plans and over full contingency plans. Compute the induced vertex distributions and their mean realization plans.],
+    [Generalize your results to the case where $J$ has $k >= 1$ actions $c_1, ..., c_k$.],
+    [Suppose both runs use the same learning rate and gradient sequence. How do their distributions over vertices compare at round $t$? Can we choose initial probabilities for the full plans so that both runs give the same vertex distributions at every round?],
+  )
+] <ex:uniform-initialization>
+
+#solution[
+  Kernelized MWU starts from the uniform distribution over reduced realization plans, i.e., over the vertices $V$. If the initialization were instead uniform over full contingency plans, a vertex would receive initial probability in proportion to the number of full plans that map to it.
+
+  *(a)* Under uniform initialization over reduced plans, each of the three vertices $a$, $b c$, $b d$ gets probability $1/3$. The mean realization plan is
+  $ vx_"red" = 1/3 (1,0,0,0) + 1/3 (0,1,1,0) + 1/3 (0,1,0,1) = (1/3, 2/3, 1/3, 1/3). $
+  There are four full plans: $a c$, $a d$, $b c$, $b d$, each with initial probability $1/4$. Since action $a$ ends the player's decisions, both $a c$ and $a d$ map to the vertex $a$. The induced vertex distribution is therefore
+  $ lambda_1^"full" (a) = 1/2, quad lambda_1^"full" (b c) = 1/4, quad lambda_1^"full" (b d) = 1/4, $
+  with mean realization plan
+  $ vx_"full" = 1/2 (1,0,0,0) + 1/4 (0,1,1,0) + 1/4 (0,1,0,1) = (1/2, 1/2, 1/4, 1/4). $
+  Uniform initialization over full plans favors vertex $a$. This preference reflects only that two full plans represent the same reduced plan, not anything about payoffs. The multiplicative updates preserve this initial bias rather than remove it (see (c)), so reproducing vertex MWU requires initializing over reduced plans.
+
+  *(b)* With $k$ actions $c_1, ..., c_k$ at $J$, there are $k+1$ vertices: $a, b c_1, ..., b c_k$. Under uniform initialization over reduced plans,
+  $ lambda_1^"red" (a) = lambda_1^"red" (b c_i) = 1/(k+1) quad "for all" i in [k], $
+  and, in coordinates $(a, b, c_1, ..., c_k)$,
+  $ vx_"red" = (1/(k+1), k/(k+1), 1/(k+1), ..., 1/(k+1)). $
+  Under uniform initialization over full plans, each of the $2k$ full plans gets probability $1/(2k)$, and the $k$ plans $a c_i$ all map to the vertex $a$. Hence
+  $ lambda_1^"full" (a) = 1/2, quad lambda_1^"full" (b c_i) = 1/(2k) quad "for all" i in [k], $
+  $ vx_"full" = (1/2, 1/2, 1/(2k), ..., 1/(2k)). $
+  The vertex $a$ always receives probability $1/2$ under full-plan initialization, while under reduced-plan initialization its probability is $1/(k+1)$. Which distribution counts as "uniform" depends on which plans we treat as distinct.
+
+  *(c)* Suppose both runs use the same learning rate and gradient sequence. Define the accumulated coordinate weights by
+  $ b_(t, r) = exp(eta sum_(tau = 1)^(t-1) g_(tau, r)). $
+  The distribution induced by reduced initialization satisfies
+  $ lambda_t^"red" (v) prop phi_V (vb_t)_v. $
+  Let $n_v$ be the number of full contingency plans corresponding to vertex $v$. All full contingency plans mapping to the same vertex $v$ receive identical payoffs in each round. Therefore, under uniform initialization, they have equal unnormalized weights, proportional to $phi_V (vb_t)_v$. Summing over the $n_v$ such plans gives
+  $ lambda_t^"full" (v) prop n_v phi_V (vb_t)_v. $
+
+  #block(breakable: false, width: 100%)[#align(center)[
+    #table(
+      columns: 4,
+      align: center,
+      inset: 10pt,
+
+      table.header(
+        [Vertex],
+        [$lambda_t^"red" (v)$],
+        [$n_v$],
+        [$lambda_t^"full" (v)$],
+      ),
+
+      $a$,
+      $display((phi_V (vb_t)_a) / (phi_V (vb_t)_a + sum_(l = 1)^k phi_V (vb_t)_(b c_l)))$,
+      $k$,
+      $display((k phi_V (vb_t)_a) / (k phi_V (vb_t)_a + sum_(l = 1)^k phi_V (vb_t)_(b c_l)))$,
+
+      $b c_j$,
+      $display((phi_V (vb_t)_(b c_j)) / (phi_V (vb_t)_a + sum_(l = 1)^k phi_V (vb_t)_(b c_l)))$,
+      $1$,
+      $display((phi_V (vb_t)_(b c_j)) / (k phi_V (vb_t)_a + sum_(l = 1)^k phi_V (vb_t)_(b c_l)))$,
+    )
+  ]]
+
+  Therefore,
+  $ (lambda_t^"full" (a)) / (lambda_t^"full" (b c_j)) = k (lambda_t^"red" (a)) / (lambda_t^"red" (b c_j)). $
+  For $k > 1$, the two distributions are distinct at every finite round, even with the same learning rate and gradient sequence.
+
+  However, it is possible to initialize the full contingency plans so that the induced distribution on reduced plans becomes uniform. Assign the following probabilities to the full contingency plans
+  $ mu(a c_j) = 1/ (k (k+1)), quad mu(b c_j) = 1/ (k+1), quad j=1, ..., k. $
+  With this initialization every vertex gets the probability $1 / (k+1)$. Therefore, with the same learning rate and gradient sequence, both runs induce the same vertex distributions at every round.
+
+  More generally, let $v(p)$ be the vertex corresponding to a full plan $p$. We can initialize each full plan with probability $mu(p) prop 1 \/ n_(v(p))$. Each vertex $v$ corresponds to $n_v$ full plans, so its total probability is proportional to $n_v dot 1 \/ n_v = 1$. Thus, the induced distribution over vertices is uniform. With the same learning rate and gradient sequence, both runs then give the same vertex distributions at every round. In our example, $n_a = k$ and $n_(b c_j) = 1$.
 ]
 
 #corollary[Linear-time vertex learning in extensive-form games][
