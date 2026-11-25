@@ -247,7 +247,7 @@ Consider any game that contains the following interaction between three players 
   The only remaining possibility is $x = y$. In this case $z$ is indifferent between her two actions, and every $z in [0,1]$ is a best response, matching the "any" case in the gate table of @sec-generalized-circuits.
 ]
 
-The same computation shows why approximate comparisons need a gap. Player $z$'s expected payoff is $z x + (1-z) y$, so switching to always playing action $1$ gains $(1-z)(x-y)$. In an $epsilon.alt$-Nash equilibrium with $x-y>delta$, this deviation gain is at most $epsilon.alt$, so $1-z <= epsilon.alt/delta$. Taking $epsilon.alt <= delta^2$ enforces $z >= 1-delta$. The case $y-x>delta$ is symmetric.
+The same computation shows why approximate comparisons need a gap. Player $z$'s expected payoff is $z x + (1-z) y$, so switching to always playing action $1$ gains $(1-z)(x-y)$. In an #box[$epsilon.alt$-Nash] equilibrium with $x-y>delta$, this deviation gain is at most $epsilon.alt$, so $1-z <= epsilon.alt\/delta$. Taking $epsilon.alt <= delta^2$ enforces $z >= 1-delta$. The case $y-x>delta$ is symmetric.
 
 These local arguments explain the gate simulation. They do not by themselves prove the full hardness theorem: composing all gadgets while preserving their incentives, controlling approximation errors, and converting the graphical construction to a fixed number of players require the remaining reductions in the cited papers.
 
