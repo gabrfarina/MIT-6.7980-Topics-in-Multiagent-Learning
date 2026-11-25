@@ -14,7 +14,7 @@
 
   $ M_(f)(vx) = min_(vy in cX) {f(vy) + 1/2 norm(vx - vy)^2} qquad forall vx in cX $ <moreau-envelope-def>
 
-  so that $M_(f)(vx)$ is the optimal value of the same objective that defines $prox_(f)(vx)$. We denote the Euclidean projection onto a set $cS$ by $Pi_(cS): RR^(d)-> cS$. With this notation, the gradient update becomes $vx^((t+1)) = Pi_(cX)(vx^((t)) - eta vg^((t)))$.
+  so that $M_(f)(vx)$ is the optimal value of the same objective that defines $prox_(f)(vx)$. We recall that the gradient update is $vx^((t+1)) = Pi_(cX)(vx^((t)) - eta vg^((t)))$.
 
   // We had used proj_(cX) in class at some points; however, other materials here use the Pi notation above.
 
@@ -57,23 +57,6 @@
   $
   Since this upper bound does not depend on $f$, it also holds for $sup_(f in F) "Reg"_(f)^((T))$.
 ]
-
-// Let us consider a family of functions $F := {f_(vv): f_(vv)(vx) = ip(vv, vx), norm(vv) <= delta}$. We see that $forall f_(vv) in F$ and $forall vx in cX$,
-
-// $
-// prox_(f_(vv))(vx) &= argmin_(y in cX) {f_(vv)(y) + 1/2 norm(vx - vy)^2} \
-// &= argmin_(y in cX) {1/2 norm(vv)^2 - ip(vv, vx) +f_(vv)(y) + 1/2 norm(vx - vy)^2} \
-// &= argmin_(y in cX) {1/2 norm((vx - vy) - vv)^2}  = argmin_(y in cX) {1/2 norm((vx - vv) - vy)^2} = Pi_(cX)(vx - vv),
-// $
-
-// which moves $vx$ by at most $delta$ by (#[@eq-projection]). Hence, every map $vx |-> prox_(f_(vv))(vx)$ belongs to $Phi(delta)$. Then, choosing $eta = D/(G sqrt(T))$ in the theorem gives
-
-// $
-//   max_(f_(vv) in F) "Reg"_(f_(vv))^((T)) <= D G sqrt(T).
-// $
-// Hence, the regret against all these local deviations is sublinear.
-
-// On the other hand, taking $f$ to be the indicator function $I_(va)$ of a point $va in cX$ ($0$ at $va$ and $+oo$ elsewhere) gives $prox_(f) = va$ and represents external regret. Therefore, proximal regret strengthens external regret while also capturing a tractable family of local deviations in $Phi(delta)$.
 
 // Referring to Task 7 might be useful here.
 *Implication for local $Phi$-equilibria.* As seen in the examples above, for linear $f_(vv)(vy) = ip(vv, vy)$ with $norm(vv) <= delta$, $prox_(f_(vv))(vx) = Pi_(cX)(vx - vv)$, which is a deviation that moves $vx$ by at most $delta$. Hence, all these proximities are in $Phi(delta)$. If we choose $eta = D / (G sqrt(T))$, gradient descent attains regret at most $D G sqrt(T)$ against all of these local deviations simultaneously.
