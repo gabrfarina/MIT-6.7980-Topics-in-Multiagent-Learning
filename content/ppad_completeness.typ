@@ -199,28 +199,26 @@ Consider any game that contains the following interaction between three players 
 
   #block(width: 100%, breakable: false)[
     #paragraph-marker(shape: "triangle-right") _Payoffs of player $z$._~ The payoff of player $z$ is defined as follows.
-    If $z$ plays $1$, her payoff depends on $x$'s strategy but not on $y$'s, according to the payoff table
+    If $z$ plays $1$, her payoff does not depend on $y$'s strategy, but only on $x$'s, according to the table
     #align(center)[#context table(
       columns: payoff-table-columns(),
       align: center,
       fill: none,
       stroke: .2mm,
-      [     ], [$y=0$], [$y=1$],
-      [$x=0$], [$0$], [$0$],
-      [$x=1$], [$1$], [$1$],
+      [], [$x=0$], [$x=1$],
+      [], [$0$], [$1$],
     )]
   ]
 
   #block(width: 100%, breakable: false)[
-    If $z$ plays $0$, her payoff depends on $y$'s strategy but not on $x$'s, according to the payoff table
+    If $z$ plays $0$, her payoff does not depend on $x$'s strategy, but only on $y$'s, according to the table
     #align(center)[#context table(
       columns: payoff-table-columns(),
       align: center,
       fill: none,
       stroke: .2mm,
-      [     ], [$y=0$], [$y=1$],
-      [$x=0$], [$0$], [$1$],
-      [$x=1$], [$0$], [$1$],
+      [], [$y=0$], [$y=1$],
+      [], [$0$], [$1$],
     )]
   ]
 
