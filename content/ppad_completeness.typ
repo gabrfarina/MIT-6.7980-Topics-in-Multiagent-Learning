@@ -188,4 +188,53 @@ This also illustrates why approximate comparisons need a gap. In an $epsilon.alt
 
 These local arguments explain the gate simulation. They do not by themselves prove the full hardness theorem: composing all gadgets while preserving their incentives, controlling approximation errors, and converting the graphical construction to a fixed number of players require the remaining reductions in the cited papers.
 
+= Other existence arguments and the classes PPA, PPP, and PLS <sec-other-total-classes>
+
+Some search problems always have a solution because a simple mathematical argument guarantees one, even though the argument does not say how to find it quickly. Total search problems can be grouped according to which argument provides this guarantee. We have already met one such group. Recall from #lecture-link("tfnp", <sec-ppad>)[] that PPAD is the class of total search problems that reduce to #lecture-link("tfnp", <sec-end-of-line>)[End-of-Line], where the guarantee is that a directed path that has a start also has an end.
+
+Three other classes arise in the same way from three other arguments. Each class in the table below can be described as the total search problems that reduce to one _defining problem_, in which Boolean circuits on #box[$n$-bit] strings describe an exponentially large object.
+
+// Narrow cells read better ragged-right and without hyphenation. Keep the table on one page.
+#block(breakable: false)[
+  #set par(justify: false)
+  #set text(hyphenate: false)
+  #table(
+    columns: (3.5cm, 1fr, 1.3fr),
+    align: (horizon + left, horizon + left, horizon + left),
+    inset: (x: 2mm, y: 2.5mm),
+    stroke: .2mm,
+    table.header[*Class*][*Existence argument*][*Defining problem*],
+    [PPA \ Polynomial Parity Argument #citep(<papadimitriou1994parity>)],
+    [In an undirected graph, the number of vertices with an odd number of edges is even. In particular, a path that has one end has another end.],
+    [A circuit describes a graph on the #box[$n$-bit] strings in which every vertex has at most two edges and vertex $0$ has exactly one. Find another vertex with exactly one edge.],
+
+    [PPP \ Polynomial Pigeonhole Principle #citep(<papadimitriou1994parity>)],
+    [If there are more pigeons than holes, two pigeons share a hole. So a function from a finite set to itself that never outputs some element gives the same output on two different inputs.],
+    [A circuit maps #box[$n$-bit] strings to #box[$n$-bit] strings. Find an input that is mapped to the all-zero string, or two different inputs with the same output.],
+
+    [PLS \ Polynomial Local Search #citep(<JohnsonPY88:LocalSearch>)],
+    [Costs cannot decrease forever. So a cost function on a finite set has a local optimum, a point that no allowed move makes cheaper.],
+    [One circuit proposes a neighbor $S(v)$ of every point $v$ and another computes an integer cost $V(v)$. Find a point $v$ with $V(S(v)) >= V(v)$.],
+  )
+]
+
+#paragraph-marker() *Reading the table.*~~ The PPA problem is End-of-Line without the directions. In the PPP problem, if no input is mapped to the all-zero string, then $2^n$ inputs share only $2^n - 1$ outputs, so two of them collide. In the PLS problem, the only allowed move from a point $v$ is to $S(v)$, so a point with $V(S(v)) >= V(v)$ is a local optimum. In all three problems a solution is guaranteed to exist but is hard to find, because the object described by the circuits has $2^n$ elements and the obvious search, along the path or through cheaper neighbors, can take exponentially many steps. In short, PPA, PPP, and PLS each collect the problems whose solutions exist for one and the same reason, which is parity for PPA, the pigeonhole principle for PPP, and local improvement for PLS.
+
+#paragraph-marker() *Examples of complete problems.*~~ Recall that a problem is complete for a class if it belongs to the class and every problem of the class reduces to it, so a fast algorithm for a complete problem would give a fast algorithm for the whole class. Approximate Nash equilibrium plays this role for PPAD. Each of the other classes has natural complete problems as well.
+- _PPA._ Approximate consensus halving #citep(<FilosRatsikasG18:ConsensusHalving>). Picture an interval as a long cake with different toppings along its length, and $n$ agents who each care about different toppings. The task is to cut the cake in at most $n$ places and to sort the resulting pieces into two piles so that every agent, judging by their own taste, finds the two piles almost equally valuable. For a single agent one cut is enough, placed where the part to its left is worth exactly half to that agent. For several agents the same few cuts must balance everyone at once. A suitable division always exists, and the proof rests on a parity argument, which is why the problem belongs to PPA.
+- _PPP._ A constrained version of the short integer solution problem #citep(<SotirakiZZ18:PPP>). In the basic problem we are given a system of linear equations modulo an integer with many more unknowns than equations, and we look for a nonzero solution whose entries are small integers. Here the pigeons are the vectors with entries $0$ or $1$, and the holes are the possible values of the equations. There are more pigeons than holes, so two such vectors give the same values, and their difference is a solution with entries $-1$, $0$, or $1$.
+- _PLS._ Finding a pure Nash equilibrium of a congestion game #citep(<FabrikantPT04:PureNash>). Picture drivers who each choose a route made of roads, where a road becomes slower as more drivers use it. In general, a congestion game lets every player choose a set of resources, and the cost of a resource depends only on the number of players that use it. A pure Nash equilibrium is a choice of routes, made without randomizing, in which no driver can shorten their own trip by switching alone. One always exists, because every switch that helps a driver also lowers a common potential function, so drivers who switch one at a time must eventually stop.
+
+#paragraph-marker() *Inclusions.*~~ @fig-total-search-classes shows the known inclusions. Every class contains FP, the total search problems solvable in polynomial time, and is contained in TFNP. PPAD is contained in both PPA and PPP #citep(<papadimitriou1994parity>), and no other inclusion among the four classes is known. Proving that any two of them differ would imply $"P" != "NP"$.
+
+#figure(
+  caption: [Known inclusions among the total-search classes of this section. An arrow points from a class to a class that contains it. No inclusion is known to be strict.],
+)[
+  #image(
+    "figures/ppad_completeness/total_search_classes.svg",
+    width: 5.2cm,
+    alt: "Inclusion diagram in which FP is contained in PPAD and in PLS, PPAD is contained in PPA and in PPP, and each of PPA, PPP, and PLS is contained in TFNP.",
+  )
+] <fig-total-search-classes>
+
 #lec_bibliography("meta/refs.bib")
