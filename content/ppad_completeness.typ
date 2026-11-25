@@ -54,7 +54,7 @@ In particular, we will restrict our attention to functions constructed through c
 
     [Scaling],
     [#image("figures/ppad_completeness/gate_multiplication.svg", width: 3cm, alt: "Multiplication gate.")],
-    [$y=max{0,min{1, a dot x_1}}$],
+    [$y=a dot x_1$],
 
     [Comparison],
     [#image("figures/ppad_completeness/gate_comparison.svg", width: 3cm, alt: "Comparison gate.")],
@@ -68,7 +68,7 @@ In particular, we will restrict our attention to functions constructed through c
       When the inputs are equal, this gate does not restrict the output.
     ],
   )
-- Each constant $a$ is rational and lies in $[0,1]$. Scaling multiplies by this constant; multiplication of two variable inputs is not one of the permitted gates.
+- Each constant $a$ is rational and lies in $[0,1]$. Scaling multiplies by this constant; multiplication of two variable inputs is not one of the permitted gates. Because $a$ and $x_1$ both lie in $[0,1]$, so does $a dot x_1$: unlike addition and subtraction, scaling needs no clipping.
 - Directed edges connecting variables to gates and gates to variables (loops are allowed);
 - Variable nodes have in-degree 1; gates have 0, 1, or 2 inputs depending on type as above; gates & nodes have arbitrary fanout.
 
