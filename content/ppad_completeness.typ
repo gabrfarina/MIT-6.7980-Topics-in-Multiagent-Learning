@@ -182,9 +182,70 @@ Consider any game that contains the following interaction between four players $
 
 == Comparison gate
 
-For input players with action-$1$ probabilities $x,y$, give an output player $z$ payoff equal to the input action of $x$ when she plays $1$, and equal to the input action of $y$ when she plays $0$. Her expected payoff difference between the two actions is $x-y$. Therefore, in an exact equilibrium, $z=1$ if $x>y$, $z=0$ if $x<y$, and any mixture is allowed at a tie.
+Consider any game that contains the following interaction between three players $x, y, z$, each of which has two actions, denoted ${0,1}$. As before, we call $x, y, z in [0,1]$ the probability of playing action $1$.
 
-This also illustrates why approximate comparisons need a gap. In an $epsilon.alt$-Nash equilibrium, if $x-y>delta$, then playing action $0$ with probability $1-z$ incurs deviation gain $(1-z)(x-y)$, so $1-z <= epsilon.alt/delta$. Taking $epsilon.alt <= delta^2$ enforces $z >= 1-delta$. The case $y-x>delta$ is symmetric.
+#example[Comparison gadget game][
+  Consider any game that contains as a substructure the gadget shown in the diagram below, and payoffs set as follows.
+
+  #figure(
+    caption: [Comparison gadget game. The dashed blue edges denote possible edges in the game, which do not affect the result in @thm-gadget-comparison.],
+  )[
+    #image(
+      "figures/ppad_completeness/comparison_gadget.svg",
+      width: 4cm,
+      alt: "Comparison gadget: input players x and y each influence the output player z.",
+    )
+  ]
+
+  #block(width: 100%, breakable: false)[
+    #paragraph-marker(shape: "triangle-right") _Payoffs of player $z$._~ The payoff of player $z$ is defined as follows.
+    If $z$ plays $1$, her payoff does not depend on $y$'s strategy, but only on $x$'s, according to the table
+    #align(center)[#context table(
+      columns: payoff-table-columns(),
+      align: center,
+      fill: none,
+      stroke: .2mm,
+      [], [$x=0$], [$x=1$],
+      [], [$0$], [$1$],
+    )]
+  ]
+
+  #block(width: 100%, breakable: false)[
+    If $z$ plays $0$, her payoff does not depend on $x$'s strategy, but only on $y$'s, according to the table
+    #align(center)[#context table(
+      columns: payoff-table-columns(),
+      align: center,
+      fill: none,
+      stroke: .2mm,
+      [], [$y=0$], [$y=1$],
+      [], [$0$], [$1$],
+    )]
+  ]
+
+  #paragraph-marker(shape: "triangle-right") _Other payoffs and considerations_.~~
+  The payoff of player $z$ does not depend on the strategy of any player other than $x$ and $y$.
+  The gadget does not restrict the payoffs of $x$ and $y$, nor how $z$ affects other players in the game.
+]
+
+#theorem[
+  In all Nash equilibria of the game,
+  $ z = cases(
+    1\, quad& "if" x > y,
+    0\, & "if" x < y.
+  ) $
+  If $x = y$, the gadget does not restrict $z$.
+] <thm-gadget-comparison>
+#proof[
+  Action $1$ pays player $z$ one unit exactly when $x$ plays $1$, so its expected payoff is $x$. Similarly, the expected payoff of action $0$ is $y$. In a Nash equilibrium, $z$ plays with positive probability only actions with the highest expected payoff.
+
+  Suppose that $x > y$. Then action $1$ is strictly better than action $0$, so $z$ deterministically plays $1$; that is, $z = 1$.
+
+  Suppose now that $x < y$. Then action $0$ is strictly better than action $1$, so $z = 0$.
+
+  The only remaining possibility is $x = y$. In this case $z$ is indifferent between her two actions, and every $z in [0,1]$ is a best response, matching the "any" case in the gate table of @sec-generalized-circuits.
+]
+
+The same computation shows why approximate comparisons need a gap. Player $z$'s expected payoff is $z x + (1-z) y$, so switching to always playing action $1$ gains $(1-z)(x-y)$. In an $epsilon.alt$-Nash equilibrium with $x-y>delta$, this deviation gain is at most $epsilon.alt$, so $1-z <= epsilon.alt/delta$. Taking $epsilon.alt <= delta^2$ enforces $z >= 1-delta$. The case $y-x>delta$ is symmetric.
 
 These local arguments explain the gate simulation. They do not by themselves prove the full hardness theorem: composing all gadgets while preserving their incentives, controlling approximation errors, and converting the graphical construction to a fixed number of players require the remaining reductions in the cited papers.
 
