@@ -76,6 +76,13 @@ This convention handles every circuit pair. On the usual valid instances, $0$ is
   On eight vertices, consider paths $0 -> 1 -> 3$ and $4 -> 6$, a cycle $2 -> 5 -> 2$, and isolated vertex $7$. Set the missing predecessor of a source and missing successor of a sink equal to the vertex itself. The valid outputs are $3,4,6$. The solver need not return the endpoint of the path starting at $0$. Neither a cycle vertex nor isolated vertex $7$ is valid.
 ]
 
+#exercise[Reading an End-of-Line Instance][Let $n=3$ and match every 3-bit string to its encoding in binary, so that the vertices are $0, 1, ..., 7$. Consider the directed graph described by edges $ 0 -> 6 -> 3, quad 5 -> 1, quad 2 -> 4 -> 7 -> 2. $
+
+1. Find $P(v)$ and $S(v)$ for every vertex $v$ (set $S(v) = v$ or $P(v) = v$ when no outgoing/incoming edge, respectively, exists).
+2. Give the in-degree and out-degree of every vertex and list all valid End-of-Line outputs.
+3. If we change only $S(3)$ to $1$, how does the graph change?
+]<ex-end-of-line-instance>
+
 Following the path from $0$ will eventually find an endpoint, but can require exponentially many steps. The input contains circuits of polynomial size, not an explicit list of all $2^n$ vertices. The gap between verification and search is therefore compatible with a very simple graph-theoretic existence proof.
 
 = PPAD and other total-search classes <sec-ppad>
