@@ -311,4 +311,29 @@ This recovers learning over the reduced normal-form strategies without explicitl
 
 The exact identities above use real arithmetic. In an implementation, logarithms and log-sum-exp prevent overflow in the positive weights; a finite-precision guarantee must also account for rounding error.
 
+= Problems <sec-kernelized-problems>
+
+@thm:kernelization provides us a trick to learn over large $|V|.$ However, kernel computation need not always be efficient, and further, pathalogically, there are cases where optimization over $V$ itself is efficient, but kernel evaluation is difficult.
+
+#exercise[Efficient Linear Optimization $!=$ Efficient Kernel Evaluation][ Let $G$ be a bipartite graph with $n$ left and $n$ right nodes, and let $V subset.eq {0,1}^E$ contain its perfect matchings, written as 0/1 encodings over the edges.
+  + Show that $K_(V)(vone,vone)=|V|$. (Note: The argument should work for any $V subset.eq {0,1}^d$)
+  + Describe why the first iterate of KMWU or KOMWU on $V$ may be difficult to compute.
+  + Show (classically) that a maximum-weight perfect matching of $G$ can be found in polynomial time. (_Hint:_ Optimize over the perfect-matching polytope $op("conv") V$).
+] <ex:perfect-matchings>
+
+#solution[
+  + $
+      K_V (vone, vone) &= chevron.l phi_V (vone), phi_V (vone) chevron.r \
+      &= sum_(v in V) product_(k: v_k = 1) 1 dot 1 \
+      &= sum_(v in V) 1 = #box($|V|$)
+    $
+
+  + Both methods initialize $vb_1 = vone$. Then the first normalizer is $K_(V)(vone,vone) = |V|$, the number of perfect matchings of $G$ (up to $n!$ of them). Earlier examples avoid direct computations by leveraging factoring or DP. However, it is hard to split this summation into smaller problems due to the interdependence of decisions. Choosing one edge rules out that left and right node for further matching, but does not recursively decrease the scale of the problem. In fact, no efficient exact method for counting perfect matchings is known. The problem is \#P-complete #citep(<Valiant79:Permanent>).
+
+  + First we maximize $chevron.l vg, vx chevron.r$ over the polytope in the hint. Note this is a linear programming problem with $|E|$ variables and $2n$ equality constraints, so it can be solved in polynomial time. A linear function over a polytope is maximized at a vertex, so an optimal vertex is a maximum-weight perfect matching. (Note: A solution known as the Hungarian algorithm solves this problem in $O(n^3)$, see: #citep(<Kuhn55:Hungarian>), #citep(<EdmondsKarp72:Network>))
+
+While finding the linear optimum is a polynomial efficient problem, we do not have knowledge of an efficient kernel evaluator for the same problem. Therefore, while easy kernel evaluation implies easy optimization, the converse does not apply.
+]
+
+
 #lec_bibliography("meta/refs.bib")
