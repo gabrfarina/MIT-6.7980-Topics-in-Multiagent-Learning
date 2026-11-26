@@ -215,7 +215,7 @@ Encoding the distribution is only half the task. `NextStrategy()` must also reco
 
 Together, @thm:implicit-weights and @thm:kernel-mean prove @thm:kernelization. Maintain $vb_t$, evaluate one common normalizer and $d$ coordinate-exclusion kernels, return the resulting mean, and update $vb_t$ after observing the gradient. No explicit vector indexed by $V$ is needed.
 
-= Examples of efficiently computable kernels
+= Examples of efficiently computable kernels <sec-kernel-examples>
 
 We now turn the abstract reduction into algorithms for the strategy sets introduced above. It is convenient to write $q_k=z_k w_k$ and
 $ Z(vq)=sum_(vv in V) product_(k:v_k=1) q_k, quad K_(V)(vz,vw)=Z(vq). $
@@ -227,7 +227,7 @@ For $V={0,1}^d$, each coordinate is either absent from a monomial or contributes
 $ K_(V)(vz,vw)=product_(k=1)^d (1+z_k w_k). $
 The kernel takes $O(d)$ arithmetic operations to evaluate. For positive weights, the mean has the particularly simple form $x_k=b_k/(1+b_k)$.
 
-== Multiple choices: m-sets
+== Multiple choices: m-sets <sec-m-sets>
 
 For subsets of size $m$, the kernel is the coefficient of $gamma^m$ in
 $ product_(k=1)^d (1+gamma z_k w_k). $
@@ -235,7 +235,7 @@ Each choice of $m$ factors contributes exactly the monomial for that subset. Let
 $ E_(j,r)=E_(j-1,r)+q_j E_(j-1,r-1). $
 Initialize $E_(0,0)=1$ and all invalid entries to zero. Only degrees through $m$ are needed, so this dynamic program evaluates $K_(V)(vz,vw)=E_(d,m)$ in $O(d(m+1))$ operations. The recurrence separates subsets that omit object $j$ from those that include it.
 
-== Paths in a directed acyclic graph
+== Paths in a directed acyclic graph <sec-dag-paths>
 
 For a directed acyclic graph $G=(N,E)$, let $Z_u$ be the sum of products of edge weights over all paths from node $u$ to the destination. In reverse topological order, compute
 $ Z_"destination"=1, quad Z_u=sum_(e=(u,v)) q_e Z_v quad (u != "destination"). $
@@ -243,7 +243,7 @@ The kernel is $Z_"source"$. The empty path at the destination contributes one; o
 
 Every source-to-destination path has a unique first edge, which proves the recurrence. Evaluating it takes $O(|N|+|E|)$ operations. This is the path-kernel setting studied by #citet(<Takimoto03:Path>); acyclicity is what makes this single backward pass sufficient.
 
-== Resource allocations
+== Resource allocations <sec-allocations>
 
 For the one-hot allocation representation, let $F_(j)(r)$ be the total weight of allocations of $r$ units to the first $j$ battlefields. With $q_(j,s)=z_(j,s)w_(j,s)$, the recurrence is
 $ F_(0)(0)=1, quad F_(0)(r)=0 quad (r>0), $
@@ -312,3 +312,35 @@ This recovers learning over the reduced normal-form strategies without explicitl
 The exact identities above use real arithmetic. In an implementation, logarithms and log-sum-exp prevent overflow in the positive weights; a finite-precision guarantee must also account for rounding error.
 
 #lec_bibliography("meta/refs.bib")
+
+
+#appendix[
+  = Appendix: Mean strategy is one gradient <sec-mean-gradient>
+
+  In @thm:kernel-mean, we recover the expectation through $d+1$ computations of the kernel. However, we can more efficiently parallelize these computations using a gradient. Observe that differentiating $Z$ w.r.t. $b_k$ collects the vertices that use $k$.
+
+  #theorem[Mean as a gradient][
+    $ x_k=frac(b_k, Z(vb)) frac(partial Z, partial b_k)(vb)=frac(partial log Z, partial log b_k)(vb). $
+    If $Z$ is computed by a circuit of $S$ additions and multiplications, $vx$ can be computed with $O(S+d)$ operations.
+  ] <thm:mean-gradient>
+ 
+  #proof[
+    Split the vertices according to $v_k in {0,1}$:
+    $ Z(vb)=underbrace(sum_(vv in V: v_k=0) product_(j:v_j=1) b_j, K_(V)(vb,overline(ve)_k))+b_k underbrace(sum_(vv in V: v_k=1) product_(j != k: v_j=1) b_j, C_k), $ where neither $K_(V)(vb,overline(ve)_k)$ nor $C_k$ depends on $b_k$. Hence $partial Z\/partial b_k=C_k$, and $ b_k C_k=sum_(vv: v_k=1) phi_(V)(vb)_vv=Z(vb) sum_(vv: v_k=1) lambda(vv)=Z(vb) x_k. $ Subtracting this from $Z(vb)$ and dividing by $Z(vb)$ yields the same formulation as @thm:kernel-mean.
+    
+    To compute the gradient, we forward pass the circuit once and then backpropogate $partial Z\/partial u$ for each gate $u$. This uses at most five operations per gate #citep(<Baur83:Partial>). Hence, computing all $partial Z\/partial b_k$ is $O(S).$
+  ]
+
+  #remark[Improvements][
+    @thm:kernelization and @thm:kernel-mean use $d+1$ kernel evaluations per round. By @thm:mean-gradient, one forward pass and one backpropogation are enough for circuit formulations. Observe the following speedups for the examples of @sec-kernel-examples:
+
+      #table(
+        columns: 4, align: center, inset: .4em, stroke: none,
+        table.header([Strategy set], [One kernel], [Mean via $d+1$ kernels], [Mean via gradient]),
+        [$m$-sets (@sec-m-sets[§])], [$O(d(m+1))$], [$O(d^2(m+1))$], [$O(d(m+1))$],
+        [DAG paths (@sec-dag-paths[§])], [$O(|N|+|E|)$], [$O(|E|(|N|+|E|))$], [$O(|N|+|E|)$],
+        [Allocations (@sec-allocations[§])], [$O(B(R+1)^2)$], [$O(B^2(R+1)^3)$], [$O(B(R+1)^2)$],
+        [EFGs (@thm:sequence-kernel[Thm.])], [$O(d)$], [$O(d^2)$], [$O(d)$],
+      )
+  ]
+]
