@@ -317,22 +317,22 @@ The exact identities above use real arithmetic. In an implementation, logarithms
 #appendix[
   = Appendix: Mean strategy is one gradient <sec-mean-gradient>
 
-  In @thm:kernel-mean, we recover the expectation through $d+1$ computations of the kernel. However, we can more efficiently parallelize these computations using a gradient. Observe that differentiating $Z$ w.r.t. $b_k$ collects the vertices that use $k$.
+  In @thm:kernel-mean, we recover the expectation through $d+1$ computations of the kernel. However, we can more efficiently recover all of the kernal computations using one forward pass and its gradient. Observe that differentiating $Z$ w.r.t. $b_k$ collects the vertices that use $k$.
 
-  #theorem[Mean as a gradient][
+  #theorem[Mean as a gradient][Consider the setup as in @thm:kernel-mean. Then:
     $ x_k=frac(b_k, Z(vb)) frac(partial Z, partial b_k)(vb)=frac(partial log Z, partial log b_k)(vb). $
-    If $Z$ is computed by a circuit of $S$ additions and multiplications, $vx$ can be computed with $O(S+d)$ operations.
+    If $Z$ is computed by a circuit of $S$ gates ($+, times$), $vx$ can be computed in $O(S+d).$
   ] <thm:mean-gradient>
  
   #proof[
-    Split the vertices according to $v_k in {0,1}$:
-    $ Z(vb)=underbrace(sum_(vv in V: v_k=0) product_(j:v_j=1) b_j, K_(V)(vb,overline(ve)_k))+b_k underbrace(sum_(vv in V: v_k=1) product_(j != k: v_j=1) b_j, C_k), $ where neither $K_(V)(vb,overline(ve)_k)$ nor $C_k$ depends on $b_k$. Hence $partial Z\/partial b_k=C_k$, and $ b_k C_k=sum_(vv: v_k=1) phi_(V)(vb)_vv=Z(vb) sum_(vv: v_k=1) lambda(vv)=Z(vb) x_k. $ Subtracting this from $Z(vb)$ and dividing by $Z(vb)$ yields the same formulation as @thm:kernel-mean.
+    Let:
+    $ Z(vb)=underbrace(sum_(vv in V: v_k=0) product_(j:v_j=1) b_j, K_(V)(vb,overline(ve)_k))+b_k underbrace(sum_(vv in V: v_k=1) product_(j != k: v_j=1) b_j, C_k), $ where neither $K_(V)(vb,overline(ve)_k)$ nor $C_k$ depends on $b_k$. Hence $partial Z\/partial b_k=C_k$, and $ b_k C_k=sum_(vv: v_k=1) phi_(V)(vb)_vv=Z(vb) sum_(vv: v_k=1) lambda(vv)=Z(vb) x_k. $ Dividing by $Z(vb)$ gives the first equality, and the chain rule gives the second. Since $K_(V)(vb,overline(ve)_k)=Z(vb)-b_k C_k$, this agrees with @thm:kernel-mean.
     
-    To compute the gradient, we forward pass the circuit once and then backpropogate $partial Z\/partial u$ for each gate $u$. This uses at most five operations per gate #citep(<Baur83:Partial>). Hence, computing all $partial Z\/partial b_k$ is $O(S).$
+    To compute the gradient, we forward pass the circuit once and then backpropagate $partial Z\/partial u$ for each gate $u$. This uses at most five operations per gate #citep(<Baur83:Partial>). Hence, computing all $partial Z\/partial b_k$ is $O(S).$
   ]
 
-  #remark[Improvements][
-    @thm:kernelization and @thm:kernel-mean use $d+1$ kernel evaluations per round. By @thm:mean-gradient, one forward pass and one backpropogation are enough for circuit formulations. Observe the following speedups for the examples of @sec-kernel-examples:
+  #remark[Example Speedups][
+    @thm:kernelization and @thm:kernel-mean use $d+1$ kernel evaluations per round. By @thm:mean-gradient, one forward pass and one backpropagation are enough for circuit formulations. Observe below following speedups for the examples of @sec-kernel-examples. Here $S$ is the cost of one kernel, and $S >= d$ in every example, so the cost $O(S+d) = O(S)$, while $d+1$ evaluations cost $(d+1)S$.
 
       #table(
         columns: 4, align: center, inset: .4em, stroke: none,
