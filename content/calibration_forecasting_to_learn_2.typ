@@ -127,23 +127,28 @@ Note that $eps^((t))$ cannot generally be set to zero. Consider how the best-res
 @tab-calibration-phi-bound-routes compares the two $Phi$-regret minimizers we built up in this lecture.
 
 #figure(
-  table(
-    columns: (auto, 1fr, 1.35fr),
-    align: (left, left, left),
-    inset: 6pt,
-    stroke: 0.4pt + luma(170),
-    table.header(
-      [],
-      [*Gordon-Greenwald-Marks*],
-      [*Forecasting route*],
-    ),
-    [*Learn over*], [the valid deviations $Phi$], [any set of tests $cH supset.eq cH_Phi$],
-    [*Optimization step*], [a fixed point of the proposed deviation $phi.alt^((t))$], [an $eps^((t))$-solution of the EVI for the proposed test $h^((t))$],
-    [*Play*], [the fixed point], [the best response $sigma(vp)$ to a sampled forecast $vp ~ D^((t))$],
-    [*Guarantee*],
-    [$Phi$-regret equals the learner's external regret],
-    [$Phi$-regret is at most the learner's external regret plus the total EVI error],
-  ),
+  {
+    set par(justify: false)
+    set text(hyphenate: false)
+    table(
+      columns: (auto, 1fr, 1.35fr),
+      align: (left, left, left),
+      inset: 6pt,
+      stroke: 0.4pt + luma(170),
+      table.header(
+        [],
+        [*Gordon-Greenwald-Marks*],
+        [*Forecasting route*],
+      ),
+      [*Learn over*], [the valid deviations $Phi$], [any set of tests $cH supset.eq cH_Phi$],
+      [*Optimization step*], [a fixed point of the proposed deviation $phi.alt^((t))$], [an $eps^((t))$-solution of the EVI for the proposed test $h^((t))$],
+      [*Play*], [the fixed point], [the best response $sigma(vp)$ to a sampled forecast $vp ~ D^((t))$],
+      [*Guarantee*],
+      [$Phi$-regret equals the learner's external regret],
+      [$Phi$-regret is at most the learner's external regret plus the total EVI error],
+    )
+  },
+  kind: table,
   caption: [The two routes from external regret to $Phi$-regret. The equality on the left assumes exact fixed points.],
 ) <tab-calibration-phi-bound-routes>
 
