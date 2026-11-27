@@ -76,6 +76,40 @@ This convention handles every circuit pair. On the usual valid instances, $0$ is
   On eight vertices, consider paths $0 -> 1 -> 3$ and $4 -> 6$, a cycle $2 -> 5 -> 2$, and isolated vertex $7$. Set the missing predecessor of a source and missing successor of a sink equal to the vertex itself. The valid outputs are $3,4,6$. The solver need not return the endpoint of the path starting at $0$. Neither a cycle vertex nor isolated vertex $7$ is valid.
 ]
 
+#exercise[Interpreting an End-of-Line Instance][Let $n=3$ and match every 3-bit string to its encoding in binary, so that the vertices are $0, 1, ..., 7$. Consider the directed graph described by edges $ 0 -> 6 -> 3, quad 5 -> 1, quad 2 -> 4 -> 7 -> 2. $
+
+1. Find $P(v)$ and $S(v)$ for every vertex $v$ (set $S(v) = v$ or $P(v) = v$ when no outgoing/incoming edge, respectively, exists).
+2. Give the in-degree and out-degree of every vertex and list all valid End-of-Line outputs.
+3. If we change only $S(3)$ to $1$, how does the graph change?
+]<ex-end-of-line-instance>
+
+#solution[
+  Note each edge $v -> w$ forces $S(v) = w$ and $P(w) = v$, and every other entry corresponds to a $0$ in- or out-degree and thus points to the vertex itself. So reading off the in- and out-degrees of each vertex yields the following table below:
+  #align(center)[
+    #table(
+      columns: 9,
+      align: center,
+      [$v$],
+      [$0$], [$1$], [$2$], [$3$], [$4$], [$5$], [$6$], [$7$],
+      // P(v)
+      [$P(v)$],
+      [$0$], [$5$], [$7$], [$6$], [$2$], [$5$], [$0$], [$4$],
+      // S(v)
+      [$S(v)$],
+      [$6$], [$1$], [$4$], [$3$], [$7$], [$1$], [$3$], [$2$],
+      // in
+      [in],
+      [$0$], [$1$], [$1$], [$1$], [$1$], [$0$], [$1$], [$1$],
+      // out
+      [out],
+      [$1$], [$0$], [$1$], [$0$], [$1$], [$1$], [$1$], [$1$],
+    )
+  ]
+  To find every possible End-of-Line output, note that there are $4$ unbalanced vertices: $0$ and $5$, which are both sources, and $3$ and $1$, which are both sinks. However, we cannot output $0$ since it is unbalanced; thus, the valid outputs are $1$, $3$, and $5$. 
+
+  On part 3, the graph doesn't change at all - this new entry proposes the edge $3 -> 1$, but $P(1) = 5$ is inconsistent, so the circuits disagree and no edge is created.
+]
+
 Following the path from $0$ will eventually find an endpoint, but can require exponentially many steps. The input contains circuits of polynomial size, not an explicit list of all $2^n$ vertices. The gap between verification and search is therefore compatible with a very simple graph-theoretic existence proof.
 
 = PPAD and other total-search classes <sec-ppad>
