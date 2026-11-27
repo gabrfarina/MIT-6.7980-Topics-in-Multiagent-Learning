@@ -1,13 +1,13 @@
 #import "meta/gabri_notes.typ": *
 #show: gabri_notes.with(
-  instructor: [Guest Lecturer: ...],
+  instructor: [Guest Lecturer: Weiqiang Zheng],
   lec_num: 17,
   title: "Nonconcave games",
 )
 
 = Gradient descent minimizes proximal regret <sec-gd-proximal>
 
-Now that we gave the definiton of proximal regret and showed that it covers a wide range of regret notions, we show that gradient descent minimizes proximal regret. In particular, we will show the bound for any proper, lower semicontinuous function $f$.
+Now that we gave the definition of proximal regret and showed that it covers a wide range of regret notions, we show that gradient descent minimizes proximal regret. In particular, we will show the bound for any proper, lower semicontinuous function $f$.
 
 We make the following assumptions.
 - *Strategy set.* $cX subset.eq RR^d$ is nonempty, convex, and compact, with diameter at most $D$:
@@ -16,7 +16,7 @@ We make the following assumptions.
   $ norm(nabla ell^((t))(vx)) <= G quad forall vx in cX, t = 1, ..., T. $
 
 
-The algorithm is gradient descent with step size $eta > 0$:
+The algorithm is projected gradient descent with step size $eta > 0$:
 $ vx^((t+1)) := Pi_cX (vx^((t)) - eta nabla ell^((t))(vx^((t)))), $
 where $Pi_cX$ denotes the Euclidean projection onto $cX$.
 
