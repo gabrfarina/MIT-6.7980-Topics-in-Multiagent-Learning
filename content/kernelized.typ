@@ -12,6 +12,7 @@ Extensive-form games belong to a larger class of games that we will call _combin
 - Each player's utility is a multilinear function of these strategy vectors.
 
 Write $X_i = "conv"(V_i)$. A distribution $vlambda_i in Delta(V_i)$ induces a mean strategy $vx_i = sum_(vv in V_i) lambda_(i)(vv) vv in X_i$. By multilinearity, when the players randomize independently, their expected utilities depend only on these means. Thus we can work in dimension $d_i$, even when the number of deterministic strategies $|V_i|$ is exponentially larger.
+The mean $vx_i$ is a summary of $vlambda_i$, not itself a deterministic strategy. To act, player $i$ must instead draw a vertex $vv$ from $vlambda_i$ whose mean is $vx_i$. Because $vx_i$ does not record which coordinates are 1 together, a vertex cannot in general be obtained by rounding the coordinates of $vx_i$ independently.
 
 The central question of this lecture is whether #lecture-link("learning1", <sec-mwu>)[multiplicative weights] can also exploit this compact representation. We follow the kernelization approach of #citet(<Farina22:Kernelized>).
 
@@ -115,6 +116,20 @@ For $|V|>1$, choosing $eta=sqrt(frac(2 log |V|, M^2 T))$ gives $"Reg"_T <= M sqr
   Let $W_t=sum_vv exp(eta sum_(tau<t) ip(vg_tau, vv))$. The log moment-generating-function bound for a variable in $[-M,M]$ gives
   $ log(W_(t+1)/W_t) <= eta ip(vg_t, vx_t)+frac(eta^2 M^2, 2). $
   Sum over $t$, use $W_1=|V|$, and lower bound $W_(T+1)$ by the exponential weight of the best vertex.
+]
+
+#remark[From the mean to actual play][
+  The kernelized implementation developed in this lecture computes the mean $vx_t$, but a player must
+  still play a feasible deterministic strategy. To do so, the player draws a vertex
+  $vv_t ~ vlambda_t$, so that $EE[vv_t]=vx_t$. This is not the same as drawing each coordinate independently as a
+  Bernoulli variable with mean $x_(t,k)$. Independent coordinates reproduce the
+  marginals of $vlambda_t$, but not its joint distribution, and may fall outside $V$.
+
+  For example, let $V={(1,0),(0,1)}$ be the strategies of a two-action normal-form game
+  with $vlambda_t$ uniform, so $vx_t=(1/2,1/2)$. Independent sampling returns $(1,1)$
+  with probability $1/4$ and $(0,0)$ with probability $1/4$. Neither is a feasible action (the first plays both actions while the second plays neither).
+
+  How to draw a vertex without enumerating $V$ depends on the structure of $V$.
 ]
 
 == Main result
