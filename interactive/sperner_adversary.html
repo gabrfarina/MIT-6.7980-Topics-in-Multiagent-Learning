@@ -1,0 +1,829 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sperner Adversary</title>
+<script>
+// The lecture notes embed this page with ?embed=1: show only the game, in the notes' light theme.
+if (new URLSearchParams(location.search).has('embed')) {
+  document.documentElement.classList.add('embedded');
+  document.documentElement.dataset.theme = 'light';
+}
+</script>
+<style>
+:root{
+  --paper:#EDF0F4; --panel:#F8F9FB; --ink:#18202C; --muted:#5B6576; --rule:#CBD2DC; --gridline:#D6DCE4;
+  --r:#D2423A; --y:#E3A50B; --y-edge:#9A6F00; --b:#3467D1; --unk:#9AA4B3;
+  --floor:#E4E8EE; --band:rgba(24,32,44,.07); --sel:#18202C;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#11151B; --panel:#181D25; --ink:#E4E8EE; --muted:#96A0AF; --rule:#2B333F; --gridline:#232A34;
+  --r:#EE5E55; --y:#F2C230; --y-edge:#F2C230; --b:#5B8BF0; --unk:#5D6776;
+  --floor:#232A35; --band:rgba(228,232,238,.08); --sel:#FFFFFF; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --paper:#11151B; --panel:#181D25; --ink:#E4E8EE; --muted:#96A0AF; --rule:#2B333F; --gridline:#232A34;
+  --r:#EE5E55; --y:#F2C230; --y-edge:#F2C230; --b:#5B8BF0; --unk:#5D6776;
+  --floor:#232A35; --band:rgba(228,232,238,.08); --sel:#FFFFFF; color-scheme:dark;}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font:15px/1.6 system-ui,sans-serif;padding-block:28px 56px;padding-inline:16px}
+.wrap{max-width:1080px;margin:0 auto;display:grid;gap:28px}
+header h1{font:400 clamp(34px,6vw,54px)/1.02 Georgia,serif;margin:0;letter-spacing:-.01em;text-wrap:balance}
+header h1 i{color:var(--muted)}
+header p{margin:10px 0 0;max-width:70ch;color:var(--muted)}
+.game{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:24px;align-items:start}
+@media (max-width:820px){.game{grid-template-columns:1fr}}
+.board{position:relative;background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:10px}
+canvas{display:block;width:100%;height:auto;touch-action:none;cursor:crosshair}
+.side{display:grid;gap:18px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:6px;overflow:hidden}
+.stat{background:var(--panel);padding:10px 12px}
+.stat b{display:block;font:500 24px/1.1 ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+.stat span{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.msg{min-height:3.2em;font-size:14px;padding:10px 12px;border-left:3px solid var(--rule);background:var(--panel)}
+.msg.win{border-left-color:var(--ink);font-weight:500}
+.controls{display:grid;gap:10px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+label.lbl{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);width:100%}
+button,select{font:500 13px system-ui,sans-serif;color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:4px;padding:7px 11px;cursor:pointer}
+button:hover,select:hover{border-color:var(--muted)}
+button:focus-visible,select:focus-visible,canvas:focus-visible,svg:focus-visible{outline:2px solid var(--b);outline-offset:2px}
+button.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--muted)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.dot.y{background:var(--y);box-shadow:0 0 0 1px var(--y-edge) inset}
+.help{font-size:13px;color:var(--muted);margin:0}
+
+section.proof{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding-block:26px 30px;padding-inline:clamp(16px,3.2vw,36px);display:grid;gap:4px}
+section.proof h2{font:400 34px/1.1 Georgia,serif;margin:0 0 4px}
+section.proof h3{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:26px 0 4px}
+section.proof p,section.proof li,section.proof dd{max-width:72ch}
+section.proof p{margin:6px 0}
+section.proof ul,section.proof ol{margin:6px 0;padding-left:22px}
+section.proof li{margin:3px 0}
+.lede{font-size:17px}
+.mono,code{font-family:ui-monospace,Menlo,monospace;font-size:.9em}
+.players{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:8px 0}
+@media (max-width:700px){.players{grid-template-columns:1fr}}
+.players div{border-top:2px solid var(--ink);padding-top:8px}
+.players b{display:block}
+.key{border-left:3px solid var(--ink);padding:4px 0 4px 14px;margin:10px 0}
+
+.fig{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:22px;align-items:start;margin:10px 0 6px}
+@media (max-width:820px){.fig{grid-template-columns:1fr}}
+.fig svg{width:100%;height:auto;display:block;touch-action:manipulation}
+.fig figcaption{font-size:13px;color:var(--muted);margin-top:6px}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;font-size:13px;width:100%}
+th,td{text-align:left;padding:4px 8px;border-bottom:1px solid var(--rule)}
+th{font-weight:500;color:var(--muted);font-size:12px}
+td.m{font-family:ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+tr.on td{background:var(--band)}
+.readout{margin-top:14px;padding:12px 14px;background:var(--paper);border-radius:6px;font-size:14px}
+.readout .t{font-weight:600;margin:0 0 6px}
+.readout ol{margin:0;padding-left:20px}
+.readout .res{margin:8px 0 0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{font:12px ui-monospace,Menlo,monospace;border:1px solid var(--rule);border-radius:3px;padding:1px 6px;background:var(--panel)}
+dl.gloss{display:grid;grid-template-columns:minmax(120px,190px) minmax(0,1fr);gap:8px 20px;margin:8px 0}
+@media (max-width:600px){dl.gloss{grid-template-columns:1fr;gap:2px}dl.gloss dd{margin-bottom:10px}}
+dl.gloss dt{font-weight:600}
+dl.gloss dd{margin:0}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.embedded,.embedded body{background:transparent}
+.embedded body{margin:0;padding:8px}
+.embedded header,.embedded section.proof,.embedded .help{display:none}
+.embedded .wrap{gap:0}
+.embedded .side,.embedded .controls{grid-template-columns:minmax(0,1fr)}
+.embedded select{max-width:100%}
+@media (min-width:560px){.embedded .game{grid-template-columns:minmax(0,1fr) 240px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Find the rainbow triangle <i>against an adversary</i></h1>
+  <p>Only the boundary is colored, in the standard way: red on the left side (except the bottom-left corner), yellow along the bottom (except the bottom-right corner), and blue everywhere else. Click a grid point to ask for its color, or drag to query a whole row or column at once. You win when all three corners of some small triangle have been queried and are red, yellow and blue. The adversary answers honestly, but it fixes the hidden coloring as late as it can.</p>
+</header>
+
+<div class="game">
+  <div class="board"><canvas id="cv" tabindex="0" aria-label="Sperner grid. Click a point to query its color; arrow keys and Enter also work."></canvas></div>
+  <div class="side">
+    <div class="controls">
+      <label class="lbl">Adversary</label>
+      <div class="row" role="group" aria-label="Adversary mode">
+        <button id="modeProof" aria-pressed="true">Proof mode</button>
+        <button id="modeFree" aria-pressed="false">Free mode</button>
+      </div>
+      <p class="help" id="modeHelp"></p>
+    </div>
+    <div class="stats">
+      <div class="stat"><b id="sQ">0</b><span>Queries</span></div>
+      <div class="stat"><b id="sV">0</b><span>Grid points</span></div>
+      <div class="stat"><b id="sR">0</b><span>Tunnel moves</span></div>
+      <div class="stat"><b id="sE">0</b><span id="sEl">Untouched diagonal squares</span></div>
+    </div>
+    <div class="msg" id="msg" aria-live="polite"></div>
+    <div class="controls">
+      <label class="lbl" for="size">Grid</label>
+      <div class="row">
+        <select id="size"></select>
+        <button id="newg" class="primary">New game</button>
+      </div>
+      <label class="lbl">Tools</label>
+      <div class="row">
+        <button id="auto">Run divide &amp; conquer</button>
+        <button id="reveal" aria-pressed="false">Show hidden coloring</button>
+      </div>
+      <p class="help">“Show hidden coloring” draws the complete coloring the adversary has in mind right now. It always agrees with every answer given so far and has exactly one rainbow triangle.</p>
+    </div>
+    <div class="legend">
+      <span><i class="dot" style="background:var(--r)"></i>Red</span>
+      <span><i class="dot y"></i>Yellow</span>
+      <span><i class="dot" style="background:var(--b)"></i>Blue</span>
+      <span><i class="dot" style="background:transparent;border:1.5px solid var(--unk)"></i>Unknown</span>
+    </div>
+  </div>
+</div>
+
+<section class="proof" id="proof">
+  <h2>Why no algorithm wins quickly</h2>
+  <p class="lede">Every algorithm that learns colors only by calling the Sperner circuit needs at least about 2<sup>m</sup>/(4w) calls on some coloring. Here m is the number of bits per coordinate, so the grid is N = 2<sup>m</sup> points wide, and w is a fixed band width. That is exponential in m.</p>
+
+  <h3>The two players</h3>
+  <div class="players">
+    <div><b>The algorithm</b>Asks for colors. It can be any algorithm at all: divide and conquer, guessing, anything.</div>
+    <div><b>The adversary</b>Answers. We design one adversary and show that it beats every algorithm. That is exactly what “can be forced by an adversary” asks for.</div>
+  </div>
+
+  <h3>Step 1 · The shape of the adversary’s colorings</h3>
+  <ul>
+    <li>Cut the grid into horizontal and vertical bands, each w points wide (proof mode uses w = 12, because a spot where two tunnels cross needs a little room). There are N/w of each.</li>
+    <li>Where horizontal band k crosses vertical band k there is a <b>diagonal square</b> k, so there are N/w diagonal squares, one per band. That is one side’s worth, not (N/w)². (With the 2-point margin it is exactly ⌊(N − 4)/w⌋; the game’s grids have 4, 6 and 8.) Square 0 is next to the door. In proof mode these are the outlined squares.</li>
+    <li>The coloring is one tunnel: a red wall and a yellow wall, blue everywhere else. It starts at the door and hops from diagonal square to diagonal square.</li>
+    <li>A <b>hop</b> is the piece of tunnel from one diagonal square to the next: a sideways leg along the horizontal band of the square it leaves, then an up-or-down leg along the vertical band of the square it enters. A hop <b>passes through</b> a point if the point lies on one of its legs.</li>
+    <li>Where a sideways leg and an up-or-down leg meet in the same square, the walls are rewired inside that square so the tunnels don’t touch. This can split off a closed loop (an island). A loop has no ends, so it holds no trichromatic triangle, and the walk from the door still ends at the dead end.</li>
+    <li>The tunnel’s last square is a dead end. It holds the coloring’s only trichromatic triangle.</li>
+  </ul>
+
+  <h3>Step 2 · What one call can reveal</h3>
+  <p>Take a point in vertical band x and horizontal band y. Each diagonal square is left at most once, so horizontal band y carries at most one sideways leg: the hop leaving square y. Each square is entered at most once, so vertical band x carries at most one up-or-down leg: the hop entering square x. So at most two hops pass through the point, and each hop is named by two diagonal squares (where it starts and where it ends). One call therefore involves at most 4 diagonal squares.</p>
+  <p>A square where two hops meet is exactly the case where both hops pass through the same point. The rewiring changes how the walls connect inside that square, not which hops are there.</p>
+
+  <h3>Step 3 · The adversary’s strategy</h3>
+  <p>It keeps the tunnel built so far, 0 → a₁ → … → aₖ, where aₖ is the current dead end. For a call in bands (x, y):</p>
+  <ol>
+    <li>If y is the dead end’s band, extend the tunnel to a diagonal square nobody has touched yet.</li>
+    <li>Any other diagonal square the call touches that is not on the tunnel is declared never visited.</li>
+    <li>Answer the point’s color from the tunnel as it now stands.</li>
+  </ol>
+  <p>Every answer stays true, because a new hop only runs along the dead end’s horizontal band and the new square’s vertical band, and no earlier call looked at either one.</p>
+
+  <h3>Step 4 · Counting, for every algorithm</h3>
+  <p>A diagonal square is <b>touched</b> once some answer depends on it. Give the algorithm the best possible luck: suppose every call touches the maximum of 4 new squares. While at least 2 squares are untouched, the adversary can still move the dead end into an untouched square that doesn’t contain the triangle the algorithm names, so the algorithm must touch all but one of the N/w squares before the dead end is pinned down. That takes at least (N/w − 2)/4 ≈ N/(4w) calls, whatever the algorithm does. (It also can’t have seen all three corners of the rainbow triangle before then: they lie in the dead end’s square, and any call there extends the tunnel.) Divide and conquer is one of these algorithms; it uses about 3N calls, which fits.</p>
+
+  <h3>Step 5 · Exponential</h3>
+  <p>N/(4w) = 2<sup>m</sup>/(4w). Every extra bit per coordinate doubles N and doubles the calls needed.</p>
+  <p>The grid has about N² = 2<sup>2m</sup> points, but the bound is about N, not N². That is the true answer: divide and conquer wins in about 3N calls, so no proof could force N². Both grow like 2<sup>m</sup>, so the bound is tight up to a constant.</p>
+
+  <h3>The two modes</h3>
+  <div class="tbl"><table>
+    <thead><tr><th></th><th>Proof mode</th><th>Free mode</th></tr></thead>
+    <tbody>
+      <tr><td>Adversary</td><td>Exactly the one above</td><td>A snake tunnel that reroutes around your clicks</td></tr>
+      <tr><td>Where the triangle can be</td><td>Only in a diagonal square</td><td>Anywhere</td></tr>
+      <tr><td>Guarantee</td><td>Proven: about N/(4w) calls</td><td>Observed in tests, not proven</td></tr>
+      <tr><td>On a screen-sized grid</td><td>Few diagonal squares, so someone who knows the layout can win in about one click per diagonal square, plus a few</td><td>Much harder to beat by hand</td></tr>
+    </tbody>
+  </table></div>
+  <p>The proof’s bound only becomes large when the grid is huge. With 8 diagonal squares it guarantees just a couple of calls; with 2<sup>40</sup> of them it guarantees trillions.</p>
+  <p>One part is checked rather than proved by hand: the red and yellow walls at turns and crossings never create a stray trichromatic triangle. Proof mode’s drawing was tested on 3,000 random tunnels with crossings, and every one had exactly one trichromatic triangle, in the dead end’s diagonal square.</p>
+</section>
+</div>
+<script>
+// Sperner adversary engine. Colors: 0 = red, 1 = yellow, 2 = blue, -1 = unknown.
+// Standard boundary: red on the left (except the bottom-left corner), yellow on the
+// bottom (except the bottom-right corner), blue everywhere else.
+const R = 0, Y = 1, B = 2;
+const DIRS = [[1,0],[0,1],[-1,0],[0,-1]];
+
+function makeEngine(M) {
+  const K = 4, O = 2, W = K * M + 2 * O, S = W + 1;
+  const idx = (x, y) => y * S + x;
+  const cid = (a, b) => b * M + a;
+  const cxy = c => [c % M, (c / M) | 0];
+
+  function boundaryColor(x, y) {
+    if (x === 0) return y >= 1 ? R : Y;
+    if (y === 0) return x < W ? Y : B;
+    if (x === W || y === W) return B;
+    return -1;
+  }
+
+  // Full coloring from a path of cells H (H[0] = cell (0,0)).
+  function colorGrid(H) {
+    const col = new Int8Array(S * S).fill(B);
+    const line = new Uint8Array(S * S);
+    // The tunnel enters at the door (0,0)-(0,1), hugs the bottom edge, then turns up into cell (0,0).
+    const pts = [[0, 1], [O + 2, 1]];
+    for (const c of H) { const [a, b] = cxy(c); pts.push([O + K * a + 2, O + K * b + 2]); }
+    const lane = [];
+    for (let s = 0; s + 1 < pts.length; s++) {
+      const [ax, ay] = pts[s], [bx, by] = pts[s + 1];
+      const dx = Math.sign(bx - ax), dy = Math.sign(by - ay);
+      const len = Math.abs(bx - ax) + Math.abs(by - ay);
+      const lx = -dy, ly = dx; // left normal
+      for (let t = 0; t <= len; t++) {
+        const qx = ax + t * dx, qy = ay + t * dy;
+        line[idx(qx, qy)] = 1;
+        lane.push([qx - lx, qy - ly, Y]); // one yellow line on the right; the centre line itself is red
+      }
+      if (s + 2 < pts.length) { // joint at pts[s+1]
+        const [cx2, cy2] = pts[s + 2];
+        const ox = Math.sign(cx2 - bx), oy = Math.sign(cy2 - by);
+        if (ox !== dx || oy !== dy) {
+          const px = bx + dx - ox, py = by + dy - oy;
+          const o = dx * (py - by) - dy * (px - bx);
+          if (o < 0) lane.push([px, py, Y]); // outer corner of a left turn stays yellow
+        }
+      }
+    }
+    for (const [x, y, c] of lane) {
+      if (x < 0 || y < 0 || x > W || y > W) continue;
+      if (!line[idx(x, y)]) col[idx(x, y)] = c;
+    }
+    for (let i = 0; i < S * S; i++) if (line[i]) col[i] = R;
+    for (let x = 0; x <= W; x++) for (const y of [0, W]) col[idx(x, y)] = boundaryColor(x, y);
+    for (let y = 0; y <= W; y++) for (const x of [0, W]) col[idx(x, y)] = boundaryColor(x, y);
+    return col;
+  }
+
+  // triangles: diagonal (x,y)-(x+1,y+1)
+  function trichromatic(col) {
+    const out = [];
+    for (let y = 0; y < W; y++) for (let x = 0; x < W; x++) {
+      const a = col[idx(x, y)], b = col[idx(x + 1, y)], c = col[idx(x + 1, y + 1)], d = col[idx(x, y + 1)];
+      if (a !== b && b !== c && a !== c) out.push([[x, y], [x + 1, y], [x + 1, y + 1]]);
+      if (a !== d && d !== c && a !== c) out.push([[x, y], [x, y + 1], [x + 1, y + 1]]);
+    }
+    return out;
+  }
+
+  // cells whose state can affect vertex (x,y)
+  function touching(x, y) {
+    x -= O; y -= O;
+    if (x <= 0 || y <= 0 || x >= K * M || y >= K * M) return [];
+    const bx = x % K === 0, by = y % K === 0;
+    if (bx && by) return [];
+    if (bx) { const b = (y / K) | 0; return [cid(x / K - 1, b), cid(x / K, b)]; }
+    if (by) { const a = (x / K) | 0; return [cid(a, y / K - 1), cid(a, y / K)]; }
+    return [cid((x / K) | 0, (y / K) | 0)];
+  }
+
+  // ---- adversary state ----
+  let H, col, queried, order, forbiddenGate, reroutes = 0;
+  function reset() {
+    H = [cid(0, 0)];
+    queried = new Int8Array(S * S).fill(-1);
+    order = [];
+    forbiddenGate = new Set();
+    reroutes = 0;
+    H = extendFinal(H, 0) || H;
+    col = colorGrid(H);
+  }
+  const gateKey = (u, v) => u < v ? u + ',' + v : v + ',' + u;
+
+  function cellInfo() {
+    const blocked = new Uint8Array(M * M), locked = new Uint8Array(M * M), touched = new Uint8Array(M * M);
+    for (const i of order) {
+      const x = i % S, y = (i / S) | 0, t = touching(x, y);
+      for (const c of t) {
+        touched[c] = 1;
+        if (queried[i] !== B) locked[c] = 1;
+        else if (t.length === 1) blocked[c] = 1;
+      }
+    }
+    return { blocked, locked, touched };
+  }
+
+  function neighbors(c) {
+    const [a, b] = cxy(c), out = [];
+    for (const [dx, dy] of DIRS) {
+      const na = a + dx, nb = b + dy;
+      if (na >= 0 && nb >= 0 && na < M && nb < M) out.push(cid(na, nb));
+    }
+    return out;
+  }
+
+  function clearance(info) {
+    const d = new Int32Array(M * M).fill(1e9), q = [];
+    for (let c = 0; c < M * M; c++) if (info.touched[c]) { d[c] = 0; q.push(c); }
+    for (let h = 0; h < q.length; h++) for (const n of neighbors(q[h])) if (d[n] > d[q[h]] + 1) { d[n] = d[q[h]] + 1; q.push(n); }
+    return d;
+  }
+
+  function bfs(start, allowed, prevCell) {
+    const dist = new Int32Array(M * M).fill(-1), par = new Int32Array(M * M).fill(-1);
+    if (!allowed[start]) return null;
+    if (prevCell >= 0 && forbiddenGate.has(gateKey(prevCell, start))) return null;
+    dist[start] = 0; const q = [start];
+    for (let h = 0; h < q.length; h++) {
+      const u = q[h];
+      for (const v of neighbors(u)) if (allowed[v] && dist[v] < 0 && !forbiddenGate.has(gateKey(u, v))) {
+        dist[v] = dist[u] + 1; par[v] = u; q.push(v);
+      }
+    }
+    return { dist, par, q };
+  }
+  const trace = (par, t) => { const p = []; for (let c = t; c >= 0; c = par[c]) p.push(c); return p.reverse(); };
+
+  // Replace H[from..] with a fresh walk starting at cell `startCell` (placed at index `from`).
+  function extendFinal(Hin, from, extraAvoid, info) {
+    info = info || cellInfo();
+    const allowed = new Uint8Array(M * M).fill(1);
+    for (let c = 0; c < M * M; c++) if (info.blocked[c] || (info.locked[c])) allowed[c] = 0;
+    for (let i = 0; i < from; i++) allowed[Hin[i]] = 0;
+    if (extraAvoid) for (const c of extraAvoid) allowed[c] = 0;
+    const start = Hin[from];
+    // start cell may itself be locked (e.g. extending through a locked tip) – allow it explicitly
+    const saved = allowed[start];
+    if (!(extraAvoid && extraAvoid.includes(start)) && !info.blocked[start]) allowed[start] = 1;
+    const r = bfs(start, allowed, from > 0 ? Hin[from - 1] : -1);
+    allowed[start] = saved;
+    if (!r) return null;
+    const clr = clearance(info);
+    let best = -1, bs = -1;
+    for (const c of r.q) {
+      const s = Math.min(clr[c], 6) * 10000 + r.dist[c] * 10 + ((c * 7919) % 7);
+      if (s > bs) { bs = s; best = c; }
+    }
+    return Hin.slice(0, from).concat(trace(r.par, best));
+  }
+
+  function consistent(Hc, colc, extra) {
+    for (const i of order) if (colc[i] !== queried[i]) return false;
+    if (extra) for (const [i, c] of extra) if (colc[i] !== c) return false;
+    return true;
+  }
+
+  // Try to reroute so that vertex i becomes blue.
+  function tryAvoid(i, t) {
+    const info = cellInfo();
+    const cands = [];
+    const pos = new Map(); H.forEach((c, k) => pos.set(c, k));
+    let avoidCells = t.length === 1 ? t : [];
+    let gate = null;
+    if (t.length === 2) {
+      // border vertex: it's non-blue iff the two cells are consecutive; forbid that gate
+      gate = gateKey(t[0], t[1]);
+    }
+    const hit = t.filter(c => pos.has(c)).map(c => pos.get(c));
+    if (!hit.length) return null;
+    const k0 = Math.min(...hit);
+    // find stretch containing k0: last locked index before it
+    let lo = k0; while (lo > 0 && !info.locked[H[lo]]) lo--;
+    let hi = k0; while (hi < H.length && !info.locked[H[hi]]) hi++;
+    if (gate) forbiddenGate.add(gate);
+    try {
+      if (hi >= H.length) {
+        // final stretch: restart from lo+1 (or 0)
+        const from = info.locked[H[lo]] ? lo + 1 : lo;
+        if (from >= H.length) return null;
+        // start cell must stay the same as H[from] (forced by locked predecessor's exit)
+        if (avoidCells.includes(H[from])) return null;
+        const H2 = extendFinal(H, from, avoidCells, info);
+        if (H2) cands.push(H2);
+      } else {
+        // middle stretch: route H[lo+1] .. H[hi-1] keeping endpoints
+        const from = info.locked[H[lo]] ? lo + 1 : lo, to = hi - 1;
+        if (from > to) return null;
+        const s = H[from], e = H[to];
+        if (avoidCells.includes(s) || avoidCells.includes(e)) return null;
+        const allowed = new Uint8Array(M * M).fill(1);
+        for (let c = 0; c < M * M; c++) if (info.blocked[c] || info.locked[c]) allowed[c] = 0;
+        H.forEach((c, k) => { if (k < from || k > to) allowed[c] = 0; });
+        for (const c of avoidCells) allowed[c] = 0;
+        const r = bfs(s, allowed, from > 0 ? H[from - 1] : -1);
+        if (r && r.dist[e] >= 0 && !forbiddenGate.has(gateKey(e, H[hi]))) {
+          cands.push(H.slice(0, from).concat(trace(r.par, e), H.slice(hi)));
+        }
+      }
+      for (const H2 of cands) {
+        const c2 = colorGrid(H2);
+        if (c2[i] === B && consistent(H2, c2)) return { H: H2, col: c2 };
+      }
+      return null;
+    } finally {
+      if (gate) forbiddenGate.delete(gate);
+    }
+  }
+
+  // Push the tip further away: the old tip becomes an ordinary tunnel cell.
+  function tryExtend() {
+    const info = cellInfo();
+    const H2 = extendFinal(H, H.length - 1, null, info);
+    if (!H2 || H2.length <= H.length) return null;
+    const c2 = colorGrid(H2);
+    return consistent(H2, c2) ? { H: H2, col: c2 } : null;
+  }
+
+  function nearTip(i, t) {
+    const tip = H[H.length - 1];
+    return t.includes(tip);
+  }
+
+  function query(x, y) {
+    const i = idx(x, y);
+    if (queried[i] >= 0) return queried[i];
+    const bc = boundaryColor(x, y);
+    if (bc >= 0) { queried[i] = bc; order.push(i); return bc; }
+    const t = touching(x, y);
+    if (col[i] !== B) {
+      let r = tryAvoid(i, t);
+      if (!r && nearTip(i, t)) r = tryExtend();
+      if (r) { H = r.H; col = r.col; reroutes++; }
+    }
+    queried[i] = col[i];
+    order.push(i);
+    if (col[i] === B && t.length === 2) forbiddenGate.add(gateKey(t[0], t[1]));
+    return col[i];
+  }
+
+  function solved() {
+    for (const tri of trichromatic(queried)) {
+      if (tri.every(([x, y]) => queried[idx(x, y)] >= 0)) return tri;
+    }
+    return null;
+  }
+
+  reset();
+  return {
+    M, W, S, idx, query, solved, reset, boundaryColor,
+    get queried() { return queried; }, get count() { return order.length; },
+    get order() { return order; }, get reroutes() { return reroutes; },
+    hidden() { return col; }, path() { return H; },
+    colorGrid, trichromatic, touching,
+    check() { return consistent(H, col); },
+  };
+}
+if (typeof module !== 'undefined') module.exports = { makeEngine, R, Y, B };
+// Proof-mode engine: the adversary from the written proof.
+// Colors: 0 = red, 1 = yellow, 2 = blue. Grid side W = 12K + 4.
+// K diagonal squares; square k is where horizontal band k meets vertical band k.
+// The hidden coloring is one tunnel door -> 0 -> a1 -> ... -> ak built lazily.
+function makeProofEngine(K) {
+  const R = 0, Y = 1, B = 2;
+  const O = 2, CELL = 4, BW = 3 * CELL, W = BW * K + 2 * O, S = W + 1;
+  const idx = (x, y) => y * S + x;
+  function boundaryColor(x, y) {
+    if (x === 0) return y >= 1 ? R : Y;
+    if (y === 0) return x < W ? Y : B;
+    if (x === W || y === W) return B;
+    return -1;
+  }
+  const cc = c => [O + CELL * c[0] + CELL / 2, O + CELL * c[1] + CELL / 2];
+
+  // unsmoothed cell walk: door enters square 0 through cell (1,0), then hops
+  function cellWalk(chain) {
+    const L = [[1, 0], [1, 1]];
+    for (let t = 0; t + 1 < chain.length; t++) {
+      const u = chain[t], v = chain[t + 1], r = 3 * u + 1, tx = 3 * v + 1;
+      let cx = 3 * u + 1; const sx = Math.sign(tx - cx);
+      while (cx !== tx) { cx += sx; L.push([cx, r]); }
+      let cy = r; const sy = Math.sign(tx - cy);
+      while (cy !== tx) { cy += sy; L.push([tx, cy]); }
+    }
+    return L;
+  }
+  // resolve crossings (a cell visited twice) by re-pairing through two corners
+  function walks(chain) {
+    const L = cellWalk(chain).map(c => c.slice());
+    const n = L.length, succ = new Int32Array(n).map((_, i) => i + 1);
+    succ[n - 1] = -1;
+    const seen = new Map();
+    for (let i = 0; i < n; i++) {
+      const k = L[i][0] + ',' + L[i][1];
+      if (seen.has(k)) {
+        const j = seen.get(k);
+        const hor = i2 => L[i2 - 1][1] === L[i2 + 1][1];
+        const h = hor(j) ? j : i, v = h === j ? i : j;
+        const inH = L[h - 1], outH = L[h + 1], inV = L[v - 1], outV = L[v + 1];
+        L[h] = [inH[0], outV[1]]; succ[h] = v + 1;
+        L[v] = [outH[0], inV[1]]; succ[v] = h + 1;
+      } else seen.set(k, i);
+    }
+    const vis = new Uint8Array(n), out = [];
+    const door = [[0, 1], [O + 6, 1]];
+    let p = [];
+    for (let i = 0; i >= 0; i = succ[i]) { vis[i] = 1; p.push(cc(L[i])); }
+    out.push({ pts: door.concat(p), closed: false });
+    for (let s = 0; s < n; s++) if (!vis[s]) {
+      const q = [];
+      for (let i = s; !vis[i]; i = succ[i]) { vis[i] = 1; q.push(cc(L[i])); }
+      out.push({ pts: q, closed: true });
+    }
+    return out;
+  }
+  // centre line red, one step to its right yellow, outer corners of left turns yellow
+  function paint(ws) {
+    const col = new Int8Array(S * S).fill(B), line = new Uint8Array(S * S), lane = [];
+    for (const { pts, closed } of ws) {
+      const m = pts.length, segs = closed ? m : m - 1;
+      const seg = s => {
+        const [ax, ay] = pts[s], [bx, by] = pts[(s + 1) % m];
+        return [ax, ay, bx, by, Math.sign(bx - ax), Math.sign(by - ay), Math.abs(bx - ax) + Math.abs(by - ay)];
+      };
+      for (let s = 0; s < segs; s++) {
+        const [ax, ay, bx, by, dx, dy, len] = seg(s);
+        for (let t = 0; t <= len; t++) {
+          const qx = ax + t * dx, qy = ay + t * dy;
+          line[idx(qx, qy)] = 1;
+          lane.push([qx + dy, qy - dx]);
+        }
+        if (closed || s + 1 < segs) {
+          const [, , , , ox, oy] = seg((s + 1) % m);
+          if (ox !== dx || oy !== dy) {
+            const px = bx + dx - ox, py = by + dy - oy, o = dx * (py - by) - dy * (px - bx);
+            if (o < 0) lane.push([px, py]);
+          }
+        }
+      }
+    }
+    for (const [x, y] of lane) if (x >= 0 && y >= 0 && x <= W && y <= W && !line[idx(x, y)]) col[idx(x, y)] = Y;
+    for (let i = 0; i < S * S; i++) if (line[i]) col[i] = R;
+    for (let x = 0; x <= W; x++) for (const y of [0, W]) { col[idx(x, y)] = boundaryColor(x, y); col[idx(y, x)] = boundaryColor(y, x); }
+    return col;
+  }
+  function trichromatic(col) {
+    const out = [];
+    for (let y = 0; y < W; y++) for (let x = 0; x < W; x++) {
+      const a = col[idx(x, y)], b = col[idx(x + 1, y)], c = col[idx(x + 1, y + 1)], d = col[idx(x, y + 1)];
+      if (a !== b && b !== c && a !== c) out.push([[x, y], [x + 1, y], [x + 1, y + 1]]);
+      if (a !== d && d !== c && a !== c) out.push([[x, y], [x, y + 1], [x + 1, y + 1]]);
+    }
+    return out;
+  }
+
+  // ---- the adversary ----
+  let chain, touched, col, queried, order, moves, lastEvents;
+  function reset() {
+    chain = [0]; touched = new Set([0]); queried = new Int8Array(S * S).fill(-1);
+    order = []; moves = 0; col = paint(walks(chain));
+  }
+  function fresh() {
+    const f = []; for (let v = 0; v < K; v++) if (!touched.has(v)) f.push(v);
+    return f;
+  }
+  function next(v) { // S(v)
+    if (!touched.has(v)) { touched.add(v); lastEvents.push({ type: 'empty', v }); }
+    const i = chain.indexOf(v);
+    if (i >= 0 && i < chain.length - 1) return chain[i + 1];
+    if (i === chain.length - 1) {
+      const f = fresh();
+      if (!f.length) return v;
+      const w = f[Math.floor(Math.random() * f.length)];
+      chain.push(w); touched.add(w); moves++;
+      lastEvents.push({ type: 'extend', from: v, to: w });
+      return w;
+    }
+    return v;
+  }
+  function prev(v) { // P(v)
+    if (!touched.has(v)) { touched.add(v); lastEvents.push({ type: 'empty', v }); }
+    const i = chain.indexOf(v);
+    return i > 0 ? chain[i - 1] : v;
+  }
+  // which diagonal squares a point depends on
+  function lookups(x, y) {
+    const u = x - O, v = y - O;
+    if (u <= 0 || v <= 0 || u >= BW * K || v >= BW * K) return;
+    const onV = u % BW === 0, onH = v % BW === 0;
+    if (onV && onH) return;
+    const bx = Math.floor(u / BW), by = Math.floor(v / BW);
+    if (!onV) { const p = prev(bx); if (p !== bx) next(p); }
+    if (!onH) { const s = next(by); if (s !== by) prev(s); }
+  }
+  function query(x, y) {
+    const i = idx(x, y);
+    if (queried[i] >= 0) return queried[i];
+    lastEvents = [];
+    const bc = boundaryColor(x, y);
+    if (bc < 0) {
+      const before = chain.length;
+      lookups(x, y);
+      if (chain.length !== before) col = paint(walks(chain));
+    }
+    queried[i] = bc >= 0 ? bc : col[i];
+    order.push(i);
+    return queried[i];
+  }
+  function solved() {
+    for (const tri of trichromatic(queried)) if (tri.every(([x, y]) => queried[idx(x, y)] >= 0)) return tri;
+    return null;
+  }
+  function check() { for (const i of order) if (col[i] !== queried[i]) return false; return true; }
+  reset();
+  return {
+    mode: 'proof', K, BW, O, W, S, idx, query, solved, reset, boundaryColor, trichromatic, check,
+    get queried() { return queried; }, get count() { return order.length; }, get order() { return order; },
+    get reroutes() { return moves; }, get events() { return lastEvents || []; },
+    get unused() { return fresh().length; }, get chain() { return chain.slice(); },
+    get touched() { return new Set(touched); },
+    hidden() { return col; }, paintChain(c) { return paint(walks(c)); },
+  };
+}
+if (typeof module !== 'undefined') module.exports = { makeProofEngine };
+// Divide & conquer solver (degree counting). Generator yielding queries.
+function* dncBot(e,cb){
+  const W=e.W;
+  const q=cb||((x,y)=>e.query(x,y));
+  function deg(x0,y0,x1,y1){ // counterclockwise boundary walk
+    const pts=[];
+    for(let x=x0;x<x1;x++)pts.push([x,y0]);
+    for(let y=y0;y<y1;y++)pts.push([x1,y]);
+    for(let x=x1;x>x0;x--)pts.push([x,y1]);
+    for(let y=y1;y>y0;y--)pts.push([x0,y]);
+    let d=0;
+    for(let i=0;i<pts.length;i++){const a=e.queried[e.idx(...pts[i])],b=e.queried[e.idx(...pts[(i+1)%pts.length])];
+      if(a===0&&b===1)d++; if(a===1&&b===0)d--;}
+    return d;
+  }
+  function* qrect(x0,y0,x1,y1){
+    for(let x=x0;x<=x1;x++)for(const y of [y0,y1]) if(e.queried[e.idx(x,y)]<0){q(x,y);yield [x,y];}
+    for(let y=y0;y<=y1;y++)for(const x of [x0,x1]) if(e.queried[e.idx(x,y)]<0){q(x,y);yield [x,y];}
+  }
+  let r=[0,0,W,W];
+  yield* qrect(...r);
+  while(r[2]-r[0]>1||r[3]-r[1]>1){
+    const [x0,y0,x1,y1]=r; let A,Bq;
+    if(x1-x0>=y1-y0){const m=(x0+x1)>>1;A=[x0,y0,m,y1];Bq=[m,y0,x1,y1];}
+    else{const m=(y0+y1)>>1;A=[x0,y0,x1,m];Bq=[x0,m,x1,y1];}
+    yield* qrect(...A); yield* qrect(...Bq);
+    r = deg(...A)!==0?A:Bq;
+    if(e.solved())return;
+  }
+}
+if(typeof module!=='undefined')module.exports={dncBot};
+(function(){
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+const $=id=>document.getElementById(id);
+let e, hover=null, drag=null, reveal=false, won=null, autoTimer=null, gen=null, lastMsg='', mode='proof';
+const SIZES={proof:[[4,'Small · 4 diagonal squares (53 × 53)'],[6,'Medium · 6 diagonal squares (77 × 77)'],[8,'Large · 8 diagonal squares (101 × 101)']],free:[[6,'Small · 29 × 29'],[10,'Medium · 45 × 45'],[16,'Large · 69 × 69']]};
+function fillSizes(){const sel=$('size');sel.innerHTML='';SIZES[mode].forEach(([v,t],i)=>{const o=document.createElement('option');o.value=v;o.textContent=t;if(i===1)o.selected=true;sel.appendChild(o);});}
+const HELP={proof:'Proof mode runs the adversary from the proof below. Its tunnel only hops between the outlined diagonal squares, along bands. Dashed squares are still untouched; each call uses up at most 4 of them. When you look in the dead end’s band, the tunnel jumps to an untouched square. Where two hops meet in one square, the walls are rewired so they never touch, which can split off a closed loop (an island). Loops have no ends, so they hold no rainbow triangle.',free:'Free mode runs a looser adversary. Its tunnel is a snake that can end anywhere, and it reroutes around every point you click. It is harder to beat by hand, but it is not the adversary the proof is about.'};
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+let C={};
+function readColors(){C={r:css('--r'),y:css('--y'),yEdge:css('--y-edge'),b:css('--b'),unk:css('--unk'),grid:css('--gridline'),ink:css('--ink'),panel:css('--panel'),muted:css('--muted')};}
+const colOf=c=>[C.r,C.y,C.b][c];
+const NAMES=['red','yellow','blue'];
+
+function newGame(){
+  stopAuto();
+  e=mode==='proof'?makeProofEngine(+$('size').value):makeEngine(+$('size').value); won=null; hover=null;
+  $('modeHelp').textContent=HELP[mode];
+  $('sEl').textContent=mode==='proof'?'Untouched diagonal squares':'Interior explored';
+  setMsg(mode==='proof'?'The door is at the bottom-left corner. Its tunnel hops between diagonal squares and ends at a rainbow triangle in one of them.':'The door is the red–yellow edge at the bottom-left corner. Its tunnel leads to a rainbow triangle somewhere inside.');
+  // pre-query the boundary (known to everyone)
+  for(let x=0;x<=e.W;x++)for(const y of [0,e.W]){e.query(x,y);e.query(y,x);}
+  base=e.count;
+  update(); layout();
+}
+let base=0;
+function interior(){return (e.W-1)*(e.W-1);}
+function update(){
+  $('sQ').textContent=(e.count-base).toLocaleString();
+  $('sV').textContent=(e.S*e.S).toLocaleString();
+  $('sR').textContent=e.reroutes.toLocaleString();
+  $('sE').textContent=mode==='proof'?`${e.unused} of ${e.K}`:Math.round(100*(e.count-base)/interior())+'%';
+}
+function setMsg(t,win){const m=$('msg');m.textContent=t;m.classList.toggle('win',!!win);}
+
+let size=600,pad=14,sp=1,dpr=1;
+function layout(){
+  const w=cv.parentElement.clientWidth-22;
+  size=Math.max(200,Math.min(w,720)); dpr=window.devicePixelRatio||1;
+  cv.style.width=size+'px'; cv.style.height=size+'px';
+  cv.width=size*dpr; cv.height=size*dpr;
+  pad=Math.max(8,size*0.02); sp=(size-2*pad)/e.W;
+  draw();
+}
+const X=x=>pad+x*sp, Y=y=>size-pad-y*sp;
+function draw(){
+  if(!e)return; readColors();
+  ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,size,size);
+  const W=e.W;
+  // triangulation
+  ctx.strokeStyle=C.grid; ctx.lineWidth=1; ctx.beginPath();
+  for(let i=0;i<=W;i++){ctx.moveTo(X(i),Y(0));ctx.lineTo(X(i),Y(W));ctx.moveTo(X(0),Y(i));ctx.lineTo(X(W),Y(i));}
+  if(sp>7){for(let k=-W;k<=W;k++){const x0=Math.max(0,k),y0=x0-k,x1=Math.min(W,W+k),y1=x1-k;if(x1>x0){ctx.moveTo(X(x0),Y(y0));ctx.lineTo(X(x1),Y(y1));}}}
+  ctx.stroke();
+  if(mode==='proof'){
+    const O=e.O,BW=e.BW,K=e.K,t=e.touched;
+    ctx.strokeStyle=C.muted; ctx.globalAlpha=.35; ctx.lineWidth=1; ctx.beginPath();
+    for(let k=0;k<=K;k++){ctx.moveTo(X(O+BW*k),Y(O));ctx.lineTo(X(O+BW*k),Y(O+BW*K));ctx.moveTo(X(O),Y(O+BW*k));ctx.lineTo(X(O+BW*K),Y(O+BW*k));}
+    ctx.stroke(); ctx.globalAlpha=1;
+    for(let k=0;k<K;k++){
+      ctx.strokeStyle=C.ink; ctx.lineWidth=t.has(k)?1.5:1.2; ctx.setLineDash(t.has(k)?[]:[4,4]);
+      ctx.strokeRect(X(O+BW*k),Y(O+BW*(k+1)),BW*sp,BW*sp);
+    }
+    ctx.setLineDash([]);
+  }
+  const hid=e.hidden(), q=e.queried;
+  if(reveal){
+    for(let y=1;y<W;y++)for(let x=1;x<W;x++){const c=hid[e.idx(x,y)]; if(c===2)continue; ctx.globalAlpha=0.32; ctx.fillStyle=colOf(c); ctx.fillRect(X(x)-sp/2,Y(y)-sp/2,sp+.5,sp+.5);}
+    ctx.globalAlpha=1;
+    const tri=e.trichromatic(hid)[0];
+    if(tri){ctx.strokeStyle=C.ink;ctx.lineWidth=1.5;ctx.setLineDash([3,3]);ctx.beginPath();tri.forEach(([x,y],i)=>i?ctx.lineTo(X(x),Y(y)):ctx.moveTo(X(x),Y(y)));ctx.closePath();ctx.stroke();ctx.setLineDash([]);}
+  }
+  if(won){
+    ctx.fillStyle=C.ink; ctx.globalAlpha=.16; ctx.beginPath();
+    won.forEach(([x,y],i)=>i?ctx.lineTo(X(x),Y(y)):ctx.moveTo(X(x),Y(y))); ctx.closePath(); ctx.fill(); ctx.globalAlpha=1;
+    ctx.strokeStyle=C.ink; ctx.lineWidth=2.5; ctx.stroke();
+  }
+  const rq=Math.max(1.6,sp*0.3), ru=Math.max(.8,sp*0.1);
+  for(let y=0;y<=W;y++)for(let x=0;x<=W;x++){
+    const c=q[e.idx(x,y)];
+    ctx.beginPath();
+    if(c>=0){ctx.fillStyle=colOf(c);ctx.arc(X(x),Y(y),rq,0,7);ctx.fill();if(c===1){ctx.strokeStyle=C.yEdge;ctx.lineWidth=1;ctx.stroke();}}
+    else if(sp>5){ctx.fillStyle=C.unk;ctx.arc(X(x),Y(y),ru,0,7);ctx.fill();}
+  }
+  if(drag&&drag.b){
+    const pts=linePts(drag.a,drag.b);
+    ctx.strokeStyle=C.ink;ctx.lineWidth=1.5;
+    for(const [x,y] of pts){ctx.beginPath();ctx.arc(X(x),Y(y),rq+2,0,7);ctx.stroke();}
+  } else if(hover){
+    ctx.strokeStyle=C.ink;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(X(hover[0]),Y(hover[1]),rq+3,0,7);ctx.stroke();
+  }
+}
+function linePts(a,b){
+  const dx=b[0]-a[0], dy=b[1]-a[1], out=[];
+  if(Math.abs(dx)>=Math.abs(dy)){const s=Math.sign(dx)||1;for(let x=a[0];x!==b[0]+s;x+=s)out.push([x,a[1]]);}
+  else{const s=Math.sign(dy);for(let y=a[1];y!==b[1]+s;y+=s)out.push([a[0],y]);}
+  return out;
+}
+function pick(ev){
+  const r=cv.getBoundingClientRect();
+  const x=Math.round((ev.clientX-r.left-pad)/sp), y=Math.round((size-pad-(ev.clientY-r.top))/sp);
+  return [Math.max(0,Math.min(e.W,x)),Math.max(0,Math.min(e.W,y))];
+}
+function doQuery(x,y,quiet){
+  if(won)return;
+  const i=e.idx(x,y); if(e.queried[i]>=0){ if(!quiet)setMsg(`(${x}, ${y}) is already known: ${NAMES[e.queried[i]]}.`); return;}
+  const before=e.reroutes; const c=e.query(x,y);
+  if(!quiet){
+    if(mode==='proof'){
+      const ev=e.events, ext=ev.find(v=>v.type==='extend'), emp=ev.filter(v=>v.type==='empty').map(v=>v.v);
+      let m=`(${x}, ${y}) → ${NAMES[c]}.`;
+      if(ext) m+=` You looked in the dead end’s band, so the adversary extended the tunnel to a diagonal square nobody had touched.`;
+      else if(e.reroutes===before && ev.length===0 && e.unused===0) m+=' No untouched diagonal squares are left, so the dead end can no longer move.';
+      if(emp.length) m+=` Diagonal square${emp.length>1?'s':''} ${emp.join(', ')} ${emp.length>1?'are':'is'} now used up.`;
+      setMsg(m);
+    } else setMsg(e.reroutes>before?`(${x}, ${y}) → ${NAMES[c]}. The adversary rerouted its hidden tunnel to answer that.`:`(${x}, ${y}) → ${NAMES[c]}.`);
+  }
+  const s=e.solved();
+  if(s){won=s; stopAuto(); const n=e.count-base;
+    setMsg(mode==='proof'?`Rainbow triangle found after ${n.toLocaleString()} queries. The adversary moved the dead end ${e.reroutes} times before the untouched diagonal squares ran out.`:`Rainbow triangle found after ${n.toLocaleString()} queries, ${Math.round(100*n/interior())}% of the interior. The adversary rerouted ${e.reroutes} times.`,true);}
+}
+cv.addEventListener('pointerdown',ev=>{if(!e||autoTimer)return;cv.setPointerCapture(ev.pointerId);drag={a:pick(ev),b:null};});
+cv.addEventListener('pointermove',ev=>{if(!e)return;const p=pick(ev);if(drag){drag.b=p;}else hover=p;draw();});
+cv.addEventListener('pointerleave',()=>{hover=null;draw();});
+cv.addEventListener('pointerup',ev=>{
+  if(!drag)return; const b=pick(ev), pts=linePts(drag.a,b); drag=null;
+  if(pts.length===1)doQuery(...pts[0]);
+  else{let n=0;for(const p of pts){if(won)break;if(e.queried[e.idx(...p)]<0){doQuery(...p,true);n++;}}
+    if(!won)setMsg(`Queried ${n} points along the line.`);}
+  hover=b; update(); draw();
+});
+cv.addEventListener('keydown',ev=>{
+  if(!e)return; hover=hover||[1,1];
+  const m={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,1],ArrowDown:[0,-1]}[ev.key];
+  if(m){hover=[Math.max(0,Math.min(e.W,hover[0]+m[0])),Math.max(0,Math.min(e.W,hover[1]+m[1]))];ev.preventDefault();draw();}
+  else if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();doQuery(...hover);update();draw();}
+});
+function stopAuto(){if(autoTimer){clearInterval(autoTimer);autoTimer=null;}$('auto').textContent='Run divide & conquer';}
+$('auto').addEventListener('click',()=>{
+  if(autoTimer){stopAuto();return;}
+  if(won)newGame();
+  gen=dncBot(e,(x,y)=>doQuery(x,y,true)); $('auto').textContent='Pause';
+  setMsg('Divide & conquer: query a line that halves the rectangle, count signed red–yellow edges around each half, keep a half whose count is nonzero.');
+  autoTimer=setInterval(()=>{
+    for(let k=0;k<3;k++){const r=gen.next(); if(r.done||won){stopAuto(); if(!won)setMsg('Divide & conquer finished.'); break;}}
+    update(); draw();
+  },16);
+});
+$('newg').addEventListener('click',newGame);
+$('size').addEventListener('change',newGame);
+function setMode(m){mode=m;$('modeProof').setAttribute('aria-pressed',m==='proof');$('modeFree').setAttribute('aria-pressed',m==='free');fillSizes();newGame();}
+$('modeProof').addEventListener('click',()=>setMode('proof'));
+$('modeFree').addEventListener('click',()=>setMode('free'));
+$('reveal').addEventListener('click',()=>{reveal=!reveal;$('reveal').setAttribute('aria-pressed',reveal);$('reveal').textContent=reveal?'Hide hidden coloring':'Show hidden coloring';draw();});
+window.addEventListener('resize',layout);
+try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw);}catch(_){}
+new MutationObserver(draw).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+fillSizes(); newGame();
+})();
+</script>
+</body>
+</html>
