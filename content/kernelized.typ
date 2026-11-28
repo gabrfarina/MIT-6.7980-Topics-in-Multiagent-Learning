@@ -397,7 +397,18 @@ The backward and forward passes each take linear time. After observing the gradi
   For each player, vertex MWU/OMWU can be implemented exactly with arithmetic cost linear in that player's sequence-form representation per round, beyond the cost of computing the payoff gradient. Its regret and equilibrium-convergence guarantees transfer under the corresponding assumptions of the vertex algorithm.
 ]
 
-This recovers learning over the reduced normal-form strategies without explicitly constructing that normal-form game. It is a different update from CFR, which combines local regret minimizers. The advantage here is that results about the vertex learning dynamics can be used directly.
+This recovers learning over the reduced normal-form strategies without explicitly constructing that normal-form game. It is a different update from CFR, which combines local regret minimizers. The advantage here is that results about the vertex learning dynamics can be used directly:
+
+#corollary[Kernelized OMWU regret guarantees][
+  In an $m$-player extensive-form game with utilities in $[0,1]$, let $H_i = max { norm(vx)_1 : vx in X_i }$. After $T$ rounds,
+
+  + *Against arbitrary opponents.* Using the constant learning rate $eta=sqrt(8 H_i log(A_i) \/ T)$ incurs total regret at most $"Reg"_(i,T)=O(sqrt(H_i log (A_i) T))$.
+  + *In self-play.* A common constant learning rate $0<eta<=1/(C m (log T)^4)$ guarantees
+    $ "Reg"_(i,T)<=frac(H_i log A_i, eta)+C' log T, $
+    for universal constants $C,C'>0$. Taking $eta=1/(C m (log T)^4)$ gives $"Reg"_(i,T)=O(m H_i log(A_i) (log T)^4)$.
+]
+
+The second statement follows from #lecture-link("learning2", <sec-fast-cce>)[OMWU bound], using $log |V_i|<=H_i log A_i$.
 
 The exact identities above use real arithmetic. In an implementation, logarithms and log-sum-exp prevent overflow in the positive weights; a finite-precision guarantee must also account for rounding error.
 
