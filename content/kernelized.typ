@@ -412,4 +412,29 @@ The second statement follows from #lecture-link("learning2", <sec-fast-cce>)[OMW
 
 The exact identities above use real arithmetic. In an implementation, logarithms and log-sum-exp prevent overflow in the positive weights; a finite-precision guarantee must also account for rounding error.
 
+= Problems <sec-kernelized-problems>
+
+@thm:kernelization provides us a trick to learn over large $|V|.$ However, kernel computation need not always be efficient, and further, pathalogically, there are cases where optimization over $V$ itself is efficient, but kernel evaluation is difficult.
+
+#exercise[Efficient Linear Optimization $!=$ Efficient Kernel Evaluation][ Let $G$ be a bipartite graph with $n$ left and $n$ right nodes, and let $V subset.eq {0,1}^E$ contain its perfect matchings, written as 0/1 encodings over the edges.
+  + Show that $K_(V)(vone,vone)=|V|$. (Note: The argument should work for any $V subset.eq {0,1}^d$).
+  + Describe why the first iterate of KMWU on $V$ may be difficult to compute.
+  + Show that a maximum-weight perfect matching of $G$ can be found in polynomial time. (_Hint:_ Optimize over the perfect-matching polytope $op("conv") V$).
+] <ex:perfect-matchings>
+
+#solution[
+  + $
+      K_(V)(vone, vone) &= ip(phi_(V)(vone), phi_(V)(vone)) \
+      &= sum_(vv in V) product_(k: v_k = 1) 1 dot 1 \
+      &= sum_(vv in V) 1 = |V|.
+    $
+
+  + KMWU initializes $vb_1 = vone$. Then the first normalizer is $K_(V)(vone,vone) = |V|$, the number of perfect matchings of $G$ (up to $n!$ of them). Earlier examples avoid direct computations by leveraging factoring or DP. However, it is hard to split this summation into smaller problems due to the interdependence of decisions. Choosing one edge rules out that left and right node for further matching, but the remaining problem depends on the first decision and does not cleanly factor into simpler cases. In fact, no efficient exact method for counting perfect matchings is known. The problem is \#P-complete #citep(<Valiant79:Permanent>).
+
+  + First we maximize $ip(vg, vx)$ over the polytope. Note this is a linear programming problem with $|E|$ variables ($O(n^2)$) and $2n$ equality constraints, so it can be solved in polynomial time. The space of solutions is $op("conv") V$ and a linear function over a polytope is maximized at a vertex, so an optimal vertex is a maximum-weight perfect matching. (Note: A solution known as the Hungarian algorithm solves this problem in $O(n^3)$, see: #citep(<Kuhn55:Hungarian>,<EdmondsKarp72:Network>)).
+
+While finding the linear optimum is solvable in polynomial time, we do not have knowledge of an efficient kernel evaluator for the same problem. So easy linear optimization need not imply easy kernel evaluation.
+]
+
+
 #lec_bibliography("meta/refs.bib")
