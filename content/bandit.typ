@@ -127,26 +127,43 @@ Thus, while both estimators are unbiased, they have different one-sided boundedn
 
 == The Exp3 algorithm
 
-Exp3 (short for "exponential weights for exploration and exploitation") adapts #lecture-link("learning1", <sec-mwu>)[multiplicative weights] to bandit feedback and was introduced by #citet(<auer2002nonstochastic>). We use a variant that needs no explicit exploration mixture. Convert rewards $g^((t))_a in [0,1]$ into losses $ell^((t))_a=1-g^((t))_a$. This changes neither realized regret nor pseudoregret.
+Exp3 (short for "exponential weights for exploration and exploitation") adapts #lecture-link("learning1", <sec-mwu>)[multiplicative weights] to bandit feedback and was introduced by #citet(<auer2002nonstochastic>). We use the variant from the #link("https://www.mit.edu/~6.7980/slides/L06_bandit.pdf")[lecture slides], which samples directly from the multiplicative-weights distribution. Assume $vg^((t)) in [0,1]^A$ at every round.
 
-Start with positive weights $W_(1,a)=1$. At time $t$, sample action $a^((t))$ from $y^((t))_a=W_(t,a)/sum_b W_(t,b)$ and observe its loss. Set
-$ hat(vell)^((t))=frac(1-w^((t)), y^((t))_(a^((t)))) ve_(a^((t))), quad W_(t+1,a)=W_(t,a) exp(-eta hat(ell)^((t))_a). $
-Equivalently, the full-information utility learner receives $-hat(vell)^((t))$.
+The adversary knows the algorithm and the past interaction, so it knows the sampling distribution $vy^((t))$ when choosing $vg^((t))$. The sampled action $a^((t))$ is still private to the learner when the adversary makes this choice.
+
+#pseudocode-list(numbered-title: [Exp3])[
+  - *Parameters:* finite action set $A$, learning rate $eta > 0$.
+  + Initialize $vy^((1)) <- frac(vone, |A|)$.
+  + *For* $t >= 1$:
+    + Sample $a^((t)) ~ vy^((t))$ and play $vx^((t)) = ve_(a^((t)))$.
+    + Observe the scalar gain $w^((t)) = g^((t))_(a^((t)))$.
+    + Set $hat(g)^((t))_c <- 1$ for every $c in A$.
+    + Set $hat(g)^((t))_(a^((t))) <- 1 + frac(w^((t)) - 1, y^((t))_(a^((t))))$.
+    + For every $c in A$, update
+      $ y^((t+1))_c <- frac(y^((t))_c exp(eta hat(g)^((t))_c), sum_(j in A) y^((t))_j exp(eta hat(g)^((t))_j)). $
+]
+
+The initialization and update keep every sampling probability positive. The vector $hat(vg)^((t))$ is the shifted importance-sampling estimator $overline(vg)^((t))$ defined above, so it is conditionally unbiased and each coordinate is at most $1$.
 
 #theorem[Exp3][
-  For $K=|A|>=2$, this algorithm satisfies
-  $ "PseudoReg"^((T)) <= frac(log K, eta) + eta K T/2. $
-  Taking $eta=sqrt(frac(2 log K, K T))$ gives $"PseudoReg"^((T)) <= sqrt(2K T log K)$ against any nonanticipating adversary.
+  For $|A| >= 2$, $T >= 1$, and $eta > 0$, this algorithm satisfies
+  $ "PseudoReg"^((T)) <= frac(log |A|, eta) + frac(eta |A| T, 2). $
+  Taking $eta = sqrt(frac(2 log |A|, |A| T))$ gives $"PseudoReg"^((T)) <= sqrt(2 |A| T log |A|)$.
 ]
 #proofsketch[
-  Because the estimates are nonnegative, $exp(-z)<=1-z+z^2/2$ applies for every $z=eta hat(ell)^((t))_a$, even if an estimate is large. The exponential-weights potential bound against each fixed action $a$ is
+  Let $EE_t$ denote expectation conditional on the history, the current sampling distribution, and the gain vector chosen for this round. The shifted estimator satisfies $EE_(t)[hat(vg)^((t))] = vg^((t))$ and $ip(vy^((t)), hat(vg)^((t))) = w^((t))$.
+
+  Subtracting $1$ from each estimate leaves the normalized update unchanged. For $z = eta (hat(g)^((t))_j - 1) <= 0$, use $exp(z) <= 1 + z + z^2/2$ and $log u <= u - 1$ to bound the logarithm of the round's normalizer. Summing those bounds and lower bounding the final weight sum by the weight of any fixed action $c$ gives
   $
-    sum_t ip(vy^((t)), hat(vell)^((t))) - sum_t hat(ell)^((t))_a <= frac(log K, eta) + eta/2 sum_t sum_b y^((t))_b (hat(ell)^((t))_b)^2.
+    sum_(t=1)^T hat(g)^((t))_c - sum_(t=1)^T w^((t))
+    <= frac(log |A|, eta) + eta/2 sum_(t=1)^T sum_(j in A) y^((t))_j (hat(g)^((t))_j - 1)^2.
   $
-  Conditional unbiasedness identifies the expected loss terms, while
-  $ EE_(t)[sum_b y^((t))_b (hat(ell)^((t))_b)^2]=sum_b (ell^((t))_b)^2 <= K. $
-  Take expectations and then maximize over the fixed comparator. This proves pseudoregret; it does not interchange a random hindsight maximum with expectation.
+  Only the sampled coordinate contributes to the quadratic term, so
+  $ EE_(t)[sum_(j in A) y^((t))_j (hat(g)^((t))_j - 1)^2] = sum_(j in A) (g^((t))_j - 1)^2 <= |A|. $
+  Take expectations for a fixed comparator $c$, then maximize over $c in A$ to obtain the pseudoregret bound.
 ]
+
+*Gains in a general interval.* If gains lie in a known interval $[a,b]$ with $a < b$, run the algorithm with the observed gain replaced by $frac(w^((t)) - a, b - a)$. Translation cancels in each regret comparison, and scaling back multiplies the bound by $b - a$. With the learning rate above, the bound is $(b - a) sqrt(2 |A| T log |A|)$. If $a = b$, regret is zero.
 
 == Tsallis entropy <sec-tsallis>
 
@@ -300,15 +317,22 @@ To summarize, exploration keeps each individual update small, while the confiden
 
 = Adversarial bandit learning on general convex domains
 
-Today, we know that bandit optimization is possible well past probability simplexes. In fact, we can construct bandit algorithms for any convex and compact domain $cX subset.eq RR^d$.
-In particular, we mention the general general result by #citet(<abernethy2008competing>), who showed that the a bandit algorithm can be constructed starting from a full-information regret miminizer built using the FTRL algorithm with a self-concordant distance-generating function.
+Bandit optimization extends to any nonempty compact convex domain $cX subset.eq RR^d$. Assume that utilities are uniformly bounded by a known $B > 0$:
+$ abs(ip(vg^((t)), vx)) <= B quad "for all" vx in cX "and all rounds" t. $
+This bound is uniform across rounds. We describe the full-dimensional case. For a lower-dimensional domain, work in its affine hull. A singleton has zero regret.
+
+The construction of #citet(<abernethy2008competing>) uses FTRL with a _self-concordant barrier_ $psi$. At the interior FTRL point $vy^((t))$, write the Hessian $nabla^2 psi(vy^((t)))$ in terms of its positive eigenvalues $lambda_1, ..., lambda_d$ and orthonormal eigenvectors $vv_1, ..., vv_d$. Draw an index $i$ uniformly from ${1, ..., d}$ and independently draw a fair sign $sigma in {-1, +1}$. Play
+$ vx^((t)) = vy^((t)) + sigma lambda_i^(-1/2) vv_i. $
+The closed unit Dikin ellipsoid lies in $cX$, so the sample is feasible. After observing $w^((t)) = ip(vg^((t)), vx^((t)))$, feed the estimate
+$ tilde(vg)^((t)) := d w^((t)) sigma lambda_i^(1/2) vv_i $
+to FTRL. Conditional on the history and the current gain vector, the sample has mean $vy^((t))$. Averaging the estimate over the sign cancels the contribution from the center, and averaging over directions recovers $vg^((t))$. With a suitable learning rate, bounded utilities yield sublinear pseudoregret.
 
 = Problems <sec-bandit-problems>
 
 #exercise[Variance of the importance-sampling estimator][
   Let $A$ be finite, and suppose the gain vector $vg^((t)) in [0,1]^A$ is fixed before the learner samples $a^((t)) ~ vy^((t))$, where $y^((t))_a > 0$ for every $a in A$. The learner observes $w^((t)) = g^((t))_(a^((t)))$ and uses the importance-sampling estimator
   $ tilde(vg)^((t))_a = (w^((t)) / y^((t))_a) 1{a^((t)) = a}. $
-  Compute the conditional variance of each coordinate $tilde(vg)^((t))_a$. Explain why these variances can be arbitrarily large while the conditional expectation of the weighted second moment $sum_(a in A) y^((t))_a (tilde(vg)^((t))_a)^2$ used in the Exp3 proof is bounded by $|A|$.
+  Compute the conditional variance of each coordinate $tilde(vg)^((t))_a$. Explain why these variances can be arbitrarily large while the conditional expectation of the weighted second moment $sum_(a in A) y^((t))_a (tilde(vg)^((t))_a)^2$ is bounded by $|A|$, as is the analogous moment of the shifted estimates in the Exp3 proof.
 ]
 
 #solution[
