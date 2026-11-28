@@ -317,7 +317,7 @@
   lecture(
     "kernelized",
     [High-dimensional games],
-    description: [Learning with large strategy spaces. Kernelized methods and multiplicative weights.],
+    description: [Learning with large strategy spaces. Kernelized multiplicative weights, with Colonel Blotto as a worked example.],
     instructor: [Constantinos Daskalakis],
   ),
   lecture(
