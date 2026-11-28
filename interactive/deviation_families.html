@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Deviation families · MIT 6.7980</title>
+<style>
+@font-face{font-family:"Source Sans 3";src:url("../assets/fonts/SourceSans3-Regular-web.woff") format("woff");font-weight:400;font-display:swap}
+/* Palette follows gabri-notes.css. */
+:root{--paper:#fbfaf7;--ink:#171411;--muted:#6b635b;--rule:#d7d0c6;--accent:#325d8a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.4 "Source Sans 3","Helvetica Neue",Arial,sans-serif}
+main{max-width:760px;margin:auto;padding:8px;display:grid;grid-template-columns:340px minmax(0,1fr);gap:24px;align-items:center}
+@media(max-width:559px){main{grid-template-columns:minmax(0,1fr);max-width:360px;gap:8px}}
+fieldset{border:0;margin:0 0 12px;padding:0}
+legend{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+.choices{display:flex;justify-content:center;flex-wrap:wrap;gap:8px}
+.choices label{position:relative}
+.choices input{position:absolute;opacity:0;width:1px;height:1px}
+.choices span{display:block;padding:6px 16px;border:1px solid var(--rule);border-radius:3px;cursor:pointer}
+.sliders{min-height:64px}
+.sliders label{display:grid;grid-template-columns:2.5em 1fr 2.5em;gap:10px;align-items:center;height:32px}
+input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer}
+output{font-variant-numeric:tabular-nums;text-align:right}
+[hidden]{display:none}
+input:checked+span{background:var(--accent);border-color:var(--accent);color:#fff}
+input:focus-visible+span{outline:2px solid var(--ink);outline-offset:2px}
+svg{display:block;width:100%;height:auto}
+.grid{stroke:var(--rule)}
+.axis{stroke:var(--ink);stroke-width:1.4}
+text{font:14px Georgia,"Times New Roman",serif;fill:var(--muted)}
+.axis-label{font-size:17px;font-style:italic;fill:var(--ink)}
+.curve{fill:none;stroke:var(--accent);stroke-width:3;stroke-linecap:round}
+.point{fill:var(--accent);stroke:var(--paper);stroke-width:2}
+table{width:100%;border-collapse:collapse;text-align:center;font-variant-numeric:tabular-nums}
+th,td{padding:3px;border-bottom:1px solid var(--rule);font-weight:400}
+p{margin:10px 0 0;text-align:center;min-height:2.8em}
+</style>
+</head>
+<body><main>
+<svg viewBox="0 0 360 350" role="img" aria-labelledby="plot-title"><title id="plot-title">Constant deviation</title><g id="axes"></g><path id="curve" class="curve"></path><g id="points"></g></svg>
+<div>
+<fieldset><legend>Deviation family</legend><div class="choices">
+<label><input type="radio" name="family" value="constant" checked><span>Constant</span></label>
+<label><input type="radio" name="family" value="affine"><span>Affine</span></label>
+<label><input type="radio" name="family" value="nonlinear"><span>Swap example</span></label>
+</div></fieldset>
+<div class="sliders">
+<div id="constant-sliders"><label><i>a</i><input id="a" type="range" min="0" max="1" step="0.01" value="0.65"><output id="a-value"></output></label></div>
+<div id="affine-sliders" hidden>
+<label>φ(0)<input id="start" type="range" min="0" max="1" step="0.01" value="0.2"><output id="start-value"></output></label>
+<label>φ(1)<input id="end" type="range" min="0" max="1" step="0.01" value="0.8"><output id="end-value"></output></label>
+</div>
+<div id="nonlinear-sliders" hidden><label><i>p</i><input id="p" type="range" min="0.25" max="4" step="0.05" value="2"><output id="p-value"></output></label></div>
+</div>
+<table aria-label="Values at the dots"><tbody>
+<tr><th scope="row"><i>x</i></th><td>0.20</td><td>0.50</td><td>0.80</td></tr>
+<tr><th scope="row">φ(<i>x</i>)</th><td id="value-0"></td><td id="value-1"></td><td id="value-2"></td></tr>
+</tbody></table>
+<p id="explanation" aria-live="polite"></p>
+</div>
+</main>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const num = id => Number($(id).value);
+const maps = {
+ constant: {title: 'Constant deviation', f: x => num('a'), text: 'Every recommendation x is replaced by the same strategy a.'},
+ affine: {title: 'Affine deviation', f: x => (1 - x) * num('start') + x * num('end'), text: 'The replacement changes linearly with the recommendation x.'},
+ nonlinear: {title: 'Nonlinear swap deviation', f: x => Math.pow(x, num('p')), text: 'Swap deviations can be any map from X to X, such as this power curve.'},
+};
+const px = x => 55 + 270 * x, py = y => 295 - 270 * y;
+let axes = '';
+for (const t of [0, 0.5, 1]) {
+ axes += `<line class="grid" x1="${px(t)}" y1="25" x2="${px(t)}" y2="295"/><line class="grid" x1="55" y1="${py(t)}" x2="325" y2="${py(t)}"/><text x="${px(t)}" y="315" text-anchor="middle">${t}</text><text x="45" y="${py(t) + 5}" text-anchor="end">${t}</text>`;
+}
+axes += '<line class="axis" x1="55" y1="295" x2="325" y2="295"/><line class="axis" x1="55" y1="25" x2="55" y2="295"/><text class="axis-label" x="342" y="300">x</text><text class="axis-label" x="20" y="15">φ(x)</text>';
+$('axes').innerHTML = axes;
+function update() {
+ const family = document.querySelector('input[name="family"]:checked').value;
+ const {title, f, text} = maps[family];
+ for (const key in maps) $(`${key}-sliders`).hidden = key !== family;
+ for (const id of ['a', 'start', 'end', 'p']) $(`${id}-value`).textContent = num(id).toFixed(2);
+ $('curve').setAttribute('d', Array.from({length: 101}, (_, i) => `${i ? 'L' : 'M'}${px(i / 100).toFixed(2)},${py(f(i / 100)).toFixed(2)}`).join(' '));
+ const samples = [0.2, 0.5, 0.8];
+ samples.forEach((x, i) => { $(`value-${i}`).textContent = f(x).toFixed(2); });
+ $('explanation').textContent = text;
+ $('points').innerHTML = samples.map(x => `<circle class="point" cx="${px(x).toFixed(2)}" cy="${py(f(x)).toFixed(2)}" r="5"/>`).join('');
+ $('plot-title').textContent = title;
+}
+document.querySelectorAll('input').forEach(input => input.addEventListener('input', update));
+update();
+</script>
+</body></html>
