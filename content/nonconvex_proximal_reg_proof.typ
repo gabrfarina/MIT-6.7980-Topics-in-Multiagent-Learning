@@ -18,19 +18,19 @@
 
   // We had used proj_(cX) in class at some points; however, other materials here use the Pi notation above.
 
-  Since each $ell^((t))$ is convex, $forall vx, vp in cX$,
+  Since each $ell^((t))$ is convex, the first-order condition for convexity gives $forall vx, vp in cX$,
   $ ell^((t))(vx) - ell^((t))(vp) <= ip(gradient ell^((t))(vx), vx - vp). $ <eq-convex-loss>
 
   Using this inequality, we can bound the regret for any $f$:
 
-  $ "Reg"^((T))_(f) &= sum_(t=1)^(T) ell^((t))(vx^((t)))  - sum_(t=1)^(T) ell^((t))(vp^((t))) = sum_(t=1)^(T) (ell^((t))(vx^((t))) - ell^((t))(vp^((t)))) \
+  $ "Reg"^((T))_(f) &= sum_(t=1)^(T) ell^((t))(vx^((t))) - sum_(t=1)^(T) ell^((t))(vp^((t))) = sum_(t=1)^(T) (ell^((t))(vx^((t))) - ell^((t))(vp^((t)))) \
   &limits(<=)^((#[@eq-convex-loss])) sum_(t=1)^(T) ip(vg^((t)), vx^((t)) - vp^((t))). $ <eq-regret>
 
-  Next, we analyze $M_(f)(vx^((t+1)))$ for any $f$. We first bound $M_(f)(vx)$ loosely. Let $vm in argmin_(vy in cX) f(vy).$ Then, for any $vx in cX$,
+  Next, we analyze $M_(f)(vx^((t+1)))$ for any $f$. We first bound $M_(f)(vx)$ loosely. Let $vm in argmin_(vy in cX) f(vy)$. Then, for any $vx in cX$,
 
   $ f(vm) <= M_(f)(vx) limits(=)^((#[@moreau-envelope-def])) min_(vy in cX) {f(vy) + 1/2 norm(vx - vy)^2} <= f(vm) + 1/2 D^2. $ <eq-global-mf-bound>
 
-  We now bound $M_(f)(vx^((t+1)))$ more tightly, in terms of $vx^((t))$ and our parameters. We know that for any closed convex set $cS$,
+  We now bound $M_(f)(vx^((t+1)))$ more tightly and in terms of $vx^((t))$ and our parameters. We know that for any closed convex set $cS$, as shown in #citep(<ryu2016primer>, [Section 3, pages 7-8]), $forall va, vb in RR^d$
 
   $ norm(Pi_(cS) (va) - Pi_(cS) (vb)) <= norm(va - vb). $ <eq-projection>
 
@@ -55,8 +55,14 @@
     &limits(<=)^((#[@eq-global-mf-bound])) frac((f(vm) + 1/2 D^2) - f(vm), eta) + 1/2 eta G^2T \
     &= frac(D^2, 2 eta) + 1/2 eta G^2 T.
   $
-  Since this upper bound does not depend on $f$, it also holds for $sup_(f in F) "Reg"_(f)^((T))$.
 ]
 
-// Referring to Task 7 might be useful here.
-*Implication for local $Phi$-equilibria.* As seen in the examples above, for linear $f_(vv)(vy) = ip(vv, vy)$ with $norm(vv) <= delta$, $prox_(f_(vv))(vx) = Pi_(cX)(vx - vv)$, which is a deviation that moves $vx$ by at most $delta$. Hence, all these proximities are in $Phi(delta)$. If we choose $eta = D / (G sqrt(T))$, gradient descent attains regret at most $D G sqrt(T)$ against all of these local deviations simultaneously.
+#remark[Since this upper bound does not depend on $f$, it holds for all admissible $f$ simultaneously.]
+
+// Referring to Task 7/8 might be useful here.
+*Implication for local $Phi$-equilibria.* As seen in the examples above,
+for linear $f_(vv)(vy) = ip(vv, vy)$ with $norm(vv) <= delta$, $prox_(f_(vv))(vx) = Pi_(cX)(vx - vv)$,
+which is a deviation that moves $vx$ by at most $delta$ by (@eq-projection). Hence, gradient descent with $eta = D / (G sqrt(T))$
+has regret at most $D G sqrt(T)$ against all such $delta$-local deviations simultaneously.
+
+#lec_bibliography("meta/refs.bib")
